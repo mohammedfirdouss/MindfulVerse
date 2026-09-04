@@ -110,17 +110,29 @@ p { margin: 0 0 0.9em; }
 /* legacy alias kept so older markup doesn't break; same quiet treatment */
 .eyebrow { font-size: 0.82rem; font-variant: small-caps; letter-spacing: 0.03em; color: var(--lapis); font-weight: 600; }
 
-.translation { color: var(--ink-soft); font-size: 1.05rem; line-height: 1.65; }
+.translation { color: var(--ink-soft); font-size: calc(1.05rem * var(--read-scale, 1)); line-height: 1.65; }
 
 /* --- Arabic --- */
 .arabic {
   font-family: var(--font-arabic);
-  font-size: 2.15rem;
+  font-size: calc(2.15rem * var(--read-scale, 1));
   line-height: 2.35;
   direction: rtl;
   text-align: right;
   color: var(--ink);
 }
+
+/* Reading-size control (reader only) */
+.reading-controls { display: flex; align-items: center; gap: 2px; }
+.size-btn {
+  background: none; border: 1px solid var(--line); color: var(--ink-soft);
+  font-family: var(--font-read); cursor: pointer; padding: 4px 10px; line-height: 1;
+  transition: background .15s ease, color .15s ease;
+}
+.size-btn:first-of-type { border-radius: 6px 0 0 6px; }
+.size-btn:last-of-type { border-radius: 0 6px 6px 0; border-left: none; }
+.size-btn[aria-pressed="true"] { background: var(--lapis-soft); color: var(--lapis); border-color: var(--lapis-soft); }
+.size-btn:active { transform: scale(0.96); }
 
 /* --- Buttons --- */
 .btn {

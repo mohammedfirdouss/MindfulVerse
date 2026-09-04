@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import type { Ayah, EmotionEntry } from "../lib/types";
 import { loadAyahsByKeys, loadEmotions } from "../lib/data";
 import { addEntry } from "../lib/journal";
@@ -28,6 +29,36 @@ const DAILY_VERSES: string[] = [
 
 const VERSE_PROMPT = "What does this verse stir in you today?";
 
+// One tasteful motion: a staggered reveal. Each item fades and rises in with a
+// small per-index delay. We cap the stagger so a long list never blocks reading
+// or interaction, and we honour prefers-reduced-motion (opacity only, no rise).
+const STAGGER_MS = 40;
+const MAX_STAGGER_MS = 240;
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+function revealStyle(index: number, mounted: boolean, reduced: boolean): CSSProperties {
+  const delay = Math.min(index * STAGGER_MS, MAX_STAGGER_MS);
+  if (reduced) {
+    return {
+      opacity: mounted ? 1 : 0,
+      transition: `opacity .32s var(--ease-out)`,
+      transitionDelay: `${delay}ms`,
+    };
+  }
+  return {
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? "none" : "translateY(6px)",
+    transition: `opacity .32s var(--ease-out), transform .32s var(--ease-out)`,
+    transitionDelay: `${delay}ms`,
+  };
+}
+
 function AyahView({ ayah }: { ayah: Ayah }) {
   return (
     <div className="stack">
@@ -46,9 +77,12 @@ export default function CheckIn() {
     return DAILY_VERSES[dayIndex % DAILY_VERSES.length];
   }, []);
 
+  const reduced = useMemo(() => prefersReducedMotion(), []);
+
   // Verse of the day.
   const [dailyAyah, setDailyAyah] = useState<Ayah | null>(null);
   const [dailyError, setDailyError] = useState(false);
+  const [dailyMounted, setDailyMounted] = useState(false);
 
   // Journal for the verse of the day.
   const [journalBody, setJournalBody] = useState("");
@@ -61,6 +95,7 @@ export default function CheckIn() {
   const [emotionAyahs, setEmotionAyahs] = useState<Ayah[]>([]);
   const [emotionAyahsError, setEmotionAyahsError] = useState(false);
   const [emotionLoading, setEmotionLoading] = useState(false);
+  const [emotionMounted, setEmotionMounted] = useState(false);
 
   useEffect(() => {
     track({ type: "checkin_view" });
@@ -82,6 +117,15 @@ export default function CheckIn() {
     };
   }, [dailyKey]);
 
+  // Reveal the verse of the day once it has arrived.
+  useEffect(() => {
+    if (dailyAyah) {
+      const id = requestAnimationFrame(() => setDailyMounted(true));
+      return () => cancelAnimationFrame(id);
+    }
+    return undefined;
+  }, [dailyAyah]);
+
   useEffect(() => {
     let alive = true;
     loadEmotions()
@@ -96,6 +140,15 @@ export default function CheckIn() {
     };
   }, []);
 
+  // Reveal the emotion verses each time a fresh set finishes loading.
+  useEffect(() => {
+    if (emotionAyahs.length > 0) {
+      const id = requestAnimationFrame(() => setEmotionMounted(true));
+      return () => cancelAnimationFrame(id);
+    }
+    return undefined;
+  }, [emotionAyahs]);
+
   const selected = useMemo(
     () => emotions.find((e) => e.id === selectedId) ?? null,
     [emotions, selectedId]
@@ -106,6 +159,7 @@ export default function CheckIn() {
     setEmotionAyahs([]);
     setEmotionAyahsError(false);
     setEmotionLoading(true);
+    setEmotionMounted(false);
     track({ type: "checkin_view", emotion: entry.id });
     loadAyahsByKeys(entry.verseKeys)
       .then((ayahs) => {
@@ -134,21 +188,24 @@ export default function CheckIn() {
   return (
     <div className="container stack">
       <header className="stack">
-        <div className="eyebrow">Daily check-in</div>
+        <div className="label">Daily check-in</div>
         <h1>A quiet moment</h1>
       </header>
 
       {/* Verse of the day */}
       <section className="card stack">
-        <div className="eyebrow">Verse of the day</div>
+        <div className="label">Verse of the day</div>
         {dailyError ? (
           <p className="muted">
-            Today&rsquo;s verse is being prepared. Please check back soon.
+            Today&rsquo;s verse is still being gathered. Come back in a little
+            while and it will be waiting for you.
           </p>
         ) : dailyAyah ? (
-          <AyahView ayah={dailyAyah} />
+          <div style={revealStyle(0, dailyMounted, reduced)}>
+            <AyahView ayah={dailyAyah} />
+          </div>
         ) : (
-          <p className="muted">Loading today&rsquo;s verse&hellip;</p>
+          <p className="muted">Bringing today&rsquo;s verse to you&hellip;</p>
         )}
 
         <div className="stack" style={{ marginTop: 4 }}>
@@ -175,9 +232,7 @@ export default function CheckIn() {
               resize: "vertical",
             }}
           />
-          <div
-            style={{ display: "flex", alignItems: "center", gap: 12 }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               type="button"
               className="btn"
@@ -189,27 +244,31 @@ export default function CheckIn() {
             </button>
             {saved && (
               <span className="muted" role="status">
-                Saved to your journal.
+                Kept in your journal.
               </span>
             )}
           </div>
         </div>
       </section>
 
-      {/* Emotion picker */}
+      {/* Emotion picker — the heart moment, warmed with garnet rather than lapis. */}
       <section className="card stack">
-        <div className="eyebrow">How is your heart today?</div>
+        <div
+          className="label"
+          style={{ color: "var(--garnet)" }}
+        >
+          How is your heart today?
+        </div>
 
         {emotionsError ? (
           <p className="muted">
-            These reminders are being prepared. Please check back soon.
+            The reminders are still being gathered. Come back in a little while
+            and they will be here.
           </p>
         ) : emotions.length === 0 ? (
-          <p className="muted">Loading&hellip;</p>
+          <p className="muted">Gathering a few words for you&hellip;</p>
         ) : (
-          <div
-            style={{ display: "flex", flexWrap: "wrap", gap: 10 }}
-          >
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {emotions.map((entry) => {
               const isActive = entry.id === selectedId;
               return (
@@ -219,6 +278,14 @@ export default function CheckIn() {
                   className={isActive ? "btn" : "btn secondary"}
                   aria-pressed={isActive}
                   onClick={() => selectEmotion(entry)}
+                  style={
+                    isActive
+                      ? {
+                          background: "var(--garnet)",
+                          borderColor: "var(--garnet)",
+                        }
+                      : { borderColor: "var(--garnet)", color: "var(--garnet)" }
+                  }
                 >
                   {entry.label}
                 </button>
@@ -234,13 +301,18 @@ export default function CheckIn() {
             </h2>
             {emotionAyahsError ? (
               <p className="muted">
-                These verses are being prepared. Please check back soon.
+                These verses are still being gathered. Come back in a little
+                while and they will be here for you.
               </p>
             ) : emotionLoading ? (
-              <p className="muted">Gathering verses&hellip;</p>
+              <p className="muted">Gathering a few verses&hellip;</p>
             ) : (
-              emotionAyahs.map((ayah) => (
-                <div key={ayah.verseKey} className="card stack">
+              emotionAyahs.map((ayah, i) => (
+                <div
+                  key={ayah.verseKey}
+                  className="card stack"
+                  style={revealStyle(i, emotionMounted, reduced)}
+                >
                   <AyahView ayah={ayah} />
                 </div>
               ))

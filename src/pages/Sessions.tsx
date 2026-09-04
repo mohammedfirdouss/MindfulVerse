@@ -28,7 +28,7 @@ export default function Sessions() {
   if (status.kind === "loading") {
     return (
       <div className="container">
-        <p className="muted">Loading sessions…</p>
+        <p className="muted">Gathering the sessions…</p>
       </div>
     );
   }
@@ -37,10 +37,10 @@ export default function Sessions() {
     return (
       <div className="container">
         <div className="card stack">
-          <h2>Couldn’t load sessions</h2>
+          <h2>We couldn’t reach the sessions</h2>
           <p className="muted">
-            Something went wrong reaching your sessions. Please check your
-            connection and try again in a moment.
+            Something interrupted the connection. Take a breath, check your
+            network, and try again in a moment.
           </p>
         </div>
       </div>
@@ -50,32 +50,45 @@ export default function Sessions() {
   return (
     <div className="container stack">
       <header className="stack">
-        <p className="eyebrow">Tadabbur</p>
+        <p className="label">Tadabbur</p>
         <h1>Sessions</h1>
-        <p className="muted">
+        <p className="soft">
           Short, guided reflections through the Qur’an — one thought at a time.
         </p>
       </header>
 
       {status.sessions.length === 0 ? (
-        <p className="muted">No sessions available yet.</p>
+        <p className="muted">
+          There are no sessions here yet. Please come back soon — more are on
+          the way.
+        </p>
       ) : (
-        <div className="stack">
+        <ul
+          className="stack"
+          style={{ listStyle: "none", margin: 0, padding: 0 }}
+        >
           {status.sessions.map((s) => (
-            <Link
-              key={s.id}
-              to={`/sessions/${s.id}`}
-              className="card stack"
-              style={{ display: "block", color: "inherit" }}
-            >
-              <p className="eyebrow">{s.theme}</p>
-              <h2 style={{ margin: 0 }}>{s.title}</h2>
-              <p className="muted" style={{ margin: 0 }}>
-                {s.steps.length} {s.steps.length === 1 ? "step" : "steps"}
-              </p>
-            </Link>
+            <li key={s.id}>
+              <Link
+                to={`/sessions/${s.id}`}
+                style={{
+                  display: "block",
+                  color: "inherit",
+                  padding: "18px 0",
+                  borderTop: "1px solid var(--line)",
+                }}
+              >
+                <p className="label" style={{ margin: "0 0 4px" }}>
+                  {s.theme}
+                </p>
+                <h2 style={{ margin: 0, fontWeight: 500 }}>{s.title}</h2>
+                <p className="muted" style={{ margin: "4px 0 0" }}>
+                  {s.steps.length} {s.steps.length === 1 ? "step" : "steps"}
+                </p>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
