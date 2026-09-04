@@ -89,6 +89,7 @@ function main() {
   ensureDir(OUT);
   ensureDir(path.join(OUT, "quran"));
   ensureDir(path.join(OUT, "tafsir"));
+  ensureDir(path.join(OUT, "info"));
 
   // ---- Load sources ----
   const ayahMeta = readJSON(
@@ -179,6 +180,26 @@ function main() {
     );
   }
 
+  // ---- info/{surah}.json ----
+  const surahInfo = readJSON(
+    path.join(QUL, "Surah Info", "surah-info-en.json"),
+  );
+  let infoWritten = 0;
+  const missingInfo = [];
+  for (let n = 1; n <= 114; n++) {
+    const entry = surahInfo[String(n)];
+    const text = stripHtml(entry?.text);
+    if (!entry || !text) {
+      missingInfo.push(n);
+      continue;
+    }
+    fs.writeFileSync(
+      path.join(OUT, "info", `${n}.json`),
+      JSON.stringify({ surah: n, name: entry.surah_name ?? "", text }),
+    );
+    infoWritten++;
+  }
+
   // ---- themes.json ----
   const db = new Database(
     resolveFile(path.join(QUL, "Ayah Theme", "ayah-themes.db")),
@@ -205,6 +226,10 @@ function main() {
   console.log(`total ayahs:           ${totalAyahs}`);
   console.log(`surahs with tafsir:    ${surahsWithTafsir}`);
   console.log(`themes:                ${themes.length}`);
+  console.log(`surah info written:    ${infoWritten}`);
+  if (missingInfo.length) {
+    console.log(`WARNING missing surah info: ${missingInfo.join(", ")}`);
+  }
   if (missingTranslations.length) {
     console.log(
       `WARNING missing translations: ${missingTranslations.length} (e.g. ${missingTranslations.slice(0, 5).join(", ")})`,
