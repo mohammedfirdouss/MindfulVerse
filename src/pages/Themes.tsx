@@ -16,8 +16,13 @@ type Status =
   | { kind: "ready"; groups: ThemeGroup[] };
 
 function groupByTheme(rows: Theme[]): ThemeGroup[] {
+  // The source table contains duplicate rows — dedupe on surah + range.
   const byName = new Map<string, Theme[]>();
+  const seen = new Set<string>();
   for (const row of rows) {
+    const key = `${row.theme}|${row.surah}|${row.ayahFrom}|${row.ayahTo}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     const existing = byName.get(row.theme);
     if (existing) existing.push(row);
     else byName.set(row.theme, [row]);
