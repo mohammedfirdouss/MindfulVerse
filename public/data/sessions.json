@@ -1,0 +1,200 @@
+[
+  {
+    "id": "patience-in-hardship",
+    "title": "Patience in Hardship",
+    "theme": "Patience (Sabr)",
+    "intro": "Hardship visits every life. These verses sit with the quiet strength of patience and the trust that we are never left alone in it.",
+    "steps": [
+      {
+        "verseKeys": ["2:155", "2:156", "2:157"],
+        "reflection": "What are you carrying right now that asks patience of you?"
+      },
+      {
+        "verseKeys": ["2:153"],
+        "reflection": "Where might you turn for steadiness when your own runs low?"
+      },
+      {
+        "verseKeys": ["3:200"],
+        "reflection": "What would it look like to hold on gently, one day at a time?"
+      }
+    ],
+    "journalPrompt": "Write about a past hardship you eventually moved through. What helped you endure it?"
+  },
+  {
+    "id": "gratitude",
+    "title": "A Grateful Heart",
+    "theme": "Gratitude (Shukr)",
+    "intro": "Gratitude reorients us toward what is already here. Let these verses slow you down enough to notice.",
+    "steps": [
+      {
+        "verseKeys": ["14:7"],
+        "reflection": "What small blessing have you overlooked lately?"
+      },
+      {
+        "verseKeys": ["16:18"],
+        "reflection": "If you tried to count the gifts in your life, where would you even begin?"
+      },
+      {
+        "verseKeys": ["2:152"],
+        "reflection": "How does remembering shape the way you feel remembered?"
+      }
+    ],
+    "journalPrompt": "List three things from today that you are thankful for, and why each one matters to you."
+  },
+  {
+    "id": "gods-mercy",
+    "title": "The Breadth of Mercy",
+    "theme": "Mercy (Rahmah)",
+    "intro": "Mercy is described as vast, near, and never exhausted. Rest for a moment in that spaciousness.",
+    "steps": [
+      {
+        "verseKeys": ["39:53"],
+        "reflection": "Is there a part of yourself you have found hard to forgive?"
+      },
+      {
+        "verseKeys": ["7:156"],
+        "reflection": "What would it mean to believe that mercy is wide enough for you?"
+      },
+      {
+        "verseKeys": ["6:54"],
+        "reflection": "How might you extend some of that gentleness to yourself today?"
+      }
+    ],
+    "journalPrompt": "Write a few honest lines about where you most need to feel mercy right now."
+  },
+  {
+    "id": "overcoming-anxiety-finding-ease",
+    "title": "Ease After Hardship",
+    "theme": "Finding Ease",
+    "intro": "Anxiety narrows the world to the difficulty in front of us. These verses widen the frame toward the ease that follows.",
+    "steps": [
+      {
+        "verseKeys": ["94:5", "94:6"],
+        "reflection": "Where in your life do you need to trust that ease follows hardship?"
+      },
+      {
+        "verseKeys": ["65:2", "65:3"],
+        "reflection": "What might loosen if you stopped carrying tomorrow's worry today?"
+      }
+    ],
+    "journalPrompt": "Describe the worry weighing on you, then write one small next step within your reach."
+  },
+  {
+    "id": "trust-and-reliance",
+    "title": "Trust and Reliance",
+    "theme": "Reliance (Tawakkul)",
+    "intro": "Reliance is doing our part and then letting go of the rest. Sit with what it means to loosen your grip.",
+    "steps": [
+      {
+        "verseKeys": ["65:3"],
+        "reflection": "What are you gripping so tightly that it has begun to tire you?"
+      },
+      {
+        "verseKeys": ["3:159"],
+        "reflection": "Where could you take action and then release the outcome?"
+      },
+      {
+        "verseKeys": ["14:12"],
+        "reflection": "What would trusting the unknown feel like in your body?"
+      }
+    ],
+    "journalPrompt": "Write about something outside your control. What would it take to set it down for now?"
+  },
+  {
+    "id": "repentance-and-hope",
+    "title": "Return and Hope",
+    "theme": "Repentance and Hope",
+    "intro": "No turning back is ever too late. These verses hold open a door of return without shame.",
+    "steps": [
+      {
+        "verseKeys": ["39:53", "39:54"],
+        "reflection": "What would you like to leave behind, gently, starting now?"
+      },
+      {
+        "verseKeys": ["66:8"],
+        "reflection": "What does a fresh start look like for you today?"
+      }
+    ],
+    "journalPrompt": "Write a letter to yourself forgiving one thing, and naming one hope for the road ahead."
+  },
+  {
+    "id": "contentment",
+    "title": "Quiet Contentment",
+    "theme": "Contentment (Rida)",
+    "intro": "Contentment is not resignation but a settled heart. Let these verses invite a little more peace with what is.",
+    "steps": [
+      {
+        "verseKeys": ["13:26"],
+        "reflection": "Where are you comparing your life to someone else's?"
+      },
+      {
+        "verseKeys": ["20:131"],
+        "reflection": "What is already enough, if you let it be?"
+      },
+      {
+        "verseKeys": ["89:27", "89:28"],
+        "reflection": "What would a settled, unhurried heart feel like right now?"
+      }
+    ],
+    "journalPrompt": "Write about a moment recently when you felt 'enough' — what made it possible?"
+  },
+  {
+    "id": "remembrance-and-peace",
+    "title": "Remembrance and the Restful Heart",
+    "theme": "Remembrance (Dhikr)",
+    "intro": "The heart is said to find its rest in remembrance. Slow your breathing as you read.",
+    "steps": [
+      {
+        "verseKeys": ["13:28"],
+        "reflection": "When did you last feel genuinely at rest?"
+      },
+      {
+        "verseKeys": ["2:152"],
+        "reflection": "What simple practice could help you return to stillness?"
+      },
+      {
+        "verseKeys": ["33:41"],
+        "reflection": "What word or phrase might you carry with you through the day?"
+      }
+    ],
+    "journalPrompt": "Write about a place, sound, or practice that quiets your mind. How can you visit it more often?"
+  },
+  {
+    "id": "grief-and-loss",
+    "title": "Holding Grief",
+    "theme": "Grief and Loss",
+    "intro": "Grief is love with nowhere to go. These verses keep company with sorrow without rushing it away.",
+    "steps": [
+      {
+        "verseKeys": ["2:156"],
+        "reflection": "What or whom are you grieving, and what did they mean to you?"
+      },
+      {
+        "verseKeys": ["94:5", "94:6"],
+        "reflection": "Can you make a little room for the possibility of ease, even now?"
+      },
+      {
+        "verseKeys": ["12:86"],
+        "reflection": "Where do you take your sorrow when words run out?"
+      }
+    ],
+    "journalPrompt": "Write freely about your loss — no need for tidy conclusions, just what is true today."
+  },
+  {
+    "id": "seeking-guidance",
+    "title": "Seeking Guidance",
+    "theme": "Guidance (Hidayah)",
+    "intro": "When the path ahead is unclear, these verses ask for light on the way. Read them as a quiet request.",
+    "steps": [
+      {
+        "verseKeys": ["1:5", "1:6", "1:7"],
+        "reflection": "What decision or direction feels foggy to you right now?"
+      },
+      {
+        "verseKeys": ["2:2"],
+        "reflection": "Where might clarity already be waiting, if you paused to listen?"
+      }
+    ],
+    "journalPrompt": "Write about a crossroads you are facing. What would you ask for guidance about first?"
+  }
+]
