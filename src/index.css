@@ -21,7 +21,7 @@
   --maxw: 660px;
 
   --font-read: "Fraunces", Georgia, serif;
-  --font-arabic: "Harmattan", "Scheherazade New", "Noto Naskh Arabic", serif;
+  --font-arabic: "Uthmanic Hafs", "Scheherazade New", "Noto Naskh Arabic", serif;
 
   /* Motion — Emil Kowalski's curves. UI motion stays under 300ms. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -128,12 +128,12 @@ p { margin: 0 0 0.9em; }
 
 .translation { color: var(--ink-soft); font-size: calc(1.04rem * var(--read-scale, 1)); line-height: 1.65; }
 
-/* --- Arabic: Harmattan — the West African Arabic voice --- */
+/* --- Arabic: KFGQPC Uthmanic Hafs — the Madinah mushaf script --- */
 .arabic {
   font-family: var(--font-arabic);
-  font-size: calc(2.3rem * var(--read-scale, 1));
+  font-size: calc(1.9rem * var(--read-scale, 1));
   font-weight: 400;
-  line-height: 2.05;
+  line-height: 2.3;
   direction: rtl;
   text-align: right;
   color: var(--indigo-deep);
