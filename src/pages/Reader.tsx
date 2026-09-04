@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadSurahs } from "../lib/data";
+import { getLastRead } from "../lib/progress";
 import type { SurahMeta } from "../lib/types";
 
 type Status = "loading" | "ready" | "error";
@@ -9,6 +10,11 @@ export default function Reader() {
   const [surahs, setSurahs] = useState<SurahMeta[]>([]);
   const [status, setStatus] = useState<Status>("loading");
   const [query, setQuery] = useState("");
+  const lastRead = useMemo(() => getLastRead(), []);
+
+  useEffect(() => {
+    document.title = "Read — MindfulVerse";
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -43,7 +49,28 @@ export default function Reader() {
         <p className="eyebrow">Read</p>
         <h1>The Qur'an</h1>
         <p className="muted">Browse all 114 surahs.</p>
+        <p style={{ margin: "10px 0 0", display: "flex", gap: 18 }}>
+          <Link to="/search">Search the translation</Link>
+          <Link to="/themes">Browse by theme</Link>
+        </p>
       </header>
+
+      {lastRead && (
+        <Link
+          to={`/read/${lastRead.surah}?v=${lastRead.ayah}`}
+          className="card"
+          style={{ display: "block", color: "var(--ink)" }}
+        >
+          <span className="label" style={{ display: "block" }}>
+            Continue reading
+          </span>
+          <span style={{ fontWeight: 650 }}>
+            {surahs.find((s) => s.number === lastRead.surah)?.name ??
+              `Surah ${lastRead.surah}`}{" "}
+            · verse {lastRead.ayah}
+          </span>
+        </Link>
+      )}
 
       {status === "loading" && <p className="muted">Loading surahs…</p>}
 

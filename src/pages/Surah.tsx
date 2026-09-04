@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { loadSurahAyahs, loadSurahTafsir, loadSurahs } from "../lib/data";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import {
+  loadSurahAyahs,
+  loadSurahTafsir,
+  loadSurahs,
+  loadTafsirIndex,
+} from "../lib/data";
+import { recordLastRead } from "../lib/progress";
 import { shareVerse } from "../lib/share";
 import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
 
@@ -16,16 +22,6 @@ interface SurahInfo {
   text: string;
 }
 
-/** Ibn Kathir comments on passages, not single verses: a run of ayahs stores
- *  its commentary under the first ayah of the group. For an ayah with no
- *  direct entry, its commentary is the nearest preceding entry. */
-function coveringTafsirAyah(tafsir: SurahTafsir, ayah: number): number | null {
-  for (let n = ayah; n >= 1; n--) {
-    if (tafsir[String(n)]) return n;
-  }
-  return null;
-}
-
 const SIZES: { key: string; label: string; scale: number }[] = [
   { key: "s", label: "A", scale: 0.86 },
   { key: "m", label: "A", scale: 1 },
@@ -33,8 +29,18 @@ const SIZES: { key: string; label: string; scale: number }[] = [
 ];
 const SIZE_KEY = "mindfulverse.readScale.v1";
 
-/** Commentary opens here — its own scroll space, so a very long Ibn Kathir
- *  entry never pushes the reading page around. The ayah stays pinned for context. */
+/** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
+ *  the first ayah of the group. Given the surah's list of ayahs that carry a
+ *  direct entry, find the entry covering this ayah. */
+function coveringFromIndex(indexed: number[], ayah: number): number | null {
+  let best: number | null = null;
+  for (const n of indexed) {
+    if (n <= ayah) best = n;
+    else break;
+  }
+  return best;
+}
+
 function CommentarySheet({
   ayah,
   text,
@@ -42,8 +48,8 @@ function CommentarySheet({
   onClose,
 }: {
   ayah: Ayah;
-  text: string;
-  /** Where the commentary actually lives when it covers a passage. */
+  /** null while the tafsir file is still downloading. */
+  text: string | null;
   sourceAyah: number;
   onClose: () => void;
 }) {
@@ -60,7 +66,7 @@ function CommentarySheet({
     };
   }, [onClose]);
 
-  const paragraphs = text
+  const paragraphs = (text ?? "")
     .split("\n\n")
     .map((p) => p.trim())
     .filter(Boolean);
@@ -77,7 +83,9 @@ function CommentarySheet({
         <div className="sheet-grip" />
         <div className="sheet-head">
           <div>
-            <p className="arabic">{ayah.arabic}</p>
+            <p className="arabic" lang="ar">
+              {ayah.arabic}
+            </p>
             <p className="label" style={{ margin: 0 }}>
               {sourceAyah === ayah.ayah
                 ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
@@ -89,11 +97,15 @@ function CommentarySheet({
           </button>
         </div>
         <div className="sheet-body">
-          <div className="tafsir">
-            {paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
+          {text === null ? (
+            <p className="muted">Opening the commentary…</p>
+          ) : (
+            <div className="tafsir">
+              {paragraphs.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
     </>
@@ -102,10 +114,12 @@ function CommentarySheet({
 
 export default function Surah() {
   const { surah } = useParams<{ surah: string }>();
+  const [params] = useSearchParams();
   const surahNumber = Number(surah);
 
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
-  const [tafsir, setTafsir] = useState<SurahTafsir>({});
+  const [indexed, setIndexed] = useState<number[]>([]);
+  const [tafsir, setTafsir] = useState<SurahTafsir | null>(null);
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
@@ -115,6 +129,7 @@ export default function Surah() {
   const [jump, setJump] = useState<string>("");
   const [info, setInfo] = useState<SurahInfo | null>(null);
   const [shared, setShared] = useState<string | null>(null);
+  const tafsirPromise = useRef<Promise<SurahTafsir> | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -125,16 +140,20 @@ export default function Surah() {
     }
 
     setStatus("loading");
+    setTafsir(null);
+    tafsirPromise.current = null;
 
+    // The tafsir text itself (up to 1.3MB for long surahs) is NOT loaded here —
+    // only a ~6KB index of which ayahs have entries. Text loads on first tap.
     Promise.all([
       loadSurahAyahs(surahNumber),
-      loadSurahTafsir(surahNumber).catch<SurahTafsir>(() => ({})),
+      loadTafsirIndex().catch<Record<string, number[]>>(() => ({})),
       loadSurahs().catch<SurahMeta[]>(() => []),
     ])
-      .then(([ayahData, tafsirData, surahList]) => {
+      .then(([ayahData, indexData, surahList]) => {
         if (!active) return;
         setAyahs(ayahData);
-        setTafsir(tafsirData);
+        setIndexed(indexData[String(surahNumber)] ?? []);
         setMeta(surahList.find((s) => s.number === surahNumber));
         setStatus("ready");
       })
@@ -143,7 +162,6 @@ export default function Surah() {
         setStatus("error");
       });
 
-    // Surah info is optional enrichment — ignore failures quietly.
     fetch(`/data/info/${surahNumber}.json`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d: SurahInfo | null) => {
@@ -155,6 +173,72 @@ export default function Surah() {
       active = false;
     };
   }, [surahNumber]);
+
+  useEffect(() => {
+    if (meta) document.title = `${meta.name} — MindfulVerse`;
+    else document.title = "Read — MindfulVerse";
+  }, [meta]);
+
+  // Deep link (?v=n): scroll there once the surah renders.
+  useEffect(() => {
+    if (status !== "ready") return;
+    const v = Number(params.get("v"));
+    if (!Number.isFinite(v) || v < 1) return;
+    const el = document.getElementById(`v${v}`);
+    if (el) {
+      el.scrollIntoView({ block: "start" });
+      recordLastRead(surahNumber, v);
+    }
+  }, [status, params, surahNumber]);
+
+  // Track reading position: the topmost visible verse becomes "last read".
+  useEffect(() => {
+    if (status !== "ready") return;
+    let timer: number | undefined;
+    const visible = new Set<number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const n = Number(e.target.id.slice(1));
+          if (e.isIntersecting) visible.add(n);
+          else visible.delete(n);
+        }
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          if (visible.size > 0) {
+            recordLastRead(surahNumber, Math.min(...visible));
+          }
+        }, 800);
+      },
+      { rootMargin: "0px 0px -60% 0px" }
+    );
+    document.querySelectorAll("article.verse").forEach((el) => observer.observe(el));
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [status, surahNumber]);
+
+  /** Fetch the surah's tafsir once, on first request. */
+  function ensureTafsir(): Promise<SurahTafsir> {
+    if (!tafsirPromise.current) {
+      tafsirPromise.current = loadSurahTafsir(surahNumber)
+        .then((t) => {
+          setTafsir(t);
+          return t;
+        })
+        .catch(() => {
+          tafsirPromise.current = null;
+          return {};
+        });
+    }
+    return tafsirPromise.current;
+  }
+
+  function openCommentary(a: Ayah) {
+    setOpenAyah(a);
+    void ensureTafsir();
+  }
 
   async function share(a: Ayah) {
     const result = await shareVerse(a, "reader");
@@ -173,12 +257,16 @@ export default function Surah() {
     const n = Number(jump);
     if (!Number.isFinite(n)) return;
     const el = document.getElementById(`v${n}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      recordLastRead(surahNumber, n);
+    }
   }
 
   const scale = SIZES.find((s) => s.key === sizeKey)?.scale ?? 1;
-  const openCovering = openAyah ? coveringTafsirAyah(tafsir, openAyah.ayah) : null;
-  const openText = openCovering !== null ? tafsir[String(openCovering)] : undefined;
+  const openCovering = openAyah ? coveringFromIndex(indexed, openAyah.ayah) : null;
+  const openText =
+    openCovering !== null ? (tafsir ? (tafsir[String(openCovering)] ?? "") : null) : "";
 
   return (
     <div style={{ ["--read-scale" as string]: String(scale) }}>
@@ -286,13 +374,14 @@ export default function Surah() {
           {surahNumber !== 1 && surahNumber !== 9 && (
             <p
               className="arabic"
+              lang="ar"
               style={{ textAlign: "center", padding: "18px 0 4px" }}
             >
               {BASMALAH}
             </p>
           )}
           {ayahs.map((a) => {
-            const covering = coveringTafsirAyah(tafsir, a.ayah);
+            const covering = coveringFromIndex(indexed, a.ayah);
             const direct = covering === a.ayah;
             return (
               <article
@@ -305,13 +394,15 @@ export default function Surah() {
                   <span className="roundel">{a.ayah}</span>
                   <span className="rule" />
                 </div>
-                <p className="arabic">{a.arabic}</p>
+                <p className="arabic" lang="ar">
+                  {a.arabic}
+                </p>
                 <p className="translation">{a.translation}</p>
                 <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
                   <button
                     className="commentary-open"
                     disabled={covering === null}
-                    onClick={() => setOpenAyah(a)}
+                    onClick={() => openCommentary(a)}
                   >
                     {covering === null
                       ? "No commentary for this verse"
@@ -329,7 +420,7 @@ export default function Surah() {
         </div>
       )}
 
-      {openAyah && openText && openCovering !== null && (
+      {openAyah && openCovering !== null && (
         <CommentarySheet
           ayah={openAyah}
           text={openText}

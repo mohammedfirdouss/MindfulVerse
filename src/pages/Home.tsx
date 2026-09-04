@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadAyahsByKeys } from "../lib/data";
-import { currentStreak } from "../lib/progress";
+import { currentStreak, getLastRead } from "../lib/progress";
 import type { Ayah } from "../lib/types";
 
 // The app's signature verse — hearts finding rest in remembrance. Sets the tone.
@@ -28,6 +28,10 @@ export default function Home() {
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
+    document.title = "MindfulVerse";
+  }, []);
+
+  useEffect(() => {
     let active = true;
     loadAyahsByKeys([HERO_VERSE])
       .then((a) => active && setHero(a[0] ?? null))
@@ -51,6 +55,18 @@ export default function Home() {
 
   const hours = new Date().getHours();
   const streak = currentStreak();
+  const lastRead = getLastRead();
+  const navEntries = lastRead
+    ? entries.map((e) =>
+        e.to === "/read"
+          ? {
+              ...e,
+              to: `/read/${lastRead.surah}?v=${lastRead.ayah}`,
+              desc: `Continue where you stopped — Surah ${lastRead.surah}, verse ${lastRead.ayah}`,
+            }
+          : e
+      )
+    : entries;
 
   return (
     <div>
@@ -86,7 +102,7 @@ export default function Home() {
       </section>
 
       <nav aria-label="Sections" className="home-entries" style={reveal(260)}>
-        {entries.map((e) => (
+        {navEntries.map((e) => (
           <Link key={e.to} to={e.to} className="home-entry">
             <span className="home-entry-title">{e.title}</span>
             <span className="home-entry-desc">{e.desc}</span>
