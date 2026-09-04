@@ -5,6 +5,13 @@ import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
 
 type Status = "loading" | "ready" | "error";
 
+const SIZES: { key: string; label: string; scale: number }[] = [
+  { key: "s", label: "A", scale: 0.86 },
+  { key: "m", label: "A", scale: 1 },
+  { key: "l", label: "A", scale: 1.22 },
+];
+const SIZE_KEY = "mindfulverse.readScale.v1";
+
 /** Commentary opens here — its own scroll space, so a very long Ibn Kathir
  *  entry never pushes the reading page around. The ayah stays pinned for context. */
 function CommentarySheet({
@@ -76,6 +83,10 @@ export default function Surah() {
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
+  const [sizeKey, setSizeKey] = useState<string>(
+    () => localStorage.getItem(SIZE_KEY) ?? "m"
+  );
+  const [jump, setJump] = useState<string>("");
 
   useEffect(() => {
     let active = true;
@@ -109,11 +120,25 @@ export default function Surah() {
     };
   }, [surahNumber]);
 
+  function chooseSize(key: string) {
+    setSizeKey(key);
+    localStorage.setItem(SIZE_KEY, key);
+  }
+
+  function goToVerse(e: React.FormEvent) {
+    e.preventDefault();
+    const n = Number(jump);
+    if (!Number.isFinite(n)) return;
+    const el = document.getElementById(`v${n}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const scale = SIZES.find((s) => s.key === sizeKey)?.scale ?? 1;
   const openText = openAyah ? tafsir[String(openAyah.ayah)] : undefined;
 
   return (
-    <div>
-      <header style={{ marginBottom: 8 }}>
+    <div style={{ ["--read-scale" as string]: String(scale) }}>
+      <header style={{ marginBottom: 12 }}>
         <Link to="/read" className="btn ghost">
           ← All surahs
         </Link>
@@ -124,6 +149,60 @@ export default function Surah() {
           </p>
         )}
       </header>
+
+      {status === "ready" && ayahs.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 14,
+            flexWrap: "wrap",
+            padding: "10px 0 16px",
+            borderBottom: "1px solid var(--line)",
+            marginBottom: 4,
+          }}
+        >
+          <div className="reading-controls" role="group" aria-label="Reading size">
+            {SIZES.map((s, i) => (
+              <button
+                key={s.key}
+                className="size-btn"
+                aria-pressed={s.key === sizeKey}
+                onClick={() => chooseSize(s.key)}
+                style={{ fontSize: `${0.78 + i * 0.16}rem` }}
+                aria-label={`Reading size ${s.key === "s" ? "small" : s.key === "m" ? "medium" : "large"}`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input
+              type="number"
+              min={1}
+              max={meta?.ayahCount ?? 300}
+              value={jump}
+              onChange={(e) => setJump(e.target.value)}
+              placeholder="Verse"
+              aria-label="Jump to verse number"
+              style={{
+                width: 76,
+                padding: "7px 10px",
+                border: "1px solid var(--line)",
+                borderRadius: 6,
+                background: "var(--paper-raised)",
+                color: "var(--ink)",
+                font: "inherit",
+                fontSize: ".9rem",
+              }}
+            />
+            <button type="submit" className="btn secondary" style={{ padding: "7px 14px" }}>
+              Go
+            </button>
+          </form>
+        </div>
+      )}
 
       {status === "loading" && <p className="muted">Loading…</p>}
 
@@ -140,7 +219,12 @@ export default function Surah() {
           {ayahs.map((a) => {
             const hasTafsir = Boolean(tafsir[String(a.ayah)]);
             return (
-              <article key={a.verseKey} className="verse">
+              <article
+                key={a.verseKey}
+                id={`v${a.ayah}`}
+                className="verse"
+                style={{ scrollMarginTop: 16 }}
+              >
                 <div className="verse-head">
                   <span className="roundel">{a.ayah}</span>
                   <span className="rule" />
