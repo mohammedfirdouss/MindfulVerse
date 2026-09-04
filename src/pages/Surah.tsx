@@ -16,6 +16,16 @@ interface SurahInfo {
   text: string;
 }
 
+/** Ibn Kathir comments on passages, not single verses: a run of ayahs stores
+ *  its commentary under the first ayah of the group. For an ayah with no
+ *  direct entry, its commentary is the nearest preceding entry. */
+function coveringTafsirAyah(tafsir: SurahTafsir, ayah: number): number | null {
+  for (let n = ayah; n >= 1; n--) {
+    if (tafsir[String(n)]) return n;
+  }
+  return null;
+}
+
 const SIZES: { key: string; label: string; scale: number }[] = [
   { key: "s", label: "A", scale: 0.86 },
   { key: "m", label: "A", scale: 1 },
@@ -28,10 +38,13 @@ const SIZE_KEY = "mindfulverse.readScale.v1";
 function CommentarySheet({
   ayah,
   text,
+  sourceAyah,
   onClose,
 }: {
   ayah: Ayah;
   text: string;
+  /** Where the commentary actually lives when it covers a passage. */
+  sourceAyah: number;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -66,7 +79,9 @@ function CommentarySheet({
           <div>
             <p className="arabic">{ayah.arabic}</p>
             <p className="label" style={{ margin: 0 }}>
-              Ibn Kathir · {ayah.surah}:{ayah.ayah}
+              {sourceAyah === ayah.ayah
+                ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
+                : `Ibn Kathir · on the passage from ${ayah.surah}:${sourceAyah}`}
             </p>
           </div>
           <button className="sheet-close" onClick={onClose} aria-label="Close commentary">
@@ -162,7 +177,8 @@ export default function Surah() {
   }
 
   const scale = SIZES.find((s) => s.key === sizeKey)?.scale ?? 1;
-  const openText = openAyah ? tafsir[String(openAyah.ayah)] : undefined;
+  const openCovering = openAyah ? coveringTafsirAyah(tafsir, openAyah.ayah) : null;
+  const openText = openCovering !== null ? tafsir[String(openCovering)] : undefined;
 
   return (
     <div style={{ ["--read-scale" as string]: String(scale) }}>
@@ -276,7 +292,8 @@ export default function Surah() {
             </p>
           )}
           {ayahs.map((a) => {
-            const hasTafsir = Boolean(tafsir[String(a.ayah)]);
+            const covering = coveringTafsirAyah(tafsir, a.ayah);
+            const direct = covering === a.ayah;
             return (
               <article
                 key={a.verseKey}
@@ -293,10 +310,14 @@ export default function Surah() {
                 <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
                   <button
                     className="commentary-open"
-                    disabled={!hasTafsir}
+                    disabled={covering === null}
                     onClick={() => setOpenAyah(a)}
                   >
-                    {hasTafsir ? "Read the commentary" : "No commentary for this verse"}
+                    {covering === null
+                      ? "No commentary for this verse"
+                      : direct
+                        ? "Read the commentary"
+                        : `Read the commentary (with verse ${covering})`}
                   </button>
                   <button className="commentary-open" onClick={() => void share(a)}>
                     {shared === a.verseKey ? "Shared ✓" : "Share"}
