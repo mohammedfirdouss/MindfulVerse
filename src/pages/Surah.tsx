@@ -329,8 +329,13 @@ export default function Surah() {
         </div>
       )}
 
-      {openAyah && openText && (
-        <CommentarySheet ayah={openAyah} text={openText} onClose={() => setOpenAyah(null)} />
+      {openAyah && openText && openCovering !== null && (
+        <CommentarySheet
+          ayah={openAyah}
+          text={openText}
+          sourceAyah={openCovering}
+          onClose={() => setOpenAyah(null)}
+        />
       )}
     </div>
   );
