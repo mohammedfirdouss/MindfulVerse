@@ -13,6 +13,18 @@ export default function Journal() {
     setEntries(getEntries());
   }
 
+  function downloadJournal() {
+    const text = entries
+      .map((e) => `${new Date(e.createdAt).toLocaleString()}\n${e.prompt}\n${e.body}`)
+      .join("\n\n");
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mindfulverse-journal.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="stack">
       <header style={{ paddingTop: 12 }}>
@@ -20,6 +32,16 @@ export default function Journal() {
         <h1 style={{ margin: "6px 0" }}>Your reflections</h1>
         <p className="muted" style={{ marginTop: 0 }}>Saved on this device only.</p>
       </header>
+
+      {entries.length > 0 && (
+        <button
+          className="btn secondary"
+          style={{ alignSelf: "flex-start" }}
+          onClick={downloadJournal}
+        >
+          Download my journal
+        </button>
+      )}
 
       {entries.length === 0 && (
         <div className="card stack" style={{ textAlign: "left" }}>

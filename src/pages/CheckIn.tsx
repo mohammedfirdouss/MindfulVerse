@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { Ayah, EmotionEntry } from "../lib/types";
 import { loadAyahsByKeys, loadEmotions } from "../lib/data";
 import { addEntry } from "../lib/journal";
+import { shareVerse } from "../lib/share";
 import { track } from "../lib/analytics";
 
 // A small, hand-vetted set of self-evidently comforting verses. We pick one
@@ -87,6 +88,9 @@ export default function CheckIn() {
   // Journal for the verse of the day.
   const [journalBody, setJournalBody] = useState("");
   const [saved, setSaved] = useState(false);
+
+  // Sharing the verse of the day.
+  const [shareResult, setShareResult] = useState<"shared" | "copied" | "failed" | null>(null);
 
   // Emotion picker.
   const [emotions, setEmotions] = useState<EmotionEntry[]>([]);
@@ -201,8 +205,28 @@ export default function CheckIn() {
             while and it will be waiting for you.
           </p>
         ) : dailyAyah ? (
-          <div style={revealStyle(0, dailyMounted, reduced)}>
+          <div className="stack" style={revealStyle(0, dailyMounted, reduced)}>
             <AyahView ayah={dailyAyah} />
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => {
+                  void shareVerse(dailyAyah, "checkin").then(setShareResult);
+                }}
+              >
+                Share this verse
+              </button>
+              {shareResult && (
+                <span className="muted" role="status">
+                  {shareResult === "shared"
+                    ? "Shared"
+                    : shareResult === "copied"
+                      ? "Copied to clipboard"
+                      : "Couldn’t share"}
+                </span>
+              )}
+            </div>
           </div>
         ) : (
           <p className="muted">Bringing today&rsquo;s verse to you&hellip;</p>

@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { loadSurahAyahs, loadSurahTafsir, loadSurahs } from "../lib/data";
+import { shareVerse } from "../lib/share";
 import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
 
 type Status = "loading" | "ready" | "error";
+
+/** Every surah except Al-Fatihah (1, where it is ayah 1) and At-Tawbah (9)
+ *  opens with the basmalah in the mushaf. */
+const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
+interface SurahInfo {
+  surah: number;
+  name: string;
+  text: string;
+}
 
 const SIZES: { key: string; label: string; scale: number }[] = [
   { key: "s", label: "A", scale: 0.86 },
@@ -87,6 +98,8 @@ export default function Surah() {
     () => localStorage.getItem(SIZE_KEY) ?? "m"
   );
   const [jump, setJump] = useState<string>("");
+  const [info, setInfo] = useState<SurahInfo | null>(null);
+  const [shared, setShared] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;

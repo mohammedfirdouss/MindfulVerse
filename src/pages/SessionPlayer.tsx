@@ -8,6 +8,11 @@ import {
 } from "../lib/data";
 import { addEntry } from "../lib/journal";
 import { track } from "../lib/analytics";
+import {
+  getSessionProgress,
+  recordSessionComplete,
+  recordSessionStep,
+} from "../lib/progress";
 import type { Ayah, SessionStep, TadabburSession } from "../lib/types";
 
 // ---------------------------------------------------------------------------
@@ -148,16 +153,31 @@ function SessionFlow({ session }: { session: TadabburSession }) {
   const [started, setStarted] = useState(false);
   const reduce = useMemo(prefersReducedMotion, []);
 
+  // Saved progress, read once when the session opens.
+  const saved = useMemo(() => getSessionProgress(session.id), [session.id]);
+  const wasCompleted = saved?.completedAt != null;
   const stepCount = session.steps.length;
+  const resumeStep =
+    !wasCompleted && saved != null && saved.step >= 0
+      ? Math.min(saved.step, stepCount - 1)
+      : undefined;
+
   const onFinal = phase >= stepCount;
   const mounted = useMounted(phase);
 
-  function beginSteps() {
+  // Remember the furthest step reached (recordSessionStep never regresses).
+  useEffect(() => {
+    if (phase >= 0 && phase < stepCount) {
+      recordSessionStep(session.id, phase);
+    }
+  }, [phase, stepCount, session.id]);
+
+  function beginSteps(at: number = 0) {
     if (!started) {
       track({ type: "session_start", sessionId: session.id });
       setStarted(true);
     }
-    setPhase(0);
+    setPhase(at);
   }
 
   // Intro screen

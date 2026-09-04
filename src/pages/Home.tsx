@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadAyahsByKeys } from "../lib/data";
+import { currentStreak } from "../lib/progress";
 import type { Ayah } from "../lib/types";
 
 // The app's signature verse — hearts finding rest in remembrance. Sets the tone.
@@ -49,12 +50,19 @@ export default function Home() {
         };
 
   const hours = new Date().getHours();
+  const streak = currentStreak();
 
   return (
     <div>
       <p className="label" style={{ marginTop: 8, ...reveal(0) }}>
         {greeting(hours)}
       </p>
+
+      {streak >= 2 && (
+        <p className="soft" style={{ fontSize: ".9rem", marginTop: 6, ...reveal(60) }}>
+          Day {streak} of returning to the Qur’an
+        </p>
+      )}
 
       <section aria-label="A verse to begin with" style={{ margin: "26px 0 34px", ...reveal(120) }}>
         {hero ? (

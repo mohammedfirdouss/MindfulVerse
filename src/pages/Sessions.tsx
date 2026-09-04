@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadSessions } from "../lib/data";
+import { getAllSessionProgress } from "../lib/progress";
 import type { TadabburSession } from "../lib/types";
 
 type Status =
@@ -10,6 +11,7 @@ type Status =
 
 export default function Sessions() {
   const [status, setStatus] = useState<Status>({ kind: "loading" });
+  const progress = useMemo(() => getAllSessionProgress(), []);
 
   useEffect(() => {
     let alive = true;
@@ -67,27 +69,43 @@ export default function Sessions() {
           className="stack"
           style={{ listStyle: "none", margin: 0, padding: 0 }}
         >
-          {status.sessions.map((s) => (
-            <li key={s.id}>
-              <Link
-                to={`/sessions/${s.id}`}
-                style={{
-                  display: "block",
-                  color: "inherit",
-                  padding: "18px 0",
-                  borderTop: "1px solid var(--line)",
-                }}
-              >
-                <p className="label" style={{ margin: "0 0 4px" }}>
-                  {s.theme}
-                </p>
-                <h2 style={{ margin: 0, fontWeight: 500 }}>{s.title}</h2>
-                <p className="muted" style={{ margin: "4px 0 0" }}>
-                  {s.steps.length} {s.steps.length === 1 ? "step" : "steps"}
-                </p>
-              </Link>
-            </li>
-          ))}
+          {status.sessions.map((s) => {
+            const p = progress[s.id];
+            const completed = p?.completedAt != null;
+            const inProgress = !completed && p != null && p.step >= 0;
+            return (
+              <li key={s.id}>
+                <Link
+                  to={`/sessions/${s.id}`}
+                  style={{
+                    display: "block",
+                    color: "inherit",
+                    padding: "18px 0",
+                    borderTop: "1px solid var(--line)",
+                  }}
+                >
+                  <p className="label" style={{ margin: "0 0 4px" }}>
+                    {s.theme}
+                  </p>
+                  <h2 style={{ margin: 0, fontWeight: 500 }}>{s.title}</h2>
+                  <p className="muted" style={{ margin: "4px 0 0" }}>
+                    {s.steps.length} {s.steps.length === 1 ? "step" : "steps"}
+                    {completed && (
+                      <span style={{ color: "var(--indigo)" }}>
+                        {"  ·  "}
+                        <span aria-hidden="true">✦</span> Completed
+                      </span>
+                    )}
+                    {inProgress && (
+                      <span style={{ color: "var(--kola)" }}>
+                        {"  ·  "}Continue
+                      </span>
+                    )}
+                  </p>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
