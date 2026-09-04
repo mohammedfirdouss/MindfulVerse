@@ -17,11 +17,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   </React.StrictMode>
 );
 
-// Dismiss the inline splash once the app has painted.
+// Dismiss the inline splash once the app has painted — but hold it on screen
+// for a minimum beat so the mark registers instead of blinking away.
+const SPLASH_MIN_MS = 1400;
 requestAnimationFrame(() => {
   const splash = document.getElementById("splash");
-  if (splash) {
+  if (!splash) return;
+  const elapsed = performance.now();
+  const wait = Math.max(0, SPLASH_MIN_MS - elapsed);
+  setTimeout(() => {
     splash.classList.add("done");
     setTimeout(() => splash.remove(), 450);
-  }
+  }, wait);
 });
