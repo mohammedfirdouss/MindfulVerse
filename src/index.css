@@ -4,7 +4,8 @@
    margins, one ornament (the illuminated ayah roundel). Arabic is the hero.
    Palette: parchment + iron-gall ink + lapis lazuli accent + illumination gold.
    Type: Amiri (Arabic), Spectral (English, one family across the app).
- root {
+   ============================================================================ */
+:root {
   --paper: #f3eee3;        /* warm parchment (deliberately not AI-cream) */
   --paper-raised: #faf7ef; /* slightly lifted parchment */
   --ink: #23201b;          /* warm brown-black, iron-gall ink */
