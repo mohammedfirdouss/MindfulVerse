@@ -7,8 +7,37 @@
     <meta name="theme-color" content="#2a3a8c" />
     <link rel="stylesheet" href="/fonts/fonts.css" />
     <title>MindfulVerse — Quranic Contemplation</title>
+    <style>
+      /* Splash: paints instantly, before the JS bundle arrives. Removed on mount. */
+      #splash {
+        position: fixed; inset: 0; z-index: 100;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+        background: #2a3a8c; color: #f5efe2;
+        transition: opacity 0.4s ease;
+      }
+      #splash.done { opacity: 0; pointer-events: none; }
+      #splash svg { width: 72px; height: 72px; }
+      #splash .word {
+        font-family: Georgia, serif; font-size: 1.35rem; letter-spacing: 0.02em;
+      }
+      #splash .mark { animation: splash-breathe 1.8s ease-in-out infinite; }
+      @keyframes splash-breathe {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(0.94); opacity: 0.85; }
+      }
+      @media (prefers-reduced-motion: reduce) { #splash .mark { animation: none; } }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <div class="mark">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 6 58 32 32 58 6 32Z" fill="none" stroke="#f5efe2" stroke-width="3.5"/>
+          <circle cx="32" cy="32" r="5.5" fill="#c4622d"/>
+        </svg>
+      </div>
+      <div class="word">MindfulVerse</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -7,6 +7,7 @@ import Sessions from "./pages/Sessions";
 import SessionPlayer from "./pages/SessionPlayer";
 import CheckIn from "./pages/CheckIn";
 import Journal from "./pages/Journal";
+import Stats from "./pages/Stats";
 
 // All routes are declared here ONCE so feature agents never touch this file —
 // each agent owns its own page component under src/pages.
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/sessions/:id" element={<SessionPlayer />} />
         <Route path="/checkin" element={<CheckIn />} />
         <Route path="/journal" element={<Journal />} />
+        <Route path="/stats" element={<Stats />} />
       </Routes>
     </AppShell>
   );

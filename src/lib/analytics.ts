@@ -13,7 +13,8 @@ export type AnalyticsEvent =
   | { type: "session_complete"; sessionId: string }
   | { type: "checkin_view"; emotion?: string }
   | { type: "journal_save"; context: string }
-  | { type: "intent_pay_tap"; where: string };
+  | { type: "intent_pay_tap"; where: string }
+  | { type: "share_verse"; verseKey: string; where: string };
 
 interface StoredEvent {
   t: number; // epoch ms
