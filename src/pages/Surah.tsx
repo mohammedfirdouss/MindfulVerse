@@ -267,6 +267,14 @@ export default function Surah() {
 
       {status === "ready" && (
         <div>
+          {surahNumber !== 1 && surahNumber !== 9 && (
+            <p
+              className="arabic"
+              style={{ textAlign: "center", padding: "18px 0 4px" }}
+            >
+              {BASMALAH}
+            </p>
+          )}
           {ayahs.map((a) => {
             const hasTafsir = Boolean(tafsir[String(a.ayah)]);
             return (
@@ -282,13 +290,18 @@ export default function Surah() {
                 </div>
                 <p className="arabic">{a.arabic}</p>
                 <p className="translation">{a.translation}</p>
-                <button
-                  className="commentary-open"
-                  disabled={!hasTafsir}
-                  onClick={() => setOpenAyah(a)}
-                >
-                  {hasTafsir ? "Read the commentary" : "No commentary for this verse"}
-                </button>
+                <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+                  <button
+                    className="commentary-open"
+                    disabled={!hasTafsir}
+                    onClick={() => setOpenAyah(a)}
+                  >
+                    {hasTafsir ? "Read the commentary" : "No commentary for this verse"}
+                  </button>
+                  <button className="commentary-open" onClick={() => void share(a)}>
+                    {shared === a.verseKey ? "Shared ✓" : "Share"}
+                  </button>
+                </div>
               </article>
             );
           })}
