@@ -195,11 +195,30 @@ function SessionFlow({ session }: { session: TadabburSession }) {
             <p className="muted" style={{ margin: 0 }}>
               {stepCount} {stepCount === 1 ? "step" : "steps"}, at your own pace.
             </p>
-            <div>
-              <button className="btn" onClick={beginSteps}>
-                Begin
-              </button>
-            </div>
+            {wasCompleted && (
+              <p className="muted" style={{ margin: 0 }}>
+                <span aria-hidden="true" style={{ color: "var(--indigo)" }}>
+                  ✦
+                </span>{" "}
+                You’ve sat with this one before.
+              </p>
+            )}
+            {resumeStep != null ? (
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button className="btn" onClick={() => beginSteps(resumeStep)}>
+                  Continue from step {resumeStep + 1}
+                </button>
+                <button className="btn secondary" onClick={() => beginSteps()}>
+                  Start from the beginning
+                </button>
+              </div>
+            ) : (
+              <div>
+                <button className="btn" onClick={() => beginSteps()}>
+                  Begin
+                </button>
+              </div>
+            )}
           </div>
         </FadeRise>
       </div>
@@ -425,9 +444,11 @@ function FinalScreen({
   const [payTapped, setPayTapped] = useState(false);
   const mounted = useMounted("final");
 
-  // Fire session_complete exactly once when the final screen mounts.
+  // Fire session_complete exactly once when the final screen mounts, and
+  // remember the completion locally so the session can be resumed as "done".
   useEffect(() => {
     track({ type: "session_complete", sessionId: session.id });
+    recordSessionComplete(session.id);
   }, [session.id]);
 
   const canSave = useMemo(() => body.trim().length > 0 && !saved, [body, saved]);

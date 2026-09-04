@@ -128,10 +128,25 @@ export default function Surah() {
         setStatus("error");
       });
 
+    // Surah info is optional enrichment — ignore failures quietly.
+    fetch(`/data/info/${surahNumber}.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: SurahInfo | null) => {
+        if (active && d) setInfo(d);
+      })
+      .catch(() => {});
+
     return () => {
       active = false;
     };
   }, [surahNumber]);
+
+  async function share(a: Ayah) {
+    const result = await shareVerse(a, "reader");
+    setShared(a.verseKey);
+    if (result === "failed") setShared(null);
+    setTimeout(() => setShared(null), 2000);
+  }
 
   function chooseSize(key: string) {
     setSizeKey(key);
@@ -160,6 +175,29 @@ export default function Surah() {
           <p className="muted" style={{ margin: "4px 0 0" }}>
             {meta.ayahCount} verses
           </p>
+        )}
+        {info && (
+          <details style={{ marginTop: 12 }}>
+            <summary
+              style={{ cursor: "pointer", color: "var(--kola)", fontWeight: 500 }}
+            >
+              About this surah
+            </summary>
+            <div className="tafsir" style={{ marginTop: 10 }}>
+              {info.text
+                .split("\n\n")
+                .map((p) => p.trim())
+                .filter(Boolean)
+                .slice(0, 24)
+                .map((p, i) =>
+                  p.length < 60 && !p.includes(".") ? (
+                    <h3 key={i}>{p}</h3>
+                  ) : (
+                    <p key={i}>{p}</p>
+                  )
+                )}
+            </div>
+          </details>
         )}
       </header>
 
