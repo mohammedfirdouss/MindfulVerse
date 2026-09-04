@@ -5,25 +5,65 @@ import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
 
 type Status = "loading" | "ready" | "error";
 
-function TafsirDisclosure({ text }: { text: string }) {
+/** Commentary opens here — its own scroll space, so a very long Ibn Kathir
+ *  entry never pushes the reading page around. The ayah stays pinned for context. */
+function CommentarySheet({
+  ayah,
+  text,
+  onClose,
+}: {
+  ayah: Ayah;
+  text: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
   const paragraphs = text
     .split("\n\n")
     .map((p) => p.trim())
     .filter(Boolean);
-  if (paragraphs.length === 0) return null;
+
   return (
-    <details style={{ marginTop: 12 }}>
-      <summary
-        style={{ cursor: "pointer", color: "var(--accent)", fontWeight: 600 }}
+    <>
+      <div className="sheet-backdrop" onClick={onClose} />
+      <aside
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Commentary on verse ${ayah.verseKey}`}
       >
-        Commentary (Ibn Kathir)
-      </summary>
-      <div className="tafsir" style={{ marginTop: 8 }}>
-        {paragraphs.map((p, i) => (
-          <p key={i}>{p}</p>
-        ))}
-      </div>
-    </details>
+        <div className="sheet-grip" />
+        <div className="sheet-head">
+          <div>
+            <p className="arabic">{ayah.arabic}</p>
+            <p className="label" style={{ margin: 0 }}>
+              Ibn Kathir · {ayah.surah}:{ayah.ayah}
+            </p>
+          </div>
+          <button className="sheet-close" onClick={onClose} aria-label="Close commentary">
+            ✕
+          </button>
+        </div>
+        <div className="sheet-body">
+          <div className="tafsir">
+            {paragraphs.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -35,6 +75,7 @@ export default function Surah() {
   const [tafsir, setTafsir] = useState<SurahTafsir>({});
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
+  const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -68,42 +109,59 @@ export default function Surah() {
     };
   }, [surahNumber]);
 
+  const openText = openAyah ? tafsir[String(openAyah.ayah)] : undefined;
+
   return (
-    <div className="stack">
-      <header>
-        <Link to="/read" className="btn ghost" style={{ paddingLeft: 0 }}>
+    <div>
+      <header style={{ marginBottom: 8 }}>
+        <Link to="/read" className="btn ghost">
           ← All surahs
         </Link>
-        <p className="eyebrow" style={{ marginTop: 8 }}>
-          Surah {surahNumber}
-        </p>
-        <h1>{meta ? meta.name : `Surah ${surahNumber}`}</h1>
+        <h1 style={{ marginTop: 14 }}>{meta ? meta.name : `Surah ${surahNumber}`}</h1>
+        {meta && (
+          <p className="muted" style={{ margin: "4px 0 0" }}>
+            {meta.ayahCount} verses
+          </p>
+        )}
       </header>
 
-      {status === "loading" && <p className="muted">Loading surah…</p>}
+      {status === "loading" && <p className="muted">Loading…</p>}
 
       {status === "error" && (
         <div className="card">
-          <p className="muted">
-            Content is being prepared. Please check back soon.
+          <p className="soft" style={{ margin: 0 }}>
+            This surah isn’t ready to read yet. Please check back soon.
           </p>
         </div>
       )}
 
       {status === "ready" && (
-        <div className="stack">
+        <div>
           {ayahs.map((a) => {
-            const tafsirText = tafsir[String(a.ayah)];
+            const hasTafsir = Boolean(tafsir[String(a.ayah)]);
             return (
-              <article key={a.verseKey} className="card">
-                <p className="eyebrow">Ayah {a.ayah}</p>
+              <article key={a.verseKey} className="verse">
+                <div className="verse-head">
+                  <span className="roundel">{a.ayah}</span>
+                  <span className="rule" />
+                </div>
                 <p className="arabic">{a.arabic}</p>
                 <p className="translation">{a.translation}</p>
-                {tafsirText ? <TafsirDisclosure text={tafsirText} /> : null}
+                <button
+                  className="commentary-open"
+                  disabled={!hasTafsir}
+                  onClick={() => setOpenAyah(a)}
+                >
+                  {hasTafsir ? "Read the commentary" : "No commentary for this verse"}
+                </button>
               </article>
             );
           })}
         </div>
+      )}
+
+      {openAyah && openText && (
+        <CommentarySheet ayah={openAyah} text={openText} onClose={() => setOpenAyah(null)} />
       )}
     </div>
   );
