@@ -21,8 +21,15 @@ export default function Journal() {
       </header>
 
       {entries.length === 0 && (
-        <div className="card muted">
-          Nothing yet. Reflections you write in a check-in or tadabbur session appear here.
+        <div className="card stack" style={{ textAlign: "left" }}>
+          <p style={{ margin: 0, fontSize: "1.1rem" }}>Your journal is empty — for now.</p>
+          <p className="soft" style={{ margin: 0 }}>
+            When a verse gives you something to sit with, write it down. Your reflections
+            gather here, a quiet record of your journey through the Qur’an.
+          </p>
+          <Link to="/checkin" className="btn" style={{ alignSelf: "flex-start", marginTop: 4 }}>
+            Begin with today’s verse
+          </Link>
         </div>
       )}
 
