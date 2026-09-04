@@ -9,7 +9,7 @@ no login, no payments.
 ## Features
 
 - **Daily check-in** — a verse for today, a gentle mood picker, and a place to journal.
-- **Tadabbur sessions** — 10 short guided reflections: a theme, a few verses, and a prompt.
+- **Tadabbur sessions** — 20 short guided reflections: a theme, a few verses, and a prompt.
 - **Read** — all 114 surahs with Arabic, English translation, and Ibn Kathir's commentary.
 - **Journal** — your reflections, saved on your device.
 

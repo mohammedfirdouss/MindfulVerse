@@ -21,6 +21,21 @@
 
   --font-read: "Spectral", Georgia, "Times New Roman", serif;
   --font-arabic: "Amiri", "Scheherazade New", "Noto Naskh Arabic", serif;
+
+  /* Motion — Emil Kowalski's curves. UI motion stays under 300ms. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);      /* entrances / exits */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);  /* on-screen movement */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);   /* iOS-like drawer */
+
+  /* Backward-compatible aliases so existing components inherit the new identity. */
+  --bg: var(--paper);
+  --surface: var(--paper-raised);
+  --surface-2: #ece3d0;
+  --accent: var(--lapis);
+  --accent-soft: var(--lapis-soft);
+  --radius: 6px;
+  --shadow: none;
+  --font-ui: var(--font-read);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,6 +51,7 @@
     --garnet: #c98a94;
     --line: #302a20;
     --line-strong: #3d3527;
+    --surface-2: #241f17;
   }
 }
 
@@ -74,8 +90,10 @@ p { margin: 0 0 0.9em; }
 
 /* --- Focus & motion floor --- */
 :focus-visible { outline: 2px solid var(--lapis); outline-offset: 3px; border-radius: 3px; }
+/* Reduced motion: keep comprehension-aiding fades, drop positional movement. */
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  .sheet { animation: fade 0.2s ease; }
+  .btn:active { transform: none; }
 }
 
 /* --- Type helpers --- */
@@ -110,9 +128,11 @@ p { margin: 0 0 0.9em; }
   padding: 12px 20px; border: 1px solid var(--lapis); border-radius: 4px;
   background: var(--lapis); color: var(--paper-raised);
   font-family: var(--font-read); font-size: 1rem; font-weight: 500;
-  cursor: pointer; transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.14s var(--ease-out);
 }
 .btn:hover { background: #17304f; }
+.btn:active { transform: scale(0.97); }
 .btn.secondary { background: transparent; color: var(--lapis); }
 .btn.secondary:hover { background: var(--lapis-soft); }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--lapis); padding-left: 4px; padding-right: 4px; }
@@ -170,7 +190,7 @@ p { margin: 0 0 0.9em; }
   background: var(--paper);
   border-top-left-radius: 16px; border-top-right-radius: 16px;
   border-top: 1px solid var(--line-strong);
-  animation: rise 0.24s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: rise 0.3s var(--ease-drawer);
 }
 @media (min-width: 720px) {
   .sheet { left: 50%; right: auto; transform: translateX(-50%); width: 640px; max-height: 84vh; }
