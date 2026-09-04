@@ -13,8 +13,8 @@ export default defineConfig({
                 name: "MindfulVerse",
                 short_name: "MindfulVerse",
                 description: "Quranic contemplation — tadabbur, daily check-in, journaling.",
-                theme_color: "#0f766e",
-                background_color: "#f8faf9",
+                theme_color: "#2a3a8c",
+                background_color: "#f5efe2",
                 display: "standalone",
                 start_url: "/",
                 icons: [
