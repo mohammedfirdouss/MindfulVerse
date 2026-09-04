@@ -220,8 +220,31 @@ function main() {
   }));
   fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(themes));
 
+  // ---- tafsir-index.json ----
+  // Which ayahs carry a direct tafsir entry, per surah. Lets the reader show
+  // accurate commentary links without eagerly downloading megabytes of tafsir.
+  const tafsirIndex = {};
+  for (let n = 1; n <= 114; n++) {
+    const entries = tafsirBySurah.get(n);
+    tafsirIndex[n] = entries
+      ? Object.keys(entries).map(Number).sort((a, b) => a - b)
+      : [];
+  }
+  fs.writeFileSync(path.join(OUT, "tafsir-index.json"), JSON.stringify(tafsirIndex));
+
+  // ---- search.json ----
+  // Compact translation search index: [verseKey, translation] pairs.
+  // Loaded on demand only when the user searches (metered-data friendly).
+  const search = [];
+  for (const n of surahNumbers) {
+    for (const a of bySurah.get(n)) search.push([a.verseKey, a.translation]);
+  }
+  fs.writeFileSync(path.join(OUT, "search.json"), JSON.stringify(search));
+
   // ---- Summary ----
   console.log("=== build-data summary ===");
+  console.log(`tafsir index surahs:   ${Object.keys(tafsirIndex).length}`);
+  console.log(`search entries:        ${search.length}`);
   console.log(`surahs written:        ${surahNumbers.length}`);
   console.log(`total ayahs:           ${totalAyahs}`);
   console.log(`surahs with tafsir:    ${surahsWithTafsir}`);

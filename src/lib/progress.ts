@@ -93,6 +93,30 @@ export function recordSessionStep(id: string, step: number): void {
   }
 }
 
+const LAST_READ_KEY = "mindfulverse.lastRead.v1";
+
+export interface LastRead {
+  surah: number;
+  ayah: number;
+  at: number; // epoch ms
+}
+
+export function recordLastRead(surah: number, ayah: number): void {
+  localStorage.setItem(
+    LAST_READ_KEY,
+    JSON.stringify({ surah, ayah, at: Date.now() } satisfies LastRead)
+  );
+}
+
+export function getLastRead(): LastRead | null {
+  try {
+    const raw = localStorage.getItem(LAST_READ_KEY);
+    return raw ? (JSON.parse(raw) as LastRead) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function recordSessionComplete(id: string): void {
   const map = readSessions();
   map[id] = { ...(map[id] ?? { step: 0 }), completedAt: Date.now() };

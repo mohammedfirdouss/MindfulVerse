@@ -31,6 +31,15 @@ export const loadSurahTafsir = (surah: number) =>
 
 export const loadThemes = () => getJson<Theme[]>("/data/themes.json");
 
+/** Per-surah list of ayah numbers that carry a direct tafsir entry (~6KB).
+ *  Lets the reader label commentary links without downloading the tafsir. */
+export const loadTafsirIndex = () =>
+  getJson<Record<string, number[]>>("/data/tafsir-index.json");
+
+/** [verseKey, translation] pairs (~1MB) — fetch only when the user searches. */
+export const loadSearchIndex = () =>
+  getJson<[string, string][]>("/data/search.json");
+
 export const loadSessions = () =>
   getJson<TadabburSession[]>("/data/sessions.json");
 
