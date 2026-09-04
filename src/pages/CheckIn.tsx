@@ -17,15 +17,14 @@ const DAILY_VERSES: string[] = [
   "3:139",
   "65:3",
   "39:53",
-  "2:155",
   "3:200",
-  "65:2",
-  "40:60",
   "2:45",
-  "8:46",
   "12:87",
   "93:5",
   "93:7",
+  "2:186",
+  "10:57",
+  "29:69",
 ];
 
 const VERSE_PROMPT = "What does this verse stir in you today?";

@@ -16,6 +16,16 @@ no login, no payments.
 All Qur'an text, translation, and commentary are shown as-is. The app never
 rewrites or generates religious content.
 
+## Screenshots
+
+| Home | Reader | Daily check-in |
+| --- | --- | --- |
+| ![Home — verse of the moment](docs/screenshots/home.png) | ![Reader — Arabic, translation, commentary](docs/screenshots/reader.png) | ![Daily check-in](docs/screenshots/checkin.png) |
+
+| Tadabbur sessions | Browse by theme | Search |
+| --- | --- | --- |
+| ![Tadabbur sessions](docs/screenshots/sessions.png) | ![Browse by theme](docs/screenshots/themes.png) | ![Search the translation](docs/screenshots/search.png) |
+
 ## Run it
 
 ```bash
