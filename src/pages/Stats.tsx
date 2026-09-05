@@ -22,6 +22,7 @@ interface StatsSnapshot {
   journalCount: number;
   payTaps: number;
   versesShared: number;
+  dhikrCompleted: number;
   firstSeen: number | null;
   daysSinceFirstSeen: number | null;
 }
@@ -53,6 +54,7 @@ function computeStats(): StatsSnapshot {
   let checkinViews = 0;
   let payTaps = 0;
   let versesShared = 0;
+  let dhikrCompleted = 0;
   const emotions = new Map<string, number>();
 
   for (const { t, e } of events) {
@@ -75,6 +77,9 @@ function computeStats(): StatsSnapshot {
         break;
       case "share_verse":
         versesShared++;
+        break;
+      case "dhikr_complete":
+        dhikrCompleted++;
         break;
       case "journal_save":
         break;
@@ -107,6 +112,7 @@ function computeStats(): StatsSnapshot {
     journalCount: getEntries().length,
     payTaps,
     versesShared,
+    dhikrCompleted,
     firstSeen,
     daysSinceFirstSeen,
   };
@@ -133,6 +139,7 @@ function summaryText(s: StatsSnapshot): string {
     `Journal entries: ${s.journalCount}`,
     `Pay-intent taps: ${s.payTaps}`,
     `Verses shared: ${s.versesShared}`,
+    `Dhikr completed: ${s.dhikrCompleted}`,
   ].join("\n");
 }
 
@@ -227,6 +234,7 @@ export default function Stats() {
             <Metric label="Journal entries" value={String(stats.journalCount)} />
             <Metric label="Pay-intent taps" value={String(stats.payTaps)} />
             <Metric label="Verses shared" value={String(stats.versesShared)} />
+            <Metric label="Dhikr completed" value={String(stats.dhikrCompleted)} />
             <Metric
               label="First seen"
               value={
