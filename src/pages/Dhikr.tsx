@@ -326,7 +326,12 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
           <span
             className="arabic"
             lang="ar"
-            style={{ display: "block", textAlign: "center", fontSize: "1.9rem", lineHeight: 1.9 }}
+            style={{
+              display: "block",
+              textAlign: "center",
+              fontSize: arabicSize,
+              lineHeight: arabicLine,
+            }}
           >
             {item.arabic}
           </span>
