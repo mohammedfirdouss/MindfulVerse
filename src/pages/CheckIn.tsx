@@ -3,29 +3,9 @@ import type { CSSProperties } from "react";
 import type { Ayah, EmotionEntry } from "../lib/types";
 import { loadAyahsByKeys, loadEmotions } from "../lib/data";
 import { addEntry } from "../lib/journal";
+import { todayVerseKey } from "../lib/dailyVerse";
 import { shareVerse } from "../lib/share";
 import { track } from "../lib/analytics";
-
-// A small, hand-vetted set of self-evidently comforting verses. We pick one
-// per day deterministically so it is stable across reloads but rotates daily.
-const DAILY_VERSES: string[] = [
-  "94:5",
-  "94:6",
-  "2:286",
-  "13:28",
-  "2:152",
-  "3:139",
-  "65:3",
-  "39:53",
-  "3:200",
-  "2:45",
-  "12:87",
-  "93:5",
-  "93:7",
-  "2:186",
-  "10:57",
-  "29:69",
-];
 
 const VERSE_PROMPT = "What does this verse stir in you today?";
 
@@ -72,10 +52,8 @@ function AyahView({ ayah }: { ayah: Ayah }) {
 }
 
 export default function CheckIn() {
-  const dailyKey = useMemo(() => {
-    const dayIndex = Math.floor(Date.now() / 86_400_000);
-    return DAILY_VERSES[dayIndex % DAILY_VERSES.length];
-  }, []);
+  // Shared with the Home hero — one verse of the day across the app.
+  const dailyKey = useMemo(() => todayVerseKey(), []);
 
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
