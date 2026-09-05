@@ -11,6 +11,8 @@ no login, no payments.
 - **Daily check-in** — a verse for today, a gentle mood picker, and a place to journal.
 - **Tadabbur sessions** — 20 short guided reflections: a theme, a few verses, and a prompt.
 - **Read** — all 114 surahs with Arabic, English translation, and Ibn Kathir's commentary.
+- **Dhikr & breath** — remembrance paced to your breath: a breathing circle, tap counting,
+  Arabic with transliteration and meaning.
 - **Journal** — your reflections, saved on your device.
 
 All Qur'an text, translation, and commentary are shown as-is. The app never
@@ -22,9 +24,9 @@ rewrites or generates religious content.
 | --- | --- | --- |
 | ![Home — verse of the moment](docs/screenshots/home.png) | ![Reader — Arabic, translation, commentary](docs/screenshots/reader.png) | ![Daily check-in](docs/screenshots/checkin.png) |
 
-| Tadabbur sessions | Browse by theme | Search |
+| Tadabbur sessions | Browse by theme | Dhikr & breath |
 | --- | --- | --- |
-| ![Tadabbur sessions](docs/screenshots/sessions.png) | ![Browse by theme](docs/screenshots/themes.png) | ![Search the translation](docs/screenshots/search.png) |
+| ![Tadabbur sessions](docs/screenshots/sessions.png) | ![Browse by theme](docs/screenshots/themes.png) | ![Dhikr and breath](docs/screenshots/dhikr.png) |
 
 ## Run it
 
