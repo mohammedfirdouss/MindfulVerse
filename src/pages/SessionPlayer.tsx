@@ -390,6 +390,7 @@ type TafsirStatus =
 function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<TafsirStatus>({ kind: "idle" });
+  const tafsirSurahNames = useSurahNames();
 
   async function toggle() {
     const next = !open;
