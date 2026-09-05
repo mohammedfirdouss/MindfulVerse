@@ -73,6 +73,8 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
   const [count, setCount] = useState(0);
   const [phase, setPhase] = useState<"in" | "out">("in");
   const [finished, setFinished] = useState(false);
+  /** Brief acknowledgment shown between dhikrs in a multi-item set. */
+  const [interstitial, setInterstitial] = useState<DhikrItem | null>(null);
   const reduced = useRef(prefersReducedMotion());
 
   const item = set.items[itemIndex];
@@ -90,18 +92,48 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the screen awake during practice — a tasbih takes minutes and eyes
+  // may be closed. Re-acquire when the tab becomes visible again.
+  useEffect(() => {
+    let lock: { release(): Promise<void> } | null = null;
+    async function acquire() {
+      try {
+        const nav = navigator as Navigator & {
+          wakeLock?: { request(type: "screen"): Promise<{ release(): Promise<void> }> };
+        };
+        if (nav.wakeLock) lock = await nav.wakeLock.request("screen");
+      } catch {
+        /* wake lock is best-effort */
+      }
+    }
+    void acquire();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void acquire();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      void lock?.release().catch(() => {});
+    };
+  }, []);
+
   function tap() {
-    if (finished) return;
+    if (finished || interstitial) return;
     if (navigator.vibrate) navigator.vibrate(8);
     const next = count + 1;
     if (next < item.count) {
       setCount(next);
       return;
     }
+    setCount(next);
     // item complete
     if (itemIndex + 1 < set.items.length) {
-      setItemIndex(itemIndex + 1);
-      setCount(0);
+      setInterstitial(item);
+      window.setTimeout(() => {
+        setInterstitial(null);
+        setItemIndex((i) => i + 1);
+        setCount(0);
+      }, 1100);
     } else {
       setFinished(true);
       track({ type: "dhikr_complete", setId: set.id });
@@ -132,41 +164,110 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
 
   const scale = reduced.current ? 1 : phase === "in" ? 1 : 0.78;
   const duration = phase === "in" ? INHALE_MS : EXHALE_MS;
+  // Progress ring geometry (r=133 inside a 270 viewBox with 2px padding).
+  const RING_R = 133;
+  const circumference = 2 * Math.PI * RING_R;
+  const progress = Math.min(count / item.count, 1);
+
+  if (interstitial) {
+    return (
+      <div style={{ textAlign: "center", paddingTop: 120 }} aria-live="polite">
+        <p className="arabic" lang="ar" style={{ textAlign: "center", fontSize: "1.8rem" }}>
+          {interstitial.arabic}
+        </p>
+        <p style={{ fontWeight: 600, color: "var(--indigo)", fontSize: "1.2rem", margin: "10px 0 2px" }}>
+          {interstitial.translit} · {interstitial.count} ✓
+        </p>
+        <p className="muted">and now…</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <button className="btn ghost" onClick={onExit} style={{ float: "left" }}>
+    // The whole screen is the tap target — dhikr is often done with eyes
+    // closed, so precision tapping must never be required.
+    <div
+      onPointerDown={(e) => {
+        // Don't count taps on the exit button.
+        if ((e.target as HTMLElement).closest("[data-exit]")) return;
+        tap();
+      }}
+      style={{
+        textAlign: "center",
+        minHeight: "78vh",
+        cursor: "pointer",
+        touchAction: "manipulation",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+      }}
+    >
+      <button data-exit className="btn ghost" onClick={onExit} style={{ float: "left" }}>
         ← Leave quietly
       </button>
       <div style={{ clear: "both", paddingTop: 8 }} />
 
-      <p className="label">{set.title}</p>
+      <p className="label">
+        {set.title}
+        {set.items.length > 1 ? ` · ${itemIndex + 1} of ${set.items.length}` : ""}
+      </p>
 
-      <button
-        onClick={tap}
+      <div
         aria-label={`Count one ${item.translit}. ${count} of ${item.count} so far.`}
+        role="button"
         style={{
-          display: "block",
-          margin: "26px auto 0",
+          position: "relative",
           width: 270,
           height: 270,
-          borderRadius: "50%",
-          border: "2px solid var(--indigo)",
-          background: "var(--indigo-wash)",
-          cursor: "pointer",
-          transform: `scale(${scale})`,
-          transition: reduced.current ? "none" : `transform ${duration}ms ease-in-out`,
-          padding: 20,
+          margin: "26px auto 0",
         }}
       >
-        <span
-          className="arabic"
-          lang="ar"
-          style={{ display: "block", textAlign: "center", fontSize: "1.9rem", lineHeight: 1.9 }}
+        {/* Progress ring — readable at a glance, no numbers needed mid-flow. */}
+        <svg
+          viewBox="0 0 270 270"
+          aria-hidden="true"
+          style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}
         >
-          {item.arabic}
-        </span>
-      </button>
+          <circle cx="135" cy="135" r={RING_R} fill="none" stroke="var(--line)" strokeWidth="3" />
+          <circle
+            cx="135"
+            cy="135"
+            r={RING_R}
+            fill="none"
+            stroke="var(--kola)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - progress)}
+            style={{ transition: "stroke-dashoffset .25s ease" }}
+          />
+        </svg>
+        {/* The breathing circle. key={count} restarts the tap pulse. */}
+        <div
+          key={reduced.current ? undefined : count}
+          style={{
+            position: "absolute",
+            inset: 14,
+            borderRadius: "50%",
+            border: "2px solid var(--indigo)",
+            background: "var(--indigo-wash)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transform: `scale(${scale})`,
+            transition: reduced.current ? "none" : `transform ${duration}ms ease-in-out`,
+            animation: reduced.current || count === 0 ? "none" : "dhikr-tap .3s ease-out",
+            padding: 18,
+          }}
+        >
+          <span
+            className="arabic"
+            lang="ar"
+            style={{ display: "block", textAlign: "center", fontSize: "1.9rem", lineHeight: 1.9 }}
+          >
+            {item.arabic}
+          </span>
+        </div>
+      </div>
 
       {!reduced.current && (
         <p className="muted" aria-hidden="true" style={{ marginTop: 18, fontStyle: "italic" }}>
@@ -185,8 +286,14 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
         {count} of {item.count}
       </p>
       <p className="muted" style={{ marginTop: 2 }}>
-        Tap the circle with each recitation
+        Tap anywhere with each recitation
       </p>
+      <style>{`
+        @keyframes dhikr-tap {
+          0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--indigo) 35%, transparent); }
+          100% { box-shadow: 0 0 0 18px transparent; }
+        }
+      `}</style>
     </div>
   );
 }
