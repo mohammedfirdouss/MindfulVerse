@@ -6,6 +6,7 @@
    One ornament: the adire band. Flat confident color, no parchment preciousness.
    ============================================================================ */
 :root {
+  color-scheme: light; /* light-only: native controls stay light in dark-mode OSes */
   --cotton: #f5efe2;        /* raw cotton ground */
   --cotton-raised: #fbf7ec; /* lifted surface */
   --shea: #e8dcc3;          /* shea/sand secondary surface */
@@ -48,23 +49,8 @@
   --adire-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='12' viewBox='0 0 36 12'%3E%3Crect width='36' height='12' fill='%232a3a8c'/%3E%3Cpath d='M9 1 14 6 9 11 4 6Z' fill='none' stroke='%23f5efe2' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='2.4' fill='none' stroke='%23f5efe2' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='0.9' fill='%23f5efe2'/%3E%3C/svg%3E");
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cotton: #151824;
-    --cotton-raised: #1d2130;
-    --shea: #262b3d;
-    --indigo: #8b9ee0;
-    --indigo-deep: #aebcf0;
-    --indigo-wash: #232c4d;
-    --kola: #e08a52;
-    --ink: #ece7da;
-    --ink-soft: #b5ac97;
-    --ink-faint: #837b66;
-    --line: #2d3247;
-    --line-strong: #3c4260;
-    --adire-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='12' viewBox='0 0 36 12'%3E%3Crect width='36' height='12' fill='%231b2559'/%3E%3Cpath d='M9 1 14 6 9 11 4 6Z' fill='none' stroke='%238b9ee0' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='2.4' fill='none' stroke='%238b9ee0' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='0.9' fill='%238b9ee0'/%3E%3C/svg%3E");
-  }
-}
+/* Light-only by design: the identity is indigo on raw cotton,
+   regardless of the device's dark-mode setting. */
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
