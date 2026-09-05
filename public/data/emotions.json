@@ -3,48 +3,96 @@
     "id": "anxious",
     "label": "Anxious",
     "framing": "Verses on ease",
-    "verseKeys": ["94:5", "94:6", "65:2", "65:3", "13:28"]
+    "verseKeys": [
+      "94:5",
+      "94:6",
+      "65:3",
+      "13:28",
+      "20:46"
+    ]
   },
   {
     "id": "grateful",
     "label": "Grateful",
     "framing": "Verses on gratitude",
-    "verseKeys": ["14:7", "16:18", "2:152", "27:19"]
+    "verseKeys": [
+      "2:152",
+      "16:18",
+      "27:19",
+      "93:11",
+      "93:5"
+    ]
   },
   {
     "id": "grieving",
     "label": "Grieving",
     "framing": "Verses of comfort in loss",
-    "verseKeys": ["2:155", "2:156", "2:157", "12:86"]
+    "verseKeys": [
+      "2:155",
+      "2:156",
+      "2:157",
+      "12:86",
+      "93:4"
+    ]
   },
   {
     "id": "hopeful",
     "label": "Hopeful",
     "framing": "Verses on hope",
-    "verseKeys": ["39:53", "94:5", "94:6", "65:3"]
+    "verseKeys": [
+      "39:53",
+      "94:5",
+      "94:6",
+      "65:3",
+      "12:87"
+    ]
   },
   {
     "id": "overwhelmed",
     "label": "Overwhelmed",
     "framing": "Verses on relief",
-    "verseKeys": ["2:286", "94:5", "94:6", "65:3"]
+    "verseKeys": [
+      "2:286",
+      "94:5",
+      "94:6",
+      "65:3",
+      "2:153"
+    ]
   },
   {
     "id": "lonely",
     "label": "Lonely",
     "framing": "Verses on God's nearness",
-    "verseKeys": ["2:186", "50:16", "13:28"]
+    "verseKeys": [
+      "2:186",
+      "50:16",
+      "13:28",
+      "20:46",
+      "93:3"
+    ]
   },
   {
     "id": "seeking-guidance",
     "label": "Seeking Guidance",
     "framing": "Verses on guidance",
-    "verseKeys": ["1:5", "1:6", "1:7", "2:2"]
+    "verseKeys": [
+      "1:5",
+      "1:6",
+      "1:7",
+      "2:2",
+      "93:7"
+    ]
   },
   {
     "id": "restless",
     "label": "Restless",
     "framing": "Verses on peace of heart",
-    "verseKeys": ["13:28", "89:27", "89:28", "2:152"]
+    "verseKeys": [
+      "13:28",
+      "89:27",
+      "89:28",
+      "2:152",
+      "2:186"
+    ]
   }
 ]
