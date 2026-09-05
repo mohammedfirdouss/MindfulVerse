@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import FeedbackLink from "../components/FeedbackLink";
 import { loadAyahsByKeys, loadSurahs } from "../lib/data";
 import { todayVerseKey } from "../lib/dailyVerse";
 import { currentStreak, getLastRead } from "../lib/progress";
