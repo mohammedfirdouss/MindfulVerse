@@ -124,6 +124,10 @@ export default function Home() {
         ))}
       </nav>
 
+      <footer style={{ marginTop: 30, ...reveal(320) }}>
+        <FeedbackLink />
+      </footer>
+
 
       <style>{`
         .home-entries { border-top: 1px solid var(--line); }
