@@ -1,19 +1,24 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { inject } from "@vercel/analytics";
 import App from "./App";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { trackAppOpen } from "./lib/analytics";
 import { recordVisit } from "./lib/progress";
 import "./index.css";
 
 trackAppOpen();
 recordVisit();
+inject(); // Vercel visit analytics — anonymous page views, no cookies
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 
