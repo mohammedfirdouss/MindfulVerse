@@ -222,8 +222,14 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
 
   const scale = reduced.current ? 1 : phase === "in" ? 1 : 0.78;
   const duration = phase === "in" ? INHALE_MS : EXHALE_MS;
-  // Progress ring geometry (r=133 inside a 270 viewBox with 2px padding).
-  const RING_R = 133;
+  // The circle grows and the type eases down for longer formulas — the words
+  // must sit comfortably, never squeezed. 310 still fits a 360px-wide phone.
+  const len = item.arabic.length;
+  const SIZE = len <= 22 ? 270 : len <= 42 ? 295 : 310;
+  const arabicSize = len <= 22 ? "1.9rem" : len <= 42 ? "1.55rem" : "1.3rem";
+  const arabicLine = len <= 22 ? 1.9 : 1.85;
+  // Progress ring geometry (2px padding inside the box).
+  const RING_R = SIZE / 2 - 2;
   const circumference = 2 * Math.PI * RING_R;
   const progress = Math.min(count / item.count, 1);
 
@@ -274,21 +280,21 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
         role="button"
         style={{
           position: "relative",
-          width: 270,
-          height: 270,
+          width: SIZE,
+          height: SIZE,
           margin: "26px auto 0",
         }}
       >
         {/* Progress ring — readable at a glance, no numbers needed mid-flow. */}
         <svg
-          viewBox="0 0 270 270"
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
           aria-hidden="true"
           style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}
         >
-          <circle cx="135" cy="135" r={RING_R} fill="none" stroke="var(--line)" strokeWidth="3" />
+          <circle cx={SIZE / 2} cy={SIZE / 2} r={RING_R} fill="none" stroke="var(--line)" strokeWidth="3" />
           <circle
-            cx="135"
-            cy="135"
+            cx={SIZE / 2}
+            cy={SIZE / 2}
             r={RING_R}
             fill="none"
             stroke="var(--kola)"
