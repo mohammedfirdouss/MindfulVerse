@@ -159,7 +159,9 @@ export default function CheckIn() {
     addEntry({
       prompt: VERSE_PROMPT,
       body,
-      context: { kind: "checkin" },
+      // ref carries the verse this reflection was written about, so the
+      // journal can show the ayah alongside the entry.
+      context: { kind: "checkin", ref: dailyAyah?.verseKey },
     });
     track({ type: "journal_save", context: "checkin" });
     setJournalBody("");
