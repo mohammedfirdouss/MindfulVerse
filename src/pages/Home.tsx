@@ -124,19 +124,6 @@ export default function Home() {
         ))}
       </nav>
 
-      <footer style={{ marginTop: 34, ...reveal(320) }}>
-        <p className="muted" style={{ fontSize: ".85rem", margin: 0 }}>
-          Qur’an text, tafsir, and themes from the{" "}
-          <a
-            href="https://qul.tarteel.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Quranic Universal Library
-          </a>{" "}
-          by Tarteel — with gratitude.
-        </p>
-      </footer>
 
       <style>{`
         .home-entries { border-top: 1px solid var(--line); }
