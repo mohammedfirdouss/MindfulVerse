@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import type { ReactNode } from "react";
+import InstallPrompt from "./InstallPrompt";
 
 const tabs = [
   { to: "/", label: "Home", end: true },
@@ -13,6 +14,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <div>
       <main className="container">{children}</main>
+      <InstallPrompt />
       <nav className="tabbar">
         {tabs.map((t) => (
           <NavLink

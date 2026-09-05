@@ -34,13 +34,21 @@ export default function Journal() {
       </header>
 
       {entries.length > 0 && (
-        <button
-          className="btn secondary"
-          style={{ alignSelf: "flex-start" }}
-          onClick={downloadJournal}
-        >
-          Download my journal
-        </button>
+        <div className="stack" style={{ marginTop: 4 }}>
+          {entries.length >= 3 && (
+            <p className="soft" style={{ fontSize: ".92rem", margin: 0 }}>
+              Your reflections live only on this device — if the browser’s data
+              is ever cleared, they go with it. Download a copy now and then.
+            </p>
+          )}
+          <button
+            className="btn secondary"
+            style={{ alignSelf: "flex-start" }}
+            onClick={downloadJournal}
+          >
+            Download my journal
+          </button>
+        </div>
       )}
 
       {entries.length === 0 && (
