@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAyahsByKeys } from "../lib/data";
+import { loadAyahsByKeys, loadSurahs } from "../lib/data";
+import { todayVerseKey } from "../lib/dailyVerse";
 import { currentStreak, getLastRead } from "../lib/progress";
 import type { Ayah } from "../lib/types";
-
-// The app's signature verse — hearts finding rest in remembrance. Sets the tone.
-const HERO_VERSE = "13:28";
 
 function greeting(hour: number): string {
   if (hour < 5) return "Peace be upon you tonight";
@@ -23,6 +21,7 @@ const entries = [
 
 export default function Home() {
   const [hero, setHero] = useState<Ayah | null>(null);
+  const [surahName, setSurahName] = useState<string>("");
   const [mounted, setMounted] = useState(false);
   const reduced =
     typeof window !== "undefined" &&
@@ -34,8 +33,21 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    loadAyahsByKeys([HERO_VERSE])
-      .then((a) => active && setHero(a[0] ?? null))
+    // Today's verse — rotates daily, same verse as the check-in page.
+    loadAyahsByKeys([todayVerseKey()])
+      .then(async (a) => {
+        if (!active) return;
+        const ayah = a[0] ?? null;
+        setHero(ayah);
+        if (ayah) {
+          const surahs = await loadSurahs().catch(() => []);
+          if (active) {
+            setSurahName(
+              surahs.find((s) => s.number === ayah.surah)?.name ?? ""
+            );
+          }
+        }
+      })
       .catch(() => {});
     const id = requestAnimationFrame(() => active && setMounted(true));
     return () => {
@@ -84,7 +96,7 @@ export default function Home() {
       <section aria-label="A verse to begin with" style={{ margin: "26px 0 34px", ...reveal(120) }}>
         {hero ? (
           <>
-            <p className="arabic" style={{ fontSize: "calc(2.4rem * var(--read-scale,1))" }}>
+            <p className="arabic" lang="ar" style={{ fontSize: "calc(2.4rem * var(--read-scale,1))" }}>
               {hero.arabic}
             </p>
             <p
@@ -94,7 +106,8 @@ export default function Home() {
               {hero.translation}
             </p>
             <p className="label" style={{ marginTop: 12 }}>
-              Ar-Ra‘d · {hero.surah}:{hero.ayah}
+              {surahName ? `${surahName} · ` : ""}
+              {hero.surah}:{hero.ayah}
             </p>
           </>
         ) : (
