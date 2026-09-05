@@ -58,6 +58,64 @@ const SETS: DhikrSet[] = [
       },
     ],
   },
+  {
+    id: "salawat",
+    title: "Salawat",
+    desc: "Sending blessings upon the Prophet ﷺ.",
+    items: [
+      {
+        arabic: "ٱللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَعَلَىٰ آلِ مُحَمَّدٍ",
+        translit: "Allahumma salli ‘ala Muhammad wa ‘ala aali Muhammad",
+        meaning: "O Allah, send blessings upon Muhammad and the family of Muhammad",
+        count: 10,
+      },
+    ],
+  },
+  {
+    id: "two-beloved",
+    title: "The two beloved phrases",
+    desc: "Light on the tongue, heavy on the scale.",
+    items: [
+      {
+        arabic: "سُبْحَانَ ٱللَّهِ وَبِحَمْدِهِ",
+        translit: "SubhanAllahi wa bihamdihi",
+        meaning: "Glory be to Allah, and all praise is His",
+        count: 33,
+      },
+      {
+        arabic: "سُبْحَانَ ٱللَّهِ ٱلْعَظِيمِ",
+        translit: "SubhanAllahil-‘Azim",
+        meaning: "Glory be to Allah, the Magnificent",
+        count: 33,
+      },
+    ],
+  },
+  {
+    id: "dua-yunus",
+    title: "The call from the depths",
+    desc: "The prayer of Yunus, from the belly of the whale (Qur’an 21:87).",
+    items: [
+      {
+        arabic: "لَآ إِلَٰهَ إِلَّآ أَنتَ سُبْحَٰنَكَ إِنِّى كُنتُ مِنَ ٱلظَّٰلِمِينَ",
+        translit: "La ilaha illa anta, subhanaka, inni kuntu minaz-zalimin",
+        meaning: "There is no god but You; glory be to You — truly I have been among the wrongdoers",
+        count: 33,
+      },
+    ],
+  },
+  {
+    id: "hasbiyallah",
+    title: "Allah is enough for me",
+    desc: "Rest for a worried heart (Qur’an 9:129).",
+    items: [
+      {
+        arabic: "حَسْبِىَ ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ۖ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ ٱلْعَرْشِ ٱلْعَظِيمِ",
+        translit: "Hasbiyallahu la ilaha illa huwa, ‘alayhi tawakkaltu, wa huwa Rabbul-‘arshil-‘azim",
+        meaning: "Allah is enough for me; there is no god but Him. In Him I trust — He is the Lord of the Mighty Throne",
+        count: 7,
+      },
+    ],
+  },
 ];
 
 // Calming breath pacing: in for 4, out for 6.
