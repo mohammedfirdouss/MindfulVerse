@@ -55,6 +55,16 @@ raw-data/      source datasets (not committed)
 To change the data, update the files in `raw-data/`, edit `scripts/build-data.mjs`
 if needed, and run `npm run build:data` again.
 
+## Acknowledgments
+
+The Qur'anic datasets that power MindfulVerse — the Uthmani text, Ibn Kathir's
+tafsir, ayah themes, surah information, and recitation timing data — come from
+the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by
+[Tarteel](https://tarteel.ai). This app would not exist without their work of
+making Qur'an data open and accessible. The English translation is Yusuf Ali
+(public domain), and the Arabic typeface is the KFGQPC Uthmanic Hafs script
+from the King Fahd Glorious Qur'an Printing Complex, Madinah.
+
 ## Good to know
 
 - The English translation is Yusuf Ali (public domain, a little old-fashioned).
