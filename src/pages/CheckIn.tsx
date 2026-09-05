@@ -247,7 +247,7 @@ export default function CheckIn() {
             </button>
             {saved && (
               <span className="muted" role="status">
-                Kept in your journal.
+                Kept in your journal. A new verse arrives tomorrow.
               </span>
             )}
           </div>
