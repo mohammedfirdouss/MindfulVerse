@@ -387,6 +387,47 @@ type TafsirStatus =
   | { kind: "error" }
   | { kind: "ready"; entries: TafsirEntry[] };
 
+/** Show the opening of a long commentary entry, verbatim, with the rest one
+ *  tap away. Truncation at a paragraph boundary — never mid-thought, and
+ *  never rewritten. Keeps a session feeling guided rather than like homework. */
+function TafsirExcerpt({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const paragraphs = text
+    .split("\n\n")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  // Take whole paragraphs until ~700 chars; always at least one.
+  let excerptCount = 0;
+  let chars = 0;
+  for (const p of paragraphs) {
+    excerptCount++;
+    chars += p.length;
+    if (chars > 700) break;
+  }
+  const isTruncated = excerptCount < paragraphs.length;
+  const shown = expanded ? paragraphs : paragraphs.slice(0, excerptCount);
+
+  return (
+    <div>
+      {shown.map((p, i) => (
+        <p key={i} style={{ margin: i === 0 ? 0 : "0.8em 0 0" }}>
+          {p}
+        </p>
+      ))}
+      {isTruncated && !expanded && (
+        <button
+          className="commentary-open"
+          style={{ marginTop: 10 }}
+          onClick={() => setExpanded(true)}
+        >
+          Read the full commentary
+        </button>
+      )}
+    </div>
+  );
+}
+
 function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<TafsirStatus>({ kind: "idle" });
@@ -448,7 +489,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
                     </span>
                     <span className="rule" />
                   </div>
-                  <p style={{ margin: 0 }}>{e.text}</p>
+                  <TafsirExcerpt text={e.text} />
                 </div>
               );
             })}
