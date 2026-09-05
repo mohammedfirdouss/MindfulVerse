@@ -254,14 +254,10 @@ export default function CheckIn() {
         </div>
       </section>
 
-      {/* Emotion picker — the heart moment, warmed with garnet rather than lapis. */}
+      {/* Emotion picker — kept in the app's quiet indigo voice; kola stays
+          reserved for small accents, never a whole section. */}
       <section className="card stack">
-        <div
-          className="label"
-          style={{ color: "var(--garnet)" }}
-        >
-          How is your heart today?
-        </div>
+        <div className="label">How is your heart today?</div>
 
         {emotionsError ? (
           <p className="muted">
