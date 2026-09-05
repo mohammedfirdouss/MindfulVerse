@@ -1,0 +1,13 @@
+{
+  "rewrites": [{ "source": "/((?!data/|fonts/|assets/).*)", "destination": "/index.html" }],
+  "headers": [
+    {
+      "source": "/data/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}
