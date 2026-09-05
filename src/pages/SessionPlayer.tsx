@@ -330,7 +330,8 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
       )}
       {status.kind === "ready" &&
         status.ayahs.map((a, i) => {
-          const { ayah } = parseVerseKey(a.verseKey);
+          const { surah, ayah } = parseVerseKey(a.verseKey);
+          const surahName = surahNames.get(surah);
           return (
             <FadeRise
               key={a.verseKey}
@@ -341,6 +342,10 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
               <div className="verse" style={{ paddingTop: i === 0 ? 0 : undefined }}>
                 <div className="verse-head">
                   <span className="roundel">{ayah}</span>
+                  <span className="label">
+                    {surahName ? `${surahName} · ` : ""}
+                    {a.verseKey}
+                  </span>
                   <span className="rule" />
                 </div>
                 <p className="arabic" style={{ margin: 0 }}>
@@ -430,11 +435,16 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
           )}
           {status.kind === "ready" &&
             status.entries.map((e) => {
-              const { ayah } = parseVerseKey(e.verseKey);
+              const { surah, ayah } = parseVerseKey(e.verseKey);
+              const surahName = tafsirSurahNames.get(surah);
               return (
                 <div key={e.verseKey} className="stack">
                   <div className="verse-head" style={{ marginBottom: 4 }}>
                     <span className="roundel">{ayah}</span>
+                    <span className="label">
+                      {surahName ? `${surahName} · ` : ""}
+                      {e.verseKey}
+                    </span>
                     <span className="rule" />
                   </div>
                   <p style={{ margin: 0 }}>{e.text}</p>
