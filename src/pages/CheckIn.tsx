@@ -277,14 +277,6 @@ export default function CheckIn() {
                   className={isActive ? "btn" : "btn secondary"}
                   aria-pressed={isActive}
                   onClick={() => selectEmotion(entry)}
-                  style={
-                    isActive
-                      ? {
-                          background: "var(--garnet)",
-                          borderColor: "var(--garnet)",
-                        }
-                      : { borderColor: "var(--garnet)", color: "var(--garnet)" }
-                  }
                 >
                   {entry.label}
                 </button>
