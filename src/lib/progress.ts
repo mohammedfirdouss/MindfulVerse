@@ -93,6 +93,51 @@ export function recordSessionStep(id: string, step: number): void {
   }
 }
 
+const SURAH_TADABBUR_KEY = "mindfulverse.surahTadabbur.v1";
+
+export interface SurahTadabburProgress {
+  /** Last ayah number the user pondered in this surah. */
+  ayah: number;
+  updatedAt: number; // epoch ms
+}
+
+type SurahTadabburMap = Record<string, SurahTadabburProgress>;
+
+function readSurahTadabbur(): SurahTadabburMap {
+  try {
+    const raw = localStorage.getItem(SURAH_TADABBUR_KEY);
+    return raw ? (JSON.parse(raw) as SurahTadabburMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Record the furthest ayah pondered in a surah (never regresses). */
+export function recordSurahTadabbur(surah: number, ayah: number): void {
+  const map = readSurahTadabbur();
+  const prev = map[String(surah)];
+  if (!prev || ayah > prev.ayah) {
+    map[String(surah)] = { ayah, updatedAt: Date.now() };
+    localStorage.setItem(SURAH_TADABBUR_KEY, JSON.stringify(map));
+  }
+}
+
+export function getSurahTadabbur(surah: number): SurahTadabburProgress | undefined {
+  return readSurahTadabbur()[String(surah)];
+}
+
+/** The surah most recently pondered, for a "continue" affordance. */
+export function latestSurahTadabbur(): { surah: number; ayah: number } | null {
+  const map = readSurahTadabbur();
+  let best: { surah: number; ayah: number; at: number } | null = null;
+  for (const [s, p] of Object.entries(map)) {
+    if (!best || p.updatedAt > best.at) {
+      best = { surah: Number(s), ayah: p.ayah, at: p.updatedAt };
+    }
+  }
+  return best ? { surah: best.surah, ayah: best.ayah } : null;
+}
+
 const LAST_READ_KEY = "mindfulverse.lastRead.v1";
 
 export interface LastRead {
