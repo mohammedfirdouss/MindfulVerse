@@ -192,6 +192,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </nav>
 
       <style>{`
+        /* --- Theme toggle: quiet, below the adire band --- */
+        .theme-toggle {
+          position: fixed; top: 22px; right: 14px; z-index: 25;
+          width: 40px; height: 40px; border-radius: 50%;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: var(--cotton-raised); border: 1px solid var(--line);
+          color: var(--ink-soft); cursor: pointer;
+          transition: color .15s ease, background .15s ease;
+        }
+        .theme-toggle:hover { color: var(--indigo); }
+        .theme-toggle:active { transform: scale(0.94); }
+        @media (min-width: 900px) { .theme-toggle { top: 26px; right: 22px; } }
+
         /* --- Mobile: fixed bottom tab bar, icon above small label --- */
         .tabbar {
           position: fixed; left: 0; right: 0; bottom: 0;

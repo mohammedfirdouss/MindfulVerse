@@ -15,6 +15,7 @@ interface StatsSnapshot {
   streak: number;
   appOpenDays: number;
   sessionsStarted: number;
+  surahTadabburStarted: number;
   sessionsCompleted: number;
   completionPct: number | null;
   checkinViews: number;
@@ -50,6 +51,7 @@ function computeStats(): StatsSnapshot {
 
   const openDays = new Set<string>();
   let sessionsStarted = 0;
+  let surahTadabburStarted = 0;
   let sessionsCompleted = 0;
   let checkinViews = 0;
   let payTaps = 0;
@@ -63,7 +65,8 @@ function computeStats(): StatsSnapshot {
         openDays.add(dayKey(t));
         break;
       case "session_start":
-        sessionsStarted++;
+        if (e.sessionId.startsWith("surah-")) surahTadabburStarted++;
+        else sessionsStarted++;
         break;
       case "session_complete":
         sessionsCompleted++;
@@ -102,6 +105,7 @@ function computeStats(): StatsSnapshot {
     streak: currentStreak(),
     appOpenDays: openDays.size,
     sessionsStarted,
+    surahTadabburStarted,
     sessionsCompleted,
     completionPct:
       sessionsStarted > 0
@@ -140,6 +144,7 @@ function summaryText(s: StatsSnapshot): string {
     `Pay-intent taps: ${s.payTaps}`,
     `Verses shared: ${s.versesShared}`,
     `Dhikr completed: ${s.dhikrCompleted}`,
+    `Surah tadabbur begun: ${s.surahTadabburStarted}`,
   ].join("\n");
 }
 
@@ -235,6 +240,7 @@ export default function Stats() {
             <Metric label="Pay-intent taps" value={String(stats.payTaps)} />
             <Metric label="Verses shared" value={String(stats.versesShared)} />
             <Metric label="Dhikr completed" value={String(stats.dhikrCompleted)} />
+            <Metric label="Surah tadabbur begun" value={String(stats.surahTadabburStarted)} />
             <Metric
               label="First seen"
               value={

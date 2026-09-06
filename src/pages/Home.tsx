@@ -15,7 +15,7 @@ function greeting(hour: number): string {
 
 const entries = [
   { to: "/checkin", title: "Daily check-in", desc: "A verse for this moment, and a line to journal." },
-  { to: "/sessions", title: "Tadabbur", desc: "Sit with a theme — verse, meaning, reflection." },
+  { to: "/sessions", title: "Tadabbur", desc: "Ponder the Qur’an, surah by surah." },
   { to: "/read", title: "Read", desc: "The Qur’an, with translation and commentary." },
   { to: "/dhikr", title: "Dhikr & breath", desc: "Remembrance, paced to your breath." },
 ];
