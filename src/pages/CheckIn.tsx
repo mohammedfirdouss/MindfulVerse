@@ -90,6 +90,7 @@ export default function CheckIn() {
   }, []);
 
   useEffect(() => {
+    if (!dailyKey) return;
     let alive = true;
     loadAyahsByKeys([dailyKey])
       .then((ayahs) => {
