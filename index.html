@@ -42,6 +42,14 @@
     </style>
   </head>
   <body>
+    <script>
+      // Apply the saved theme before anything paints (no light-flash at night).
+      try {
+        if (localStorage.getItem("mindfulverse.theme.v1") === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch (e) {}
+    </script>
     <div id="splash" aria-hidden="true">
       <div class="mark">
         <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
