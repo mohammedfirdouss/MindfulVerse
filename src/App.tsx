@@ -5,6 +5,7 @@ import Reader from "./pages/Reader";
 import Surah from "./pages/Surah";
 import Sessions from "./pages/Sessions";
 import SessionPlayer from "./pages/SessionPlayer";
+import SurahTadabbur from "./pages/SurahTadabbur";
 import CheckIn from "./pages/CheckIn";
 import Journal from "./pages/Journal";
 import Stats from "./pages/Stats";
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/read/:surah" element={<Surah />} />
         <Route path="/sessions" element={<Sessions />} />
         <Route path="/sessions/:id" element={<SessionPlayer />} />
+        <Route path="/tadabbur/:surah" element={<SurahTadabbur />} />
         <Route path="/checkin" element={<CheckIn />} />
         <Route path="/journal" element={<Journal />} />
         <Route path="/stats" element={<Stats />} />

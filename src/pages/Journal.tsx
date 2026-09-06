@@ -69,7 +69,8 @@ export default function Journal() {
     const text = entries
       .map((e) => {
         const where =
-          e.context?.kind === "checkin" && e.context.ref
+          (e.context?.kind === "checkin" || e.context?.kind === "tadabbur") &&
+          e.context.ref
             ? `Verse ${e.context.ref}`
             : e.context?.kind === "session" && e.context.ref
               ? `Session: ${sessionTitles.get(e.context.ref) ?? e.context.ref}`
@@ -128,7 +129,7 @@ export default function Journal() {
 
       {entries.map((e) => {
         const verseRef =
-          e.context?.kind === "checkin" &&
+          (e.context?.kind === "checkin" || e.context?.kind === "tadabbur") &&
           e.context.ref &&
           VERSE_KEY_RE.test(e.context.ref)
             ? e.context.ref
