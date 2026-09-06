@@ -42,7 +42,13 @@ function localDayIndex(): number {
   return Math.floor(startOfDay.getTime() / 86_400_000);
 }
 
-/** Today's verse key — same all day, different tomorrow. */
+/** Today's verse key — same all day, different tomorrow.
+ *
+ * We stride through the pool with a step coprime to its length (7 vs 25), so
+ * consecutive days land far apart in the list. This matters because the pool
+ * contains near-twins (e.g. 94:5 and 94:6 differ by one letter) — walked in
+ * order, two almost-identical days in a row read as "the verse never changed". */
 export function todayVerseKey(): string {
-  return DAILY_VERSES[localDayIndex() % DAILY_VERSES.length];
+  const stride = 7; // coprime with DAILY_VERSES.length (25) → full cycle, no repeats
+  return DAILY_VERSES[(localDayIndex() * stride) % DAILY_VERSES.length];
 }
