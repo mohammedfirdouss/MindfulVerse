@@ -66,6 +66,19 @@ function CommentarySheet({
     };
   }, [onClose]);
 
+  // The phone's back button/gesture must close the sheet, not leave the page.
+  useEffect(() => {
+    const onPop = () => onClose();
+    window.history.pushState({ mvSheet: true }, "");
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      // Closed via ✕/backdrop/Escape: remove the extra history entry we added.
+      if (window.history.state?.mvSheet) window.history.back();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const paragraphs = (text ?? "")
     .split("\n\n")
     .map((p) => p.trim())
@@ -81,22 +94,33 @@ function CommentarySheet({
         aria-label={`Commentary on verse ${ayah.verseKey}`}
       >
         <div className="sheet-grip" />
-        <div className="sheet-head">
-          <div>
-            <p className="arabic" lang="ar">
-              {ayah.arabic}
-            </p>
-            <p className="label" style={{ margin: 0 }}>
-              {sourceAyah === ayah.ayah
-                ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
-                : `Ibn Kathir · on the passage from ${ayah.surah}:${sourceAyah}`}
-            </p>
-          </div>
+        {/* Compact fixed header — label + close only, so the ✕ is ALWAYS
+            visible and tappable. The ayah itself lives in the scrollable body
+            (long verses like 2:282 used to fill the screen from the header). */}
+        <div className="sheet-head" style={{ alignItems: "center" }}>
+          <p className="label" style={{ margin: 0 }}>
+            {sourceAyah === ayah.ayah
+              ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
+              : `Ibn Kathir · on the passage from ${ayah.surah}:${sourceAyah}`}
+          </p>
           <button className="sheet-close" onClick={onClose} aria-label="Close commentary">
             ✕
           </button>
         </div>
         <div className="sheet-body">
+          <p
+            className="arabic"
+            lang="ar"
+            style={{
+              fontSize: "1.4rem",
+              lineHeight: 1.9,
+              margin: "0 0 14px",
+              paddingBottom: 14,
+              borderBottom: "1px solid var(--line)",
+            }}
+          >
+            {ayah.arabic}
+          </p>
           {text === null ? (
             <p className="muted">Opening the commentary…</p>
           ) : (
