@@ -34,8 +34,9 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    // Today's verse — rotates daily, same verse as the check-in page.
-    loadAyahsByKeys([todayVerseKey()])
+    // Today's verse — from anywhere in the Qur'an, same as the check-in page.
+    todayVerseKey()
+      .then((key) => loadAyahsByKeys([key]))
       .then(async (a) => {
         if (!active) return;
         const ayah = a[0] ?? null;

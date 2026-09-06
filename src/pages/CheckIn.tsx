@@ -53,7 +53,14 @@ function AyahView({ ayah }: { ayah: Ayah }) {
 
 export default function CheckIn() {
   // Shared with the Home hero — one verse of the day across the app.
-  const dailyKey = useMemo(() => todayVerseKey(), []);
+  const [dailyKey, setDailyKey] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    todayVerseKey().then((k) => alive && setDailyKey(k));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
