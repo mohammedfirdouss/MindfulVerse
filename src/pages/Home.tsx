@@ -126,8 +126,15 @@ export default function Home() {
         ))}
       </nav>
 
-      <footer style={{ marginTop: 30, ...reveal(320) }}>
+      <footer style={{ marginTop: 30, ...reveal(320) }} className="stack">
         <FeedbackLink />
+        {/* Required attribution — the translation is CC BY-NC-ND. */}
+        <p className="muted" style={{ fontSize: ".8rem", margin: "10px 0 0" }}>
+          English translation by{" "}
+          <a href="https://www.clearquran.com" target="_blank" rel="noopener noreferrer">
+            Talal Itani (ClearQuran)
+          </a>
+        </p>
       </footer>
 
 

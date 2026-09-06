@@ -61,12 +61,13 @@ The Qur'anic datasets that power MindfulVerse — the Uthmani text, Ibn Kathir's
 tafsir, ayah themes, surah information, and recitation timing data — come from
 the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by
 [Tarteel](https://tarteel.ai). This app would not exist without their work of
-making Qur'an data open and accessible. The English translation is Yusuf Ali
-(public domain), and the Arabic typeface is the KFGQPC Uthmanic Hafs script
+making Qur'an data open and accessible. The English translation is Talal Itani's
+[ClearQuran](https://www.clearquran.com) (CC BY-NC-ND 4.0), and the Arabic typeface is the KFGQPC Uthmanic Hafs script
 from the King Fahd Glorious Qur'an Printing Complex, Madinah.
 
 ## Good to know
 
-- The English translation is Yusuf Ali (public domain, a little old-fashioned).
+- The English translation is Talal Itani's ClearQuran (modern English; CC BY-NC-ND 4.0 —
+  attribution required, shown verbatim, non-commercial). It renders the divine name as "God".
 - Ibn Kathir's commentary is grouped, so some verses don't show a note of their own.
 - Recitation audio, accounts, payments, and more languages are planned for later.
