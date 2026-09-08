@@ -196,47 +196,60 @@ export default function Sessions() {
             </p>
           ) : (
             <ul
-              className="stack"
-              style={{ listStyle: "none", margin: 0, padding: 0 }}
+              style={{
+                listStyle: "none",
+                margin: 0,
+                padding: 0,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                columnGap: 32,
+              }}
             >
-              {status.sessions.map((s) => {
-                const p = progress[s.id];
-                const completed = p?.completedAt != null;
-                const inProgress = !completed && p != null && p.step >= 0;
-                return (
+              {[...status.sessions]
+                .map((s) => {
+                  const p = progress[s.id];
+                  const completed = p?.completedAt != null;
+                  const inProgress = !completed && p != null && p.step >= 0;
+                  return { s, completed, inProgress };
+                })
+                .sort(
+                  (a, b) =>
+                    Number(b.inProgress) - Number(a.inProgress) ||
+                    Number(a.completed) - Number(b.completed)
+                )
+                .map(({ s, completed, inProgress }) => (
                   <li key={s.id}>
                     <Link
                       to={`/sessions/${s.id}`}
                       style={{
-                        display: "block",
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: 12,
                         color: "inherit",
-                        padding: "18px 0",
+                        padding: "12px 0",
                         borderTop: "1px solid var(--line)",
                       }}
                     >
-                      <p className="label" style={{ margin: "0 0 4px" }}>
-                        {s.theme}
-                      </p>
-                      <h3 style={{ margin: 0, fontWeight: 500 }}>{s.title}</h3>
-                      <p className="muted" style={{ margin: "4px 0 0" }}>
-                        {s.steps.length}{" "}
-                        {s.steps.length === 1 ? "step" : "steps"}
-                        {completed && (
+                      <span style={{ fontWeight: 500 }}>{s.theme}</span>
+                      <span
+                        className="muted"
+                        style={{ marginLeft: "auto", whiteSpace: "nowrap" }}
+                      >
+                        {completed ? (
                           <span style={{ color: "var(--indigo)" }}>
-                            {"  ·  "}
                             <span aria-hidden="true">✦</span> Completed
                           </span>
+                        ) : inProgress ? (
+                          <span style={{ color: "var(--kola)" }}>Continue</span>
+                        ) : (
+                          `${s.steps.length} ${
+                            s.steps.length === 1 ? "step" : "steps"
+                          }`
                         )}
-                        {inProgress && (
-                          <span style={{ color: "var(--kola)" }}>
-                            {"  ·  "}Continue
-                          </span>
-                        )}
-                      </p>
+                      </span>
                     </Link>
                   </li>
-                );
-              })}
+                ))}
             </ul>
           ))}
       </section>
