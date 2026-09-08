@@ -16,12 +16,14 @@ gate clears. Having the data is not a reason to build.
 
 | Feature | Notes |
 | --- | --- |
-| Reader (114 surahs) | Arabic (Uthmanic Hafs) + Yusuf Ali + Ibn Kathir, lazy-loaded, passage-grouped commentary |
+| Reader (114 surahs) | Arabic (Uthmanic Hafs) + Itani/ClearQuran + Ibn Kathir, lazy-loaded, passage-grouped commentary, Arabic-only view toggle |
 | Daily check-in | Rotating vetted verse of the day (25-verse pool), neutral emotion picker (8 × 5 vetted verses) |
 | Tadabbur sessions | 20 sessions, verbatim assembly, progress + resume, tafsir excerpts |
 | Dhikr & breath | 8 sets, breathing circle, tap counting, wake lock, adaptive sizing |
 | Journal | Local-only, verse/session attribution, export, backup nudge |
-| Search + themes browse | Translation search; 1,049-theme browse into the reader |
+| Search + topics browse | Translation search; verses-by-topic index into the reader |
+| Modern English translation | Talal Itani / ClearQuran (CC BY-NC-ND — non-commercial; see v1 billing blocker) |
+| User-controlled dark theme | Default light, user toggle; never follows OS |
 | Growth & measurement | Share-a-verse, OG preview card, PWA install prompt, `/stats`, WhatsApp feedback link, analytics |
 | Identity | West African indigo, adire band, Fraunces + KFGQPC Hafs, offline PWA |
 
@@ -40,11 +42,9 @@ gate clears. Having the data is not a reason to build.
 | Priority | Feature | Unlocked by | Effort | Blocker / note |
 | --- | --- | --- | --- | --- |
 | 1 | New sessions on a cadence (2/week) | Themes + tafsir data | Low (authoring) | None — strongest retention play |
-| 2 | Topics browse (2,512-topic ontology) | `topics.db` (unused) | Low | Pipeline step + UI |
+| 2 | Richer topic ontology (2,512 topics) | `topics.db` (unused) | Low | Enriches the existing verses-by-topic page; pipeline step + UI |
 | 3 | Recitation audio + word highlighting | Timestamp data (4 reciters) | High | **Licensing first** — audio is on Tarteel's CDN, not ours |
 | 4 | Related-wording links in reader | Similar-ayahs dataset | Low | Lexical matches — label "related wording," not "related meaning" |
-| 5 | Modern English translation | Open alternatives to Yusuf Ali | Low | License check, then `raw-data/` swap + rebuild |
-| 6 | User-controlled dark theme | Existing palette work | Low | Default light; never follow OS |
 
 ## Later / niche
 

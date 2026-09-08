@@ -15,7 +15,7 @@ Live at [mindfulverse.vercel.app](https://mindfulverse.vercel.app)
 - **Tadabbur sessions.** 20 short guided reflections. Each one has a theme, a few verses, and a prompt.
 - **Dhikr and breath.** A breathing circle paced to remembrance, with tap counting.
 - **Read.** All 114 surahs with Arabic, English translation, and Ibn Kathir's commentary.
-- **Search and themes.** Search the translation, or browse curated themes into the reader.
+- **Search and topics.** Search the translation, or find verses by topic and jump into the reader.
 - **Journal.** Your reflections, saved on your device, with the verse they were written about.
 
 All Qur'an text, translation, and commentary are shown exactly as they are.
