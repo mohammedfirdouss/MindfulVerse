@@ -133,17 +133,13 @@ export default function Sessions() {
       <header className="stack">
         <p className="label">Tadabbur</p>
         <h1>Ponder the Qur’an</h1>
-        <p className="soft">
-          Slow down with the verses — surah by surah, or gathered around a
-          theme.
-        </p>
+        <p className="soft">Slow down and sit with a few verses at a time.</p>
       </header>
 
       <section className="stack">
-        <h2 style={{ margin: 0, fontWeight: 500 }}>Ponder a surah</h2>
+        <h2 style={{ margin: 0, fontWeight: 500 }}>By surah</h2>
         <p className="soft" style={{ margin: 0 }}>
-          Learn a surah’s background, then move through it verse by verse,
-          reflecting as you go.
+          Learn its background, then move through it verse by verse.
         </p>
 
         {latest != null && (
@@ -169,9 +165,9 @@ export default function Sessions() {
       </section>
 
       <section className="stack">
-        <h2 style={{ margin: 0, fontWeight: 500 }}>Suggested topics</h2>
+        <h2 style={{ margin: 0, fontWeight: 500 }}>By theme</h2>
         <p className="soft" style={{ margin: 0 }}>
-          Curated sets of verses, gathered around a theme.
+          Short guided reflections — a few verses gathered around one theme.
         </p>
 
         {status.kind === "loading" && (

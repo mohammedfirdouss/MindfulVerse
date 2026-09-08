@@ -85,6 +85,28 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+/**
+ * The Ibn Kathir source opens entries (and marks covered verses mid-entry)
+ * with `<p class="en translation">…(N)</p>` blocks quoting the verse in the
+ * source's own English rendering. The app's translation is Itani, so swap
+ * each of those blocks for the verbatim Itani text of that verse — the verse
+ * number lives in the paragraph's trailing `(N)`. Blocks whose verse can't be
+ * resolved are left as-is rather than dropped.
+ */
+function swapEmbeddedTranslations(html, surah, trByKey) {
+  if (html == null) return html;
+  return String(html).replace(
+    /<p class="en translation"[^>]*>([\s\S]*?)<\/p>/gi,
+    (match, inner) => {
+      const nums = [...inner.matchAll(/\((\d{1,3})\)/g)];
+      const last = nums.length ? Number(nums[nums.length - 1][1]) : NaN;
+      const itani = trByKey.get(`${surah}:${last}`);
+      if (!itani) return match;
+      return `<p>${itani.trim()} (${surah}:${last})</p>`;
+    },
+  );
+}
+
 function main() {
   ensureDir(OUT);
   ensureDir(path.join(OUT, "quran"));
@@ -166,7 +188,7 @@ function main() {
     const s = Number(sStr);
     const a = Number(aStr);
     if (!Number.isFinite(s) || !Number.isFinite(a)) continue;
-    const raw = tafsir[vk]?.text;
+    const raw = swapEmbeddedTranslations(tafsir[vk]?.text, s, trByKey);
     const cleaned = stripHtml(raw);
     if (!cleaned) continue; // omit empty
     if (!tafsirBySurah.has(s)) tafsirBySurah.set(s, {});
