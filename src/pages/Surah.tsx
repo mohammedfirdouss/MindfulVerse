@@ -22,6 +22,9 @@ const SIZES: { key: string; label: string; scale: number }[] = [
   { key: "l", label: "A", scale: 1.22 },
 ];
 const SIZE_KEY = "mindfulverse.readScale.v1";
+const VIEW_KEY = "mindfulverse.readView.v1";
+
+type ReadView = "arabic" | "both";
 
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Given the surah's list of ayahs that carry a
@@ -145,6 +148,9 @@ export default function Surah() {
     () => localStorage.getItem(SIZE_KEY) ?? "m"
   );
   const [jump, setJump] = useState<string>("");
+  const [view, setView] = useState<ReadView>(() =>
+    localStorage.getItem(VIEW_KEY) === "arabic" ? "arabic" : "both"
+  );
   const [shared, setShared] = useState<string | null>(null);
   const tafsirPromise = useRef<Promise<SurahTafsir> | null>(null);
 
@@ -262,6 +268,11 @@ export default function Surah() {
     localStorage.setItem(SIZE_KEY, key);
   }
 
+  function chooseView(v: ReadView) {
+    setView(v);
+    localStorage.setItem(VIEW_KEY, v);
+  }
+
   function goToVerse(e: React.FormEvent) {
     e.preventDefault();
     const n = Number(jump);
@@ -305,19 +316,37 @@ export default function Surah() {
             marginBottom: 4,
           }}
         >
-          <div className="reading-controls" role="group" aria-label="Reading size">
-            {SIZES.map((s, i) => (
+          <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+            <div className="reading-controls" role="group" aria-label="Reading size">
+              {SIZES.map((s, i) => (
+                <button
+                  key={s.key}
+                  className="size-btn"
+                  aria-pressed={s.key === sizeKey}
+                  onClick={() => chooseSize(s.key)}
+                  style={{ fontSize: `${0.78 + i * 0.16}rem` }}
+                  aria-label={`Reading size ${s.key === "s" ? "small" : s.key === "m" ? "medium" : "large"}`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <div className="reading-controls" role="group" aria-label="Reading view">
               <button
-                key={s.key}
                 className="size-btn"
-                aria-pressed={s.key === sizeKey}
-                onClick={() => chooseSize(s.key)}
-                style={{ fontSize: `${0.78 + i * 0.16}rem` }}
-                aria-label={`Reading size ${s.key === "s" ? "small" : s.key === "m" ? "medium" : "large"}`}
+                aria-pressed={view === "arabic"}
+                onClick={() => chooseView("arabic")}
               >
-                {s.label}
+                Arabic
               </button>
-            ))}
+              <button
+                className="size-btn"
+                aria-pressed={view === "both"}
+                onClick={() => chooseView("both")}
+              >
+                With translation
+              </button>
+            </div>
           </div>
           <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input
@@ -384,23 +413,27 @@ export default function Surah() {
                 <p className="arabic" lang="ar">
                   {a.arabic}
                 </p>
-                <p className="translation">{a.translation}</p>
-                <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-                  <button
-                    className="commentary-open"
-                    disabled={covering === null}
-                    onClick={() => openCommentary(a)}
-                  >
-                    {covering === null
-                      ? "No commentary for this verse"
-                      : direct
-                        ? "Read the commentary"
-                        : `Read the commentary (with verse ${covering})`}
-                  </button>
-                  <button className="commentary-open" onClick={() => void share(a)}>
-                    {shared === a.verseKey ? "Shared ✓" : "Share"}
-                  </button>
-                </div>
+                {view === "both" && (
+                  <>
+                    <p className="translation">{a.translation}</p>
+                    <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+                      <button
+                        className="commentary-open"
+                        disabled={covering === null}
+                        onClick={() => openCommentary(a)}
+                      >
+                        {covering === null
+                          ? "No commentary for this verse"
+                          : direct
+                            ? "Read the commentary"
+                            : `Read the commentary (with verse ${covering})`}
+                      </button>
+                      <button className="commentary-open" onClick={() => void share(a)}>
+                        {shared === a.verseKey ? "Shared ✓" : "Share"}
+                      </button>
+                    </div>
+                  </>
+                )}
               </article>
             );
           })}
