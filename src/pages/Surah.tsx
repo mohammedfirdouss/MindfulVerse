@@ -6,6 +6,7 @@ import {
   loadSurahs,
   loadTafsirIndex,
 } from "../lib/data";
+import { track } from "../lib/analytics";
 import { recordLastRead } from "../lib/progress";
 import { shareVerse } from "../lib/share";
 import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
@@ -271,6 +272,7 @@ export default function Surah() {
   function chooseView(v: ReadView) {
     setView(v);
     localStorage.setItem(VIEW_KEY, v);
+    track({ type: "read_view", view: v });
   }
 
   function goToVerse(e: React.FormEvent) {

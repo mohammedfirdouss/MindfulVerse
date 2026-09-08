@@ -16,7 +16,8 @@ export type AnalyticsEvent =
   | { type: "intent_pay_tap"; where: string }
   | { type: "share_verse"; verseKey: string; where: string }
   | { type: "dhikr_start"; setId: string }
-  | { type: "dhikr_complete"; setId: string };
+  | { type: "dhikr_complete"; setId: string }
+  | { type: "read_view"; view: "arabic" | "both" };
 
 interface StoredEvent {
   t: number; // epoch ms
