@@ -42,7 +42,7 @@ export default function Themes() {
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    document.title = "Themes — MindfulVerse";
+    document.title = "Verses by topic — MindfulVerse";
     let alive = true;
     loadThemes()
       .then((rows) => {
@@ -67,7 +67,7 @@ export default function Themes() {
   if (status.kind === "loading") {
     return (
       <div className="container">
-        <p className="muted">Gathering the themes…</p>
+        <p className="muted">Gathering the topics…</p>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function Themes() {
     return (
       <div className="container">
         <div className="card stack">
-          <h2>We couldn’t reach the themes</h2>
+          <h2>We couldn’t reach the topics</h2>
           <p className="muted">
             Something interrupted the connection. Take a breath, check your
             network, and try again in a moment.
@@ -93,13 +93,16 @@ export default function Themes() {
   return (
     <div className="container stack">
       <header className="stack">
-        <p className="label">Browse</p>
-        <h1>Browse by theme</h1>
-        <p className="soft">Curated passages, grouped by what they speak to.</p>
+        <p className="label">Read</p>
+        <h1>Verses by topic</h1>
+        <p className="soft">
+          An index of topics across the Qur’an — each links to the passages
+          that speak to it.
+        </p>
         <p className="muted" style={{ margin: 0 }}>
           {filtering
-            ? `${count} ${filtered.length === 1 ? "theme matches" : "themes match"} your filter`
-            : `${count} themes`}
+            ? `${count} ${filtered.length === 1 ? "topic matches" : "topics match"} your filter`
+            : `${count} topics`}
         </p>
       </header>
 
@@ -110,8 +113,8 @@ export default function Themes() {
           setFilter(e.target.value);
           setVisible(PAGE_SIZE);
         }}
-        placeholder="Filter themes — e.g. patience, mercy"
-        aria-label="Filter themes"
+        placeholder="Filter topics — e.g. patience, mercy"
+        aria-label="Filter topics"
         style={{
           width: "100%",
           padding: "12px 14px",

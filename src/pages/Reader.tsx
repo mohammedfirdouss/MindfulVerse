@@ -51,7 +51,7 @@ export default function Reader() {
         <p className="muted">Browse all 114 surahs.</p>
         <p style={{ margin: "10px 0 0", display: "flex", gap: 18 }}>
           <Link to="/search">Search the translation</Link>
-          <Link to="/themes">Browse by theme</Link>
+          <Link to="/themes">Find verses by topic</Link>
         </p>
       </header>
 
