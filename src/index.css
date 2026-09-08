@@ -193,7 +193,6 @@ p { margin: 0 0 0.9em; }
 
 /* --- Reading column: continuous, verses separated by dye-line --- */
 .verse { padding: 22px 0; }
-.verse + .verse { border-top: 2px solid var(--indigo-wash); }
 .verse-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .verse-head .rule { flex: 1; height: 2px; background: var(--indigo-wash); }
 .verse .arabic { margin: 4px 0 14px; }
