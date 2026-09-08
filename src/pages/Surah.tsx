@@ -16,12 +16,6 @@ type Status = "loading" | "ready" | "error";
  *  opens with the basmalah in the mushaf. */
 const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
 
-interface SurahInfo {
-  surah: number;
-  name: string;
-  text: string;
-}
-
 const SIZES: { key: string; label: string; scale: number }[] = [
   { key: "s", label: "A", scale: 0.86 },
   { key: "m", label: "A", scale: 1 },
@@ -151,7 +145,6 @@ export default function Surah() {
     () => localStorage.getItem(SIZE_KEY) ?? "m"
   );
   const [jump, setJump] = useState<string>("");
-  const [info, setInfo] = useState<SurahInfo | null>(null);
   const [shared, setShared] = useState<string | null>(null);
   const tafsirPromise = useRef<Promise<SurahTafsir> | null>(null);
 
@@ -185,13 +178,6 @@ export default function Surah() {
         if (!active) return;
         setStatus("error");
       });
-
-    fetch(`/data/info/${surahNumber}.json`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: SurahInfo | null) => {
-        if (active && d) setInfo(d);
-      })
-      .catch(() => {});
 
     return () => {
       active = false;
@@ -303,29 +289,6 @@ export default function Surah() {
           <p className="muted" style={{ margin: "4px 0 0" }}>
             {meta.ayahCount} verses
           </p>
-        )}
-        {info && (
-          <details style={{ marginTop: 12 }}>
-            <summary
-              style={{ cursor: "pointer", color: "var(--kola)", fontWeight: 500 }}
-            >
-              About this surah
-            </summary>
-            <div className="tafsir" style={{ marginTop: 10 }}>
-              {info.text
-                .split("\n\n")
-                .map((p) => p.trim())
-                .filter(Boolean)
-                .slice(0, 24)
-                .map((p, i) =>
-                  p.length < 60 && !p.includes(".") ? (
-                    <h3 key={i}>{p}</h3>
-                  ) : (
-                    <p key={i}>{p}</p>
-                  )
-                )}
-            </div>
-          </details>
         )}
       </header>
 
