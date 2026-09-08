@@ -8,6 +8,7 @@ import { currentStreak, totalVisitDays } from "../lib/progress";
 import { getEntries } from "../lib/journal";
 
 const FIRST_SEEN_KEY = "mindfulverse.firstSeen.v1";
+const READ_VIEW_KEY = "mindfulverse.readView.v1";
 
 interface StatsSnapshot {
   eventCount: number;
@@ -24,6 +25,8 @@ interface StatsSnapshot {
   payTaps: number;
   versesShared: number;
   dhikrCompleted: number;
+  readViewSwitches: number;
+  readView: string;
   firstSeen: number | null;
   daysSinceFirstSeen: number | null;
 }
@@ -57,6 +60,7 @@ function computeStats(): StatsSnapshot {
   let payTaps = 0;
   let versesShared = 0;
   let dhikrCompleted = 0;
+  let readViewSwitches = 0;
   const emotions = new Map<string, number>();
 
   for (const { t, e } of events) {
@@ -83,6 +87,9 @@ function computeStats(): StatsSnapshot {
         break;
       case "dhikr_complete":
         dhikrCompleted++;
+        break;
+      case "read_view":
+        readViewSwitches++;
         break;
       case "journal_save":
         break;
@@ -117,6 +124,13 @@ function computeStats(): StatsSnapshot {
     payTaps,
     versesShared,
     dhikrCompleted,
+    readViewSwitches,
+    // The settled preference matters more than switch counts: this is the
+    // persisted reader setting, defaulting to "with translation".
+    readView:
+      localStorage.getItem(READ_VIEW_KEY) === "arabic"
+        ? "Arabic only"
+        : "with translation",
     firstSeen,
     daysSinceFirstSeen,
   };
@@ -145,6 +159,7 @@ function summaryText(s: StatsSnapshot): string {
     `Verses shared: ${s.versesShared}`,
     `Dhikr completed: ${s.dhikrCompleted}`,
     `Surah tadabbur begun: ${s.surahTadabburStarted}`,
+    `Reading view: ${s.readView} (${s.readViewSwitches} switches)`,
   ].join("\n");
 }
 
@@ -241,6 +256,11 @@ export default function Stats() {
             <Metric label="Verses shared" value={String(stats.versesShared)} />
             <Metric label="Dhikr completed" value={String(stats.dhikrCompleted)} />
             <Metric label="Surah tadabbur begun" value={String(stats.surahTadabburStarted)} />
+            <Metric
+              label="Reading view"
+              value={stats.readView === "Arabic only" ? "Arabic" : "Arabic + English"}
+              note={`switched ${stats.readViewSwitches} time${stats.readViewSwitches === 1 ? "" : "s"}`}
+            />
             <Metric
               label="First seen"
               value={
