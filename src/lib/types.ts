@@ -13,7 +13,7 @@ export interface Ayah {
   ayah: number;
   verseKey: VerseKey;
   arabic: string; // Uthmani script
-  translation: string; // English (Yusuf Ali, public domain)
+  translation: string; // English (Talal Itani / ClearQuran, CC BY-NC-ND 4.0)
 }
 
 /** Index entry per surah. Served from /data/surahs.json (array of 114). */
