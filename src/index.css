@@ -319,6 +319,24 @@ p { margin: 0 0 0.9em; }
   padding: 14px 18px;
 }
 .notice-wash p { margin: 0; }
+/* --- Journal empty state: the first, ruled page of a paper journal --- */
+.journal-first-page {
+  background: var(--cotton-raised);
+  background-image: repeating-linear-gradient(
+    transparent 0 33px,
+    color-mix(in srgb, var(--line) 55%, transparent) 33px 34px
+  );
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px;
+}
+.journal-first-verse {
+  border-inline-start: 3px solid var(--indigo-wash);
+  padding-inline-start: 14px;
+  margin: 18px 0;
+}
+.journal-first-verse .arabic { font-size: 1.45rem; line-height: 2; margin: 6px 0 8px; }
+
 .status-line { display: flex; align-items: center; gap: 10px; }
 .status-diamond {
   flex: none;
