@@ -12,6 +12,8 @@
 // The day index is hash-scrambled so consecutive days land in different parts
 // of the pool (the pool contains near-twins like 94:5/94:6 — walked in order
 // they would read as "the verse never changed").
+//
+// Mirrored in functions/send-reminders.ts (push reminders) — keep the two in sync.
 
 const DAILY_VERSES: string[] = [
   "94:5", "94:6", "94:1", "94:2", "94:3", "94:4", "94:7", "94:8", "93:1", "93:2",

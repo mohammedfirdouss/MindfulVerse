@@ -25,6 +25,13 @@ describe("timezone math", () => {
     const nyMidnightUtc = Date.UTC(2026, 8, 15, 4, 0, 0);
     expect(localDayIndexInZone(T, "America/New_York")).toBe(Math.floor(nyMidnightUtc / 86_400_000));
   });
+  it("samples the offset at local midnight, not at `now`, across a DST transition", () => {
+    // Europe/London springs forward 2026-03-29 (GMT -> BST) and falls back
+    // 2026-10-25 (BST -> GMT). Sampling the offset at `now` instead of at
+    // local midnight would shift these by one day.
+    expect(localDayIndexInZone(Date.UTC(2026, 2, 29, 12, 0, 0), "Europe/London")).toBe(20541);
+    expect(localDayIndexInZone(Date.UTC(2026, 9, 25, 12, 0, 0), "Europe/London")).toBe(20750);
+  });
 });
 
 describe("verse rotation", () => {

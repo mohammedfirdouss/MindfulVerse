@@ -45,15 +45,20 @@ export function localDateInZone(utcMs: number, timeZone: string): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-/** Replicates the client: floor(epoch-of-local-midnight / 86_400_000). */
+/** Replicates the client: floor(epoch-of-local-midnight / 86_400_000).
+ *  Samples the zone offset AT local midnight (not at `utcMs`) so DST-transition
+ *  days — where the offset at "now" can differ from the offset at 00:00 local —
+ *  still resolve to the correct day index. */
 export function localDayIndexInZone(utcMs: number, timeZone: string): number {
   const { year, month, day } = partsInZone(utcMs, timeZone);
-  // Zone offset now (ms): zone wall-clock reinterpreted as UTC, minus real UTC.
-  const p = partsInZone(utcMs, timeZone);
+  // Guess: local midnight is numerically this UTC instant, then correct by the
+  // zone's actual offset at that guessed instant (wall-clock reinterpreted as
+  // UTC, minus the guess itself).
+  const guessUtc = Date.UTC(year, month - 1, day);
+  const p = partsInZone(guessUtc, timeZone);
   const wallAsUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute);
-  const truncatedUtc = Math.floor(utcMs / 60_000) * 60_000;
-  const offsetMs = wallAsUtc - truncatedUtc;
-  const localMidnightUtc = Date.UTC(year, month - 1, day) - offsetMs;
+  const offsetMs = wallAsUtc - guessUtc;
+  const localMidnightUtc = guessUtc - offsetMs;
   return Math.floor(localMidnightUtc / 86_400_000);
 }
 
@@ -106,40 +111,53 @@ export default async function handler(req: Request): Promise<Response> {
     const [surah, ayah] = verseKey.split(":").map(Number);
     if (!surahCache.has(surah)) {
       const res = await fetch(`${SITE_URL}/data/quran/${surah}.json`);
+      if (!res.ok) throw new Error(`quran fetch failed: surah ${surah} → ${res.status}`);
       const ayahs: Array<{ ayah: number; translation: string }> = await res.json();
       surahCache.set(surah, Object.fromEntries(ayahs.map((a) => [String(a.ayah), a])));
     }
     return surahCache.get(surah)![String(ayah)]?.translation ?? "";
   }
 
-  let sent = 0, pruned = 0, skipped = 0;
+  let sent = 0, pruned = 0, skipped = 0, failed = 0;
   for (const sub of subs ?? []) {
-    const nowMin = minutesOfDayInZone(now, sub.timezone);
-    const today = localDateInZone(now, sub.timezone);
-    if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) { skipped++; continue; }
-    const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, sub.timezone));
-    const body = await verseText(verseKey);
+    // Whole per-subscription body is guarded: an invalid user-supplied IANA
+    // timezone (minutesOfDayInZone/localDayIndexInZone throw RangeError) or a
+    // verse-fetch failure must not abort the remaining subscriptions.
     try {
-      await webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: sub.keys },
-        JSON.stringify({
-          title: `Today's verse — Qur'an ${verseKey}`,
-          body: body.length > 240 ? `${body.slice(0, 237)}…` : body,
-          url: "/checkin",
-        }),
-      );
-      await admin.database.from("push_subscriptions")
-        .update({ last_sent_date: today }).eq("endpoint", sub.endpoint);
-      sent++;
-    } catch (err) {
-      const status = (err as { statusCode?: number }).statusCode;
-      if (status === 404 || status === 410) {
-        await admin.database.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
-        pruned++;
+      const nowMin = minutesOfDayInZone(now, sub.timezone);
+      const today = localDateInZone(now, sub.timezone);
+      if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) { skipped++; continue; }
+      const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, sub.timezone));
+      const body = await verseText(verseKey);
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: sub.keys },
+          JSON.stringify({
+            title: `Today's verse — Qur'an ${verseKey}`,
+            body: body.length > 240 ? `${body.slice(0, 237)}…` : body,
+            url: "/checkin",
+          }),
+        );
+        await admin.database.from("push_subscriptions")
+          .update({ last_sent_date: today }).eq("endpoint", sub.endpoint);
+        sent++;
+      } catch (err) {
+        const status = (err as { statusCode?: number }).statusCode;
+        if (status === 404 || status === 410) {
+          await admin.database.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+          pruned++;
+        } else {
+          failed++;
+          const host = (() => { try { return new URL(sub.endpoint).host; } catch { return "invalid-endpoint"; } })();
+          console.error(`send-reminders: push failed for ${host} (status ${status ?? "unknown"})`, err);
+        }
       }
+    } catch (err) {
+      failed++;
+      console.error(`send-reminders: subscription processing failed for ${sub.timezone ?? "unknown-tz"}`, err);
     }
   }
-  return new Response(JSON.stringify({ sent, pruned, skipped }), {
+  return new Response(JSON.stringify({ sent, pruned, skipped, failed }), {
     status: 200, headers: { "Content-Type": "application/json" },
   });
 }
