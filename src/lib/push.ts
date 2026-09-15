@@ -51,6 +51,9 @@ export async function enableReminder(time: string): Promise<{ error: string | nu
   const { error } = await insforge.database.from("push_subscriptions").insert([
     { endpoint: sub.endpoint, keys: json.keys, reminder_time: time, timezone },
   ]);
+  // If this insert fails, the browser subscription above still exists and is
+  // reused (not re-created) by the next enableReminder() call — self-healing
+  // on retoggle, but this attempt still surfaces the error to the caller.
   return { error: error ? error.message : null };
 }
 

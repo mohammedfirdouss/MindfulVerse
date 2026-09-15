@@ -93,6 +93,8 @@ export default function Account() {
         setReminderOn(false);
         setReminderNotice(null);
       }
+    } catch {
+      setReminderError("Couldn't set the reminder — please try again.");
     } finally {
       setReminderBusy(false);
     }
