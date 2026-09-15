@@ -76,7 +76,10 @@ export default function Account() {
     try {
       if (mode === "signup") {
         const { data, error } = await insforge.auth.signUp({ email, password });
-        if (error) return setError(error.message);
+        if (error) {
+          setNotice(null);
+          return setError(error.message);
+        }
         if (data?.requireEmailVerification) {
           setPendingVerification(true);
           setNotice("Check your email for a 6-digit code, then enter it below.");
@@ -85,7 +88,10 @@ export default function Account() {
         track({ type: "account_signup", method: "password" });
       } else {
         const { error } = await insforge.auth.signInWithPassword({ email, password });
-        if (error) return setError(error.message);
+        if (error) {
+          setNotice(null);
+          return setError(error.message);
+        }
         track({ type: "account_signin", method: "password" });
       }
       await refresh();
@@ -102,7 +108,10 @@ export default function Account() {
     setBusy(true);
     try {
       const { error } = await insforge.auth.verifyEmail({ email, otp });
-      if (error) return setError(error.message);
+      if (error) {
+        setNotice(null);
+        return setError(error.message);
+      }
       track({ type: "account_signup", method: "password" });
       setPendingVerification(false);
       setOtp("");
