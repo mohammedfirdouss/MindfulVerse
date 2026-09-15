@@ -76,22 +76,23 @@ export function isDue(reminderTime: string, nowMinutes: number, windowMinutes = 
 
 const SITE_URL = "https://mindfulverse.vercel.app";
 
+// Browser-invoked (welcome path) as well as cron-invoked, so every response
+// carries CORS headers.
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+const JSON_HEADERS = { ...CORS, "Content-Type": "application/json" };
+
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method === "OPTIONS") return new Response(null, { status: 204 });
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   const auth = req.headers.get("Authorization") ?? "";
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
-  }
+  const isCron = !!cronSecret && auth === `Bearer ${cronSecret}`;
 
-  const { createAdminClient } = await import("npm:@insforge/sdk");
+  const { createAdminClient, createClient } = await import("npm:@insforge/sdk");
   const webpush = (await import("npm:web-push")).default;
-
-  const admin = createAdminClient({
-    baseUrl: Deno.env.get("INSFORGE_BASE_URL"),
-    // Admin API key: reads every user's subscriptions (bypasses RLS).
-    apiKey: Deno.env.get("API_KEY")!,
-  });
 
   webpush.setVapidDetails(
     Deno.env.get("VAPID_SUBJECT")!,
@@ -100,17 +101,6 @@ export default async function handler(req: Request): Promise<Response> {
   );
 
   const now = Date.now();
-  const { data: subs, error } = await admin.database
-    .from("push_subscriptions")
-    .select("endpoint, keys, reminder_time, timezone, last_sent_date")
-    // Deterministic order so the 1000-row cap truncates the same tail every
-    // run (rather than silently rotating which subscribers get dropped).
-    .order("endpoint")
-    .limit(1000);
-  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  // Logged so hitting the cap is observable in function logs.
-  console.log(`send-reminders: fetched ${subs?.length ?? 0} subscription rows`);
-
   const surahCache = new Map<number, Record<string, { translation: string }>>();
   async function verseText(verseKey: string): Promise<string> {
     const [surah, ayah] = verseKey.split(":").map(Number);
@@ -123,6 +113,81 @@ export default async function handler(req: Request): Promise<Response> {
     return surahCache.get(surah)![String(ayah)]?.translation ?? "";
   }
 
+  async function todaysPayload(timeZone: string): Promise<string> {
+    const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, timeZone));
+    const body = await verseText(verseKey);
+    return JSON.stringify({
+      title: `Today's verse — Qur'an ${verseKey}`,
+      body: body.length > 240 ? `${body.slice(0, 237)}…` : body,
+      url: "/checkin",
+    });
+  }
+
+  // --- Welcome path: a signed-in user just subscribed on a device and asks
+  // for today's verse immediately, as live confirmation the pipeline works.
+  // Stamping last_sent_date means the scheduled send skips today (no double).
+  if (!isCron) {
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    const endpoint = await req
+      .json()
+      .then((b: { endpoint?: string }) => b?.endpoint)
+      .catch(() => undefined);
+    if (!token || !endpoint) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: JSON_HEADERS });
+    }
+    const userClient = createClient({
+      baseUrl: Deno.env.get("INSFORGE_BASE_URL"),
+      accessToken: token,
+    });
+    const { data: userData } = await userClient.auth.getCurrentUser();
+    if (!userData?.user?.id) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: JSON_HEADERS });
+    }
+    // RLS scopes this to the caller's own rows — no one can target another
+    // user's endpoint.
+    const { data: sub, error } = await userClient.database
+      .from("push_subscriptions")
+      .select("endpoint, keys, timezone")
+      .eq("endpoint", endpoint)
+      .maybeSingle();
+    if (error || !sub) {
+      return new Response(JSON.stringify({ error: "subscription not found" }), { status: 404, headers: JSON_HEADERS });
+    }
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: sub.keys },
+        await todaysPayload(sub.timezone),
+      );
+      await userClient.database
+        .from("push_subscriptions")
+        .update({ last_sent_date: localDateInZone(now, sub.timezone) })
+        .eq("endpoint", sub.endpoint);
+      return new Response(JSON.stringify({ sent: 1 }), { status: 200, headers: JSON_HEADERS });
+    } catch (err) {
+      const status = (err as { statusCode?: number }).statusCode;
+      console.error(`send-reminders: welcome push failed (status ${status ?? "unknown"})`, err);
+      return new Response(JSON.stringify({ error: "push failed" }), { status: 502, headers: JSON_HEADERS });
+    }
+  }
+
+  // --- Cron path: the 15-minute schedule fanning out to everyone due.
+  const admin = createAdminClient({
+    baseUrl: Deno.env.get("INSFORGE_BASE_URL"),
+    // Admin API key: reads every user's subscriptions (bypasses RLS).
+    apiKey: Deno.env.get("API_KEY")!,
+  });
+
+  const { data: subs, error } = await admin.database
+    .from("push_subscriptions")
+    .select("endpoint, keys, reminder_time, timezone, last_sent_date")
+    // Deterministic order so the 1000-row cap truncates the same tail every
+    // run (rather than silently rotating which subscribers get dropped).
+    .order("endpoint")
+    .limit(1000);
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: JSON_HEADERS });
+  // Logged so hitting the cap is observable in function logs.
+  console.log(`send-reminders: fetched ${subs?.length ?? 0} subscription rows`);
+
   let sent = 0, pruned = 0, skipped = 0, failed = 0;
   for (const sub of subs ?? []) {
     // Whole per-subscription body is guarded: an invalid user-supplied IANA
@@ -132,17 +197,9 @@ export default async function handler(req: Request): Promise<Response> {
       const nowMin = minutesOfDayInZone(now, sub.timezone);
       const today = localDateInZone(now, sub.timezone);
       if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) { skipped++; continue; }
-      const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, sub.timezone));
-      const body = await verseText(verseKey);
+      const payload = await todaysPayload(sub.timezone);
       try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: sub.keys },
-          JSON.stringify({
-            title: `Today's verse — Qur'an ${verseKey}`,
-            body: body.length > 240 ? `${body.slice(0, 237)}…` : body,
-            url: "/checkin",
-          }),
-        );
+        await webpush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
         await admin.database.from("push_subscriptions")
           .update({ last_sent_date: today }).eq("endpoint", sub.endpoint);
         sent++;
@@ -163,6 +220,6 @@ export default async function handler(req: Request): Promise<Response> {
     }
   }
   return new Response(JSON.stringify({ sent, pruned, skipped, failed }), {
-    status: 200, headers: { "Content-Type": "application/json" },
+    status: 200, headers: JSON_HEADERS,
   });
 }

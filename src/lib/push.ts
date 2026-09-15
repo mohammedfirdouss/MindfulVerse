@@ -32,9 +32,15 @@ export async function getReminder(): Promise<{ time: string } | null> {
   return data ? { time: data.reminder_time } : null;
 }
 
-export async function enableReminder(time: string): Promise<{ error: string | null }> {
+export interface EnableResult {
+  error: string | null;
+  /** True when today's verse was pushed to this device immediately. */
+  welcomed: boolean;
+}
+
+export async function enableReminder(time: string): Promise<EnableResult> {
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") return { error: "Notifications were not allowed." };
+  if (permission !== "granted") return { error: "Notifications were not allowed.", welcomed: false };
   const reg = await navigator.serviceWorker.ready;
   const sub =
     (await reg.pushManager.getSubscription()) ??
@@ -54,7 +60,21 @@ export async function enableReminder(time: string): Promise<{ error: string | nu
   // If this insert fails, the browser subscription above still exists and is
   // reused (not re-created) by the next enableReminder() call — self-healing
   // on retoggle, but this attempt still surfaces the error to the caller.
-  return { error: error ? error.message : null };
+  if (error) return { error: error.message, welcomed: false };
+
+  // Deliver today's verse to this device right away — the same push the
+  // daily schedule sends, through the same pipeline, so enabling doubles as
+  // a live end-to-end test. Best-effort: the subscription stands either way.
+  let welcomed = false;
+  try {
+    const { error: fnError } = await insforge.functions.invoke("send-reminders", {
+      body: { endpoint: sub.endpoint },
+    });
+    welcomed = !fnError;
+  } catch {
+    /* welcome push is a bonus — never fail the toggle over it */
+  }
+  return { error: null, welcomed };
 }
 
 export async function disableReminder(): Promise<void> {

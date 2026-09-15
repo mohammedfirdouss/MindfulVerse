@@ -82,14 +82,18 @@ export default function Account() {
     setReminderError(null);
     try {
       if (next) {
-        const { error } = await enableReminder(reminderTime);
+        const { error, welcomed } = await enableReminder(reminderTime);
         if (error) {
           setReminderError(error);
           return;
         }
         track({ type: "reminder_set", enabled: true });
         setReminderOn(true);
-        setReminderNotice(`Daily verse reminder set for ${reminderTime}.`);
+        setReminderNotice(
+          welcomed
+            ? `Today's verse is on its way to this device. From tomorrow it arrives daily at ${reminderTime}.`
+            : `Daily verse reminder set for ${reminderTime}.`
+        );
       } else {
         await disableReminder();
         track({ type: "reminder_set", enabled: false });
