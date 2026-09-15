@@ -1,12 +1,12 @@
 // /account — optional identity. The whole app works signed-out; an account
-// only backs up your journal and progress across devices. No reminder UI
-// here — Task 9 adds its own section.
+// only backs up your journal and progress across devices.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount } from "../lib/auth";
 import { insforge } from "../lib/insforge";
 import { getSyncStatus, onSyncStatus, statusLabel, syncNow, type SyncStatus } from "../lib/sync";
 import { track } from "../lib/analytics";
+import { disableReminder, enableReminder, getReminder, pushSupport } from "../lib/push";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -31,6 +31,12 @@ export default function Account() {
   const [oauthProviders, setOauthProviders] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
+  const [reminderOn, setReminderOn] = useState(false);
+  const [reminderTime, setReminderTime] = useState("07:00");
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const [reminderNotice, setReminderNotice] = useState<string | null>(null);
+  const [reminderError, setReminderError] = useState<string | null>(null);
+
   // Fire sync_done only when the status actually transitions to a terminal
   // state, never on every render/poll.
   const prevStatus = useRef<SyncStatus>(status);
@@ -53,6 +59,44 @@ export default function Account() {
       .then(({ data }) => setOauthProviders(data?.oAuthProviders ?? []))
       .catch(() => setOauthProviders([]));
   }, []);
+
+  useEffect(() => {
+    if (!user || pushSupport() !== "ok") return;
+    getReminder()
+      .then((r) => {
+        if (r) {
+          setReminderOn(true);
+          setReminderTime(r.time);
+        }
+      })
+      .catch(() => {
+        /* no existing subscription on this device — leave defaults */
+      });
+  }, [user]);
+
+  async function toggleReminder(next: boolean) {
+    setReminderBusy(true);
+    setReminderError(null);
+    try {
+      if (next) {
+        const { error } = await enableReminder(reminderTime);
+        if (error) {
+          setReminderError(error);
+          return;
+        }
+        track({ type: "reminder_set", enabled: true });
+        setReminderOn(true);
+        setReminderNotice(`Daily verse reminder set for ${reminderTime}.`);
+      } else {
+        await disableReminder();
+        track({ type: "reminder_set", enabled: false });
+        setReminderOn(false);
+        setReminderNotice(null);
+      }
+    } finally {
+      setReminderBusy(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -289,6 +333,51 @@ export default function Account() {
             <Link to="/journal" className="btn secondary">
               Export journal
             </Link>
+          </div>
+
+          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 16, marginTop: 4 }}>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Daily verse reminder</div>
+            {pushSupport() === "needs-install" && (
+              <p className="soft" style={{ margin: 0 }}>
+                To get reminders on iPhone, first add MindfulVerse to your Home Screen
+                (Share → Add to Home Screen), then return here.
+              </p>
+            )}
+            {pushSupport() === "unsupported" && (
+              <p className="soft" style={{ margin: 0 }}>
+                This browser doesn&rsquo;t support notifications.
+              </p>
+            )}
+            {pushSupport() === "ok" && (
+              <div className="stack">
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={reminderOn}
+                      disabled={reminderBusy}
+                      onChange={(e) => void toggleReminder(e.target.checked)}
+                    />
+                    <span className="soft">Remind me daily</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={reminderTime}
+                    disabled={reminderBusy}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    style={{ ...inputStyle, width: "auto" }}
+                  />
+                </div>
+                {reminderNotice && (
+                  <p className="soft" style={{ margin: 0 }}>{reminderNotice}</p>
+                )}
+                {reminderError && (
+                  <p className="soft" style={{ color: "var(--indigo-deep)", margin: 0 }}>
+                    {reminderError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <div style={{ borderTop: "1px solid var(--line)", paddingTop: 16, marginTop: 4 }}>
