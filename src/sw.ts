@@ -38,10 +38,10 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url: string = event.notification.data?.url ?? "/checkin";
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clients) => {
       const existing = clients.find((c) => "focus" in c);
       if (existing) {
-        existing.navigate(url);
+        await existing.navigate(url);
         return existing.focus();
       }
       return self.clients.openWindow(url);
