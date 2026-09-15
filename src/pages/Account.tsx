@@ -10,15 +10,16 @@ import {
 import { track } from "../lib/analytics";
 import { disableReminder, enableReminder, getReminder, pushSupport } from "../lib/push";
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: 12,
-  borderRadius: "var(--radius)",
-  border: "1px solid var(--line)",
-  background: "var(--surface-2)",
-  color: "var(--ink)",
-  font: "inherit",
-};
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+}
 
 export default function Account() {
   const { user, loading, refresh } = useAccount();
@@ -232,7 +233,7 @@ export default function Account() {
           <div className="eyebrow">Account</div>
           <h1 style={{ margin: "6px 0" }}>Your account</h1>
         </header>
-        <div className="card">
+        <div className="auth-card">
           <p className="soft" style={{ margin: 0 }}>Loading…</p>
         </div>
       </div>
@@ -253,54 +254,50 @@ export default function Account() {
       </header>
 
       {notice && (
-        <div className="card">
-          <p style={{ margin: 0 }}>{notice}</p>
+        <div className="notice-wash">
+          <p>{notice}</p>
         </div>
       )}
 
       {!user ? (
-        <div className="card stack">
+        <div className="auth-card stack">
           {pendingVerification ? (
             <form className="stack" onSubmit={submitCode}>
               <p className="soft" style={{ margin: 0 }}>
                 Enter the 6-digit code we emailed to {email}.
               </p>
-              <label htmlFor="account-otp" style={{ fontWeight: 600 }}>
-                Verification code
+              <label className="field otp" htmlFor="account-otp">
+                <span className="field-label">Verification code</span>
+                <input
+                  id="account-otp"
+                  className="field-input"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  placeholder="123456"
+                  required
+                />
               </label>
-              <input
-                id="account-otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                placeholder="123456"
-                style={inputStyle}
-                required
-              />
-              {error && (
-                <p className="soft" style={{ color: "var(--indigo-deep)", margin: 0 }}>
-                  {error}
-                </p>
-              )}
-              <button className="btn" type="submit" disabled={busy}>
+              {error && <p className="form-error">{error}</p>}
+              <button className="btn" type="submit" disabled={busy} style={{ width: "100%" }}>
                 {busy ? "Verifying…" : "Verify & sign in"}
               </button>
             </form>
           ) : (
             <>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div className="seg" role="tablist" aria-label="Sign in or create account">
                 <button
                   type="button"
-                  className={mode === "signin" ? "btn" : "btn secondary"}
+                  aria-pressed={mode === "signin"}
                   onClick={() => setMode("signin")}
                 >
                   Sign in
                 </button>
                 <button
                   type="button"
-                  className={mode === "signup" ? "btn" : "btn secondary"}
+                  aria-pressed={mode === "signup"}
                   onClick={() => setMode("signup")}
                 >
                   Create account
@@ -308,36 +305,34 @@ export default function Account() {
               </div>
 
               <form className="stack" onSubmit={submit}>
-                <label htmlFor="account-email" style={{ fontWeight: 600 }}>
-                  Email
+                <label className="field" htmlFor="account-email">
+                  <span className="field-label">Email</span>
+                  <input
+                    id="account-email"
+                    className="field-input"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    required
+                  />
                 </label>
-                <input
-                  id="account-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  style={inputStyle}
-                  required
-                />
-                <label htmlFor="account-password" style={{ fontWeight: 600 }}>
-                  Password
+                <label className="field" htmlFor="account-password">
+                  <span className="field-label">Password</span>
+                  <input
+                    id="account-password"
+                    className="field-input"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    placeholder={mode === "signup" ? "At least 6 characters" : ""}
+                    required
+                  />
                 </label>
-                <input
-                  id="account-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                  style={inputStyle}
-                  required
-                />
-                {error && (
-                  <p className="soft" style={{ color: "var(--indigo-deep)", margin: 0 }}>
-                    {error}
-                  </p>
-                )}
-                <button className="btn" type="submit" disabled={busy}>
+                {error && <p className="form-error">{error}</p>}
+                <button className="btn" type="submit" disabled={busy} style={{ width: "100%" }}>
                   {busy
                     ? "Please wait…"
                     : mode === "signup"
@@ -347,33 +342,41 @@ export default function Account() {
               </form>
 
               {oauthProviders.includes("google") && (
-                <button type="button" className="btn secondary" onClick={google}>
-                  Continue with Google
-                </button>
+                <>
+                  <div className="or-divider">or</div>
+                  <button
+                    type="button"
+                    className="btn secondary"
+                    onClick={google}
+                    style={{ width: "100%" }}
+                  >
+                    <GoogleMark />
+                    Continue with Google
+                  </button>
+                </>
               )}
             </>
           )}
         </div>
       ) : (
-        <div className="card stack">
+        <div className="auth-card stack">
           <div>
-            <div style={{ fontWeight: 600 }}>{user.name ?? user.email}</div>
+            <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>{user.name ?? user.email}</div>
             {user.name && <div className="soft" style={{ fontSize: ".9rem" }}>{user.email}</div>}
           </div>
 
           {statusLabel(status) && (
-            <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
+            <div className="status-line">
+              <span
+                className={status === "syncing" ? "status-diamond syncing" : "status-diamond"}
+                aria-hidden="true"
+              />
+              <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
+            </div>
           )}
 
           {status === "switched-account" && (
-            <div
-              className="stack"
-              style={{
-                border: "1px solid var(--line)",
-                borderRadius: "var(--radius)",
-                padding: 12,
-              }}
-            >
+            <div className="notice-wash stack">
               <p className="soft" style={{ margin: 0 }}>
                 The journal entries and progress saved on this device were written
                 while a different account was signed in. Nothing is being backed up
@@ -400,11 +403,7 @@ export default function Account() {
             </div>
           )}
 
-          {error && (
-            <p className="soft" style={{ color: "var(--indigo-deep)", margin: 0 }}>
-              {error}
-            </p>
-          )}
+          {error && <p className="form-error">{error}</p>}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
@@ -420,7 +419,7 @@ export default function Account() {
             </Link>
           </div>
 
-          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 16, marginTop: 4 }}>
+          <div className="auth-section">
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Daily verse reminder</div>
             {pushSupport() === "needs-install" && (
               <p className="soft" style={{ margin: 0 }}>
@@ -447,31 +446,28 @@ export default function Account() {
                   </label>
                   <input
                     type="time"
+                    className="field-input"
                     value={reminderTime}
                     disabled={reminderBusy}
                     onChange={(e) => setReminderTime(e.target.value)}
-                    style={{ ...inputStyle, width: "auto" }}
+                    style={{ width: "auto" }}
                   />
                 </div>
                 {reminderNotice && (
                   <p className="soft" style={{ margin: 0 }}>{reminderNotice}</p>
                 )}
-                {reminderError && (
-                  <p className="soft" style={{ color: "var(--indigo-deep)", margin: 0 }}>
-                    {reminderError}
-                  </p>
-                )}
+                {reminderError && <p className="form-error">{reminderError}</p>}
               </div>
             )}
           </div>
 
-          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 16, marginTop: 4 }}>
+          <div className="auth-section">
             <button type="button" className="btn ghost" onClick={signOut}>
               Sign out
             </button>
           </div>
 
-          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 16 }}>
+          <div className="auth-section">
             <p className="soft" style={{ marginTop: 0, fontSize: ".9rem" }}>
               Deleting removes your journal and progress from your account.
               Entries already on this device are kept.
@@ -479,7 +475,7 @@ export default function Account() {
             <button
               type="button"
               className="btn ghost"
-              style={{ color: "var(--indigo-deep)" }}
+              style={{ color: "var(--kola)" }}
               onClick={deleteMyData}
               disabled={busy}
             >
