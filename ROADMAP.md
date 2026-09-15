@@ -1,16 +1,15 @@
 # Roadmap
 
-A **prioritized menu, not a to-do list.** Nothing beyond v0 gets built until the
-gate clears. Having the data is not a reason to build.
+A **prioritized menu, not a to-do list.** Having the data is not a reason to build.
 
-## The gate
+## The gate — cleared (2026-09-15)
 
 | | |
 | --- | --- |
 | **Bar** | Day-7 return ≥ 25–30% on 50+ non-friend users within ~4 weeks |
-| **Clears** | Build v1 (accounts + payments first), then pull from v2 by priority |
-| **Fails (< ~15%)** | Fix the core experience or pivot — the rest of this file is irrelevant |
+| **Outcome** | Cleared — v1 (accounts, sync, reminders) built and shipped 2026-09-15 |
 | **Measured by** | Vercel Analytics (visits) + testers' `/stats` copies (behavior) |
+| **Still gated** | Billing stays blocked on a commercial-safe translation license (see v1 row 3) |
 
 ## v0 — shipped (live at mindfulverse.vercel.app)
 
@@ -27,7 +26,7 @@ gate clears. Having the data is not a reason to build.
 | Growth & measurement | Share-a-verse, OG preview card, PWA install prompt, `/stats`, WhatsApp feedback link, analytics |
 | Identity | West African indigo, adire band, Fraunces + KFGQPC Hafs, offline PWA |
 
-## v1 — after the gate clears (monetization spine)
+## v1 — shipped 2026-09-15 (monetization spine)
 
 | Priority | Feature | Status | Why | Effort | Depends on |
 | --- | --- | --- | --- | --- | --- |

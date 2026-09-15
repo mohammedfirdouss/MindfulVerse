@@ -17,6 +17,8 @@ Live at [mindfulverse.vercel.app](https://mindfulverse.vercel.app)
 - **Read.** All 114 surahs with Arabic, English translation, and Ibn Kathir's commentary.
 - **Search and topics.** Search the translation, or find verses by topic and jump into the reader.
 - **Journal.** Your reflections, saved on your device, with the verse they were written about.
+- **Accounts & sync.** Optional sign-in (email or Google) backs up your journal and progress across devices.
+- **Daily reminder.** A push notification with the verse of the day, at a time you choose.
 
 All Qur'an text, translation, and commentary are shown exactly as they are.
 The app never rewrites or generates religious content.
@@ -43,8 +45,10 @@ Other commands: `npm run build` makes a production build, and `npm run preview` 
 
 ## How it is built
 
-React, TypeScript, and Vite, with a service worker for offline use. There is no
-server. All data is bundled, and the journal lives in your browser.
+React, TypeScript, and Vite, with a service worker for offline use. All Qur'an
+data is bundled and the journal lives in your browser first; the only server
+component is an optional [InsForge](https://insforge.dev) backend for account
+sync and reminders (see "Accounts & sync" below).
 
 ```text
 src/lib/       data loaders, journal, analytics
@@ -103,5 +107,5 @@ rather than duplicating or clobbering entries.
   as the license requires.
 - Ibn Kathir wrote commentary on passages, so some verses share a note with a
   neighboring verse.
-- Recitation audio, accounts, payments, and more languages are planned for later.
+- Recitation audio, payments, and more languages are planned for later.
   See `ROADMAP.md`.
