@@ -12,6 +12,7 @@ import Stats from "./pages/Stats";
 import Search from "./pages/Search";
 import Themes from "./pages/Themes";
 import Dhikr from "./pages/Dhikr";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 // All routes are declared here ONCE so feature agents never touch this file —
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/themes" element={<Themes />} />
         <Route path="/dhikr" element={<Dhikr />} />
+        <Route path="/account" element={<Account />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>

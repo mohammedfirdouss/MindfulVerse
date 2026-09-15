@@ -72,12 +72,23 @@ function PenIcon() {
   );
 }
 
+/* Account — simple person glyph, consistent stroke set */
+function PersonIcon() {
+  return (
+    <IconBase>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.8 20c.9-3.9 4-6 7.2-6s6.3 2.1 7.2 6" />
+    </IconBase>
+  );
+}
+
 const tabs = [
   { to: "/", label: "Home", end: true, icon: <HomeIcon /> },
   { to: "/checkin", label: "Check-in", icon: <HeartIcon /> },
   { to: "/sessions", label: "Tadabbur", icon: <OpenBookIcon /> },
   { to: "/read", label: "Read", icon: <MushafIcon /> },
   { to: "/journal", label: "Journal", icon: <PenIcon /> },
+  { to: "/account", label: "Account", icon: <PersonIcon /> },
 ];
 
 const COLLAPSE_KEY = "mindfulverse.sidebarCollapsed.v1";
