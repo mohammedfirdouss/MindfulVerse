@@ -134,8 +134,11 @@ layer; the server schema stays stable as progress types evolve.
 
 - Offline: all features work locally; sync retries on reconnect.
 - Merge after long offline: commutative rules make ordering irrelevant.
-- Account deletion: SDK account delete + cascade of owned rows; local data is
-  untouched and the user is told so.
+- Data deletion: a "Delete my data" action removes all the user's rows
+  (journal, progress, push subscriptions) via RLS-scoped deletes and signs
+  out; local data is untouched and the user is told so. (The InsForge SDK
+  exposes no self-serve account-record deletion; removing the auth record
+  itself is an admin/dashboard operation.)
 - Dead push endpoints: pruned on 404/410 during send.
 - localStorage quota/corruption: existing try/catch behavior unchanged; sync
   additionally means the cloud copy survives local loss.
