@@ -7,11 +7,13 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { trackAppOpen } from "./lib/analytics";
 import { AccountProvider } from "./lib/auth";
 import { recordVisit } from "./lib/progress";
+import { initSync } from "./lib/sync";
 import "./index.css";
 
 trackAppOpen();
 recordVisit();
 inject(); // Vercel visit analytics — anonymous page views, no cookies
+initSync();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
