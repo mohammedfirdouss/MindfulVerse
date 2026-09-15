@@ -23,20 +23,14 @@ export default defineConfig({
           { src: "icon-512.png", sizes: "512x512", type: "image/png" },
         ],
       },
-      workbox: {
-        // Precache the app shell; cache /data at runtime (it can be large).
+      // Custom SW (src/sw.ts) handles precache + /data runtime caching (parity
+      // with the previous generateSW config) plus push/notificationclick.
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith("/data/"),
-            handler: "CacheFirst",
-            options: {
-              cacheName: "quran-data",
-              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-        ],
       },
     }),
   ],
