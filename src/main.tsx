@@ -5,6 +5,7 @@ import { inject } from "@vercel/analytics";
 import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { trackAppOpen } from "./lib/analytics";
+import { AccountProvider } from "./lib/auth";
 import { recordVisit } from "./lib/progress";
 import "./index.css";
 
@@ -15,9 +16,11 @@ inject(); // Vercel visit analytics — anonymous page views, no cookies
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AccountProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AccountProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );
