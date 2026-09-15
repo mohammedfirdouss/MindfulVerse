@@ -17,7 +17,7 @@ async function signIn(page: import("@playwright/test").Page) {
   // "Sign in" in its default state, so the form's submit button is the last
   // match, not the first.
   await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
-  await expect(page.getByText(/backed up/i)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/backed up to your account/i)).toBeVisible({ timeout: 15_000 });
 }
 
 test("sign in, write an entry, sync round-trip", async ({ page }) => {
@@ -33,8 +33,13 @@ test("sign in, write an entry, sync round-trip", async ({ page }) => {
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/kept in your journal/i)).toBeVisible();
 
-  // Second context = second device: entry must arrive via sync (debounced
-  // ~3s after the write, then pulled again on this device's sign-in).
+  // Force the push instead of racing the 3s debounce — deterministic rather
+  // than a fixed sleep. "Sync now" also covers the pull side on this device.
+  await page.goto("/account");
+  await page.getByRole("button", { name: "Sync now" }).click();
+  await expect(page.getByText(/backed up/i)).toBeVisible({ timeout: 15_000 });
+
+  // Second context = second device: entry must arrive via sync.
   const ctx2 = await page.context().browser()!.newContext();
   const page2 = await ctx2.newPage();
   await signIn(page2);

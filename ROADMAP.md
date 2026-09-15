@@ -29,13 +29,13 @@ gate clears. Having the data is not a reason to build.
 
 ## v1 — after the gate clears (monetization spine)
 
-| Priority | Feature | Why | Effort | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Accounts (email/OAuth) | Identity for sync + billing | Medium | Backend (first server component) |
-| 2 | Journal cloud sync | The #1 trust gap — localStorage is fragile | Medium | Accounts |
-| 3 | Subscription billing (Stripe + Play) | Diaspora-pays hypothesis; paywall sessions library + journal history — **never the Qur'an itself** | Medium | Accounts + **commercial-safe translation license** (current Itani translation is CC BY-NC-ND: non-commercial — obtain publisher permission or swap before any revenue) |
-| 4 | Push notifications / daily reminder | Biggest retention lever a PWA lacks | Medium | Backend |
-| 5 | React Native app | Store presence, reliable notifications, better offline | High | v1 validated on web |
+| Priority | Feature | Status | Why | Effort | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Accounts (email/OAuth) | **Shipped** | Identity for sync + billing | Medium | Backend (first server component) |
+| 2 | Journal cloud sync | **Shipped** | The #1 trust gap — localStorage is fragile | Medium | Accounts |
+| 3 | Subscription billing (Stripe + Play) | Blocked | Diaspora-pays hypothesis; paywall sessions library + journal history — **never the Qur'an itself** | Medium | Accounts + **commercial-safe translation license** (current Itani translation is CC BY-NC-ND: non-commercial — obtain publisher permission or swap before any revenue) |
+| 4 | Push notifications / daily reminder | **Shipped** | Biggest retention lever a PWA lacks | Medium | Backend |
+| 5 | React Native app | Deferred | Store presence, reliable notifications, better offline | High | v1 validated on web |
 
 ## v2 — deepen (pull by priority once v1 is stable)
 

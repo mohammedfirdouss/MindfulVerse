@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
@@ -34,4 +34,9 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    // Playwright specs live under e2e/ and run via `npx playwright test`,
+    // not vitest — keep the two runners from colliding on the same files.
+    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**"],
+  },
 });

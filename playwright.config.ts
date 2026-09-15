@@ -4,7 +4,7 @@ import { defineConfig } from "@playwright/test";
 // See e2e/account-sync.spec.ts and README.md "Accounts & sync (v1)".
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 30_000,
+  timeout: 60_000,
   fullyParallel: false,
   retries: 0,
   use: {

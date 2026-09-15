@@ -65,6 +65,38 @@ The English translation is [ClearQuran](https://www.clearquran.com) by Talal Ita
 used under the CC BY-NC-ND 4.0 license. The Arabic typeface is the KFGQPC Uthmanic
 Hafs script from the King Fahd Glorious Qur'an Printing Complex in Madinah.
 
+## Accounts & sync (v1)
+
+Signing in is optional — the whole app works signed-out, offline, on-device.
+An account only backs up your journal and progress so they follow you to
+another device. Auth, storage, and Postgres are provided by
+[InsForge](https://insforge.dev); there is no other server.
+
+| Env var | Used for |
+| --- | --- |
+| `VITE_INSFORGE_URL` | The InsForge project's base API URL |
+| `VITE_INSFORGE_ANON_KEY` | Public anon key for unauthenticated/auth requests |
+| `VITE_VAPID_PUBLIC_KEY` | Public key for the daily verse reminder (Web Push) |
+
+Set these in `.env` (or `.env.local`) for local development — see
+`.env.example`. On Vercel, add all three under Project → Settings →
+Environment Variables for both **Production** and **Preview**, then redeploy;
+they are `VITE_*` so Vite inlines them at build time, not at runtime.
+
+Backend setup — SQL migrations live in `migrations/`, and the reminder/push
+edge functions live in `functions/`; both are applied to the InsForge
+project directly (see the InsForge CLI), not run from this repo.
+
+The merge story, in three sentences: everything is written to `localStorage`
+first, so the app never blocks on the network; signing in, reconnecting, or
+returning to the tab triggers a sync that pulls the account's remote journal
+and progress and merges them with what's on this device — journal entries
+by union-by-id with soft-delete tombstones, progress by per-key max /
+earliest-completion / latest-read / set-union — then pushes back only the
+resulting diff. Every merge is deliberately commutative and idempotent —
+running it twice, or on two devices at once, converges to the same state
+rather than duplicating or clobbering entries.
+
 ## Good to know
 
 - The translation renders the divine name as "God". It is shown word for word,

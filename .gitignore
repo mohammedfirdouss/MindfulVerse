@@ -5,6 +5,9 @@ dist-ssr
 .DS_Store
 .vite
 .ts-out-sw
+test-results
+playwright-report
+playwright/.cache
 
 .env
 .env*.local
