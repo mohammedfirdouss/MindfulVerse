@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount } from "../lib/auth";
 import { insforge } from "../lib/insforge";
-import { getSyncStatus, onSyncStatus, statusLabel, syncNow, type SyncStatus } from "../lib/sync";
+import {
+  getSyncStatus, onSyncStatus, resolveOwnerMismatch, statusLabel, syncNow, type SyncStatus,
+} from "../lib/sync";
 import { track } from "../lib/analytics";
 import { disableReminder, enableReminder, getReminder, pushSupport } from "../lib/push";
 
@@ -161,7 +163,35 @@ export default function Account() {
     });
   }
 
+  async function resolveSwitch(choice: "merge" | "fresh") {
+    if (choice === "fresh") {
+      const sure = window.confirm(
+        "Start fresh? This removes the journal entries and progress stored on this device. " +
+          "Anything already backed up to the other account stays safe there."
+      );
+      if (!sure) return;
+    }
+    setBusy(true);
+    try {
+      await resolveOwnerMismatch(choice);
+      setNotice(
+        choice === "merge"
+          ? "This device's entries have been merged into your account."
+          : "This device was reset and now shows only this account's backup."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function signOut() {
+    // Drop the push subscription first: once signed out, RLS no longer lets us
+    // delete our own row, and it would keep receiving reminders.
+    try {
+      await disableReminder();
+    } catch {
+      /* best effort — sign-out must proceed regardless */
+    }
     await insforge.auth.signOut();
     track({ type: "account_signout" });
     await refresh();
@@ -176,9 +206,19 @@ export default function Account() {
     if (!sure) return;
     setBusy(true);
     try {
-      await insforge.database.from("journal_entries").delete().eq("user_id", user.id);
-      await insforge.database.from("progress").delete().eq("user_id", user.id);
-      await insforge.database.from("push_subscriptions").delete().eq("user_id", user.id);
+      // Only sign out once every delete succeeded — signing out on a partial
+      // failure would strand data the user believes is gone.
+      const results = await Promise.all([
+        insforge.database.from("journal_entries").delete().eq("user_id", user.id),
+        insforge.database.from("progress").delete().eq("user_id", user.id),
+        insforge.database.from("push_subscriptions").delete().eq("user_id", user.id),
+      ]);
+      if (results.some((r) => r.error)) {
+        setNotice(null);
+        setError("Couldn't delete everything — please try again.");
+        return;
+      }
+      setError(null);
       await signOut();
     } finally {
       setBusy(false);
@@ -321,7 +361,50 @@ export default function Account() {
             {user.name && <div className="soft" style={{ fontSize: ".9rem" }}>{user.email}</div>}
           </div>
 
-          <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
+          {statusLabel(status) && (
+            <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
+          )}
+
+          {status === "switched-account" && (
+            <div
+              className="stack"
+              style={{
+                border: "1px solid var(--line)",
+                borderRadius: "var(--radius)",
+                padding: 12,
+              }}
+            >
+              <p className="soft" style={{ margin: 0 }}>
+                The journal entries and progress saved on this device were written
+                while a different account was signed in. Nothing is being backed up
+                until you choose what should happen to them.
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={busy}
+                  onClick={() => void resolveSwitch("merge")}
+                >
+                  Merge into this account
+                </button>
+                <button
+                  type="button"
+                  className="btn secondary"
+                  disabled={busy}
+                  onClick={() => void resolveSwitch("fresh")}
+                >
+                  Start fresh on this device
+                </button>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <p className="soft" style={{ color: "var(--indigo-deep)", margin: 0 }}>
+              {error}
+            </p>
+          )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  mergeJournal, mergeProgress, rowToEntry, entryToRow,
+  mergeJournal, mergeProgress, rowToEntry, entryToRow, pruneTombstones,
   type RemoteJournalRow, type LocalProgress,
 } from "./merge";
 import type { JournalEntry } from "./types";
@@ -83,5 +83,35 @@ describe("row mapping", () => {
     expect(rowToEntry(r("a", 1)).context).toEqual({ kind: "free" });
     const noCtx = { ...r("a", 1), context_kind: null };
     expect(rowToEntry(noCtx).context).toBeUndefined();
+  });
+});
+
+describe("pruneTombstones", () => {
+  const NOW = 1_000_000_000_000;
+  const OLD = NOW - 91 * 24 * 60 * 60 * 1000;
+  const RECENT = NOW - 10 * 24 * 60 * 60 * 1000;
+
+  it("keeps tombstones younger than the 90-day TTL, even when confirmed", () => {
+    const kept = pruneTombstones([{ id: "a", deletedAt: RECENT }], [r("a", 1, 5)],
+      { now: NOW, fullPull: true });
+    expect(kept.map((t) => t.id)).toEqual(["a"]);
+  });
+  it("drops an old tombstone whose remote row carries deleted_at", () => {
+    expect(pruneTombstones([{ id: "a", deletedAt: OLD }], [r("a", 1, 5)],
+      { now: NOW, fullPull: true })).toEqual([]);
+  });
+  it("drops an old tombstone absent from a full pull", () => {
+    expect(pruneTombstones([{ id: "a", deletedAt: OLD }], [r("b", 1)],
+      { now: NOW, fullPull: true })).toEqual([]);
+  });
+  it("keeps an old tombstone absent from a PARTIAL pull (unconfirmed)", () => {
+    const kept = pruneTombstones([{ id: "a", deletedAt: OLD }], [r("b", 1)],
+      { now: NOW, fullPull: false });
+    expect(kept.map((t) => t.id)).toEqual(["a"]);
+  });
+  it("keeps an old tombstone whose remote row is still alive (delete not pushed yet)", () => {
+    const kept = pruneTombstones([{ id: "a", deletedAt: OLD }], [r("a", 1, null)],
+      { now: NOW, fullPull: true });
+    expect(kept.map((t) => t.id)).toEqual(["a"]);
   });
 });

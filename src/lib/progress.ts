@@ -191,3 +191,10 @@ export function replaceLocalProgress(p: LocalProgress): void {
   localStorage.setItem(SURAH_TADABBUR_KEY, JSON.stringify(p.surahTadabbur));
   if (p.lastRead) localStorage.setItem(LAST_READ_KEY, JSON.stringify(p.lastRead));
 }
+
+/** Wipe every progress key on this device (account-switch "start fresh"). */
+export function clearLocalProgress(): void {
+  for (const key of [VISITS_KEY, SESSIONS_KEY, SURAH_TADABBUR_KEY, LAST_READ_KEY]) {
+    localStorage.removeItem(key);
+  }
+}

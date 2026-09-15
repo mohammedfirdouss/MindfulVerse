@@ -104,7 +104,9 @@ export default function Journal() {
 
       {entries.length > 0 && (
         <div className="stack" style={{ marginTop: 4 }}>
-          {!loading && (entries.length >= 3 || user) && (
+          {/* Signed in, the line only exists to carry the sync status — skip
+              it entirely when there is no wording for the current status. */}
+          {!loading && (entries.length >= 3 || user) && (!user || statusLabel(status) !== "") && (
             <p className="soft" style={{ fontSize: ".92rem", margin: 0 }}>
               {user ? (
                 statusLabel(status)

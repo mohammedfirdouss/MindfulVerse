@@ -60,6 +60,30 @@ export function mergeJournal(
   };
 }
 
+/** Tombstones are kept this long before they become eligible for pruning. */
+export const TOMBSTONE_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+
+/**
+ * Drop tombstones that have done their job. A tombstone is only dropped when
+ * it is older than the TTL AND its deletion is confirmed remotely — either the
+ * remote row carries a `deleted_at`, or (only meaningful after a FULL pull)
+ * the row is gone from the server entirely. Anything unconfirmed is kept, so a
+ * partial/failed pull can never resurrect a deleted entry.
+ */
+export function pruneTombstones(
+  tombstones: JournalTombstone[],
+  remote: RemoteJournalRow[],
+  opts: { now: number; fullPull: boolean }
+): JournalTombstone[] {
+  const remoteIds = new Set(remote.map((r) => r.id));
+  const remoteDeleted = new Set(remote.filter((r) => r.deleted_at != null).map((r) => r.id));
+  return tombstones.filter((t) => {
+    if (opts.now - t.deletedAt <= TOMBSTONE_TTL_MS) return true;
+    const confirmed = remoteDeleted.has(t.id) || (opts.fullPull && !remoteIds.has(t.id));
+    return !confirmed;
+  });
+}
+
 export interface LocalProgress {
   visits: string[];
   sessionProgress: Record<string, { step: number; completedAt?: number }>;

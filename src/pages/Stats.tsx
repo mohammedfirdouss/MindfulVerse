@@ -191,9 +191,11 @@ function AccountRow() {
       {user ? (
         <>
           <div style={{ fontSize: "1.1rem", fontWeight: 600, marginTop: 4 }}>{user.email}</div>
-          <div className="soft" style={{ fontSize: ".9rem", marginTop: 4 }}>
-            {statusLabel(status)}
-          </div>
+          {statusLabel(status) !== "" && (
+            <div className="soft" style={{ fontSize: ".9rem", marginTop: 4 }}>
+              {statusLabel(status)}
+            </div>
+          )}
         </>
       ) : (
         <Link to="/account" style={{ display: "block", marginTop: 4 }}>
