@@ -6,7 +6,7 @@
 declare const Deno: { env: { get(k: string): string | undefined } };
 
 // Same pool + stride as src/lib/dailyVerse.ts — keep the two in sync.
-const DAILY_VERSES: string[] = [
+export const DAILY_VERSES: string[] = [
   "94:5", "94:6", "94:1", "94:2", "94:3", "94:4", "94:7", "94:8", "93:1", "93:2",
   "93:3", "93:4", "93:5", "93:7", "93:11", "3:139", "39:53", "12:87", "10:57", "10:58",
   "10:62", "10:64", "16:96", "16:97", "2:25", "18:107", "19:96", "85:11", "39:17", "39:18",
@@ -103,8 +103,13 @@ export default async function handler(req: Request): Promise<Response> {
   const { data: subs, error } = await admin.database
     .from("push_subscriptions")
     .select("endpoint, keys, reminder_time, timezone, last_sent_date")
+    // Deterministic order so the 1000-row cap truncates the same tail every
+    // run (rather than silently rotating which subscribers get dropped).
+    .order("endpoint")
     .limit(1000);
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  // Logged so hitting the cap is observable in function logs.
+  console.log(`send-reminders: fetched ${subs?.length ?? 0} subscription rows`);
 
   const surahCache = new Map<number, Record<string, { translation: string }>>();
   async function verseText(verseKey: string): Promise<string> {

@@ -55,3 +55,11 @@ describe("isDue", () => {
     expect(isDue("00:05", 6)).toBe(true);
   });
 });
+
+describe("verse pool parity with the client", () => {
+  it("is deep-equal to the pool in src/lib/dailyVerse.ts", async () => {
+    const fn = await import("./send-reminders");
+    const client = await import("../src/lib/dailyVerse");
+    expect(fn.DAILY_VERSES).toEqual(client.DAILY_VERSES);
+  });
+});
