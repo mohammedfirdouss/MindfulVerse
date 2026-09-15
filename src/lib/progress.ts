@@ -1,5 +1,7 @@
 // Local-only progress: visit streak + tadabbur session completion/resume.
 // v0 has no accounts — everything lives in localStorage, mirroring journal.ts.
+import type { LocalProgress } from "./merge";
+import { markProgressDirty } from "./syncFlags";
 
 const VISITS_KEY = "mindfulverse.visits.v1"; // string[] of YYYY-MM-DD
 const SESSIONS_KEY = "mindfulverse.sessionProgress.v1";
@@ -36,6 +38,7 @@ export function recordVisit(): void {
     visits.push(t);
     // keep at most a year of history
     localStorage.setItem(VISITS_KEY, JSON.stringify(visits.slice(-366)));
+    markProgressDirty();
   }
 }
 
@@ -90,6 +93,7 @@ export function recordSessionStep(id: string, step: number): void {
   if (!prev || step > prev.step) {
     map[id] = { ...prev, step };
     writeSessions(map);
+    markProgressDirty();
   }
 }
 
@@ -119,6 +123,7 @@ export function recordSurahTadabbur(surah: number, ayah: number): void {
   if (!prev || ayah > prev.ayah) {
     map[String(surah)] = { ayah, updatedAt: Date.now() };
     localStorage.setItem(SURAH_TADABBUR_KEY, JSON.stringify(map));
+    markProgressDirty();
   }
 }
 
@@ -151,6 +156,7 @@ export function recordLastRead(surah: number, ayah: number): void {
     LAST_READ_KEY,
     JSON.stringify({ surah, ayah, at: Date.now() } satisfies LastRead)
   );
+  markProgressDirty();
 }
 
 export function getLastRead(): LastRead | null {
@@ -166,4 +172,22 @@ export function recordSessionComplete(id: string): void {
   const map = readSessions();
   map[id] = { ...(map[id] ?? { step: 0 }), completedAt: Date.now() };
   writeSessions(map);
+  markProgressDirty();
+}
+
+export function getLocalProgress(): LocalProgress {
+  return {
+    visits: readVisits(),
+    sessionProgress: readSessions(),
+    surahTadabbur: readSurahTadabbur(),
+    lastRead: getLastRead(),
+  };
+}
+
+/** Sync engine writes merged state back; never marks dirty. */
+export function replaceLocalProgress(p: LocalProgress): void {
+  localStorage.setItem(VISITS_KEY, JSON.stringify(p.visits));
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(p.sessionProgress));
+  localStorage.setItem(SURAH_TADABBUR_KEY, JSON.stringify(p.surahTadabbur));
+  if (p.lastRead) localStorage.setItem(LAST_READ_KEY, JSON.stringify(p.lastRead));
 }
