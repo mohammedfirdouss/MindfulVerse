@@ -39,10 +39,13 @@ export async function syncNow(): Promise<void> {
   if (inFlight) return;
   inFlight = true;
   try {
-    const { data: userData } = await insforge.auth.getCurrentUser();
-    const userId = userData?.user?.id;
-    if (!userId) { setStatus("signed-out"); return; }
     if (!navigator.onLine) { setStatus("offline"); return; }
+    const { data: userData, error: authErr } = await insforge.auth.getCurrentUser();
+    const userId = userData?.user?.id;
+    // An auth error here is indistinguishable from signed-out (a cold load
+    // while logged out can surface as a refresh 401) — both mean "cannot
+    // sync as a user".
+    if (authErr || !userId) { setStatus("signed-out"); return; }
     setStatus("syncing");
 
     // --- journal ---
