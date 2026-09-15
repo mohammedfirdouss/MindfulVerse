@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSessions, parseVerseKey } from "../lib/data";
-import { todayVerseKey } from "../lib/dailyVerse";
 import { getEntries, deleteEntry } from "../lib/journal";
 import { useAccount } from "../lib/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync";
@@ -9,41 +8,13 @@ import type { Ayah, JournalEntry } from "../lib/types";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
 
-/** Empty state: the journal's first page, already holding today's verse —
- *  a ruled page and a concrete starting point instead of an empty box. */
+/** Empty state: quiet and minimal — one line of intent, one way to begin. */
 function EmptyJournal() {
-  const [ayah, setAyah] = useState<Ayah | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    todayVerseKey()
-      .then((key) => loadAyahsByKeys([key]))
-      .then((a) => alive && setAyah(a[0] ?? null))
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
-
   return (
-    <div className="journal-first-page">
-      <p style={{ margin: 0, fontWeight: 600 }}>Nothing here yet, and that’s fine.</p>
-      <p className="soft" style={{ margin: "4px 0 0" }}>
-        When a verse stops you, write what it said to you. This page becomes that
-        record, in your own words.
-      </p>
-      {ayah && (
-        <div className="journal-first-verse">
-          <span className="label">Today’s verse — Qur’an {ayah.verseKey}</span>
-          <span className="arabic" lang="ar" style={{ display: "block" }}>
-            {ayah.arabic}
-          </span>
-          <p className="translation" style={{ margin: 0 }}>
-            {ayah.translation}
-          </p>
-        </div>
-      )}
-      <Link to="/checkin" className="btn" style={{ marginTop: ayah ? 0 : 16 }}>
+    <div className="empty-quiet">
+      <p style={{ fontWeight: 600 }}>Nothing here yet, and that’s fine.</p>
+      <p className="soft">When a verse stops you, write what it said to you.</p>
+      <Link to="/checkin" className="btn" style={{ marginTop: 14 }}>
         Begin with today’s verse
       </Link>
     </div>

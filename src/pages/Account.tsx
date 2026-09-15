@@ -244,7 +244,9 @@ export default function Account() {
     <div className="stack">
       <header style={{ paddingTop: 12 }}>
         <div className="eyebrow">Account</div>
-        <h1 style={{ margin: "6px 0" }}>{user ? "Your account" : "Sign in"}</h1>
+        <h1 style={{ margin: "6px 0" }}>
+          {user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}
+        </h1>
         {!user && (
           <p className="muted" style={{ marginTop: 0 }}>
             Optional. The Qur&rsquo;an is always free here — an account only backs
@@ -287,23 +289,6 @@ export default function Account() {
             </form>
           ) : (
             <>
-              <div className="seg" role="tablist" aria-label="Sign in or create account">
-                <button
-                  type="button"
-                  aria-pressed={mode === "signin"}
-                  onClick={() => setMode("signin")}
-                >
-                  Sign in
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={mode === "signup"}
-                  onClick={() => setMode("signup")}
-                >
-                  Create account
-                </button>
-              </div>
-
               <form className="stack" onSubmit={submit}>
                 <label className="field" htmlFor="account-email">
                   <span className="field-label">Email</span>
@@ -339,6 +324,23 @@ export default function Account() {
                       ? "Create account"
                       : "Sign in"}
                 </button>
+                <p className="soft" style={{ margin: 0, textAlign: "center", fontSize: ".95rem" }}>
+                  {mode === "signin" ? (
+                    <>
+                      New here?{" "}
+                      <button type="button" className="link-btn" onClick={() => setMode("signup")}>
+                        Create an account
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Already have an account?{" "}
+                      <button type="button" className="link-btn" onClick={() => setMode("signin")}>
+                        Sign in
+                      </button>
+                    </>
+                  )}
+                </p>
               </form>
 
               {oauthProviders.includes("google") && (
@@ -366,13 +368,7 @@ export default function Account() {
           </div>
 
           {statusLabel(status) && (
-            <div className="status-line">
-              <span
-                className={status === "syncing" ? "status-diamond syncing" : "status-diamond"}
-                aria-hidden="true"
-              />
-              <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
-            </div>
+            <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
           )}
 
           {status === "switched-account" && (
