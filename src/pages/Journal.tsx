@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSessions, parseVerseKey } from "../lib/data";
 import { getEntries, deleteEntry } from "../lib/journal";
+import { useAccount } from "../lib/auth";
+import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync";
 import type { Ayah, JournalEntry } from "../lib/types";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
@@ -50,8 +52,10 @@ function EntryVerse({ verseKey }: { verseKey: string }) {
 }
 
 export default function Journal() {
+  const { user, loading } = useAccount();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [sessionTitles, setSessionTitles] = useState<Map<string, string>>(new Map());
+  const [status, setStatus] = useState<SyncStatus>(getSyncStatus());
 
   useEffect(() => {
     setEntries(getEntries());
@@ -59,6 +63,8 @@ export default function Journal() {
       .then((list) => setSessionTitles(new Map(list.map((s) => [s.id, s.title]))))
       .catch(() => {});
   }, []);
+
+  useEffect(() => onSyncStatus(setStatus), []);
 
   function remove(id: string) {
     deleteEntry(id);
@@ -98,10 +104,16 @@ export default function Journal() {
 
       {entries.length > 0 && (
         <div className="stack" style={{ marginTop: 4 }}>
-          {entries.length >= 3 && (
+          {!loading && (entries.length >= 3 || user) && (
             <p className="soft" style={{ fontSize: ".92rem", margin: 0 }}>
-              Your reflections live only on this device — if the browser’s data
-              is ever cleared, they go with it. Download a copy now and then.
+              {user ? (
+                statusLabel(status)
+              ) : (
+                <>
+                  Entries live only on this device. <Link to="/account">Sign in</Link> to
+                  back them up.
+                </>
+              )}
             </p>
           )}
           <button

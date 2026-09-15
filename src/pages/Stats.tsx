@@ -1,11 +1,13 @@
 // /stats — private, on-device dashboard for the v0 retention experiment.
 // No backend: everything is derived from localStorage. The "Copy my stats"
 // button lets testers paste their numbers into WhatsApp for the founder.
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getEvents } from "../lib/analytics";
 import { currentStreak, totalVisitDays } from "../lib/progress";
 import { getEntries } from "../lib/journal";
+import { useAccount } from "../lib/auth";
+import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync";
 
 const FIRST_SEEN_KEY = "mindfulverse.firstSeen.v1";
 const READ_VIEW_KEY = "mindfulverse.readView.v1";
@@ -175,6 +177,33 @@ function Metric({ label, value, note }: { label: string; value: string; note?: s
   );
 }
 
+function AccountRow() {
+  const { user, loading } = useAccount();
+  const [status, setStatus] = useState<SyncStatus>(getSyncStatus());
+
+  useEffect(() => onSyncStatus(setStatus), []);
+
+  if (loading) return null;
+
+  return (
+    <div className="card">
+      <div className="label">Account</div>
+      {user ? (
+        <>
+          <div style={{ fontSize: "1.1rem", fontWeight: 600, marginTop: 4 }}>{user.email}</div>
+          <div className="soft" style={{ fontSize: ".9rem", marginTop: 4 }}>
+            {statusLabel(status)}
+          </div>
+        </>
+      ) : (
+        <Link to="/account" style={{ display: "block", marginTop: 4 }}>
+          Not signed in — journal is device-only
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export default function Stats() {
   const stats = useMemo(computeStats, []);
   const [copied, setCopied] = useState(false);
@@ -202,6 +231,8 @@ export default function Stats() {
           Private, on-device data. Nothing here leaves your phone unless you copy and send it.
         </p>
       </header>
+
+      <AccountRow />
 
       {!hasData ? (
         <div className="card stack">

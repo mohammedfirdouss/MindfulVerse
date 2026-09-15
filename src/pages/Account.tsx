@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount } from "../lib/auth";
 import { insforge } from "../lib/insforge";
-import { getSyncStatus, onSyncStatus, syncNow, type SyncStatus } from "../lib/sync";
+import { getSyncStatus, onSyncStatus, statusLabel, syncNow, type SyncStatus } from "../lib/sync";
 import { track } from "../lib/analytics";
 
 const inputStyle: React.CSSProperties = {
@@ -17,21 +17,6 @@ const inputStyle: React.CSSProperties = {
   color: "var(--ink)",
   font: "inherit",
 };
-
-function syncStatusLine(status: SyncStatus): string {
-  switch (status) {
-    case "synced":
-      return "Backed up ✓";
-    case "syncing":
-      return "Backing up…";
-    case "offline":
-      return "Offline — will sync when you're back";
-    case "error":
-      return "Backup hit a snag — will retry";
-    default:
-      return "";
-  }
-}
 
 export default function Account() {
   const { user, loading, refresh } = useAccount();
@@ -290,7 +275,7 @@ export default function Account() {
             {user.name && <div className="soft" style={{ fontSize: ".9rem" }}>{user.email}</div>}
           </div>
 
-          <p className="soft" style={{ margin: 0 }}>{syncStatusLine(status)}</p>
+          <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button

@@ -25,6 +25,22 @@ export function onSyncStatus(cb: (s: SyncStatus) => void): () => void {
   return () => listeners.delete(cb);
 }
 
+/** Shared wording for sync status, used on both the Account and Journal/Stats pages. */
+export function statusLabel(s: SyncStatus): string {
+  switch (s) {
+    case "synced":
+      return "Backed up ✓";
+    case "syncing":
+      return "Backing up…";
+    case "offline":
+      return "Offline — will sync when you're back";
+    case "error":
+      return "Backup hit a snag — will retry";
+    default:
+      return "";
+  }
+}
+
 export function makeDebounced(fn: () => void, ms: number): () => void {
   let t: ReturnType<typeof setTimeout> | undefined;
   return () => {
