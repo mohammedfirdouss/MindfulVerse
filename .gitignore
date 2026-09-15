@@ -5,6 +5,24 @@ dist-ssr
 .DS_Store
 .vite
 
+.env
+.env*.local
+
 # Large raw source data + working copy are not committed; pipeline regenerates public/data.
 raw-data/
 QUL copy/
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
