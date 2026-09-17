@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAyahsByKeys, loadSessions, parseVerseKey } from "../lib/data";
+import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "../lib/data";
 import { getEntries, deleteEntry } from "../lib/journal";
+import { groupEntries, type JournalGroup } from "../lib/journalGroups";
 import { useAccount } from "../lib/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync";
 import type { Ayah, JournalEntry } from "../lib/types";
@@ -64,10 +65,62 @@ function EntryVerse({ verseKey }: { verseKey: string }) {
   );
 }
 
+function EntryCard({
+  entry,
+  sessionTitles,
+  onDelete,
+}: {
+  entry: JournalEntry;
+  sessionTitles: Map<string, string>;
+  onDelete: (id: string) => void;
+}) {
+  const verseRef =
+    (entry.context?.kind === "checkin" || entry.context?.kind === "tadabbur") &&
+    entry.context.ref &&
+    VERSE_KEY_RE.test(entry.context.ref)
+      ? entry.context.ref
+      : null;
+  const sessionRef =
+    entry.context?.kind === "session" && entry.context.ref ? entry.context.ref : null;
+  return (
+    <div className="card stack">
+      <div className="muted" style={{ fontSize: ".8rem" }}>
+        {new Date(entry.createdAt).toLocaleString()}
+      </div>
+      {verseRef && <EntryVerse verseKey={verseRef} />}
+      {sessionRef && (
+        <Link to={`/sessions/${sessionRef}`} className="eyebrow">
+          From the session “{sessionTitles.get(sessionRef) ?? sessionRef}”
+        </Link>
+      )}
+      <div style={{ fontStyle: "italic", color: "var(--ink-soft)" }}>{entry.prompt}</div>
+      <div style={{ whiteSpace: "pre-wrap" }}>{entry.body}</div>
+      <button
+        className="btn ghost"
+        style={{ alignSelf: "flex-start", padding: "4px 0" }}
+        onClick={() => onDelete(entry.id)}
+      >
+        Delete
+      </button>
+    </div>
+  );
+}
+
+function groupTitle(
+  g: JournalGroup,
+  surahNames: Map<number, string>,
+  sessionTitles: Map<string, string>
+): string {
+  if (g.surah) return surahNames.get(g.surah) ?? `Surah ${g.surah}`;
+  if (g.sessionId) return sessionTitles.get(g.sessionId) ?? g.sessionId;
+  return "Other reflections";
+}
+
 export default function Journal() {
   const { user, loading } = useAccount();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [sessionTitles, setSessionTitles] = useState<Map<string, string>>(new Map());
+  const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
   const [status, setStatus] = useState<SyncStatus>(getSyncStatus());
 
   useEffect(() => {
@@ -75,9 +128,14 @@ export default function Journal() {
     loadSessions()
       .then((list) => setSessionTitles(new Map(list.map((s) => [s.id, s.title]))))
       .catch(() => {});
+    loadSurahs()
+      .then((list) => setSurahNames(new Map(list.map((s) => [s.number, s.name]))))
+      .catch(() => {});
   }, []);
 
   useEffect(() => onSyncStatus(setStatus), []);
+
+  const groups = groupEntries(entries);
 
   function remove(id: string) {
     deleteEntry(id);
@@ -85,20 +143,17 @@ export default function Journal() {
   }
 
   function downloadJournal() {
-    const text = entries
-      .map((e) => {
-        const where =
-          (e.context?.kind === "checkin" || e.context?.kind === "tadabbur") &&
-          e.context.ref
-            ? `Verse ${e.context.ref}`
-            : e.context?.kind === "session" && e.context.ref
-              ? `Session: ${sessionTitles.get(e.context.ref) ?? e.context.ref}`
-              : "";
-        return [new Date(e.createdAt).toLocaleString(), where, e.prompt, e.body]
-          .filter(Boolean)
-          .join("\n");
+    const text = groups
+      .map((g) => {
+        const heading = groupTitle(g, surahNames, sessionTitles);
+        const lines = g.entries.map((e) =>
+          [new Date(e.createdAt).toLocaleString(), e.prompt, e.body]
+            .filter(Boolean)
+            .join("\n")
+        );
+        return `== ${heading} ==\n\n${lines.join("\n\n")}`;
       })
-      .join("\n\n");
+      .join("\n\n\n");
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;
@@ -143,34 +198,27 @@ export default function Journal() {
 
       {entries.length === 0 && <EmptyJournal />}
 
-      {entries.map((e) => {
-        const verseRef =
-          (e.context?.kind === "checkin" || e.context?.kind === "tadabbur") &&
-          e.context.ref &&
-          VERSE_KEY_RE.test(e.context.ref)
-            ? e.context.ref
-            : null;
-        const sessionRef =
-          e.context?.kind === "session" && e.context.ref ? e.context.ref : null;
-        return (
-          <div key={e.id} className="card stack">
-            <div className="muted" style={{ fontSize: ".8rem" }}>
-              {new Date(e.createdAt).toLocaleString()}
-            </div>
-            {verseRef && <EntryVerse verseKey={verseRef} />}
-            {sessionRef && (
-              <Link to={`/sessions/${sessionRef}`} className="eyebrow">
-                From the session “{sessionTitles.get(sessionRef) ?? sessionRef}”
-              </Link>
-            )}
-            <div style={{ fontStyle: "italic", color: "var(--ink-soft)" }}>{e.prompt}</div>
-            <div style={{ whiteSpace: "pre-wrap" }}>{e.body}</div>
-            <button className="btn ghost" style={{ alignSelf: "flex-start", padding: "4px 0" }} onClick={() => remove(e.id)}>
-              Delete
-            </button>
-          </div>
-        );
-      })}
+      {groups.map((g) => (
+        <section key={g.key} className="stack" aria-label={groupTitle(g, surahNames, sessionTitles)}>
+          <header style={{ borderBottom: "2px solid var(--indigo-wash)", paddingBottom: 8 }}>
+            <h2 style={{ fontSize: "1.15rem" }}>
+              {groupTitle(g, surahNames, sessionTitles)}
+            </h2>
+            <p className="muted" style={{ margin: "2px 0 0", fontSize: ".85rem" }}>
+              {g.entries.length === 1 ? "1 reflection" : `${g.entries.length} reflections`}
+              {g.surah && (
+                <>
+                  {" · "}
+                  <Link to={`/tadabbur/${g.surah}`}>Continue this surah’s tadabbur</Link>
+                </>
+              )}
+            </p>
+          </header>
+          {g.entries.map((e) => (
+            <EntryCard key={e.id} entry={e} sessionTitles={sessionTitles} onDelete={remove} />
+          ))}
+        </section>
+      ))}
     </div>
   );
 }
