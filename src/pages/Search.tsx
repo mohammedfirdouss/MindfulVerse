@@ -78,7 +78,7 @@ function highlight(snippet: string, term: string): ReactNode[] {
           background: "var(--kola)",
           color: "var(--cotton)",
           padding: "0 3px",
-          borderRadius: 2,
+          borderRadius: 3,
         }}
       >
         {part}
@@ -118,7 +118,7 @@ export default function Search() {
   return (
     <div className="stack">
       <header>
-        <p className="label" style={{ margin: 0 }}>Search</p>
+        <p className="eyebrow" style={{ margin: 0 }}>Search</p>
         <h1>Find a verse</h1>
       </header>
 
@@ -129,16 +129,8 @@ export default function Search() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Search the translation — e.g. mercy, patience"
           aria-label="Search the translation"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            padding: "12px 14px",
-            border: "2px solid var(--line-strong)",
-            borderRadius: 3,
-            background: "var(--cotton-raised)",
-            color: "var(--ink)",
-            font: "inherit",
-          }}
+          className="field-input"
+          style={{ flex: 1, minWidth: 0, width: "auto" }}
         />
         <button type="submit" className="btn">Search</button>
       </form>
@@ -168,7 +160,7 @@ export default function Search() {
                     to={`/read/${r.surah}?v=${r.ayah}`}
                     style={{ display: "block", padding: "16px 4px", color: "inherit" }}
                   >
-                    <span className="label">{r.verseKey}</span>
+                    <span className="eyebrow">{r.verseKey}</span>
                     <p className="soft" style={{ margin: "4px 0 0" }}>
                       {highlight(r.snippet, outcome.term)}
                     </p>

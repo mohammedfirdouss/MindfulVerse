@@ -66,7 +66,7 @@ export default function Themes() {
 
   if (status.kind === "loading") {
     return (
-      <div className="container">
+      <div>
         <p className="muted">Gathering the topics…</p>
       </div>
     );
@@ -74,7 +74,7 @@ export default function Themes() {
 
   if (status.kind === "error") {
     return (
-      <div className="container">
+      <div>
         <div className="card stack">
           <h2>We couldn’t reach the topics</h2>
           <p className="muted">
@@ -91,9 +91,9 @@ export default function Themes() {
   const count = filtered.length.toLocaleString("en-US");
 
   return (
-    <div className="container stack">
+    <div className="stack">
       <header className="stack">
-        <p className="label">Read</p>
+        <p className="eyebrow">Read</p>
         <h1>Verses by topic</h1>
         <p className="soft">
           An index of topics across the Qur’an — each links to the passages
@@ -115,16 +115,7 @@ export default function Themes() {
         }}
         placeholder="Filter topics — e.g. patience, mercy"
         aria-label="Filter topics"
-        style={{
-          width: "100%",
-          padding: "12px 14px",
-          fontFamily: "var(--font-read)",
-          fontSize: "1rem",
-          color: "var(--ink)",
-          background: "var(--cotton-raised)",
-          border: "1px solid var(--line-strong)",
-          borderRadius: 3,
-        }}
+        className="field-input"
       />
 
       {filtered.length === 0 ? (

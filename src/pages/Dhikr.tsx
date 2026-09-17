@@ -270,7 +270,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
       </button>
       <div style={{ clear: "both", paddingTop: 8 }} />
 
-      <p className="label">
+      <p className="eyebrow">
         {set.title}
         {set.items.length > 1 ? ` · ${itemIndex + 1} of ${set.items.length}` : ""}
       </p>
@@ -394,7 +394,7 @@ export default function Dhikr() {
   return (
     <div className="stack">
       <header style={{ paddingTop: 12 }}>
-        <p className="label">Dhikr &amp; breath</p>
+        <p className="eyebrow">Dhikr &amp; breath</p>
         <h1 style={{ margin: "6px 0" }}>Remembrance, paced to your breath</h1>
         <p className="soft" style={{ marginTop: 0 }}>
           Choose a remembrance. The circle breathes with you; count at your own pace.

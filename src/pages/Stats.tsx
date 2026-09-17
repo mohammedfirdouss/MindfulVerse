@@ -168,7 +168,7 @@ function summaryText(s: StatsSnapshot): string {
 function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="card">
-      <div className="label">{label}</div>
+      <div className="eyebrow">{label}</div>
       <div style={{ fontSize: "1.9rem", fontWeight: 600, color: "var(--indigo-deep)", lineHeight: 1.2 }}>
         {value}
       </div>
@@ -187,7 +187,7 @@ function AccountRow() {
 
   return (
     <div className="card">
-      <div className="label">Account</div>
+      <div className="eyebrow">Account</div>
       {user ? (
         <>
           <div style={{ fontSize: "1.1rem", fontWeight: 600, marginTop: 4 }}>{user.email}</div>

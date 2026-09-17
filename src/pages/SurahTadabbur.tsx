@@ -188,7 +188,7 @@ function VerseCommentary({
       </button>
       {open && (
         <div className="card tafsir stack">
-          <p className="label" style={{ margin: 0 }}>
+          <p className="eyebrow" style={{ margin: 0 }}>
             {direct
               ? `Ibn Kathir · ${ayah.verseKey}`
               : `Ibn Kathir · with verse ${covering}`}
@@ -255,7 +255,7 @@ function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
       className="card stack"
       style={{ background: "var(--surface-2)", borderColor: "var(--line-strong)" }}
     >
-      <p className="label" style={{ margin: 0 }}>
+      <p className="eyebrow" style={{ margin: 0 }}>
         Your tadabbur
       </p>
       <p className="muted" style={{ margin: 0, fontSize: ".9rem" }}>
@@ -443,7 +443,7 @@ export default function SurahTadabbur() {
 
   if (!validSurah) {
     return (
-      <div className="container">
+      <div>
         <div className="card stack">
           <h2>That surah isn’t here</h2>
           <p className="muted">
@@ -462,7 +462,7 @@ export default function SurahTadabbur() {
 
   if (status === "loading") {
     return (
-      <div className="container">
+      <div>
         <p className="muted">Opening the surah…</p>
       </div>
     );
@@ -470,7 +470,7 @@ export default function SurahTadabbur() {
 
   if (status === "error" || ayahs.length === 0) {
     return (
-      <div className="container">
+      <div>
         <div className="card stack">
           <h2>We couldn’t open this surah</h2>
           <p className="muted">
@@ -496,13 +496,13 @@ export default function SurahTadabbur() {
         ? saved.ayah
         : null;
     return (
-      <div className="container stack">
+      <div className="stack">
         <Link to="/sessions" className="muted">
           All tadabbur
         </Link>
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
-            <p className="label">Tadabbur</p>
+            <p className="eyebrow">Tadabbur</p>
             <h1 style={{ margin: 0 }}>{name}</h1>
             <p className="muted" style={{ margin: 0 }}>
               {count} {count === 1 ? "verse" : "verses"}, one at a time.
@@ -512,7 +512,7 @@ export default function SurahTadabbur() {
         {info && (
           <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 60}>
             <div className="card stack">
-              <p className="label" style={{ margin: 0 }}>
+              <p className="eyebrow" style={{ margin: 0 }}>
                 About this surah
               </p>
               <InfoText text={info.text} />
@@ -544,10 +544,10 @@ export default function SurahTadabbur() {
   // Completion screen.
   if (phase >= count) {
     return (
-      <div className="container stack">
+      <div className="stack">
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
-            <p className="label">Tadabbur</p>
+            <p className="eyebrow">Tadabbur</p>
             <h1 style={{ margin: 0 }}>You’ve sat with all of {name}.</h1>
             <p className="soft">
               {count} {count === 1 ? "verse" : "verses"}, pondered at your own
@@ -576,12 +576,12 @@ export default function SurahTadabbur() {
   const covering = coveringFromIndex(indexed, a.ayah);
 
   return (
-    <div className="container stack">
+    <div className="stack">
       <Link to="/sessions" className="muted">
         All tadabbur
       </Link>
 
-      <p className="label" aria-live="polite">
+      <p className="eyebrow" aria-live="polite">
         Verse {phase + 1} of {count}
       </p>
 
@@ -590,7 +590,7 @@ export default function SurahTadabbur() {
           <div className="verse" style={{ paddingTop: 0 }}>
             <div className="verse-head">
               <span className="roundel">{a.ayah}</span>
-              <span className="label">
+              <span className="eyebrow">
                 {name} · {a.verseKey}
               </span>
               <span className="rule" />

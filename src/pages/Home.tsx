@@ -84,7 +84,7 @@ export default function Home() {
 
   return (
     <div>
-      <p className="label" style={{ marginTop: 8, ...reveal(0) }}>
+      <p className="eyebrow" style={{ marginTop: 8, ...reveal(0) }}>
         {greeting(hours)}
       </p>
 
@@ -106,7 +106,7 @@ export default function Home() {
             >
               {hero.translation}
             </p>
-            <p className="label" style={{ marginTop: 12 }}>
+            <p className="eyebrow" style={{ marginTop: 12 }}>
               {surahName ? `${surahName} · ` : ""}
               {hero.surah}:{hero.ayah}
             </p>

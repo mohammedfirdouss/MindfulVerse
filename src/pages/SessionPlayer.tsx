@@ -102,7 +102,7 @@ export default function SessionPlayer() {
 
   if (status.kind === "loading") {
     return (
-      <div className="container">
+      <div>
         <p className="muted">Opening this session…</p>
       </div>
     );
@@ -110,7 +110,7 @@ export default function SessionPlayer() {
 
   if (status.kind === "error") {
     return (
-      <div className="container">
+      <div>
         <div className="card stack">
           <h2>We couldn’t open this session</h2>
           <p className="muted">
@@ -127,7 +127,7 @@ export default function SessionPlayer() {
 
   if (status.kind === "notfound") {
     return (
-      <div className="container">
+      <div>
         <div className="card stack">
           <h2>This session isn’t here</h2>
           <p className="muted">
@@ -185,13 +185,13 @@ function SessionFlow({ session }: { session: TadabburSession }) {
   // Intro screen
   if (phase < 0) {
     return (
-      <div className="container stack">
+      <div className="stack">
         <Link to="/sessions" className="muted">
           All sessions
         </Link>
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
-            <p className="label">{session.theme}</p>
+            <p className="eyebrow">{session.theme}</p>
             <h1 style={{ margin: 0 }}>{session.title}</h1>
             <p className="soft">{session.intro}</p>
             <p className="muted" style={{ margin: 0 }}>
@@ -235,12 +235,12 @@ function SessionFlow({ session }: { session: TadabburSession }) {
   // A single step
   const step = session.steps[phase];
   return (
-    <div className="container stack">
+    <div className="stack">
       <Link to="/sessions" className="muted">
         All sessions
       </Link>
 
-      <p className="label" aria-live="polite">
+      <p className="eyebrow" aria-live="polite">
         Step {phase + 1} of {stepCount}
       </p>
 
@@ -343,7 +343,7 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
               <div className="verse" style={{ paddingTop: i === 0 ? 0 : undefined }}>
                 <div className="verse-head">
                   <span className="roundel">{ayah}</span>
-                  <span className="label">
+                  <span className="eyebrow">
                     {surahName ? `${surahName} · ` : ""}
                     {a.verseKey}
                   </span>
@@ -365,7 +365,7 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
           className="card stack"
           style={{ background: "var(--surface-2)", borderColor: "var(--line-strong)" }}
         >
-          <p className="label" style={{ margin: 0 }}>
+          <p className="eyebrow" style={{ margin: 0 }}>
             Sit with this
           </p>
           <p style={{ margin: 0 }}>{step.reflection}</p>
@@ -484,7 +484,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
                 <div key={e.verseKey} className="stack">
                   <div className="verse-head" style={{ marginBottom: 4 }}>
                     <span className="roundel">{ayah}</span>
-                    <span className="label">
+                    <span className="eyebrow">
                       {surahName ? `${surahName} · ` : ""}
                       {e.verseKey}
                     </span>
@@ -550,10 +550,10 @@ function FinalScreen({
   }
 
   return (
-    <div className="container stack">
+    <div className="stack">
       <FadeRise show={mounted} reduce={reduce}>
         <div className="stack">
-          <p className="label">{session.title}</p>
+          <p className="eyebrow">{session.title}</p>
           <h1 style={{ margin: 0 }}>A moment to reflect</h1>
         </div>
       </FadeRise>
@@ -615,7 +615,7 @@ function FinalScreen({
             </p>
           ) : (
             <div className="stack">
-              <p className="label" style={{ margin: 0 }}>
+              <p className="eyebrow" style={{ margin: 0 }}>
                 A small question
               </p>
               <p className="soft" style={{ margin: 0 }}>

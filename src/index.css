@@ -121,11 +121,6 @@ p { margin: 0 0 0.9em; }
 .muted { color: var(--ink-faint); }
 .soft { color: var(--ink-soft); }
 /* Quiet meta label — indigo, sentence case, no tracking games. */
-.label {
-  font-size: 0.85rem;
-  color: var(--indigo);
-  font-weight: 600;
-}
 .eyebrow { font-size: 0.85rem; color: var(--indigo); font-weight: 600; }
 
 .translation { color: var(--ink-soft); font-size: calc(1.04rem * var(--read-scale, 1)); line-height: 1.65; }

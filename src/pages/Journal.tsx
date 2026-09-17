@@ -57,7 +57,7 @@ function EntryVerse({ verseKey }: { verseKey: string }) {
       <span className="soft" style={{ display: "block", fontSize: ".95rem", marginTop: 4 }}>
         {ayah.translation}
       </span>
-      <span className="label" style={{ display: "block", marginTop: 4 }}>
+      <span className="eyebrow" style={{ display: "block", marginTop: 4 }}>
         {verseKey}
       </span>
     </Link>
@@ -159,7 +159,7 @@ export default function Journal() {
             </div>
             {verseRef && <EntryVerse verseKey={verseRef} />}
             {sessionRef && (
-              <Link to={`/sessions/${sessionRef}`} className="label">
+              <Link to={`/sessions/${sessionRef}`} className="eyebrow">
                 From the session “{sessionTitles.get(sessionRef) ?? sessionRef}”
               </Link>
             )}

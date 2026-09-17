@@ -96,7 +96,7 @@ function CommentarySheet({
             visible and tappable. The ayah itself lives in the scrollable body
             (long verses like 2:282 used to fill the screen from the header). */}
         <div className="sheet-head" style={{ alignItems: "center" }}>
-          <p className="label" style={{ margin: 0 }}>
+          <p className="eyebrow" style={{ margin: 0 }}>
             {sourceAyah === ayah.ayah
               ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
               : `Ibn Kathir · on the passage from ${ayah.surah}:${sourceAyah}`}
@@ -364,16 +364,8 @@ export default function Surah() {
               onChange={(e) => setJump(e.target.value)}
               placeholder="Verse"
               aria-label="Jump to verse number"
-              style={{
-                width: 76,
-                padding: "7px 10px",
-                border: "1px solid var(--line)",
-                borderRadius: 6,
-                background: "var(--paper-raised)",
-                color: "var(--ink)",
-                font: "inherit",
-                fontSize: ".9rem",
-              }}
+              className="field-input"
+              style={{ width: 76, padding: "7px 10px", fontSize: ".9rem" }}
             />
             <button type="submit" className="btn secondary" style={{ padding: "7px 14px" }}>
               Go

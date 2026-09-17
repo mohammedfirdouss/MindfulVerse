@@ -129,9 +129,9 @@ export default function Sessions() {
       : null;
 
   return (
-    <div className="container stack">
+    <div className="stack">
       <header className="stack">
-        <p className="label">Tadabbur</p>
+        <p className="eyebrow">Tadabbur</p>
         <h1>Ponder the Qur’an</h1>
         <p className="soft">Slow down and sit with a few verses at a time.</p>
       </header>
@@ -145,7 +145,7 @@ export default function Sessions() {
         {latest != null && (
           <Link to={`/tadabbur/${latest.surah}`} style={{ color: "inherit" }}>
             <div className="card">
-              <p className="label" style={{ margin: "0 0 4px" }}>
+              <p className="eyebrow" style={{ margin: "0 0 4px" }}>
                 Continue
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>

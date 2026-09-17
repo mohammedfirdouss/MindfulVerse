@@ -61,7 +61,7 @@ export default function Reader() {
           className="card"
           style={{ display: "block", color: "var(--ink)" }}
         >
-          <span className="label" style={{ display: "block" }}>
+          <span className="eyebrow" style={{ display: "block" }}>
             Continue reading
           </span>
           <span style={{ fontWeight: 650 }}>
