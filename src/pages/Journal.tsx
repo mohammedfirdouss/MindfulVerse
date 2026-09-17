@@ -74,6 +74,7 @@ function EntryCard({
   sessionTitles: Map<string, string>;
   onDelete: (id: string) => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const verseRef =
     (entry.context?.kind === "checkin" || entry.context?.kind === "tadabbur") &&
     entry.context.ref &&
@@ -95,13 +96,36 @@ function EntryCard({
       )}
       <div style={{ fontStyle: "italic", color: "var(--ink-soft)" }}>{entry.prompt}</div>
       <div style={{ whiteSpace: "pre-wrap" }}>{entry.body}</div>
-      <button
-        className="btn ghost"
-        style={{ alignSelf: "flex-start", padding: "4px 0" }}
-        onClick={() => onDelete(entry.id)}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "baseline",
+          gap: 14,
+        }}
       >
-        Delete
-      </button>
+        {confirming ? (
+          <>
+            <span className="soft" style={{ fontSize: ".85rem" }}>
+              Delete this reflection?
+            </span>
+            <button className="delete-quiet" onClick={() => onDelete(entry.id)}>
+              Yes, delete
+            </button>
+            <button
+              className="link-btn"
+              style={{ fontSize: ".85rem" }}
+              onClick={() => setConfirming(false)}
+            >
+              Keep
+            </button>
+          </>
+        ) : (
+          <button className="delete-quiet" onClick={() => setConfirming(true)}>
+            Delete
+          </button>
+        )}
+      </div>
     </div>
   );
 }
