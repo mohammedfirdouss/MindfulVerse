@@ -126,6 +126,11 @@ function CommentarySheet({
               {paragraphs.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
+              <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
+                Verse quotations inside the commentary follow its classical
+                English edition, which differs from the ClearQuran translation
+                shown in the reader.
+              </p>
             </div>
           )}
         </div>

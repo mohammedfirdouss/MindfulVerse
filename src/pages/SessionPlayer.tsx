@@ -493,6 +493,13 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
                 </div>
               );
             })}
+          {status.kind === "ready" && status.entries.length > 0 && (
+            <p className="muted" style={{ fontSize: "0.8rem" }}>
+              Verse quotations inside the commentary follow its classical
+              English edition, which differs from the ClearQuran translation
+              shown above.
+            </p>
+          )}
         </div>
       )}
     </div>

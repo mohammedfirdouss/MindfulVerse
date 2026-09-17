@@ -77,6 +77,18 @@ export async function enableReminder(time: string): Promise<EnableResult> {
   return { error: null, welcomed };
 }
 
+/** Persist a new reminder time for this device's existing subscription.
+ *  No-op when the device has no subscription (reminder toggled off). */
+export async function updateReminderTime(time: string): Promise<{ error: string | null }> {
+  const sub = await currentSubscription();
+  if (!sub) return { error: null };
+  const { error } = await insforge.database
+    .from("push_subscriptions")
+    .update({ reminder_time: time })
+    .eq("endpoint", sub.endpoint);
+  return { error: error ? error.message : null };
+}
+
 export async function disableReminder(): Promise<void> {
   const sub = await currentSubscription();
   if (!sub) return;

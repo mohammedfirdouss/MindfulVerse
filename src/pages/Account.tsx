@@ -8,7 +8,7 @@ import {
   getSyncStatus, onSyncStatus, resolveOwnerMismatch, statusLabel, syncNow, type SyncStatus,
 } from "../lib/sync";
 import { track } from "../lib/analytics";
-import { disableReminder, enableReminder, getReminder, pushSupport } from "../lib/push";
+import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/push";
 
 function GoogleMark() {
   return (
@@ -102,6 +102,27 @@ export default function Account() {
       }
     } catch {
       setReminderError("Couldn't set the reminder — please try again.");
+    } finally {
+      setReminderBusy(false);
+    }
+  }
+
+  // With the reminder already on, a time edit must reach the stored
+  // subscription — otherwise pushes keep firing at the old time.
+  async function changeReminderTime(time: string) {
+    setReminderTime(time);
+    if (!reminderOn) return;
+    setReminderBusy(true);
+    setReminderError(null);
+    try {
+      const { error } = await updateReminderTime(time);
+      if (error) {
+        setReminderError(error);
+        return;
+      }
+      setReminderNotice(`Daily verse reminder set for ${time}.`);
+    } catch {
+      setReminderError("Couldn't update the reminder time — please try again.");
     } finally {
       setReminderBusy(false);
     }
@@ -449,7 +470,7 @@ export default function Account() {
                     className="field-input"
                     value={reminderTime}
                     disabled={reminderBusy}
-                    onChange={(e) => setReminderTime(e.target.value)}
+                    onChange={(e) => void changeReminderTime(e.target.value)}
                     style={{ width: "auto" }}
                   />
                 </div>
