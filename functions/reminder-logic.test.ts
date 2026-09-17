@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   minutesOfDayInZone, localDayIndexInZone, verseKeyForDayIndex, isDue, localDateInZone,
+  pickContinueTarget,
 } from "./send-reminders";
 
 // 2026-09-15T12:00:00Z fixed instant
@@ -53,6 +54,45 @@ describe("isDue", () => {
     expect(isDue("00:05", 23 * 60 + 59)).toBe(false);
     expect(isDue("23:55", 23 * 60 + 56)).toBe(true);
     expect(isDue("00:05", 6)).toBe(true);
+  });
+});
+
+describe("pickContinueTarget", () => {
+  const DAY = 86_400_000;
+  const now = Date.UTC(2026, 8, 17, 12, 0, 0);
+  const counts = { "2": 286, "8": 75, "49": 18 };
+
+  it("picks the most recently pondered unfinished surah, resuming at the next ayah", () => {
+    const map = {
+      "2": { ayah: 10, updatedAt: now - 5 * DAY },
+      "8": { ayah: 3, updatedAt: now - 2 * DAY },
+    };
+    expect(pickContinueTarget(map, counts, now)).toEqual({ surah: 8, nextAyah: 4 });
+  });
+
+  it("skips surahs already pondered to the last ayah", () => {
+    const map = {
+      "49": { ayah: 18, updatedAt: now - 1 * DAY }, // finished
+      "2": { ayah: 40, updatedAt: now - 6 * DAY },
+    };
+    expect(pickContinueTarget(map, counts, now)).toEqual({ surah: 2, nextAyah: 41 });
+  });
+
+  it("ignores entries older than the freshness window", () => {
+    const map = { "2": { ayah: 10, updatedAt: now - 20 * DAY } };
+    expect(pickContinueTarget(map, counts, now)).toBeNull();
+  });
+
+  it("returns null for empty, null, or malformed maps", () => {
+    expect(pickContinueTarget({}, counts, now)).toBeNull();
+    expect(pickContinueTarget(null, counts, now)).toBeNull();
+    expect(pickContinueTarget(undefined, counts, now)).toBeNull();
+    expect(pickContinueTarget({ "2": { ayah: NaN, updatedAt: now } } as never, counts, now)).toBeNull();
+  });
+
+  it("skips surahs with an unknown ayah count", () => {
+    const map = { "999": { ayah: 3, updatedAt: now - 1 * DAY } };
+    expect(pickContinueTarget(map, counts, now)).toBeNull();
   });
 });
 

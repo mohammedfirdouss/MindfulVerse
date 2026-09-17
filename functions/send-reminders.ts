@@ -74,6 +74,33 @@ export function isDue(reminderTime: string, nowMinutes: number, windowMinutes = 
   return ((nowMinutes - reminder + 1440) % 1440) < windowMinutes;
 }
 
+export interface TadabburEntry { ayah: number; updatedAt: number }
+
+/** How many days a paused tadabbur stays worth nudging about; older than this
+ *  the reminder falls back to the daily verse rather than a stale "continue". */
+const CONTINUE_WINDOW_DAYS = 14;
+
+/** The most recently pondered surah that is fresh and unfinished, or null.
+ *  `nextAyah` is the ayah after the last one pondered — where to resume. */
+export function pickContinueTarget(
+  map: Record<string, TadabburEntry> | null | undefined,
+  ayahCounts: Record<string, number>,
+  nowMs: number,
+): { surah: number; nextAyah: number } | null {
+  if (!map) return null;
+  const cutoff = nowMs - CONTINUE_WINDOW_DAYS * 86_400_000;
+  let best: { surah: number; nextAyah: number; at: number } | null = null;
+  for (const [key, entry] of Object.entries(map)) {
+    const count = ayahCounts[key];
+    if (!count || !Number.isFinite(entry?.ayah) || !Number.isFinite(entry?.updatedAt)) continue;
+    if (entry.updatedAt < cutoff || entry.ayah >= count) continue;
+    if (!best || entry.updatedAt > best.at) {
+      best = { surah: Number(key), nextAyah: entry.ayah + 1, at: entry.updatedAt };
+    }
+  }
+  return best ? { surah: best.surah, nextAyah: best.nextAyah } : null;
+}
+
 const SITE_URL = "https://mindfulverse.vercel.app";
 
 // Browser-invoked (welcome path) as well as cron-invoked, so every response
@@ -121,6 +148,40 @@ export default async function handler(req: Request): Promise<Response> {
       body: body.length > 240 ? `${body.slice(0, 237)}…` : body,
       url: "/checkin",
     });
+  }
+
+  interface SurahMeta { number: number; name: string; ayahCount: number }
+  let surahMetaPromise: Promise<SurahMeta[]> | null = null;
+  function loadSurahMeta(): Promise<SurahMeta[]> {
+    surahMetaPromise ??= fetch(`${SITE_URL}/data/surahs.json`).then((res) => {
+      if (!res.ok) throw new Error(`surahs fetch failed: ${res.status}`);
+      return res.json();
+    });
+    return surahMetaPromise;
+  }
+
+  /** Continue-tadabbur nudge when the user has a fresh unfinished surah,
+   *  otherwise today's verse. Any lookup failure degrades to the verse. */
+  async function reminderPayload(
+    timeZone: string,
+    tadabbur: Record<string, TadabburEntry> | null | undefined,
+  ): Promise<string> {
+    try {
+      const meta = await loadSurahMeta();
+      const counts = Object.fromEntries(meta.map((s) => [String(s.number), s.ayahCount]));
+      const target = pickContinueTarget(tadabbur, counts, now);
+      if (target) {
+        const name = meta.find((s) => s.number === target.surah)?.name ?? `Surah ${target.surah}`;
+        return JSON.stringify({
+          title: `Continue your tadabbur — ${name}`,
+          body: `You paused at verse ${target.nextAyah - 1}. ${name} is waiting where you left off.`,
+          url: `/tadabbur/${target.surah}?v=${target.nextAyah}`,
+        });
+      }
+    } catch (err) {
+      console.error("send-reminders: continue-target lookup failed, falling back to verse", err);
+    }
+    return todaysPayload(timeZone);
   }
 
   // --- Welcome path: a signed-in user just subscribed on a device and asks
@@ -179,7 +240,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   const { data: subs, error } = await admin.database
     .from("push_subscriptions")
-    .select("endpoint, keys, reminder_time, timezone, last_sent_date")
+    .select("endpoint, keys, reminder_time, timezone, last_sent_date, user_id")
     // Deterministic order so the 1000-row cap truncates the same tail every
     // run (rather than silently rotating which subscribers get dropped).
     .order("endpoint")
@@ -187,6 +248,20 @@ export default async function handler(req: Request): Promise<Response> {
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: JSON_HEADERS });
   // Logged so hitting the cap is observable in function logs.
   console.log(`send-reminders: fetched ${subs?.length ?? 0} subscription rows`);
+
+  // One progress lookup per due user per run (a user can have several devices).
+  const tadabburCache = new Map<string, Record<string, TadabburEntry> | null>();
+  async function tadabburFor(userId: string): Promise<Record<string, TadabburEntry> | null> {
+    if (!tadabburCache.has(userId)) {
+      const { data } = await admin.database
+        .from("progress")
+        .select("surah_tadabbur")
+        .eq("user_id", userId)
+        .maybeSingle();
+      tadabburCache.set(userId, data?.surah_tadabbur ?? null);
+    }
+    return tadabburCache.get(userId)!;
+  }
 
   let sent = 0, pruned = 0, skipped = 0, failed = 0;
   for (const sub of subs ?? []) {
@@ -197,7 +272,7 @@ export default async function handler(req: Request): Promise<Response> {
       const nowMin = minutesOfDayInZone(now, sub.timezone);
       const today = localDateInZone(now, sub.timezone);
       if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) { skipped++; continue; }
-      const payload = await todaysPayload(sub.timezone);
+      const payload = await reminderPayload(sub.timezone, await tadabburFor(sub.user_id));
       try {
         await webpush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
         await admin.database.from("push_subscriptions")
