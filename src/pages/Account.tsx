@@ -9,6 +9,7 @@ import {
 } from "../lib/sync";
 import { track } from "../lib/analytics";
 import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/push";
+import FeedbackLink from "../components/FeedbackLink";
 
 function GoogleMark() {
   return (
@@ -480,6 +481,10 @@ export default function Account() {
                 {reminderError && <p className="form-error">{reminderError}</p>}
               </div>
             )}
+          </div>
+
+          <div className="auth-section">
+            <FeedbackLink subject="About my MindfulVerse account" />
           </div>
 
           <div className="auth-section">

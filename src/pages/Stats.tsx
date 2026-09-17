@@ -1,6 +1,6 @@
 // /stats — private, on-device dashboard for the v0 retention experiment.
 // No backend: everything is derived from localStorage. The "Copy my stats"
-// button lets testers paste their numbers into WhatsApp for the founder.
+// button lets testers email their numbers to the founder.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getEvents } from "../lib/analytics";
@@ -311,7 +311,7 @@ export default function Stats() {
 
           <div className="card stack">
             <p className="soft" style={{ margin: 0 }}>
-              Testing MindfulVerse? Copy your numbers and send them over WhatsApp.
+              Testing MindfulVerse? Copy your numbers and email them over.
             </p>
             <button className="btn" style={{ alignSelf: "flex-start" }} onClick={copyStats}>
               {copied ? "Copied" : "Copy my stats"}

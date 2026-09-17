@@ -8,6 +8,7 @@ import {
   parseVerseKey,
 } from "../lib/data";
 import { addEntry } from "../lib/journal";
+import FeedbackLink from "../components/FeedbackLink";
 import { track } from "../lib/analytics";
 import {
   getSessionProgress,
@@ -629,6 +630,15 @@ function FinalScreen({
             </div>
           )}
         </div>
+      </FadeRise>
+
+      {/* Feedback lands best right after an experience, while the opinion
+          is fresh — the subject tells us this one came from a session end. */}
+      <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 180}>
+        <FeedbackLink
+          subject="Feedback on a MindfulVerse session"
+          label="How was this session? Tell me over email"
+        />
       </FadeRise>
 
       <Link to="/sessions" className="muted">
