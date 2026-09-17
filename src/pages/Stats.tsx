@@ -168,7 +168,7 @@ function summaryText(s: StatsSnapshot): string {
 function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="card">
-      <div className="eyebrow">{label}</div>
+      <p className="eyebrow">{label}</p>
       <div style={{ fontSize: "1.9rem", fontWeight: 600, color: "var(--indigo-deep)", lineHeight: 1.2 }}>
         {value}
       </div>
@@ -187,7 +187,7 @@ function AccountRow() {
 
   return (
     <div className="card">
-      <div className="eyebrow">Account</div>
+      <p className="eyebrow">Account</p>
       {user ? (
         <>
           <div style={{ fontSize: "1.1rem", fontWeight: 600, marginTop: 4 }}>{user.email}</div>
@@ -226,9 +226,9 @@ export default function Stats() {
 
   return (
     <div className="stack">
-      <header style={{ paddingTop: 12 }}>
-        <div className="eyebrow">Stats</div>
-        <h1 style={{ margin: "6px 0" }}>Your numbers</h1>
+      <header>
+        <p className="eyebrow">Stats</p>
+        <h1>Your numbers</h1>
         <p className="muted" style={{ marginTop: 0 }}>
           Private, on-device data. Nothing here leaves your phone unless you copy and send it.
         </p>

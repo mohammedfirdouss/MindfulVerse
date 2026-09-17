@@ -130,7 +130,7 @@ export default function Sessions() {
 
   return (
     <div className="stack">
-      <header className="stack">
+      <header>
         <p className="eyebrow">Tadabbur</p>
         <h1>Ponder the Qur’an</h1>
         <p className="soft">Slow down and sit with a few verses at a time.</p>

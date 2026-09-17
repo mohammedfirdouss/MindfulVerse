@@ -503,7 +503,7 @@ export default function SurahTadabbur() {
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
             <p className="eyebrow">Tadabbur</p>
-            <h1 style={{ margin: 0 }}>{name}</h1>
+            <h1>{name}</h1>
             <p className="muted" style={{ margin: 0 }}>
               {count} {count === 1 ? "verse" : "verses"}, one at a time.
             </p>
@@ -548,7 +548,7 @@ export default function SurahTadabbur() {
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
             <p className="eyebrow">Tadabbur</p>
-            <h1 style={{ margin: 0 }}>You’ve sat with all of {name}.</h1>
+            <h1>You’ve sat with all of {name}.</h1>
             <p className="soft">
               {count} {count === 1 ? "verse" : "verses"}, pondered at your own
               pace. May what you wrote stay with you.

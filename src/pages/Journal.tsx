@@ -109,9 +109,9 @@ export default function Journal() {
 
   return (
     <div className="stack">
-      <header style={{ paddingTop: 12 }}>
-        <div className="eyebrow">Journal</div>
-        <h1 style={{ margin: "6px 0" }}>Your reflections</h1>
+      <header>
+        <p className="eyebrow">Journal</p>
+        <h1>Your reflections</h1>
         <p className="muted" style={{ marginTop: 0 }}>Saved on this device only.</p>
       </header>
 

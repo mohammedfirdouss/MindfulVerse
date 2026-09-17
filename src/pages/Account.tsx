@@ -255,9 +255,9 @@ export default function Account() {
   if (loading) {
     return (
       <div className="stack">
-        <header style={{ paddingTop: 12 }}>
-          <div className="eyebrow">Account</div>
-          <h1 style={{ margin: "6px 0" }}>Your account</h1>
+        <header>
+          <p className="eyebrow">Account</p>
+          <h1>Your account</h1>
         </header>
         <div className="auth-card">
           <p className="soft" style={{ margin: 0 }}>Loading…</p>
@@ -268,9 +268,9 @@ export default function Account() {
 
   return (
     <div className="stack">
-      <header style={{ paddingTop: 12 }}>
-        <div className="eyebrow">Account</div>
-        <h1 style={{ margin: "6px 0" }}>
+      <header>
+        <p className="eyebrow">Account</p>
+        <h1>
           {user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}
         </h1>
         {!user && (

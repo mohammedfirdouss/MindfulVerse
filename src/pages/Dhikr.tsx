@@ -393,9 +393,9 @@ export default function Dhikr() {
 
   return (
     <div className="stack">
-      <header style={{ paddingTop: 12 }}>
+      <header>
         <p className="eyebrow">Dhikr &amp; breath</p>
-        <h1 style={{ margin: "6px 0" }}>Remembrance, paced to your breath</h1>
+        <h1>Remembrance, paced to your breath</h1>
         <p className="soft" style={{ marginTop: 0 }}>
           Choose a remembrance. The circle breathes with you; count at your own pace.
         </p>

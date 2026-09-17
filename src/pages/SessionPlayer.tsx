@@ -192,7 +192,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
             <p className="eyebrow">{session.theme}</p>
-            <h1 style={{ margin: 0 }}>{session.title}</h1>
+            <h1>{session.title}</h1>
             <p className="soft">{session.intro}</p>
             <p className="muted" style={{ margin: 0 }}>
               {stepCount} {stepCount === 1 ? "step" : "steps"}, at your own pace.
@@ -554,7 +554,7 @@ function FinalScreen({
       <FadeRise show={mounted} reduce={reduce}>
         <div className="stack">
           <p className="eyebrow">{session.title}</p>
-          <h1 style={{ margin: 0 }}>A moment to reflect</h1>
+          <h1>A moment to reflect</h1>
         </div>
       </FadeRise>
 

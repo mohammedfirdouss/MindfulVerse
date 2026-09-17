@@ -178,14 +178,14 @@ export default function CheckIn() {
 
   return (
     <div className="stack">
-      <header className="stack">
-        <div className="eyebrow">Daily check-in</div>
+      <header>
+        <p className="eyebrow">Daily check-in</p>
         <h1>A quiet moment</h1>
       </header>
 
       {/* Verse of the day */}
       <section className="card stack">
-        <div className="eyebrow">Verse of the day</div>
+        <p className="eyebrow">Verse of the day</p>
         {dailyError ? (
           <p className="muted">
             Today&rsquo;s verse is still being gathered. Come back in a little
@@ -265,7 +265,7 @@ export default function CheckIn() {
       {/* Emotion picker — kept in the app's quiet indigo voice; kola stays
           reserved for small accents, never a whole section. */}
       <section className="card stack">
-        <div className="eyebrow">How is your heart today?</div>
+        <p className="eyebrow">How is your heart today?</p>
 
         {emotionsError ? (
           <p className="muted">

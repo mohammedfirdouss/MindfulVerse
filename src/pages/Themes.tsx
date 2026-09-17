@@ -92,7 +92,7 @@ export default function Themes() {
 
   return (
     <div className="stack">
-      <header className="stack">
+      <header>
         <p className="eyebrow">Read</p>
         <h1>Verses by topic</h1>
         <p className="soft">

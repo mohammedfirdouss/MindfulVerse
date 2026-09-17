@@ -120,8 +120,11 @@ p { margin: 0 0 0.9em; }
 /* --- Type helpers --- */
 .muted { color: var(--ink-faint); }
 .soft { color: var(--ink-soft); }
-/* Quiet meta label — indigo, sentence case, no tracking games. */
+/* Quiet meta label — indigo, sentence case, no tracking games.
+   As a block above a page h1 it owns the 6px gap; inline uses are unaffected. */
 .eyebrow { font-size: 0.85rem; color: var(--indigo); font-weight: 600; }
+p.eyebrow { margin: 0 0 6px; }
+p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 
 .translation { color: var(--ink-soft); font-size: calc(1.04rem * var(--read-scale, 1)); line-height: 1.65; }
 
@@ -242,7 +245,7 @@ p { margin: 0 0 0.9em; }
 .auth-card {
   background: var(--cotton-raised);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 28px 24px;
   max-width: 420px;
 }
@@ -258,7 +261,7 @@ p { margin: 0 0 0.9em; }
   width: 100%;
   padding: 11px 12px;
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  border-radius: 3px;
   background: var(--cotton);
   color: var(--ink);
   font: inherit;
@@ -303,7 +306,7 @@ p { margin: 0 0 0.9em; }
 .auth-section { border-top: 1px solid var(--line); padding-top: 18px; }
 .notice-wash {
   background: var(--indigo-wash);
-  border-radius: 6px;
+  border-radius: var(--radius);
   padding: 12px 16px;
 }
 .notice-wash p { margin: 0; }
