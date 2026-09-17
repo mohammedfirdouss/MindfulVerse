@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import FeedbackLink from "../components/FeedbackLink";
 import { loadAyahsByKeys, loadSurahs } from "../lib/data";
 import { todayVerseKey } from "../lib/dailyVerse";
 import { currentStreak, getLastRead } from "../lib/progress";
@@ -127,7 +126,6 @@ export default function Home() {
       </nav>
 
       <footer style={{ marginTop: 30, ...reveal(320) }} className="stack">
-        <FeedbackLink />
         {/* Required attribution — the translation is CC BY-NC-ND. */}
         <p className="muted" style={{ fontSize: ".8rem", margin: "10px 0 0" }}>
           English translation by{" "}
