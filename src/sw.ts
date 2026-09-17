@@ -23,13 +23,20 @@ registerRoute(
   })
 );
 
+// v2: the v1 cache held the pre-ClearQuran (Yusuf Ali) data files; CacheFirst
+// never revalidates, so returning devices kept serving the old translation.
+// Bump the name whenever the bundled data content changes.
 registerRoute(
   ({ url }) => url.pathname.startsWith("/data/"),
   new CacheFirst({
-    cacheName: "quran-data",
+    cacheName: "quran-data-v2",
     plugins: [new ExpirationPlugin({ maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 365 })],
   })
 );
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.delete("quran-data"));
+});
 
 self.addEventListener("push", (event) => {
   let payload: { title?: string; body?: string; url?: string } = {};

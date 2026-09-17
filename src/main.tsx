@@ -10,6 +10,17 @@ import { recordVisit } from "./lib/progress";
 import { initSync } from "./lib/sync";
 import "./index.css";
 
+// A fresh deploy activates its service worker seconds after the (stale,
+// precached) page renders — reload once when it takes control so a single
+// refresh shows the latest build instead of two. The guard skips the very
+// first SW install, where controllerchange also fires but nothing is stale.
+if ("serviceWorker" in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadController) window.location.reload();
+  });
+}
+
 trackAppOpen();
 recordVisit();
 inject(); // Vercel visit analytics — anonymous page views, no cookies
