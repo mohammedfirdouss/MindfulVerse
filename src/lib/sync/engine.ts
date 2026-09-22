@@ -5,11 +5,12 @@
 import { insforge } from "./insforge";
 import {
   mergeJournal, mergeProgress, entryToRow, pruneTombstones,
-  type RemoteJournalRow, type LocalProgress,
+  type RemoteJournalRow,
 } from "./merge";
-import { getEntries, getTombstones, replaceAll } from "./journal";
-import { getLocalProgress, replaceLocalProgress, clearLocalProgress } from "./progress";
-import { isDirty, clearDirty, onDirty } from "./syncFlags";
+import type { LocalProgress } from "../types";
+import { getEntries, getTombstones, replaceAll } from "../journal";
+import { getLocalProgress, replaceLocalProgress, clearLocalProgress } from "../progress";
+import { isDirty, clearDirty, onDirty } from "../syncFlags";
 
 export type SyncStatus =
   | "idle" | "syncing" | "synced" | "offline" | "error" | "signed-out" | "switched-account";

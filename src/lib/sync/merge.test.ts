@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   mergeJournal, mergeProgress, rowToEntry, entryToRow, pruneTombstones,
-  type RemoteJournalRow, type LocalProgress,
+  type RemoteJournalRow,
 } from "./merge";
-import type { JournalEntry } from "./types";
+import type { JournalEntry, LocalProgress } from "../types";
 
 const e = (id: string, createdAt: number): JournalEntry =>
   ({ id, createdAt, prompt: "p", body: "b", context: { kind: "free" } });

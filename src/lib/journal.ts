@@ -1,6 +1,6 @@
 // Local-only journal (v0 has no accounts or sync). Persists to localStorage.
 import type { JournalEntry } from "./types";
-import type { JournalTombstone } from "./merge";
+import type { JournalTombstone } from "./types";
 import { markJournalDirty } from "./syncFlags";
 
 const KEY = "mindfulverse.journal.v1";

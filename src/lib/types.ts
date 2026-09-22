@@ -74,3 +74,14 @@ export interface JournalEntry {
   body: string; // the user's writing
   context?: { kind: "session" | "checkin" | "tadabbur" | "free"; ref?: string };
 }
+
+/** Soft-delete marker so a deletion propagates instead of resurrecting. */
+export interface JournalTombstone { id: string; deletedAt: number }
+
+/** Local progress state persisted to localStorage and synced. */
+export interface LocalProgress {
+  visits: string[];
+  sessionProgress: Record<string, { step: number; completedAt?: number }>;
+  surahTadabbur: Record<string, { ayah: number; updatedAt: number }>;
+  lastRead: { surah: number; ayah: number; at: number } | null;
+}

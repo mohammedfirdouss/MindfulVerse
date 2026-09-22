@@ -1,9 +1,8 @@
 // Pure merge logic for local-first sync. Every merge is commutative and
 // idempotent: journal = union by id with soft-delete tombstones winning;
 // progress = per-key max / earliest-completion / latest-read / set-union.
-import type { JournalEntry } from "./types";
+import type { JournalEntry, JournalTombstone, LocalProgress } from "../types";
 
-export interface JournalTombstone { id: string; deletedAt: number }
 export interface RemoteJournalRow {
   id: string; prompt: string; body: string;
   context_kind: string | null; context_ref: string | null;
@@ -82,13 +81,6 @@ export function pruneTombstones(
     const confirmed = remoteDeleted.has(t.id) || (opts.fullPull && !remoteIds.has(t.id));
     return !confirmed;
   });
-}
-
-export interface LocalProgress {
-  visits: string[];
-  sessionProgress: Record<string, { step: number; completedAt?: number }>;
-  surahTadabbur: Record<string, { ayah: number; updatedAt: number }>;
-  lastRead: { surah: number; ayah: number; at: number } | null;
 }
 
 export function mergeProgress(local: LocalProgress, remote: LocalProgress | null): LocalProgress {

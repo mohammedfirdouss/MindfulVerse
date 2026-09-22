@@ -2,13 +2,13 @@
 // only backs up your journal and progress across devices.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAccount } from "../lib/auth";
-import { insforge } from "../lib/insforge";
+import { useAccount } from "../lib/sync/auth";
+import { insforge } from "../lib/sync/insforge";
 import {
   getSyncStatus, onSyncStatus, resolveOwnerMismatch, statusLabel, syncNow, type SyncStatus,
-} from "../lib/sync";
+} from "../lib/sync/engine";
 import { track } from "../lib/analytics";
-import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/push";
+import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/sync/push";
 import FeedbackLink from "../components/FeedbackLink";
 
 function GoogleMark() {

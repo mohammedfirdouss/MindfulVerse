@@ -6,8 +6,8 @@ import { Link } from "react-router-dom";
 import { getEvents } from "../lib/analytics";
 import { currentStreak, totalVisitDays } from "../lib/progress";
 import { getEntries } from "../lib/journal";
-import { useAccount } from "../lib/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync";
+import { useAccount } from "../lib/sync/auth";
+import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
 
 const FIRST_SEEN_KEY = "mindfulverse.firstSeen.v1";
 const READ_VIEW_KEY = "mindfulverse.readView.v1";

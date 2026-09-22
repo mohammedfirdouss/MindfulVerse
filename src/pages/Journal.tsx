@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "../lib/data";
 import { getEntries, deleteEntry } from "../lib/journal";
 import { groupEntries, type JournalGroup } from "../lib/journalGroups";
-import { useAccount } from "../lib/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync";
+import { useAccount } from "../lib/sync/auth";
+import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
 import type { Ayah, JournalEntry } from "../lib/types";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;

@@ -5,9 +5,9 @@ import { inject } from "@vercel/analytics";
 import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { trackAppOpen } from "./lib/analytics";
-import { AccountProvider } from "./lib/auth";
+import { AccountProvider } from "./lib/sync/auth";
 import { recordVisit } from "./lib/progress";
-import { initSync } from "./lib/sync";
+import { initSync } from "./lib/sync/engine";
 import "./index.css";
 
 // A fresh deploy activates its service worker seconds after the (stale,

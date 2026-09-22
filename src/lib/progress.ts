@@ -1,6 +1,6 @@
 // Local-only progress: visit streak + tadabbur session completion/resume.
 // v0 has no accounts — everything lives in localStorage, mirroring journal.ts.
-import type { LocalProgress } from "./merge";
+import type { LocalProgress } from "./types";
 import { markProgressDirty } from "./syncFlags";
 
 const VISITS_KEY = "mindfulverse.visits.v1"; // string[] of YYYY-MM-DD

@@ -42,9 +42,9 @@ vi.mock("./insforge", () => ({
 
 import {
   makeDebounced, ownerMismatch, getSyncOwner, getSyncStatus, syncNow, resolveOwnerMismatch,
-} from "./sync";
-import { addEntry, getEntries, getTombstones } from "./journal";
-import { recordVisit, recordLastRead, getLocalProgress } from "./progress";
+} from "./engine";
+import { addEntry, getEntries, getTombstones } from "../journal";
+import { recordVisit, recordLastRead, getLocalProgress } from "../progress";
 
 const OWNER_KEY = "mindfulverse.sync.owner.v1";
 
