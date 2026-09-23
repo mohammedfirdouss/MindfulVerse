@@ -7,7 +7,7 @@ import { todayVerseKey } from "../lib/dailyVerse";
 import { shareVerse } from "../lib/share";
 import { track } from "../lib/analytics";
 
-const VERSE_PROMPT = "What does this verse stir in you today?";
+const VERSE_PROMPT = "How does this verse touch your heart today?";
 // An unsaved reflection survives leaving the page (or the OS killing the PWA).
 const DRAFT_KEY = "mindfulverse.checkinDraft.v1";
 

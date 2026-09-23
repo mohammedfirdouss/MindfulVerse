@@ -87,8 +87,6 @@ export function exportedLabel(input: ExportInput): string | null {
   return `Exported ${exported}`;
 }
 
-/* ------------------------------ Plain text ------------------------------ */
-
 /** Plain prose: headings on their own line, blank lines between, no markup. */
 export function buildJournalText(input: ExportInput): string {
   const exported = exportedLabel(input);
@@ -109,8 +107,6 @@ export function buildJournalText(input: ExportInput): string {
   if (hasTranslations(input)) out.push("", "", TRANSLATION_CREDIT);
   return out.join("\n") + "\n";
 }
-
-/* ------------------------------- Saving --------------------------------- */
 
 /** Hand a file to the user: the share sheet on phones (where a blob link can
  *  strand an installed app), a normal download everywhere else. */

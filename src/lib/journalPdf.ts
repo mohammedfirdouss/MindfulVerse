@@ -93,8 +93,6 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
   page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.ochre });
 }
 
-/* ---- Script the PDF's Latin face can't set: let the browser draw it ---- */
-
 // PDF text can't shape Arabic (joining, marks, right-to-left) or draw colour
 // emoji, but the browser's canvas can — with the app's own mushaf font. Such
 // lines are rendered crisply at 3x and placed as images.
@@ -277,7 +275,6 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     page.drawImage(img, { x: left, y: y - leading * 0.28, width: l.width, height: leading });
   }
 
-  // --- Opening ---
   newPage();
   drawMark(page, MARGIN_X, y - 34, 34);
   page.drawText("MindfulVerse", { x: MARGIN_X + 46, y: y - 23, size: 15, font: bold, color: C.indigo });
@@ -289,7 +286,6 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   if (exported) await text(exported, { size: 9.5, color: C.inkFaint, leading: 14 });
   y -= 30;
 
-  // --- Sections ---
   for (const section of input.sections) {
     room(96); // never strand a heading at the foot of a page
     y -= 6;
@@ -350,7 +346,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     y -= 10;
   }
 
-  // --- Closing mark, then the credit ---
+  // Closing mark, then the credit.
   room(60);
   y -= 16;
   const cx = PAGE_W / 2;
@@ -368,7 +364,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     page.drawText(TRANSLATION_CREDIT, { x: (PAGE_W - w) / 2, y, size: 8.5, font, color: C.inkFaint });
   }
 
-  // --- Footers, once the page count is known ---
+  // Footers last, once the page count is known.
   const pages = doc.getPages();
   pages.forEach((p, i) => {
     const label = `MindfulVerse · ${i + 1} of ${pages.length}`;

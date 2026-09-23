@@ -17,9 +17,7 @@ import {
 } from "../lib/progress";
 import type { Ayah, SessionStep, TadabburSession } from "../lib/types";
 
-// ---------------------------------------------------------------------------
 // Motion helpers — transform + opacity only, all under 400ms. No index.css edits.
-// ---------------------------------------------------------------------------
 
 function prefersReducedMotion(): boolean {
   return (
@@ -70,9 +68,7 @@ function useMounted(resetKey: unknown): boolean {
   return mounted;
 }
 
-// ---------------------------------------------------------------------------
 // Session loading
-// ---------------------------------------------------------------------------
 
 type LoadStatus =
   | { kind: "loading" }
@@ -150,9 +146,7 @@ export default function SessionPlayer() {
   return <SessionFlow session={status.session} />;
 }
 
-// ---------------------------------------------------------------------------
 // The guided flow: intro -> steps (one at a time) -> final journal screen
-// ---------------------------------------------------------------------------
 
 // Phase index: -1 = intro, 0..steps.length-1 = a step, steps.length = final.
 function SessionFlow({ session }: { session: TadabburSession }) {
@@ -278,9 +272,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // One step: verses (arabic + translation), reflection prompt, optional tafsir
-// ---------------------------------------------------------------------------
 
 type VerseStatus =
   | { kind: "loading" }
@@ -391,9 +383,7 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // Collapsible tafsir for the step's verses
-// ---------------------------------------------------------------------------
 
 type TafsirEntry = { verseKey: string; text: string };
 type TafsirStatus =
@@ -521,9 +511,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // Final screen: journal entry + willingness-to-pay intent probe
-// ---------------------------------------------------------------------------
 
 function FinalScreen({
   session,
