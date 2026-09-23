@@ -1,15 +1,10 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Divisions, SurahMeta } from "./types";
+import divisionsJson from "../../public/data/divisions.json";
+import surahsJson from "../../public/data/surahs.json";
 
-function read<T>(file: string): T {
-  return JSON.parse(
-    readFileSync(new URL(`../../public/data/${file}`, import.meta.url), "utf8")
-  ) as T;
-}
-
-const d = read<Divisions>("divisions.json");
-const surahs = read<SurahMeta[]>("surahs.json");
+const d = divisionsJson as Divisions;
+const surahs = surahsJson as SurahMeta[];
 const counts = new Map(surahs.map((s) => [s.number, s.ayahCount]));
 
 /** The verse key right after `key`, or null after 114:6. */
