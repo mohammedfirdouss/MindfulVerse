@@ -334,7 +334,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
             size: 19,
             leading: 34,
             width: TEXT_W - INSET,
-            color: "#221d15",
+            color: "#1b2559", // --indigo-deep, as .arabic is in the app
             rtl: true,
           });
           for (const l of lines) await image(l, 34, 0, true, true);

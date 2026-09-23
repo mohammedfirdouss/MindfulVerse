@@ -540,6 +540,7 @@ export default function Account() {
                     <input
                       id="reminder-time"
                       type="time"
+                      step={900}
                       className="field-input"
                       value={reminderTime}
                       onChange={(e) => setReminderTime(e.target.value)}
@@ -568,6 +569,7 @@ export default function Account() {
                     <input
                       id="reminder-time"
                       type="time"
+                      step={900}
                       className="field-input"
                       value={reminderTime}
                       onChange={(e) => setReminderTime(e.target.value)}
