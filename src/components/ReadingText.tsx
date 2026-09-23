@@ -69,8 +69,7 @@ export default function ReadingText({
                       }
                     }}
                   >
-                    {a.arabic}
-                    {marks?.sajda.has(a.verseKey) && " ۩"}{" "}
+                    {a.arabic}{" "}
                     <span className="ayah-end">{toArabicDigits(a.ayah)}</span>
                   </span>{" "}
                 </Fragment>
