@@ -150,7 +150,11 @@ function JuzReader() {
         {hizbs.length > 0 && (
           <p style={{ margin: "8px 0 0", display: "flex", gap: 16, flexWrap: "wrap" }}>
             {hizbs.map((h) => (
-              <Link key={h.n} to={`/read/juz/${juz}?v=${h.first}`} replace>
+              <Link
+                key={h.n}
+                to={range && h.first === range.first ? `/read/juz/${juz}` : `/read/juz/${juz}?v=${h.first}`}
+                replace
+              >
                 Hizb {h.n}
               </Link>
             ))}
@@ -190,9 +194,9 @@ function JuzReader() {
             onSelect={setSelected}
           />
         ) : (
-          sections.map((sec) => (
+          sections.map((sec, i) => (
             <section key={sec.surah}>
-              <h2 className="reading-surah-name">
+              <h2 className={i === 0 ? "reading-surah-name first" : "reading-surah-name"}>
                 <Link to={`/read/${sec.surah}`} style={{ color: "inherit" }}>
                   {name(sec.surah)}
                 </Link>

@@ -206,7 +206,10 @@ export default function Reader() {
                 </Link>
                 <p className="juz-hizbs">
                   {hizbs.map((h) => (
-                    <Link key={h.n} to={`/read/juz/${j.n}?v=${h.first}`}>
+                    <Link
+                      key={h.n}
+                      to={h.first === j.first ? `/read/juz/${j.n}` : `/read/juz/${j.n}?v=${h.first}`}
+                    >
                       Hizb {h.n}
                     </Link>
                   ))}
