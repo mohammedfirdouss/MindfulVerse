@@ -4,7 +4,8 @@
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import {
-  formatDay,
+  exportedLabel,
+  spanLabel,
   hasTranslations,
   TRANSLATION_CREDIT,
   type ExportInput,
@@ -183,16 +184,6 @@ function timeLabel(ms: number): string {
   return new Date(ms).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
-function spanLabel(input: ExportInput): string {
-  const times = input.sections.flatMap((s) => s.items.map((i) => i.entry.createdAt));
-  const n = times.length;
-  const count = `${n} ${n === 1 ? "reflection" : "reflections"}`;
-  if (n === 0) return count;
-  const first = formatDay(new Date(Math.min(...times)));
-  const last = formatDay(new Date(Math.max(...times)));
-  return first === last ? `${count} · ${first}` : `${count} · ${first} – ${last}`;
-}
-
 export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
@@ -294,7 +285,8 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   await text("Your reflections", { size: 32, color: C.indigoDeep, leading: 36, face: bold });
   y -= 8;
   await text(spanLabel(input), { size: 11.5, color: C.inkSoft, leading: 16 });
-  await text(`Exported ${formatDay(input.exportedAt)}`, { size: 9.5, color: C.inkFaint, leading: 14 });
+  const exported = exportedLabel(input);
+  if (exported) await text(exported, { size: 9.5, color: C.inkFaint, leading: 14 });
   y -= 30;
 
   // --- Sections ---

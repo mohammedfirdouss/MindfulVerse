@@ -68,19 +68,32 @@ export function hasTranslations(input: ExportInput): boolean {
   return input.sections.some((s) => s.items.some((i) => i.translation));
 }
 
-export function countEntries(input: ExportInput): number {
-  return input.sections.reduce((n, s) => n + s.items.length, 0);
+export function spanLabel(input: ExportInput): string {
+  const times = input.sections.flatMap((s) => s.items.map((i) => i.entry.createdAt));
+  const n = times.length;
+  const count = `${n} ${n === 1 ? "reflection" : "reflections"}`;
+  if (n === 0) return count;
+  const first = formatDay(new Date(Math.min(...times)));
+  const last = formatDay(new Date(Math.max(...times)));
+  // One day's worth: each entry already carries its date.
+  return first === last ? count : `${count} · ${first} – ${last}`;
+}
+
+/** "Exported …", only when it adds something the entry dates don't say. */
+export function exportedLabel(input: ExportInput): string | null {
+  const times = input.sections.flatMap((s) => s.items.map((i) => i.entry.createdAt));
+  const exported = formatDay(input.exportedAt);
+  if (times.length && formatDay(new Date(Math.max(...times))) === exported) return null;
+  return `Exported ${exported}`;
 }
 
 /* ------------------------------ Plain text ------------------------------ */
 
 /** Plain prose: headings on their own line, blank lines between, no markup. */
 export function buildJournalText(input: ExportInput): string {
-  const n = countEntries(input);
-  const out: string[] = [
-    "MindfulVerse — Your reflections",
-    `Exported ${formatDay(input.exportedAt)} · ${n} ${n === 1 ? "reflection" : "reflections"}`,
-  ];
+  const exported = exportedLabel(input);
+  const out: string[] = ["MindfulVerse — Your reflections", spanLabel(input)];
+  if (exported) out.push(exported);
   for (const section of input.sections) {
     out.push("", "", section.title);
     for (const { entry, verseLabel, translation, arabic } of section.items) {
