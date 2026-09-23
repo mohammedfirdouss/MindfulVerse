@@ -365,3 +365,14 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 .rv.active { background: var(--indigo-wash); }
 .ayah-end { color: var(--indigo); white-space: nowrap; }
 .reading-rub { color: var(--indigo); }
+
+/* --- Read index: juz rows --- */
+.juz-card { display: block; }
+.juz-main { display: flex; align-items: center; gap: 14px; color: var(--ink); }
+.juz-num { min-width: 36px; text-align: center; }
+.juz-opening {
+  font-family: var(--font-arabic); color: var(--indigo-deep);
+  font-size: 1.25rem; line-height: 1.8; flex: none; max-width: 45%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.juz-hizbs { display: flex; gap: 16px; margin: 8px 0 0 50px; font-size: .92rem; }

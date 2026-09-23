@@ -44,4 +44,11 @@ describe("divisions.json", () => {
   it("every juz carries its opening words", () => {
     for (const j of d.juz) expect(j.opening?.length).toBeGreaterThan(0);
   });
+
+  it("each juz holds exactly hizbs 2n-1 and 2n", () => {
+    for (const j of d.juz) {
+      expect(d.hizb[j.n * 2 - 2].first).toBe(j.first);
+      expect(d.hizb[j.n * 2 - 1].last).toBe(j.last);
+    }
+  });
 });

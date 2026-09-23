@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { loadSurahs } from "../lib/data";
+import { Link, useSearchParams } from "react-router-dom";
+import { loadDivisions, loadSurahs } from "../lib/data";
 import { getLastRead } from "../lib/progress";
-import type { SurahMeta } from "../lib/types";
+import type { Division, SurahMeta } from "../lib/types";
 
 type Status = "loading" | "ready" | "error";
 
@@ -11,6 +11,11 @@ export default function Reader() {
   const [status, setStatus] = useState<Status>("loading");
   const [query, setQuery] = useState("");
   const lastRead = useMemo(() => getLastRead(), []);
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "juz" ? "juz" : "surah";
+  const [juzList, setJuzList] = useState<Division[]>([]);
+  const [hizbList, setHizbList] = useState<Division[]>([]);
+  const [juzFailed, setJuzFailed] = useState(false);
 
   useEffect(() => {
     document.title = "Read — MindfulVerse";
@@ -34,6 +39,20 @@ export default function Reader() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    loadDivisions()
+      .then((d) => {
+        if (!active) return;
+        setJuzList(d.juz);
+        setHizbList(d.hizb);
+      })
+      .catch(() => active && setJuzFailed(true));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return surahs;
@@ -48,7 +67,7 @@ export default function Reader() {
       <header>
         <p className="eyebrow">Read</p>
         <h1>The Qur'an</h1>
-        <p className="muted">Browse all 114 surahs.</p>
+        <p className="muted">Browse by surah or by juz.</p>
         <p style={{ margin: "10px 0 0", display: "flex", gap: 18 }}>
           <Link to="/search">Search the translation</Link>
           <Link to="/themes">Find verses by topic</Link>
@@ -72,9 +91,26 @@ export default function Reader() {
         </Link>
       )}
 
-      {status === "loading" && <p className="muted">Loading surahs…</p>}
+      <div className="reading-controls" role="tablist" aria-label="Browse by">
+        {(["surah", "juz"] as const).map((t) => (
+          <button
+            key={t}
+            role="tab"
+            className="size-btn"
+            aria-selected={tab === t}
+            aria-pressed={tab === t}
+            onClick={() => setParams(t === "surah" ? {} : { tab: t }, { replace: true })}
+          >
+            {t === "surah" ? "Surah" : "Juz"}
+          </button>
+        ))}
+      </div>
 
-      {status === "error" && (
+      {tab === "surah" && status === "loading" && (
+        <p className="muted">Loading surahs…</p>
+      )}
+
+      {tab === "surah" && status === "error" && (
         <div className="card">
           <p className="muted">
             Content is being prepared. Please check back soon.
@@ -82,7 +118,7 @@ export default function Reader() {
         </div>
       )}
 
-      {status === "ready" && (
+      {tab === "surah" && status === "ready" && (
         <>
           <input
             type="search"
@@ -136,6 +172,48 @@ export default function Reader() {
             </div>
           )}
         </>
+      )}
+
+      {tab === "juz" && juzFailed && (
+        <div className="card">
+          <p className="muted" style={{ margin: 0 }}>Juz browsing isn’t available right now.</p>
+        </div>
+      )}
+
+      {tab === "juz" && !juzFailed && (
+        <div className="stack">
+          {juzList.map((j) => {
+            const [fs, fa] = j.first.split(":").map(Number);
+            const [ls, la] = j.last.split(":").map(Number);
+            const name = (s: number) => surahs.find((x) => x.number === s)?.name ?? `Surah ${s}`;
+            const hizbs = hizbList.filter((h) => h.n === j.n * 2 - 1 || h.n === j.n * 2);
+            return (
+              <div key={j.n} className="card juz-card">
+                <Link to={`/read/juz/${j.n}`} className="juz-main">
+                  <span className="eyebrow juz-num">{j.n}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontWeight: 650, display: "block" }}>Juz {j.n}</span>
+                    <span className="muted" style={{ fontSize: ".9rem" }}>
+                      {name(fs)} {fa} – {name(ls)} {la}
+                    </span>
+                  </span>
+                  {j.opening && (
+                    <span className="juz-opening" lang="ar" dir="rtl">
+                      {j.opening}
+                    </span>
+                  )}
+                </Link>
+                <p className="juz-hizbs">
+                  {hizbs.map((h) => (
+                    <Link key={h.n} to={`/read/juz/${j.n}?v=${h.first}`}>
+                      Hizb {h.n}
+                    </Link>
+                  ))}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
