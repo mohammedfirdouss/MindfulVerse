@@ -33,7 +33,6 @@ QUL copy/
 
 # Local-only drafts
 translation-permission-email.txt
-mindfulverse-feedback-form.txt
 
 # tsc artifacts from vite.config.ts (see tsconfig.node.json)
 .ts-out-node
