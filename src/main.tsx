@@ -8,6 +8,7 @@ import { trackAppOpen } from "./lib/analytics";
 import { AccountProvider } from "./lib/sync/auth";
 import { recordVisit } from "./lib/progress";
 import { initSync } from "./lib/sync/engine";
+import { applyTheme, getTheme } from "./lib/theme";
 import "./index.css";
 
 // A fresh deploy activates its service worker seconds after the (stale,
@@ -21,8 +22,14 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+applyTheme(getTheme()); // index.html sets data-theme; this also syncs the status-bar colour
 trackAppOpen();
 recordVisit();
+// An installed PWA can sit suspended for days and resume without reloading —
+// count each return to the foreground as a visit (recordVisit is idempotent).
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") recordVisit();
+});
 inject(); // Vercel visit analytics — anonymous page views, no cookies
 initSync();
 

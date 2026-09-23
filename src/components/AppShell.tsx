@@ -1,5 +1,5 @@
-import { NavLink } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
 import InstallPrompt from "./InstallPrompt";
 import { getTheme, setTheme, type Theme } from "../lib/theme";
 
@@ -119,6 +119,13 @@ function SunIcon() {
 }
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  // A new page starts at the top. Keyed on the path only, so in-page query
+  // changes (?v= deep links, ?set=, ?q=) keep their scroll position.
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   const [collapsed, setCollapsed] = useState<boolean>(readCollapsed);
   const [theme, setThemeState] = useState<Theme>(getTheme);
 
@@ -205,7 +212,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <style>{`
         /* --- Theme toggle: quiet, below the adire band --- */
         .theme-toggle {
-          position: fixed; top: 22px; right: 14px; z-index: 25;
+          position: absolute; top: 22px; right: 14px; z-index: 25;
           width: 40px; height: 40px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
           background: var(--cotton-raised); border: 1px solid var(--line);
@@ -214,7 +221,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
         }
         .theme-toggle:hover { color: var(--indigo); }
         .theme-toggle:active { transform: scale(0.94); }
-        @media (min-width: 900px) { .theme-toggle { top: 26px; right: 22px; } }
+        /* Scrolls away on phones so it never sits over right-aligned Arabic. */
+        @media (min-width: 900px) { .theme-toggle { position: fixed; top: 26px; right: 22px; } }
 
         /* --- Mobile: fixed bottom tab bar, icon above small label --- */
         .tabbar {
@@ -227,10 +235,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
         .tab {
           display: flex; flex-direction: column; align-items: center; gap: 2px;
           color: var(--ink-faint); font-weight: 500;
-          padding: 6px 12px; border-radius: 3px;
+          flex: 1 1 0; min-width: 0; max-width: 84px;
+          padding: 6px 2px; border-radius: 3px;
           transition: color .15s ease, background .15s ease;
         }
-        .tab-label { font-size: .68rem; line-height: 1.2; }
+        .tab-label { font-size: .68rem; line-height: 1.2; white-space: nowrap; }
         .tab:active { transform: scale(0.96); }
         .tab.active { color: var(--cotton-raised); background: var(--indigo); }
 

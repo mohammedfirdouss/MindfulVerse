@@ -42,15 +42,27 @@ function coveringFromIndex(indexed: number[], ayah: number): number | null {
 function CommentarySheet({
   ayah,
   text,
+  failed,
   sourceAyah,
   onClose,
 }: {
   ayah: Ayah;
   /** null while the tafsir file is still downloading. */
   text: string | null;
+  /** The tafsir file couldn't be fetched (e.g. offline, never cached). */
+  failed: boolean;
   sourceAyah: number;
   onClose: () => void;
 }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // Move focus into the dialog, and hand it back to the opener on close.
+  useEffect(() => {
+    const prevFocus = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    return () => prevFocus?.focus();
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -101,7 +113,12 @@ function CommentarySheet({
               ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
               : `Ibn Kathir · on the passage from ${ayah.surah}:${sourceAyah}`}
           </p>
-          <button className="sheet-close" onClick={onClose} aria-label="Close commentary">
+          <button
+            ref={closeRef}
+            className="sheet-close"
+            onClick={onClose}
+            aria-label="Close commentary"
+          >
             ✕
           </button>
         </div>
@@ -119,7 +136,12 @@ function CommentarySheet({
           >
             {ayah.arabic}
           </p>
-          {text === null ? (
+          {failed ? (
+            <p className="muted">
+              The commentary isn’t available offline yet. Try again when
+              you’re connected.
+            </p>
+          ) : text === null ? (
             <p className="muted">Opening the commentary…</p>
           ) : (
             <div className="tafsir">
@@ -139,14 +161,23 @@ function CommentarySheet({
   );
 }
 
+// Keyed on the surah so moving to the next one starts from clean state — an
+// in-flight tafsir fetch can't land on the wrong surah.
 export default function Surah() {
+  const { surah } = useParams<{ surah: string }>();
+  return <SurahReader key={surah} />;
+}
+
+function SurahReader() {
   const { surah } = useParams<{ surah: string }>();
   const [params] = useSearchParams();
   const surahNumber = Number(surah);
 
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [indexed, setIndexed] = useState<number[]>([]);
+  const [indexFailed, setIndexFailed] = useState(false);
   const [tafsir, setTafsir] = useState<SurahTafsir | null>(null);
+  const [tafsirFailed, setTafsirFailed] = useState(false);
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
@@ -157,7 +188,9 @@ export default function Surah() {
   const [view, setView] = useState<ReadView>(() =>
     localStorage.getItem(VIEW_KEY) === "arabic" ? "arabic" : "both"
   );
-  const [shared, setShared] = useState<string | null>(null);
+  const [jumpMiss, setJumpMiss] = useState(false);
+  const [shared, setShared] = useState<{ key: string; label: string } | null>(null);
+  const sharedTimer = useRef<number | undefined>(undefined);
   const tafsirPromise = useRef<Promise<SurahTafsir> | null>(null);
 
   useEffect(() => {
@@ -176,13 +209,14 @@ export default function Surah() {
     // only a ~6KB index of which ayahs have entries. Text loads on first tap.
     Promise.all([
       loadSurahAyahs(surahNumber),
-      loadTafsirIndex().catch<Record<string, number[]>>(() => ({})),
+      loadTafsirIndex().catch<Record<string, number[]> | null>(() => null),
       loadSurahs().catch<SurahMeta[]>(() => []),
     ])
       .then(([ayahData, indexData, surahList]) => {
         if (!active) return;
         setAyahs(ayahData);
-        setIndexed(indexData[String(surahNumber)] ?? []);
+        setIndexed(indexData?.[String(surahNumber)] ?? []);
+        setIndexFailed(indexData === null);
         setMeta(surahList.find((s) => s.number === surahNumber));
         setStatus("ready");
       })
@@ -251,6 +285,7 @@ export default function Surah() {
         })
         .catch(() => {
           tafsirPromise.current = null;
+          setTafsirFailed(true);
           return {};
         });
     }
@@ -259,14 +294,18 @@ export default function Surah() {
 
   function openCommentary(a: Ayah) {
     setOpenAyah(a);
+    setTafsirFailed(false);
     void ensureTafsir();
   }
 
+  useEffect(() => () => window.clearTimeout(sharedTimer.current), []);
+
   async function share(a: Ayah) {
     const result = await shareVerse(a, "reader");
-    setShared(a.verseKey);
-    if (result === "failed") setShared(null);
-    setTimeout(() => setShared(null), 2000);
+    if (result === "cancelled" || result === "failed") return;
+    window.clearTimeout(sharedTimer.current);
+    setShared({ key: a.verseKey, label: result === "copied" ? "Copied ✓" : "Shared ✓" });
+    sharedTimer.current = window.setTimeout(() => setShared(null), 2000);
   }
 
   function chooseSize(key: string) {
@@ -285,6 +324,7 @@ export default function Surah() {
     const n = Number(jump);
     if (!Number.isFinite(n)) return;
     const el = document.getElementById(`v${n}`);
+    setJumpMiss(!el);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
       recordLastRead(surahNumber, n);
@@ -355,13 +395,16 @@ export default function Surah() {
               </button>
             </div>
           </div>
-          <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
             <input
               type="number"
               min={1}
               max={meta?.ayahCount ?? 300}
               value={jump}
-              onChange={(e) => setJump(e.target.value)}
+              onChange={(e) => {
+                setJump(e.target.value);
+                setJumpMiss(false);
+              }}
               placeholder="Verse"
               aria-label="Jump to verse number"
               className="field-input"
@@ -370,6 +413,11 @@ export default function Surah() {
             <button type="submit" className="btn secondary" style={{ padding: "7px 14px" }}>
               Go
             </button>
+            {jumpMiss && (
+              <span className="muted" role="status" style={{ fontSize: ".85rem" }}>
+                This surah has {ayahs.length} verses
+              </span>
+            )}
           </form>
         </div>
       )}
@@ -421,14 +469,16 @@ export default function Surah() {
                         disabled={covering === null}
                         onClick={() => openCommentary(a)}
                       >
-                        {covering === null
+                        {indexFailed
+                          ? "Commentary isn’t available right now"
+                          : covering === null
                           ? "No commentary for this verse"
                           : direct
                             ? "Read the commentary"
                             : `Read the commentary (with verse ${covering})`}
                       </button>
                       <button className="commentary-open" onClick={() => void share(a)}>
-                        {shared === a.verseKey ? "Shared ✓" : "Share"}
+                        {shared?.key === a.verseKey ? shared.label : "Share"}
                       </button>
                     </div>
                   </>
@@ -436,6 +486,13 @@ export default function Surah() {
               </article>
             );
           })}
+          {surahNumber < 114 && (
+            <div style={{ padding: "28px 0 8px" }}>
+              <Link to={`/read/${surahNumber + 1}`} className="btn secondary">
+                Next surah
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
@@ -443,6 +500,7 @@ export default function Surah() {
         <CommentarySheet
           ayah={openAyah}
           text={openText}
+          failed={tafsirFailed && tafsir === null}
           sourceAyah={openCovering}
           onClose={() => setOpenAyah(null)}
         />

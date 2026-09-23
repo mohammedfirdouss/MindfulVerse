@@ -1,13 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Ayah, EmotionEntry } from "../lib/types";
-import { loadAyahsByKeys, loadEmotions } from "../lib/data";
+import { loadAyahsByKeys, loadEmotions, loadSurahs } from "../lib/data";
 import { addEntry } from "../lib/journal";
 import { todayVerseKey } from "../lib/dailyVerse";
 import { shareVerse } from "../lib/share";
 import { track } from "../lib/analytics";
 
 const VERSE_PROMPT = "What does this verse stir in you today?";
+// An unsaved reflection survives leaving the page (or the OS killing the PWA).
+const DRAFT_KEY = "mindfulverse.checkinDraft.v1";
+
+function readDraft(): string {
+  try {
+    return localStorage.getItem(DRAFT_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function writeDraft(v: string): void {
+  try {
+    if (v) localStorage.setItem(DRAFT_KEY, v);
+    else localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* storage full or blocked — the draft is a convenience */
+  }
+}
 
 // One tasteful motion: a staggered reveal. Each item fades and rises in with a
 // small per-index delay. We cap the stagger so a long list never blocks reading
@@ -39,12 +58,13 @@ function revealStyle(index: number, mounted: boolean, reduced: boolean): CSSProp
   };
 }
 
-function AyahView({ ayah }: { ayah: Ayah }) {
+function AyahView({ ayah, surahName }: { ayah: Ayah; surahName?: string }) {
   return (
     <div className="stack">
       <div className="arabic">{ayah.arabic}</div>
       <div className="translation">{ayah.translation}</div>
       <div className="muted" style={{ fontSize: ".8rem" }}>
+        {surahName ? `${surahName} · ` : ""}
         {ayah.verseKey}
       </div>
     </div>
@@ -56,7 +76,32 @@ export default function CheckIn() {
   const [dailyKey, setDailyKey] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    todayVerseKey().then((k) => alive && setDailyKey(k));
+    const refresh = () => {
+      todayVerseKey().then((k) => alive && setDailyKey(k));
+    };
+    refresh();
+    // A tab left open past midnight should greet the new day's verse, not
+    // tag a fresh reflection with yesterday's.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.title = "Daily check-in — MindfulVerse";
+  }, []);
+
+  const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    loadSurahs()
+      .then((list) => alive && setSurahNames(new Map(list.map((x) => [x.number, x.name]))))
+      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -70,7 +115,7 @@ export default function CheckIn() {
   const [dailyMounted, setDailyMounted] = useState(false);
 
   // Journal for the verse of the day.
-  const [journalBody, setJournalBody] = useState("");
+  const [journalBody, setJournalBody] = useState(readDraft);
   const [saved, setSaved] = useState(false);
 
   // Sharing the verse of the day.
@@ -84,6 +129,9 @@ export default function CheckIn() {
   const [emotionAyahsError, setEmotionAyahsError] = useState(false);
   const [emotionLoading, setEmotionLoading] = useState(false);
   const [emotionMounted, setEmotionMounted] = useState(false);
+  // Only the latest emotion tap may fill the list — a slow earlier fetch must
+  // not land under a newer framing.
+  const emotionReq = useRef(0);
 
   useEffect(() => {
     track({ type: "checkin_view" });
@@ -92,6 +140,7 @@ export default function CheckIn() {
   useEffect(() => {
     if (!dailyKey) return;
     let alive = true;
+    setDailyError(false);
     loadAyahsByKeys([dailyKey])
       .then((ayahs) => {
         if (!alive) return;
@@ -150,12 +199,15 @@ export default function CheckIn() {
     setEmotionLoading(true);
     setEmotionMounted(false);
     track({ type: "checkin_view", emotion: entry.id });
+    const req = ++emotionReq.current;
     loadAyahsByKeys(entry.verseKeys)
       .then((ayahs) => {
+        if (req !== emotionReq.current) return;
         setEmotionAyahs(ayahs);
         setEmotionLoading(false);
       })
       .catch(() => {
+        if (req !== emotionReq.current) return;
         setEmotionAyahsError(true);
         setEmotionLoading(false);
       });
@@ -173,6 +225,7 @@ export default function CheckIn() {
     });
     track({ type: "journal_save", context: "checkin" });
     setJournalBody("");
+    writeDraft("");
     setSaved(true);
   }
 
@@ -193,13 +246,16 @@ export default function CheckIn() {
           </p>
         ) : dailyAyah ? (
           <div className="stack" style={revealStyle(0, dailyMounted, reduced)}>
-            <AyahView ayah={dailyAyah} />
+            <AyahView ayah={dailyAyah} surahName={surahNames.get(dailyAyah.surah)} />
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <button
                 type="button"
                 className="btn secondary"
                 onClick={() => {
-                  void shareVerse(dailyAyah, "checkin").then(setShareResult);
+                  void shareVerse(dailyAyah, "checkin").then((r: string) => {
+                    // Closing the share sheet is not an outcome worth confirming.
+                    if (r !== "cancelled") setShareResult(r as "shared" | "copied" | "failed");
+                  });
                 }}
               >
                 Share this verse
@@ -219,7 +275,10 @@ export default function CheckIn() {
           <p className="muted">Bringing today&rsquo;s verse to you&hellip;</p>
         )}
 
-        <div className="stack" style={{ marginTop: 4 }}>
+        <div
+          className="stack"
+          style={{ marginTop: 28, paddingTop: 22, borderTop: "1px solid var(--line)" }}
+        >
           <label htmlFor="checkin-journal" style={{ fontWeight: 600 }}>
             {VERSE_PROMPT}
           </label>
@@ -228,20 +287,13 @@ export default function CheckIn() {
             value={journalBody}
             onChange={(e) => {
               setJournalBody(e.target.value);
+              writeDraft(e.target.value);
               if (saved) setSaved(false);
             }}
-            placeholder="Write as much or as little as you like&hellip;"
+            placeholder="Write as much or as little as you like…"
             rows={5}
-            style={{
-              width: "100%",
-              padding: 12,
-              borderRadius: "var(--radius)",
-              border: "1px solid var(--line)",
-              background: "var(--surface-2)",
-              color: "var(--ink)",
-              font: "inherit",
-              resize: "vertical",
-            }}
+            className="field-input"
+            style={{ resize: "vertical" }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
@@ -312,7 +364,7 @@ export default function CheckIn() {
                   className="card stack"
                   style={revealStyle(i, emotionMounted, reduced)}
                 >
-                  <AyahView ayah={ayah} />
+                  <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} />
                 </div>
               ))
             )}

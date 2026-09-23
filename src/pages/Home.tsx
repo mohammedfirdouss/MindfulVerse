@@ -144,8 +144,11 @@ export default function Home() {
       <nav aria-label="Sections" className="home-entries" style={reveal(260)}>
         {navEntries.map((e) => (
           <Link key={e.to} to={e.to} className="home-entry">
-            <span className="home-entry-title">{e.title}</span>
-            <span className="home-entry-desc">{e.desc}</span>
+            <span>
+              <span className="home-entry-title">{e.title}</span>
+              <span className="home-entry-desc">{e.desc}</span>
+            </span>
+            <span className="home-entry-arrow" aria-hidden="true">→</span>
           </Link>
         ))}
       </nav>

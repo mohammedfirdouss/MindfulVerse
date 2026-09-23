@@ -7,11 +7,12 @@ function verseText(ayah: Ayah): string {
   return `${ayah.arabic}\n\n“${ayah.translation}”\n\n— Qur’an ${ayah.surah}:${ayah.ayah}\n\nvia MindfulVerse`;
 }
 
-/** Returns "shared" | "copied" | "failed" so the caller can confirm in the UI. */
+/** Returns "shared" | "copied" | "cancelled" | "failed" so the caller can
+ *  confirm in the UI — "cancelled" (share sheet dismissed) confirms nothing. */
 export async function shareVerse(
   ayah: Ayah,
   where: string
-): Promise<"shared" | "copied" | "failed"> {
+): Promise<"shared" | "copied" | "cancelled" | "failed"> {
   const text = verseText(ayah);
   track({ type: "share_verse", verseKey: ayah.verseKey, where });
   try {
@@ -23,7 +24,7 @@ export async function shareVerse(
     return "copied";
   } catch (err) {
     // user cancelling the share sheet is not a failure worth surfacing
-    if (err instanceof DOMException && err.name === "AbortError") return "shared";
+    if (err instanceof DOMException && err.name === "AbortError") return "cancelled";
     try {
       await navigator.clipboard.writeText(text);
       return "copied";

@@ -104,6 +104,10 @@ export default function Sessions() {
   const latest = useMemo(() => latestSurahTadabbur(), []);
 
   useEffect(() => {
+    document.title = "Tadabbur — MindfulVerse";
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     loadSessions()
       .then((sessions) => {
@@ -143,7 +147,10 @@ export default function Sessions() {
         </p>
 
         {latest != null && (
-          <Link to={`/tadabbur/${latest.surah}`} style={{ color: "inherit" }}>
+          <Link
+            to={`/tadabbur/${latest.surah}?v=${latest.ayah}`}
+            style={{ color: "inherit" }}
+          >
             <div className="card">
               <p className="eyebrow" style={{ margin: "0 0 4px" }}>
                 Continue

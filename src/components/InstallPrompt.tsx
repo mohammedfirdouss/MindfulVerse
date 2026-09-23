@@ -74,7 +74,17 @@ export default function InstallPrompt() {
     dismiss();
   }
 
-  if (dismissed || !earned || (!installEvent && !showIosTip)) return null;
+  const visible = !dismissed && earned && (installEvent !== null || showIosTip);
+
+  // While the banner floats over the page, give the page room to scroll its
+  // last lines (e.g. a Save button) clear of it.
+  useEffect(() => {
+    if (!visible) return;
+    document.body.classList.add("has-install-banner");
+    return () => document.body.classList.remove("has-install-banner");
+  }, [visible]);
+
+  if (!visible) return null;
 
   return (
     <div
@@ -84,7 +94,8 @@ export default function InstallPrompt() {
         position: "fixed",
         left: 12,
         right: 12,
-        bottom: 76,
+        // Clear of the tab bar, which grows by the home-indicator inset.
+        bottom: "calc(72px + env(safe-area-inset-bottom))",
         zIndex: 30,
         maxWidth: 560,
         margin: "0 auto",

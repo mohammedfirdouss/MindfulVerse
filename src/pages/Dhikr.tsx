@@ -251,7 +251,8 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
     // The whole screen is the tap target — dhikr is often done with eyes
     // closed, so precision tapping must never be required.
     <div
-      onPointerDown={(e) => {
+      // click (not pointerdown) so a scroll on a small phone never counts.
+      onClick={(e) => {
         // Don't count taps on the exit button.
         if ((e.target as HTMLElement).closest("[data-exit]")) return;
         tap();
@@ -278,6 +279,13 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
       <div
         aria-label={`Count one ${item.translit}. ${count} of ${item.count} so far.`}
         role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            tap();
+          }
+        }}
         style={{
           position: "relative",
           width: SIZE,

@@ -211,6 +211,10 @@ export default function Stats() {
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
 
+  useEffect(() => {
+    document.title = "Your progress — MindfulVerse";
+  }, []);
+
   async function copyStats() {
     try {
       await navigator.clipboard.writeText(summaryText(stats));
@@ -230,7 +234,7 @@ export default function Stats() {
         <p className="eyebrow">Stats</p>
         <h1>Your numbers</h1>
         <p className="muted" style={{ marginTop: 0 }}>
-          Private, on-device data. Nothing here leaves your phone unless you copy and send it.
+          These numbers are private and stay on this device unless you copy and send them.
         </p>
       </header>
 

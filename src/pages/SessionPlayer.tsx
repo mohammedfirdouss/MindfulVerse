@@ -84,6 +84,11 @@ export default function SessionPlayer() {
   const { id } = useParams<{ id: string }>();
   const [status, setStatus] = useState<LoadStatus>({ kind: "loading" });
 
+  // SessionFlow names the tab once the session is known.
+  useEffect(() => {
+    if (status.kind !== "ready") document.title = "Tadabbur — MindfulVerse";
+  }, [status.kind]);
+
   useEffect(() => {
     let alive = true;
     loadSessions()
@@ -166,6 +171,15 @@ function SessionFlow({ session }: { session: TadabburSession }) {
 
   const onFinal = phase >= stepCount;
   const mounted = useMounted(phase);
+
+  useEffect(() => {
+    document.title = `${session.title} — MindfulVerse`;
+  }, [session.title]);
+
+  // Each step starts at the top — Next sits below the step's content.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [phase]);
 
   // Remember the furthest step reached (recordSessionStep never regresses).
   useEffect(() => {
@@ -437,7 +451,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
   async function toggle() {
     const next = !open;
     setOpen(next);
-    if (!next || status.kind !== "idle") return;
+    if (!next || (status.kind !== "idle" && status.kind !== "error")) return;
 
     setStatus({ kind: "loading" });
     try {
