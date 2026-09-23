@@ -17,7 +17,7 @@ export type AnalyticsEvent =
   | { type: "share_verse"; verseKey: string; where: string }
   | { type: "dhikr_start"; setId: string }
   | { type: "dhikr_complete"; setId: string }
-  | { type: "read_view"; view: "arabic" | "both" }
+  | { type: "read_view"; view: "translation" | "reading" }
   | { type: "account_signup"; method: "password" | "google" }
   | { type: "account_signin"; method: "password" | "google" }
   | { type: "account_signout" }

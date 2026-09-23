@@ -266,10 +266,48 @@ function main() {
   }
   fs.writeFileSync(path.join(OUT, "search.json"), JSON.stringify(search));
 
+  // ---- divisions.json ----
+  // Juz / hizb / quarter / sajdah boundaries for juz reading and the inline
+  // mushaf marks. `opening` is copied verbatim so the juz list needn't load
+  // surah files just to label its rows.
+  const metadata = (name) =>
+    Object.values(
+      readJSON(path.join(QUL, "Quran metadata", `quran-metadata-${name}.json`)),
+    );
+  const firstWords = (key, n = 3) => {
+    const [s, a] = key.split(":").map(Number);
+    const ayah = bySurah.get(s).find((x) => x.ayah === a);
+    if (!ayah) throw new Error(`firstWords: no ayah found for key ${key}`);
+    const words = ayah.arabic.split(/\s+/).filter((w) => !/^[۞۩]$/.test(w));
+    return words.slice(0, n).join(" ");
+  };
+  const byNumber = (field) => (x, y) => x[field] - y[field];
+  const divisions = {
+    juz: metadata("juz")
+      .sort(byNumber("juz_number"))
+      .map((j) => ({
+        n: j.juz_number,
+        first: j.first_verse_key,
+        last: j.last_verse_key,
+        opening: firstWords(j.first_verse_key),
+      })),
+    hizb: metadata("hizb")
+      .sort(byNumber("hizb_number"))
+      .map((h) => ({ n: h.hizb_number, first: h.first_verse_key, last: h.last_verse_key })),
+    rub: metadata("rub")
+      .sort(byNumber("rub_number"))
+      .map((r) => r.first_verse_key),
+    sajda: metadata("sajda")
+      .sort(byNumber("sajdah_number"))
+      .map((s) => ({ key: s.verse_key, type: s.sajdah_type })),
+  };
+  fs.writeFileSync(path.join(OUT, "divisions.json"), JSON.stringify(divisions));
+
   // ---- Summary ----
   console.log("=== build-data summary ===");
   console.log(`tafsir index surahs:   ${Object.keys(tafsirIndex).length}`);
   console.log(`search entries:        ${search.length}`);
+  console.log(`divisions:             ${divisions.juz.length} juz, ${divisions.hizb.length} hizb, ${divisions.rub.length} rub, ${divisions.sajda.length} sajdah`);
   console.log(`surahs written:        ${surahNumbers.length}`);
   console.log(`total ayahs:           ${totalAyahs}`);
   console.log(`surahs with tafsir:    ${surahsWithTafsir}`);

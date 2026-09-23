@@ -1,8 +1,9 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "./components/AppShell";
 import Home from "./pages/Home";
 import Reader from "./pages/Reader";
 import Surah from "./pages/Surah";
+import Juz from "./pages/Juz";
 import Sessions from "./pages/Sessions";
 import SessionPlayer from "./pages/SessionPlayer";
 import SurahTadabbur from "./pages/SurahTadabbur";
@@ -24,6 +25,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/read" element={<Reader />} />
         <Route path="/read/:surah" element={<Surah />} />
+        <Route path="/read/juz" element={<Navigate to="/read?tab=juz" replace />} />
+        <Route path="/read/juz/:n" element={<Juz />} />
         <Route path="/sessions" element={<Sessions />} />
         <Route path="/sessions/:id" element={<SessionPlayer />} />
         <Route path="/tadabbur/:surah" element={<SurahTadabbur />} />

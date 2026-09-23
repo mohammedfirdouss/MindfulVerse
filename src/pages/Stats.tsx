@@ -6,11 +6,11 @@ import { Link } from "react-router-dom";
 import { getEvents } from "../lib/analytics";
 import { currentStreak, totalVisitDays } from "../lib/progress";
 import { getEntries } from "../lib/journal";
+import { getReadView } from "../lib/readingPrefs";
 import { useAccount } from "../lib/sync/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
 
 const FIRST_SEEN_KEY = "mindfulverse.firstSeen.v1";
-const READ_VIEW_KEY = "mindfulverse.readView.v1";
 
 interface StatsSnapshot {
   eventCount: number;
@@ -129,10 +129,7 @@ function computeStats(): StatsSnapshot {
     readViewSwitches,
     // The settled preference matters more than switch counts: this is the
     // persisted reader setting, defaulting to "with translation".
-    readView:
-      localStorage.getItem(READ_VIEW_KEY) === "arabic"
-        ? "Arabic only"
-        : "with translation",
+    readView: getReadView() === "reading" ? "Reading" : "Translation",
     firstSeen,
     daysSinceFirstSeen,
   };
@@ -295,7 +292,7 @@ export default function Stats() {
             <Metric label="Surah tadabbur begun" value={String(stats.surahTadabburStarted)} />
             <Metric
               label="Reading view"
-              value={stats.readView === "Arabic only" ? "Arabic" : "Arabic + English"}
+              value={stats.readView}
               note={`switched ${stats.readViewSwitches} time${stats.readViewSwitches === 1 ? "" : "s"}`}
             />
             <Metric

@@ -334,3 +334,48 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 /* Journal export: the PDF as the main action, plain text as a quiet aside. */
 .journal-export { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 18px; }
 .journal-export button:disabled { opacity: .6; cursor: default; }
+
+/* A deep-linked verse glows briefly so the eye finds where it landed. */
+.verse.flash { background: var(--indigo-wash); transition: background 1.2s ease; }
+
+/* --- Reading mode: flowing mushaf-style text --- */
+.reading { color: var(--indigo-deep); padding-top: 8px; }
+.reading-surah + .reading-surah { margin-top: 30px; }
+.reading-surah:first-child .reading-surah-name,
+.reading-surah-name.first { border-top: 0; margin-top: 4px; }
+.reading-surah-name {
+  font-family: var(--font-read); font-size: 1.1rem; font-weight: 600;
+  text-align: center; color: var(--indigo);
+  margin: 14px 0 8px; padding-block: 10px;
+  border-block: 1px solid var(--line);
+}
+.reading-basmalah {
+  font-family: var(--font-arabic); text-align: center;
+  font-size: calc(1.7rem * var(--read-scale, 1)); line-height: 2.2; margin: 6px 0 4px;
+}
+.reading-text {
+  font-family: var(--font-arabic);
+  font-size: calc(1.9rem * var(--read-scale, 1)); line-height: 2.5;
+  text-align: justify; text-align-last: start; margin: 0;
+}
+.rv {
+  cursor: pointer; border-radius: 4px; scroll-margin-top: 24px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  transition: background .15s ease;
+}
+.rv:hover { background: var(--indigo-wash); }
+.rv:focus-visible { outline: 2px solid var(--kola); outline-offset: 2px; }
+.rv.active { background: var(--indigo-wash); }
+.ayah-end { color: var(--indigo); white-space: nowrap; }
+
+/* --- Read index: juz rows --- */
+.juz-card { display: block; }
+.juz-main { display: flex; align-items: center; gap: 14px; color: var(--ink); }
+.juz-opening {
+  font-family: var(--font-arabic); color: var(--indigo-deep);
+  font-size: 1.25rem; line-height: 1.8; flex: none; max-width: 45%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.juz-range { font-size: .9rem; }
+.juz-range > span { white-space: nowrap; }
+.juz-hizbs { display: flex; gap: 16px; margin: 8px 0 0; font-size: .92rem; }
