@@ -16,7 +16,7 @@ export default function ReadingText({
   onSelect,
 }: {
   ayahs: Ayah[];
-  surahNames: Map<number, string>;
+  surahNames?: Map<number, string>;
   /** Name each surah section (juz pages); the surah page has its own title. */
   headings: boolean;
   activeKey: string | null;
@@ -37,7 +37,7 @@ export default function ReadingText({
           <section key={g.surah} className="reading-surah">
             {headings && (
               <h2 className="reading-surah-name">
-                {surahNames.get(g.surah) ?? `Surah ${g.surah}`}
+                {surahNames?.get(g.surah) ?? `Surah ${g.surah}`}
                 {from > 1 && <span className="muted"> · from verse {from}</span>}
               </h2>
             )}

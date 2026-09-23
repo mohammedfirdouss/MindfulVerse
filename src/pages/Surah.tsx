@@ -187,7 +187,6 @@ function SurahReader() {
           {view === "reading" ? (
             <ReadingText
               ayahs={ayahs}
-              surahNames={new Map()}
               headings={false}
               activeKey={selected?.verseKey ?? flashKey}
               onSelect={setSelected}
