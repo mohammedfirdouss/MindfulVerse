@@ -29,7 +29,10 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.ts",
       injectManifest: {
-        globPatterns: ["**/*.{js,css,html,svg,woff2,ttf}"],
+        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // The journal PDF builder (pdf-lib + fontkit, ~500KB gzipped) loads on
+        // demand only — don't make every install download it up front.
+        globIgnores: ["**/journalPdf-*.js"],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),

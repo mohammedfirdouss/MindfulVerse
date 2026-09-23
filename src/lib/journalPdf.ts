@@ -153,6 +153,10 @@ async function rasterLines(
     canvas.height = Math.ceil(opts.leading * RASTER);
     const ctx = canvas.getContext("2d")!;
     ctx.scale(RASTER, RASTER);
+    // An opaque cotton ground: glyphs on a transparent canvas get stem-darkened
+    // and print noticeably heavier than the vector text around them.
+    ctx.fillStyle = "#f5efe2";
+    ctx.fillRect(0, 0, w, opts.leading);
     ctx.font = fontSpec;
     ctx.fillStyle = opts.color;
     ctx.direction = opts.rtl ? "rtl" : "ltr";

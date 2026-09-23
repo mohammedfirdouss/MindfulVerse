@@ -17,13 +17,6 @@ function notificationsBlocked(): boolean {
   return "Notification" in window && Notification.permission === "denied";
 }
 
-function formatTime(hhmm: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h || 0, m || 0, 0, 0);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
 function GoogleMark() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -119,8 +112,8 @@ export default function Account() {
         savedTime.current = reminderTime;
         setReminderNotice(
           welcomed
-            ? `Done — today's verse has been sent to this device so you can see how it looks. From tomorrow it arrives at ${formatTime(reminderTime)}.`
-            : `Daily verse reminder set for ${formatTime(reminderTime)}.`
+            ? "Today’s verse was just sent here, so you can see how it looks."
+            : null
         );
       } else {
         await disableReminder();
@@ -150,7 +143,7 @@ export default function Account() {
         return;
       }
       savedTime.current = time;
-      setReminderNotice(`Daily verse reminder set for ${formatTime(time)}.`);
+      setReminderNotice("New time saved.");
     } catch {
       setReminderError("Couldn't update the reminder time — please try again.");
     } finally {
@@ -506,11 +499,15 @@ export default function Account() {
 
           <div className="auth-section stack">
             <div>
-              <div style={{ fontWeight: 600 }}>Daily verse reminder</div>
-              <p className="soft" style={{ margin: "4px 0 0" }}>
-                Get today&rsquo;s verse as a notification at a time you choose — on this
-                phone or computer. Tap it to open your check-in.
-              </p>
+              <div style={{ fontWeight: 600 }}>
+                Daily verse reminder{reminderOn && <span className="soft"> · On</span>}
+              </div>
+              {!reminderOn && (
+                <p className="soft" style={{ margin: "4px 0 0" }}>
+                  Get today&rsquo;s verse as a notification at a time you choose — on this
+                  phone or computer. Tap it to open your check-in.
+                </p>
+              )}
             </div>
             {pushSupport() === "needs-install" && (
               <ol className="soft" style={{ margin: 0, paddingLeft: 20 }}>
@@ -565,13 +562,9 @@ export default function Account() {
             )}
             {pushSupport() === "ok" && reminderOn && (
               <>
-                <p style={{ margin: 0 }}>
-                  On — today&rsquo;s verse arrives daily at {formatTime(savedTime.current)} on
-                  this device.
-                </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <label htmlFor="reminder-time" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span className="soft">Change time</span>
+                    <span>Every day at</span>
                     <input
                       id="reminder-time"
                       type="time"
@@ -592,8 +585,7 @@ export default function Account() {
                   </button>
                 </div>
                 <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
-                  Reminders are set per device — switch them on wherever you&rsquo;d like
-                  them. On a computer they arrive while your browser is running.
+                  Set per device. On a computer, it arrives while your browser is open.
                 </p>
               </>
             )}
