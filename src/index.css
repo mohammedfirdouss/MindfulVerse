@@ -337,3 +337,31 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 
 /* A deep-linked verse glows briefly so the eye finds where it landed. */
 .verse.flash { background: var(--indigo-wash); transition: background 1.2s ease; }
+
+/* --- Reading mode: flowing mushaf-style text --- */
+.reading { color: var(--indigo-deep); padding-top: 8px; }
+.reading-surah + .reading-surah { margin-top: 30px; }
+.reading-surah-name {
+  font-family: var(--font-read); font-size: 1.1rem; font-weight: 600;
+  text-align: center; color: var(--indigo);
+  margin: 14px 0 8px; padding-block: 10px;
+  border-block: 1px solid var(--line);
+}
+.reading-basmalah {
+  font-family: var(--font-arabic); text-align: center;
+  font-size: calc(1.7rem * var(--read-scale, 1)); line-height: 2.2; margin: 6px 0 4px;
+}
+.reading-text {
+  font-family: var(--font-arabic);
+  font-size: calc(1.9rem * var(--read-scale, 1)); line-height: 2.5;
+  text-align: justify; text-align-last: start; margin: 0;
+}
+.rv {
+  cursor: pointer; border-radius: 4px; scroll-margin-top: 24px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  transition: background .15s ease;
+}
+.rv:hover, .rv:focus-visible { background: var(--indigo-wash); outline: none; }
+.rv.active { background: var(--indigo-wash); }
+.ayah-end { color: var(--indigo); white-space: nowrap; }
+.reading-rub { color: var(--indigo); }

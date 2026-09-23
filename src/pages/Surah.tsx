@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
-import { track } from "../lib/analytics";
+import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
 import { recordLastRead } from "../lib/progress";
 import type { Ayah, SurahMeta } from "../lib/types";
 import {
@@ -9,23 +8,22 @@ import {
   useTafsir,
   type TafsirIndex,
 } from "../components/Commentary";
+import ReadingControls from "../components/ReadingControls";
+import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
+import VerseSheet from "../components/VerseSheet";
+import { makeMarks, verseId, type Marks } from "../lib/divisions";
+import {
+  getReadView,
+  getSizeKey,
+  saveReadView,
+  saveSizeKey,
+  scaleFor,
+  type ReadView,
+} from "../lib/readingPrefs";
+import { useLastReadTracker } from "../lib/useLastReadTracker";
 
 type Status = "loading" | "ready" | "error";
-
-/** Every surah except Al-Fatihah (1, where it is ayah 1) and At-Tawbah (9)
- *  opens with the basmalah in the mushaf. */
-const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
-
-const SIZES: { key: string; label: string; scale: number }[] = [
-  { key: "s", label: "A", scale: 0.86 },
-  { key: "m", label: "A", scale: 1 },
-  { key: "l", label: "A", scale: 1.22 },
-];
-const SIZE_KEY = "mindfulverse.readScale.v1";
-const VIEW_KEY = "mindfulverse.readView.v1";
-
-type ReadView = "arabic" | "both";
 
 // Keyed on the surah so moving to the next one starts from clean state — an
 // in-flight tafsir fetch can't land on the wrong surah.
@@ -45,13 +43,12 @@ function SurahReader() {
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
-  const [sizeKey, setSizeKey] = useState<string>(
-    () => localStorage.getItem(SIZE_KEY) ?? "m"
-  );
   const [jump, setJump] = useState<string>("");
-  const [view, setView] = useState<ReadView>(() =>
-    localStorage.getItem(VIEW_KEY) === "arabic" ? "arabic" : "both"
-  );
+  const [view, setView] = useState<ReadView>(getReadView);
+  const [sizeKey, setSizeKey] = useState<string>(getSizeKey);
+  const [marks, setMarks] = useState<Marks | null>(null);
+  const [selected, setSelected] = useState<Ayah | null>(null);
+  const [flashKey, setFlashKey] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -69,12 +66,14 @@ function SurahReader() {
       loadSurahAyahs(surahNumber),
       loadTafsirIndex().catch<Record<string, number[]> | null>(() => null),
       loadSurahs().catch<SurahMeta[]>(() => []),
+      loadDivisions().catch(() => null),
     ])
-      .then(([ayahData, indexData, surahList]) => {
+      .then(([ayahData, indexData, surahList, divisions]) => {
         if (!active) return;
         setAyahs(ayahData);
         setIndex(indexData);
         setMeta(surahList.find((s) => s.number === surahNumber));
+        setMarks(divisions ? makeMarks(divisions) : null);
         setStatus("ready");
       })
       .catch(() => {
@@ -92,73 +91,45 @@ function SurahReader() {
     else document.title = "Read — MindfulVerse";
   }, [meta]);
 
-  // Deep link (?v=n): scroll there once the surah renders.
+  // Deep link (?v=n): scroll there once the surah renders, in either view.
   useEffect(() => {
     if (status !== "ready") return;
     const v = Number(params.get("v"));
     if (!Number.isFinite(v) || v < 1) return;
-    const el = document.getElementById(`v${v}`);
-    if (el) {
-      el.scrollIntoView({ block: "start" });
-      recordLastRead(surahNumber, v);
-    }
-  }, [status, params, surahNumber]);
+    const el = document.getElementById(view === "reading" ? verseId(surahNumber, v) : `v${v}`);
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    recordLastRead(surahNumber, v);
+    setFlashKey(`${surahNumber}:${v}`);
+    const t = window.setTimeout(() => setFlashKey(null), 1600);
+    return () => window.clearTimeout(t);
+  }, [status, params, surahNumber, view]);
 
-  // Track reading position: the topmost visible verse becomes "last read".
-  useEffect(() => {
-    if (status !== "ready") return;
-    let timer: number | undefined;
-    const visible = new Set<number>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          const n = Number(e.target.id.slice(1));
-          if (e.isIntersecting) visible.add(n);
-          else visible.delete(n);
-        }
-        window.clearTimeout(timer);
-        timer = window.setTimeout(() => {
-          if (visible.size > 0) {
-            recordLastRead(surahNumber, Math.min(...visible));
-          }
-        }, 800);
-      },
-      { rootMargin: "0px 0px -60% 0px" }
-    );
-    document.querySelectorAll("article.verse").forEach((el) => observer.observe(el));
-    return () => {
-      window.clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, [status, surahNumber]);
-
-
-  function chooseSize(key: string) {
-    setSizeKey(key);
-    localStorage.setItem(SIZE_KEY, key);
-  }
+  useLastReadTracker(status === "ready", surahNumber, view);
 
   function chooseView(v: ReadView) {
     setView(v);
-    localStorage.setItem(VIEW_KEY, v);
-    track({ type: "read_view", view: v });
+    saveReadView(v);
+  }
+
+  function chooseSize(k: string) {
+    setSizeKey(k);
+    saveSizeKey(k);
   }
 
   function goToVerse(e: React.FormEvent) {
     e.preventDefault();
     const n = Number(jump);
     if (!Number.isFinite(n)) return;
-    const el = document.getElementById(`v${n}`);
+    const el = document.getElementById(view === "reading" ? verseId(surahNumber, n) : `v${n}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
       recordLastRead(surahNumber, n);
     }
   }
 
-  const scale = SIZES.find((s) => s.key === sizeKey)?.scale ?? 1;
-
   return (
-    <div style={{ ["--read-scale" as string]: String(scale) }}>
+    <div style={{ ["--read-scale" as string]: String(scaleFor(sizeKey)) }}>
       <header style={{ marginBottom: 12 }}>
         <Link to="/read" className="btn ghost">
           ← All surahs
@@ -184,38 +155,7 @@ function SurahReader() {
             marginBottom: 4,
           }}
         >
-          <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-            <div className="reading-controls" role="group" aria-label="Reading size">
-              {SIZES.map((s, i) => (
-                <button
-                  key={s.key}
-                  className="size-btn"
-                  aria-pressed={s.key === sizeKey}
-                  onClick={() => chooseSize(s.key)}
-                  style={{ fontSize: `${0.78 + i * 0.16}rem` }}
-                  aria-label={`Reading size ${s.key === "s" ? "small" : s.key === "m" ? "medium" : "large"}`}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-            <div className="reading-controls" role="group" aria-label="Reading view">
-              <button
-                className="size-btn"
-                aria-pressed={view === "arabic"}
-                onClick={() => chooseView("arabic")}
-              >
-                Arabic
-              </button>
-              <button
-                className="size-btn"
-                aria-pressed={view === "both"}
-                onClick={() => chooseView("both")}
-              >
-                With translation
-              </button>
-            </div>
-          </div>
+          <ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
           <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input
               type="number"
@@ -247,24 +187,34 @@ function SurahReader() {
 
       {status === "ready" && (
         <div>
-          {surahNumber !== 1 && surahNumber !== 9 && (
-            <p
-              className="arabic"
-              lang="ar"
-              style={{ textAlign: "center", padding: "18px 0 4px" }}
-            >
-              {BASMALAH}
-            </p>
-          )}
-          {ayahs.map((a) => (
-            <VerseBlock
-              key={a.verseKey}
-              ayah={a}
-              id={`v${a.ayah}`}
-              index={index}
-              onCommentary={setOpenAyah}
+          {view === "reading" ? (
+            <ReadingText
+              ayahs={ayahs}
+              marks={marks}
+              surahNames={new Map()}
+              headings={false}
+              activeKey={selected?.verseKey ?? flashKey}
+              onSelect={setSelected}
             />
-          ))}
+          ) : (
+            <>
+              {surahNumber !== 1 && surahNumber !== 9 && (
+                <p className="arabic" lang="ar" style={{ textAlign: "center", padding: "18px 0 4px" }}>
+                  {BASMALAH}
+                </p>
+              )}
+              {ayahs.map((a) => (
+                <VerseBlock
+                  key={a.verseKey}
+                  ayah={a}
+                  id={`v${a.ayah}`}
+                  index={index}
+                  onCommentary={setOpenAyah}
+                  flash={flashKey === a.verseKey}
+                />
+              ))}
+            </>
+          )}
           {surahNumber < 114 && (
             <div style={{ padding: "28px 0 8px" }}>
               <Link to={`/read/${surahNumber + 1}`} className="btn secondary">
@@ -282,6 +232,10 @@ function SurahReader() {
           tafsir={tafsir}
           onClose={() => setOpenAyah(null)}
         />
+      )}
+
+      {selected && (
+        <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
       )}
     </div>
   );
