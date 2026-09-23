@@ -72,7 +72,7 @@ export default function VerseSheet({
             <button className="commentary-open" onClick={() => void share.share(ayah)}>
               {share.label ?? "Share"}
             </button>
-            <Link className="commentary-open" to={`/tadabbur/${ayah.surah}?v=${ayah.ayah}`}>
+            <Link className="commentary-open" to={`/tadabbur/${ayah.surah}?v=${ayah.ayah}`} replace>
               Reflect on this verse
             </Link>
           </div>
