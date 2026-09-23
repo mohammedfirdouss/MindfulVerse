@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSurahs } from "../lib/data";
 import { todayVerseKey } from "../lib/dailyVerse";
-import { currentStreak, getLastRead } from "../lib/progress";
+import { checkedInToday } from "../lib/journal";
+import { currentStreak, getLastRead, latestSurahTadabbur } from "../lib/progress";
 import type { Ayah } from "../lib/types";
 
 function greeting(hour: number): string {
@@ -12,8 +13,9 @@ function greeting(hour: number): string {
   return "Peace be upon you this evening";
 }
 
+// The daily check-in is the habit and leads from the verse above; these are
+// the places to go when there is more time, or a need.
 const entries = [
-  { to: "/checkin", title: "Daily check-in", desc: "A verse for this moment, and a line to journal." },
   { to: "/sessions", title: "Tadabbur", desc: "Ponder the Qur’an, surah by surah." },
   { to: "/read", title: "Read", desc: "The Qur’an, with translation and commentary." },
   { to: "/dhikr", title: "Dhikr & breath", desc: "Remembrance, paced to your breath." },
@@ -22,6 +24,7 @@ const entries = [
 export default function Home() {
   const [hero, setHero] = useState<Ayah | null>(null);
   const [surahName, setSurahName] = useState<string>("");
+  const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
   const [mounted, setMounted] = useState(false);
   const reduced =
     typeof window !== "undefined" &&
@@ -40,13 +43,11 @@ export default function Home() {
         if (!active) return;
         const ayah = a[0] ?? null;
         setHero(ayah);
+        const surahs = await loadSurahs().catch(() => []);
+        if (!active) return;
+        setSurahNames(new Map(surahs.map((s) => [s.number, s.name])));
         if (ayah) {
-          const surahs = await loadSurahs().catch(() => []);
-          if (active) {
-            setSurahName(
-              surahs.find((s) => s.number === ayah.surah)?.name ?? ""
-            );
-          }
+          setSurahName(surahs.find((s) => s.number === ayah.surah)?.name ?? "");
         }
       })
       .catch(() => {});
@@ -70,6 +71,8 @@ export default function Home() {
   const hours = new Date().getHours();
   const streak = currentStreak();
   const lastRead = getLastRead();
+  const doneToday = checkedInToday();
+  const deeper = latestSurahTadabbur();
   const navEntries = lastRead
     ? entries.map((e) =>
         e.to === "/read"
@@ -114,6 +117,28 @@ export default function Home() {
         ) : (
           <p className="muted">Opening today’s verse…</p>
         )}
+
+        <div className="home-today">
+          {doneToday ? (
+            <>
+              <p className="soft" style={{ margin: 0 }}>
+                Today’s reflection is saved.
+              </p>
+              <Link
+                to={deeper ? `/tadabbur/${deeper.surah}` : "/sessions"}
+                className="btn secondary"
+              >
+                {deeper
+                  ? `Go deeper — continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
+                  : "Go deeper — begin tadabbur"}
+              </Link>
+            </>
+          ) : (
+            <Link to="/checkin" className="btn">
+              Reflect on today’s verse
+            </Link>
+          )}
+        </div>
       </section>
 
       <nav aria-label="Sections" className="home-entries" style={reveal(260)}>
@@ -137,15 +162,16 @@ export default function Home() {
 
 
       <style>{`
+        .home-today { margin-top: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
         .home-entries { border-top: 1px solid var(--line); }
         .home-entry {
           display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          padding: 18px 2px; border-bottom: 1px solid var(--line);
+          padding: 14px 2px; border-bottom: 1px solid var(--line);
           color: var(--ink); transition: padding-left .18s var(--ease-out);
         }
         .home-entry:hover { padding-left: 8px; }
-        .home-entry-title { display: block; font-size: 1.2rem; font-weight: 500; }
-        .home-entry-desc { display: block; color: var(--ink-faint); font-size: .98rem; margin-top: 2px; }
+        .home-entry-title { display: block; font-size: 1.05rem; font-weight: 500; }
+        .home-entry-desc { display: block; color: var(--ink-faint); font-size: .92rem; margin-top: 2px; }
         .home-entry-arrow { color: var(--lapis); font-size: 1.1rem; flex: none; }
         @media (prefers-reduced-motion: reduce) { .home-entry, .home-entry:hover { transition: none; padding-left: 2px; } }
       `}</style>

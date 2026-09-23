@@ -6,6 +6,9 @@ import { markJournalDirty } from "./syncFlags";
 const KEY = "mindfulverse.journal.v1";
 const TOMBSTONES_KEY = "mindfulverse.journal.deleted.v1";
 
+/** Fired on window after the user saves an entry (not on sync writes). */
+export const JOURNAL_SAVED_EVENT = "mindfulverse:journal-saved";
+
 function readAll(): JournalEntry[] {
   try {
     const raw = localStorage.getItem(KEY);
@@ -48,7 +51,18 @@ export function addEntry(
   all.push(entry);
   writeAll(all);
   markJournalDirty();
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(JOURNAL_SAVED_EVENT));
   return entry;
+}
+
+/** True once today's (local date) daily check-in reflection is saved. */
+export function checkedInToday(now = new Date()): boolean {
+  const today = now.toDateString();
+  return readAll().some(
+    (e) =>
+      e.context?.kind === "checkin" &&
+      new Date(e.createdAt).toDateString() === today
+  );
 }
 
 export function deleteEntry(id: string): void {

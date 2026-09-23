@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
+import { getEntries, JOURNAL_SAVED_EVENT } from "../lib/journal";
 
 // A quiet, dismissible nudge to install the PWA. An icon on the home screen is
 // the strongest return-visit mechanic a backend-less app has.
+// It is earned, not demanded: it only appears once the user has saved a
+// reflection, so the ask comes after the app has given them something.
 // - Chromium/Android: captures `beforeinstallprompt` and offers a real install.
 // - iOS Safari: shows the "Share → Add to Home Screen" tip instead.
 
 const DISMISS_KEY = "mindfulverse.installDismissed.v1";
+// Let the "saved" confirmation land before asking for anything.
+const AFTER_SAVE_MS = 1500;
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -25,20 +30,14 @@ function isIos(): boolean {
 
 export default function InstallPrompt() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIosTip, setShowIosTip] = useState(false);
+  const [earned, setEarned] = useState(() => getEntries().length > 0);
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(DISMISS_KEY) === "1"
   );
 
+  // Chromium fires this once, early — hold on to it until the prompt is earned.
   useEffect(() => {
-    if (dismissed || isStandalone()) return;
-
-    if (isIos()) {
-      // No install API on iOS — show the manual tip after a short beat.
-      const t = window.setTimeout(() => setShowIosTip(true), 4000);
-      return () => window.clearTimeout(t);
-    }
-
+    if (dismissed || isStandalone() || isIos()) return;
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setInstallEvent(e as BeforeInstallPromptEvent);
@@ -46,6 +45,21 @@ export default function InstallPrompt() {
     window.addEventListener("beforeinstallprompt", onPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, [dismissed]);
+
+  useEffect(() => {
+    if (earned || dismissed) return;
+    let t: number | undefined;
+    const onSaved = () => {
+      t = window.setTimeout(() => setEarned(true), AFTER_SAVE_MS);
+    };
+    window.addEventListener(JOURNAL_SAVED_EVENT, onSaved);
+    return () => {
+      window.removeEventListener(JOURNAL_SAVED_EVENT, onSaved);
+      window.clearTimeout(t);
+    };
+  }, [earned, dismissed]);
+
+  const showIosTip = isIos() && !isStandalone();
 
   function dismiss() {
     setDismissed(true);
@@ -60,7 +74,7 @@ export default function InstallPrompt() {
     dismiss();
   }
 
-  if (dismissed || (!installEvent && !showIosTip)) return null;
+  if (dismissed || !earned || (!installEvent && !showIosTip)) return null;
 
   return (
     <div
@@ -85,10 +99,10 @@ export default function InstallPrompt() {
     >
       <div style={{ flex: 1, fontSize: ".95rem", lineHeight: 1.45 }}>
         {installEvent ? (
-          <>Keep MindfulVerse on your home screen — it works offline.</>
+          <>Come back to this tomorrow — keep MindfulVerse on your home screen. It works offline.</>
         ) : (
           <>
-            Add MindfulVerse to your home screen: tap <strong>Share</strong>, then{" "}
+            Come back to this tomorrow — tap <strong>Share</strong>, then{" "}
             <strong>Add to Home Screen</strong>. It works offline.
           </>
         )}
