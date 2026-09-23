@@ -91,13 +91,11 @@ export default function Reader() {
         </Link>
       )}
 
-      <div className="reading-controls" role="tablist" aria-label="Browse by">
+      <div className="reading-controls" role="group" aria-label="Browse by">
         {(["surah", "juz"] as const).map((t) => (
           <button
             key={t}
-            role="tab"
             className="size-btn"
-            aria-selected={tab === t}
             aria-pressed={tab === t}
             onClick={() => setParams(t === "surah" ? {} : { tab: t }, { replace: true })}
           >
