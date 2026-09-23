@@ -178,7 +178,11 @@ export default function Reader() {
         </div>
       )}
 
-      {tab === "juz" && !juzFailed && (
+      {tab === "juz" && !juzFailed && juzList.length === 0 && (
+        <p className="muted">Loading juz…</p>
+      )}
+
+      {tab === "juz" && !juzFailed && juzList.length > 0 && (
         <div className="stack">
           {juzList.map((j) => {
             const [fs, fa] = j.first.split(":").map(Number);
@@ -188,11 +192,10 @@ export default function Reader() {
             return (
               <div key={j.n} className="card juz-card">
                 <Link to={`/read/juz/${j.n}`} className="juz-main">
-                  <span className="eyebrow juz-num">{j.n}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontWeight: 650, display: "block" }}>Juz {j.n}</span>
-                    <span className="muted" style={{ fontSize: ".9rem" }}>
-                      {name(fs)} {fa} – {name(ls)} {la}
+                    <span className="muted juz-range">
+                      <span>{name(fs)} {fa}</span> – <span>{name(ls)} {la}</span>
                     </span>
                   </span>
                   {j.opening && (
