@@ -277,7 +277,9 @@ function main() {
   const firstWords = (key, n = 3) => {
     const [s, a] = key.split(":").map(Number);
     const ayah = bySurah.get(s).find((x) => x.ayah === a);
-    return ayah.arabic.split(/\s+/).slice(0, n).join(" ");
+    if (!ayah) throw new Error(`firstWords: no ayah found for key ${key}`);
+    const words = ayah.arabic.split(/\s+/).filter((w) => !/^[۞۩]$/.test(w));
+    return words.slice(0, n).join(" ");
   };
   const byNumber = (field) => (x, y) => x[field] - y[field];
   const divisions = {
