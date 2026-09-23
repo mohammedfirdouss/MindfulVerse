@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import {
-  loadSurahAyahs,
-  loadSurahTafsir,
-  loadSurahs,
-  loadTafsirIndex,
-} from "../lib/data";
+import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
 import { track } from "../lib/analytics";
 import { recordLastRead } from "../lib/progress";
 import { shareVerse } from "../lib/share";
-import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
+import type { Ayah, SurahMeta } from "../lib/types";
+import {
+  CommentarySheet,
+  coveringFor,
+  commentaryLabel,
+  useTafsir,
+  type TafsirIndex,
+} from "../components/Commentary";
 
 type Status = "loading" | "ready" | "error";
 
@@ -27,140 +29,6 @@ const VIEW_KEY = "mindfulverse.readView.v1";
 
 type ReadView = "arabic" | "both";
 
-/** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
- *  the first ayah of the group. Given the surah's list of ayahs that carry a
- *  direct entry, find the entry covering this ayah. */
-function coveringFromIndex(indexed: number[], ayah: number): number | null {
-  let best: number | null = null;
-  for (const n of indexed) {
-    if (n <= ayah) best = n;
-    else break;
-  }
-  return best;
-}
-
-function CommentarySheet({
-  ayah,
-  text,
-  failed,
-  sourceAyah,
-  onClose,
-}: {
-  ayah: Ayah;
-  /** null while the tafsir file is still downloading. */
-  text: string | null;
-  /** The tafsir file couldn't be fetched (e.g. offline, never cached). */
-  failed: boolean;
-  sourceAyah: number;
-  onClose: () => void;
-}) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-
-  // Move focus into the dialog, and hand it back to the opener on close.
-  useEffect(() => {
-    const prevFocus = document.activeElement as HTMLElement | null;
-    closeRef.current?.focus();
-    return () => prevFocus?.focus();
-  }, []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
-  // The phone's back button/gesture must close the sheet, not leave the page.
-  useEffect(() => {
-    const onPop = () => onClose();
-    window.history.pushState({ mvSheet: true }, "");
-    window.addEventListener("popstate", onPop);
-    return () => {
-      window.removeEventListener("popstate", onPop);
-      // Closed via ✕/backdrop/Escape: remove the extra history entry we added.
-      if (window.history.state?.mvSheet) window.history.back();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const paragraphs = (text ?? "")
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  return (
-    <>
-      <div className="sheet-backdrop" onClick={onClose} />
-      <aside
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Commentary on verse ${ayah.verseKey}`}
-      >
-        <div className="sheet-grip" />
-        {/* Compact fixed header — label + close only, so the ✕ is ALWAYS
-            visible and tappable. The ayah itself lives in the scrollable body
-            (long verses like 2:282 used to fill the screen from the header). */}
-        <div className="sheet-head" style={{ alignItems: "center" }}>
-          <p className="eyebrow" style={{ margin: 0 }}>
-            {sourceAyah === ayah.ayah
-              ? `Ibn Kathir · ${ayah.surah}:${ayah.ayah}`
-              : `Ibn Kathir · on the passage from ${ayah.surah}:${sourceAyah}`}
-          </p>
-          <button
-            ref={closeRef}
-            className="sheet-close"
-            onClick={onClose}
-            aria-label="Close commentary"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="sheet-body">
-          <p
-            className="arabic"
-            lang="ar"
-            style={{
-              fontSize: "1.4rem",
-              lineHeight: 1.9,
-              margin: "0 0 14px",
-              paddingBottom: 14,
-              borderBottom: "1px solid var(--line)",
-            }}
-          >
-            {ayah.arabic}
-          </p>
-          {failed ? (
-            <p className="muted">
-              The commentary isn’t available offline yet. Try again when
-              you’re connected.
-            </p>
-          ) : text === null ? (
-            <p className="muted">Opening the commentary…</p>
-          ) : (
-            <div className="tafsir">
-              {paragraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-              <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
-                Verse quotations inside the commentary follow its classical
-                English edition, which differs from the ClearQuran translation
-                shown in the reader.
-              </p>
-            </div>
-          )}
-        </div>
-      </aside>
-    </>
-  );
-}
-
 // Keyed on the surah so moving to the next one starts from clean state — an
 // in-flight tafsir fetch can't land on the wrong surah.
 export default function Surah() {
@@ -174,10 +42,8 @@ function SurahReader() {
   const surahNumber = Number(surah);
 
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
-  const [indexed, setIndexed] = useState<number[]>([]);
-  const [indexFailed, setIndexFailed] = useState(false);
-  const [tafsir, setTafsir] = useState<SurahTafsir | null>(null);
-  const [tafsirFailed, setTafsirFailed] = useState(false);
+  const [index, setIndex] = useState<TafsirIndex | null>(null);
+  const tafsir = useTafsir();
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
@@ -190,7 +56,6 @@ function SurahReader() {
   );
   const [shared, setShared] = useState<{ key: string; label: string } | null>(null);
   const sharedTimer = useRef<number | undefined>(undefined);
-  const tafsirPromise = useRef<Promise<SurahTafsir> | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -201,8 +66,6 @@ function SurahReader() {
     }
 
     setStatus("loading");
-    setTafsir(null);
-    tafsirPromise.current = null;
 
     // The tafsir text itself (up to 1.3MB for long surahs) is NOT loaded here —
     // only a ~6KB index of which ayahs have entries. Text loads on first tap.
@@ -214,8 +77,7 @@ function SurahReader() {
       .then(([ayahData, indexData, surahList]) => {
         if (!active) return;
         setAyahs(ayahData);
-        setIndexed(indexData?.[String(surahNumber)] ?? []);
-        setIndexFailed(indexData === null);
+        setIndex(indexData);
         setMeta(surahList.find((s) => s.number === surahNumber));
         setStatus("ready");
       })
@@ -274,29 +136,6 @@ function SurahReader() {
     };
   }, [status, surahNumber]);
 
-  /** Fetch the surah's tafsir once, on first request. */
-  function ensureTafsir(): Promise<SurahTafsir> {
-    if (!tafsirPromise.current) {
-      tafsirPromise.current = loadSurahTafsir(surahNumber)
-        .then((t) => {
-          setTafsir(t);
-          return t;
-        })
-        .catch(() => {
-          tafsirPromise.current = null;
-          setTafsirFailed(true);
-          return {};
-        });
-    }
-    return tafsirPromise.current;
-  }
-
-  function openCommentary(a: Ayah) {
-    setOpenAyah(a);
-    setTafsirFailed(false);
-    void ensureTafsir();
-  }
-
   useEffect(() => () => window.clearTimeout(sharedTimer.current), []);
 
   async function share(a: Ayah) {
@@ -330,9 +169,6 @@ function SurahReader() {
   }
 
   const scale = SIZES.find((s) => s.key === sizeKey)?.scale ?? 1;
-  const openCovering = openAyah ? coveringFromIndex(indexed, openAyah.ayah) : null;
-  const openText =
-    openCovering !== null ? (tafsir ? (tafsir[String(openCovering)] ?? "") : null) : "";
 
   return (
     <div style={{ ["--read-scale" as string]: String(scale) }}>
@@ -434,8 +270,7 @@ function SurahReader() {
             </p>
           )}
           {ayahs.map((a) => {
-            const covering = coveringFromIndex(indexed, a.ayah);
-            const direct = covering === a.ayah;
+            const covering = coveringFor(index, a);
             return (
               <article
                 key={a.verseKey}
@@ -457,15 +292,9 @@ function SurahReader() {
                       <button
                         className="commentary-open"
                         disabled={covering === null}
-                        onClick={() => openCommentary(a)}
+                        onClick={() => setOpenAyah(a)}
                       >
-                        {indexFailed
-                          ? "Commentary isn’t available right now"
-                          : covering === null
-                          ? "No commentary for this verse"
-                          : direct
-                            ? "Read the commentary"
-                            : `Read the commentary (with verse ${covering})`}
+                        {commentaryLabel(index, a)}
                       </button>
                       <button className="commentary-open" onClick={() => void share(a)}>
                         {shared?.key === a.verseKey ? shared.label : "Share"}
@@ -486,12 +315,11 @@ function SurahReader() {
         </div>
       )}
 
-      {openAyah && openCovering !== null && (
+      {openAyah && (
         <CommentarySheet
           ayah={openAyah}
-          text={openText}
-          failed={tafsirFailed && tafsir === null}
-          sourceAyah={openCovering}
+          index={index}
+          tafsir={tafsir}
           onClose={() => setOpenAyah(null)}
         />
       )}
