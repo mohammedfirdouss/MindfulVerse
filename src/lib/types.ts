@@ -85,3 +85,20 @@ export interface LocalProgress {
   surahTadabbur: Record<string, { ayah: number; updatedAt: number }>;
   lastRead: { surah: number; ayah: number; at: number } | null;
 }
+
+/** One juz or hizb: an inclusive verse-key range. */
+export interface Division {
+  n: number;
+  first: string; // "2:142"
+  last: string; // "2:252"
+  /** Juz only: first three words of the first verse, verbatim. */
+  opening?: string;
+}
+
+/** Mushaf divisions from QUL metadata (public/data/divisions.json). */
+export interface Divisions {
+  juz: Division[]; // 30
+  hizb: Division[]; // 60
+  rub: string[]; // 240 quarter start keys
+  sajda: { key: string; type: string }[]; // 15
+}
