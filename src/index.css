@@ -334,3 +334,6 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 /* Journal export: the PDF as the main action, plain text as a quiet aside. */
 .journal-export { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 18px; }
 .journal-export button:disabled { opacity: .6; cursor: default; }
+
+/* A deep-linked verse glows briefly so the eye finds where it landed. */
+.verse.flash { background: var(--indigo-wash); transition: background 1.2s ease; }

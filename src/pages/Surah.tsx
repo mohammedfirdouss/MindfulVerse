@@ -1,17 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
 import { track } from "../lib/analytics";
 import { recordLastRead } from "../lib/progress";
-import { shareVerse } from "../lib/share";
 import type { Ayah, SurahMeta } from "../lib/types";
 import {
   CommentarySheet,
-  coveringFor,
-  commentaryLabel,
   useTafsir,
   type TafsirIndex,
 } from "../components/Commentary";
+import VerseBlock from "../components/VerseBlock";
 
 type Status = "loading" | "ready" | "error";
 
@@ -54,8 +52,6 @@ function SurahReader() {
   const [view, setView] = useState<ReadView>(() =>
     localStorage.getItem(VIEW_KEY) === "arabic" ? "arabic" : "both"
   );
-  const [shared, setShared] = useState<{ key: string; label: string } | null>(null);
-  const sharedTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
@@ -136,15 +132,6 @@ function SurahReader() {
     };
   }, [status, surahNumber]);
 
-  useEffect(() => () => window.clearTimeout(sharedTimer.current), []);
-
-  async function share(a: Ayah) {
-    const result = await shareVerse(a, "reader");
-    if (result === "cancelled" || result === "failed") return;
-    window.clearTimeout(sharedTimer.current);
-    setShared({ key: a.verseKey, label: result === "copied" ? "Copied ✓" : "Shared ✓" });
-    sharedTimer.current = window.setTimeout(() => setShared(null), 2000);
-  }
 
   function chooseSize(key: string) {
     setSizeKey(key);
@@ -269,42 +256,15 @@ function SurahReader() {
               {BASMALAH}
             </p>
           )}
-          {ayahs.map((a) => {
-            const covering = coveringFor(index, a);
-            return (
-              <article
-                key={a.verseKey}
-                id={`v${a.ayah}`}
-                className="verse"
-                style={{ scrollMarginTop: 16 }}
-              >
-                <div className="verse-head">
-                  <span className="roundel">{a.ayah}</span>
-                  <span className="rule" />
-                </div>
-                <p className="arabic" lang="ar">
-                  {a.arabic}
-                </p>
-                {view === "both" && (
-                  <>
-                    <p className="translation">{a.translation}</p>
-                    <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-                      <button
-                        className="commentary-open"
-                        disabled={covering === null}
-                        onClick={() => setOpenAyah(a)}
-                      >
-                        {commentaryLabel(index, a)}
-                      </button>
-                      <button className="commentary-open" onClick={() => void share(a)}>
-                        {shared?.key === a.verseKey ? shared.label : "Share"}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </article>
-            );
-          })}
+          {ayahs.map((a) => (
+            <VerseBlock
+              key={a.verseKey}
+              ayah={a}
+              id={`v${a.ayah}`}
+              index={index}
+              onCommentary={setOpenAyah}
+            />
+          ))}
           {surahNumber < 114 && (
             <div style={{ padding: "28px 0 8px" }}>
               <Link to={`/read/${surahNumber + 1}`} className="btn secondary">
