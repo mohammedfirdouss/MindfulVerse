@@ -8,6 +8,7 @@ import type {
   Theme,
   TadabburSession,
   EmotionMap,
+  Divisions,
 } from "./types";
 
 const cache = new Map<string, unknown>();
@@ -44,6 +45,9 @@ export const loadSessions = () =>
   getJson<TadabburSession[]>("/data/sessions.json");
 
 export const loadEmotions = () => getJson<EmotionMap>("/data/emotions.json");
+
+/** Juz / hizb / quarter / sajdah boundaries (a few KB). */
+export const loadDivisions = () => getJson<Divisions>("/data/divisions.json");
 
 /** Convenience: fetch a specific ayah (surah + translation + arabic). */
 export async function loadAyah(surah: number, ayah: number): Promise<Ayah | undefined> {
