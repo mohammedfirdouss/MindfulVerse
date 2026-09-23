@@ -300,7 +300,7 @@ function ReflectionArea({
       </label>
       <label className="stack" style={{ gap: 4 }}>
         <span className="soft" style={{ fontSize: ".9rem" }}>
-          How does it touch your heart?
+          What stays with you?
         </span>
         <textarea
           rows={2}
