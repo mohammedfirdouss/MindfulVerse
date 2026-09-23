@@ -70,7 +70,12 @@ export default function Sheet({
           <p className="eyebrow" style={{ margin: 0 }}>
             {title}
           </p>
-          <button ref={closeRef} className="sheet-close" onClick={onClose} aria-label="Close">
+          <button
+            ref={closeRef}
+            className="sheet-close"
+            onClick={onClose}
+            aria-label={`Close ${label.charAt(0).toLowerCase()}${label.slice(1)}`}
+          >
             ✕
           </button>
         </div>
