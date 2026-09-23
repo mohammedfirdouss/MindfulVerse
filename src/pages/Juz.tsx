@@ -6,7 +6,7 @@ import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
 import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
-import { juzOf, makeMarks, spansInRange, verseId, type Marks } from "../lib/divisions";
+import { juzOf, spansInRange, verseId } from "../lib/divisions";
 import { recordLastRead } from "../lib/progress";
 import {
   getReadView,
@@ -34,7 +34,6 @@ function JuzReader() {
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [range, setRange] = useState<Division | null>(null);
   const [hizbs, setHizbs] = useState<Division[]>([]);
-  const [marks, setMarks] = useState<Marks | null>(null);
   const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
   const [index, setIndex] = useState<TafsirIndex | null>(null);
   const [missing, setMissing] = useState<number[]>([]);
@@ -76,7 +75,6 @@ function JuzReader() {
         if (!active) return;
         setRange(r);
         setHizbs(divs.hizb.filter((h) => juzOf(h.first, divs) === juz));
-        setMarks(makeMarks(divs));
         setSurahNames(new Map(surahs.map((s) => [s.number, s.name])));
         setIndex(idx);
         setMissing(spans.filter((_, i) => slices[i] === null).map((sp) => sp.surah));
@@ -186,7 +184,6 @@ function JuzReader() {
         (view === "reading" ? (
           <ReadingText
             ayahs={ayahs}
-            marks={marks}
             surahNames={surahNames}
             headings
             activeKey={selected?.verseKey ?? flashKey}

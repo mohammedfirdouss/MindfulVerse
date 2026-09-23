@@ -364,7 +364,6 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 .rv:hover, .rv:focus-visible { background: var(--indigo-wash); outline: none; }
 .rv.active { background: var(--indigo-wash); }
 .ayah-end { color: var(--indigo); white-space: nowrap; }
-.reading-rub { color: var(--indigo); }
 
 /* --- Read index: juz rows --- */
 .juz-card { display: block; }

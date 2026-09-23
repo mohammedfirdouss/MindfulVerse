@@ -46,19 +46,6 @@ export function spansInRange(
   return spans;
 }
 
-export interface Marks {
-  rub: Set<string>;
-  sajda: Map<string, string>;
-}
-
-/** Inline mushaf marks. 1:1 opens the mushaf, so it carries no quarter sign. */
-export function makeMarks(d: Divisions): Marks {
-  return {
-    rub: new Set(d.rub.filter((k) => k !== "1:1")),
-    sajda: new Map(d.sajda.map((s) => [s.key, s.type])),
-  };
-}
-
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 export function toArabicDigits(n: number): string {

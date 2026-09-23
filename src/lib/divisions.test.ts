@@ -5,7 +5,6 @@ import {
   compareKeys,
   hizbOf,
   juzOf,
-  makeMarks,
   parseVerseId,
   spansInRange,
   toArabicDigits,
@@ -54,18 +53,6 @@ describe("spansInRange", () => {
   });
   it("handles a range inside one surah", () => {
     expect(spansInRange("2:142", "2:252", counts)).toEqual([{ surah: 2, from: 142, to: 252 }]);
-  });
-});
-
-describe("makeMarks", () => {
-  it("marks quarter starts except the very first verse", () => {
-    const m = makeMarks(d);
-    expect(m.rub.has("1:1")).toBe(false);
-    expect(m.rub.has(d.rub[1])).toBe(true);
-    expect(m.rub.size).toBe(239);
-  });
-  it("marks sajdah verses with their type", () => {
-    expect(makeMarks(d).sajda.get("7:206")).toBe("optional");
   });
 });
 

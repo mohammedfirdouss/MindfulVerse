@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
+import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
 import { recordLastRead } from "../lib/progress";
 import type { Ayah, SurahMeta } from "../lib/types";
 import {
@@ -12,7 +12,7 @@ import ReadingControls from "../components/ReadingControls";
 import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
-import { makeMarks, verseId, type Marks } from "../lib/divisions";
+import { verseId } from "../lib/divisions";
 import {
   getReadView,
   getSizeKey,
@@ -46,7 +46,6 @@ function SurahReader() {
   const [jump, setJump] = useState<string>("");
   const [view, setView] = useState<ReadView>(getReadView);
   const [sizeKey, setSizeKey] = useState<string>(getSizeKey);
-  const [marks, setMarks] = useState<Marks | null>(null);
   const [selected, setSelected] = useState<Ayah | null>(null);
   const [flashKey, setFlashKey] = useState<string | null>(null);
 
@@ -66,14 +65,12 @@ function SurahReader() {
       loadSurahAyahs(surahNumber),
       loadTafsirIndex().catch<Record<string, number[]> | null>(() => null),
       loadSurahs().catch<SurahMeta[]>(() => []),
-      loadDivisions().catch(() => null),
     ])
-      .then(([ayahData, indexData, surahList, divisions]) => {
+      .then(([ayahData, indexData, surahList]) => {
         if (!active) return;
         setAyahs(ayahData);
         setIndex(indexData);
         setMeta(surahList.find((s) => s.number === surahNumber));
-        setMarks(divisions ? makeMarks(divisions) : null);
         setStatus("ready");
       })
       .catch(() => {
@@ -190,7 +187,6 @@ function SurahReader() {
           {view === "reading" ? (
             <ReadingText
               ayahs={ayahs}
-              marks={marks}
               surahNames={new Map()}
               headings={false}
               activeKey={selected?.verseKey ?? flashKey}

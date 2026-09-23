@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { toArabicDigits, verseId, type Marks } from "../lib/divisions";
+import { toArabicDigits, verseId } from "../lib/divisions";
 import type { Ayah } from "../lib/types";
 
 /** Every surah except Al-Fatihah (where it is ayah 1) and At-Tawbah opens
@@ -10,14 +10,12 @@ export const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱ
  *  closed by its numbered end-of-ayah mark. Tapping a verse selects it. */
 export default function ReadingText({
   ayahs,
-  marks,
   surahNames,
   headings,
   activeKey,
   onSelect,
 }: {
   ayahs: Ayah[];
-  marks: Marks | null;
   surahNames: Map<number, string>;
   /** Name each surah section (juz pages); the surah page has its own title. */
   headings: boolean;
@@ -51,11 +49,6 @@ export default function ReadingText({
             <p className="reading-text" lang="ar" dir="rtl">
               {g.ayahs.map((a) => (
                 <Fragment key={a.verseKey}>
-                  {marks?.rub.has(a.verseKey) && (
-                    <span className="reading-rub" aria-hidden="true">
-                      ۞{" "}
-                    </span>
-                  )}
                   <span
                     id={verseId(a.surah, a.ayah)}
                     className={a.verseKey === activeKey ? "rv active" : "rv"}
