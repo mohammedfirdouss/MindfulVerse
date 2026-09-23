@@ -29,7 +29,7 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.ts",
       injectManifest: {
-        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,woff2,ttf}"],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),

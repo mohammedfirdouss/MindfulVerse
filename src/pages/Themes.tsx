@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { loadThemes } from "../lib/data";
 import type { Theme } from "../lib/types";
 
@@ -38,7 +38,9 @@ function rangeLabel(r: Theme): string {
 
 export default function Themes() {
   const [status, setStatus] = useState<Status>({ kind: "loading" });
-  const [filter, setFilter] = useState("");
+  // The filter lives in the URL (?q=) so coming back from a verse restores it.
+  const [params, setParams] = useSearchParams();
+  const filter = params.get("q") ?? "";
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
@@ -110,7 +112,8 @@ export default function Themes() {
         type="search"
         value={filter}
         onChange={(e) => {
-          setFilter(e.target.value);
+          const q = e.target.value;
+          setParams(q ? { q } : {}, { replace: true });
           setVisible(PAGE_SIZE);
         }}
         placeholder="Filter topics — e.g. patience, mercy"

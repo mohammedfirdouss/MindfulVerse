@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "../lib/data";
 import { getEntries, deleteEntry } from "../lib/journal";
 import { groupEntries, type JournalGroup } from "../lib/journalGroups";
+import { buildJournalText, saveFile, toSections, type ExportInput } from "../lib/journalExport";
 import { useAccount } from "../lib/sync/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
 import type { Ayah, JournalEntry } from "../lib/types";
@@ -157,7 +158,19 @@ export default function Journal() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => onSyncStatus(setStatus), []);
+  // A sync can pull entries from the account after this page mounted (a new
+  // device, a cold open straight to /journal) — show them when it lands.
+  useEffect(
+    () =>
+      onSyncStatus((s) => {
+        setStatus(s);
+        if (s === "synced") setEntries(getEntries());
+      }),
+    []
+  );
+
+  const [exporting, setExporting] = useState<"pdf" | "txt" | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const groups = groupEntries(entries);
 
@@ -166,24 +179,49 @@ export default function Journal() {
     setEntries(getEntries());
   }
 
-  function downloadJournal() {
-    const text = groups
-      .map((g) => {
-        const heading = groupTitle(g, surahNames, sessionTitles);
-        const lines = g.entries.map((e) =>
-          [new Date(e.createdAt).toLocaleString(), e.prompt, e.body]
-            .filter(Boolean)
-            .join("\n")
-        );
-        return `== ${heading} ==\n\n${lines.join("\n\n")}`;
-      })
-      .join("\n\n\n");
-    const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "mindfulverse-journal.txt";
-    a.click();
-    URL.revokeObjectURL(url);
+  async function exportInput(): Promise<ExportInput> {
+    const keys = [
+      ...new Set(
+        entries
+          .map((e) => e.context?.ref)
+          .filter((r): r is string => !!r && VERSE_KEY_RE.test(r))
+      ),
+    ];
+    const ayahs = await loadAyahsByKeys(keys).catch(() => [] as Ayah[]);
+    const translations = new Map(ayahs.map((a) => [a.verseKey, a.translation]));
+    return {
+      sections: toSections(
+        groups,
+        (g) => groupTitle(g, surahNames, sessionTitles),
+        surahNames,
+        translations
+      ),
+      exportedAt: new Date(),
+    };
+  }
+
+  async function download(kind: "pdf" | "txt") {
+    if (exporting) return;
+    setExporting(kind);
+    setExportError(null);
+    try {
+      const input = await exportInput();
+      if (kind === "pdf") {
+        const { buildJournalPdf } = await import("../lib/journalPdf");
+        const bytes = await buildJournalPdf(input);
+        await saveFile(bytes as BlobPart, "mindfulverse-journal.pdf", "application/pdf");
+      } else {
+        await saveFile(buildJournalText(input), "mindfulverse-journal.txt", "text/plain");
+      }
+    } catch {
+      setExportError(
+        kind === "pdf"
+          ? "Couldn’t make the PDF — check your connection and try again, or use plain text."
+          : "Couldn’t save the file — please try again."
+      );
+    } finally {
+      setExporting(null);
+    }
   }
 
   return (
@@ -191,7 +229,9 @@ export default function Journal() {
       <header>
         <p className="eyebrow">Journal</p>
         <h1>Your reflections</h1>
-        <p className="muted" style={{ marginTop: 0 }}>Saved on this device only.</p>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {user ? "Backed up to your account." : "Saved on this device only."}
+        </p>
       </header>
 
       {entries.length > 0 && (
@@ -210,13 +250,23 @@ export default function Journal() {
               )}
             </p>
           )}
-          <button
-            className="btn secondary"
-            style={{ alignSelf: "flex-start" }}
-            onClick={downloadJournal}
-          >
-            Download my journal
-          </button>
+          <div className="journal-export">
+            <button
+              className="btn secondary"
+              onClick={() => void download("pdf")}
+              disabled={exporting !== null}
+            >
+              {exporting === "pdf" ? "Preparing your PDF…" : "Download as PDF"}
+            </button>
+            <button
+              className="link-btn"
+              onClick={() => void download("txt")}
+              disabled={exporting !== null}
+            >
+              or plain text
+            </button>
+          </div>
+          {exportError && <p className="form-error">{exportError}</p>}
         </div>
       )}
 

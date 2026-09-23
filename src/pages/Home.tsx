@@ -125,7 +125,7 @@ export default function Home() {
                 Today’s reflection is saved.
               </p>
               <Link
-                to={deeper ? `/tadabbur/${deeper.surah}` : "/sessions"}
+                to={deeper ? `/tadabbur/${deeper.surah}?v=${deeper.ayah}` : "/sessions"}
                 className="btn secondary"
               >
                 {deeper

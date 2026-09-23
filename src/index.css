@@ -109,6 +109,7 @@ p { margin: 0 0 0.9em; }
   margin: 0 auto;
   padding: 40px 22px 104px;
 }
+.has-install-banner .container { padding-bottom: 200px; }
 
 /* --- Focus & motion floor --- */
 :focus-visible { outline: 2px solid var(--kola); outline-offset: 3px; border-radius: 2px; }
@@ -329,3 +330,7 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 @media (min-width: 720px) {
   @keyframes rise { from { transform: translate(-50%, 14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 }
+
+/* Journal export: the PDF as the main action, plain text as a quiet aside. */
+.journal-export { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; }
+.journal-export button:disabled { opacity: .6; cursor: default; }

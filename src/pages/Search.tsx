@@ -2,8 +2,8 @@
 // The ~1MB index is fetched lazily on the first submitted query (data.ts
 // caches it in memory afterwards), never on mount.
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { loadSearchIndex, parseVerseKey } from "../lib/data";
 
 const MAX_RESULTS = 50;
@@ -28,6 +28,12 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/** Curly and straight apostrophes match each other. Same-length replacement,
+ *  so match offsets stay valid against the original text. */
+function normApostrophes(s: string): string {
+  return s.replace(/[’‘]/g, "'");
+}
+
 /** Trim a long translation to a window around the first match. */
 function makeSnippet(text: string, matchIndex: number, matchLength: number): string {
   if (text.length <= SNIPPET_RADIUS * 2 + matchLength) return text;
@@ -47,17 +53,18 @@ function makeSnippet(text: string, matchIndex: number, matchLength: number): str
 
 /** Case-insensitive substring search; exact whole-word matches rank first. */
 function runSearch(index: [string, string][], term: string): SearchOutcome {
-  const q = term.toLowerCase();
+  const q = normApostrophes(term).toLowerCase();
   const wordRe = new RegExp(`\\b${escapeRegExp(q)}\\b`, "i");
   const exact: Result[] = [];
   const partial: Result[] = [];
   let total = 0;
 
   for (const [verseKey, translation] of index) {
-    const at = translation.toLowerCase().indexOf(q);
+    const plain = normApostrophes(translation);
+    const at = plain.toLowerCase().indexOf(q);
     if (at === -1) continue;
     total++;
-    const bucket = wordRe.test(translation) ? exact : partial;
+    const bucket = wordRe.test(plain) ? exact : partial;
     if (exact.length >= MAX_RESULTS && bucket === partial) continue; // can't be shown
     const { surah, ayah } = parseVerseKey(verseKey);
     bucket.push({ verseKey, surah, ayah, snippet: makeSnippet(translation, at, q.length) });
@@ -69,7 +76,8 @@ function runSearch(index: [string, string][], term: string): SearchOutcome {
 
 /** Wrap every occurrence of the term in <mark>, case-insensitively. */
 function highlight(snippet: string, term: string): ReactNode[] {
-  const parts = snippet.split(new RegExp(`(${escapeRegExp(term)})`, "gi"));
+  const pattern = escapeRegExp(normApostrophes(term)).replace(/'/g, "['’‘]");
+  const parts = snippet.split(new RegExp(`(${pattern})`, "gi"));
   return parts.map((part, i) =>
     i % 2 === 1 ? (
       <mark
@@ -90,29 +98,45 @@ function highlight(snippet: string, term: string): ReactNode[] {
 }
 
 export default function Search() {
-  const [input, setInput] = useState("");
+  // The term lives in the URL (?q=) so coming back from a result restores it.
+  const [params, setParams] = useSearchParams();
+  const [input, setInput] = useState(() => params.get("q") ?? "");
   const [loadingIndex, setLoadingIndex] = useState(false);
   const [outcome, setOutcome] = useState<SearchOutcome | null>(null);
   const [error, setError] = useState(false);
+  const reqId = useRef(0);
 
   useEffect(() => {
     document.title = "Search — MindfulVerse";
   }, []);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const term = input.trim();
-    if (!term) return;
+  async function search(term: string) {
+    const my = ++reqId.current;
     setError(false);
     setLoadingIndex(true); // only visible on the first search — later loads resolve from cache
     try {
       const index = await loadSearchIndex();
-      setOutcome(runSearch(index, term));
+      if (my === reqId.current) setOutcome(runSearch(index, term));
     } catch {
-      setError(true);
+      if (my === reqId.current) setError(true);
     } finally {
-      setLoadingIndex(false);
+      if (my === reqId.current) setLoadingIndex(false);
     }
+  }
+
+  // Re-run a search restored from the URL (the index is cached, so instant).
+  useEffect(() => {
+    const q = params.get("q")?.trim();
+    if (q) void search(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const term = input.trim();
+    if (!term) return;
+    setParams({ q: term }, { replace: true });
+    void search(term);
   }
 
   return (
@@ -132,7 +156,9 @@ export default function Search() {
           className="field-input"
           style={{ flex: 1, minWidth: 0, width: "auto" }}
         />
-        <button type="submit" className="btn">Search</button>
+        <button type="submit" className="btn" disabled={loadingIndex}>
+          Search
+        </button>
       </form>
 
       {loadingIndex && <p className="muted">Loading the search index…</p>}

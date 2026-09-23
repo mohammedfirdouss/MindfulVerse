@@ -11,6 +11,19 @@ import { track } from "../lib/analytics";
 import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/sync/push";
 import FeedbackLink from "../components/FeedbackLink";
 
+const NETWORK_ERROR = "Couldn't reach the server — check your connection and try again.";
+
+function notificationsBlocked(): boolean {
+  return "Notification" in window && Notification.permission === "denied";
+}
+
+function formatTime(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h || 0, m || 0, 0, 0);
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
 function GoogleMark() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -40,6 +53,14 @@ export default function Account() {
   const [reminderBusy, setReminderBusy] = useState(false);
   const [reminderNotice, setReminderNotice] = useState<string | null>(null);
   const [reminderError, setReminderError] = useState<string | null>(null);
+  const [reminderBlocked, setReminderBlocked] = useState(notificationsBlocked);
+  // The time last saved to the subscription — edits commit on blur, and only
+  // when they actually differ.
+  const savedTime = useRef("07:00");
+
+  useEffect(() => {
+    document.title = "Account — MindfulVerse";
+  }, []);
 
   // Fire sync_done only when the status actually transitions to a terminal
   // state, never on every render/poll.
@@ -71,6 +92,7 @@ export default function Account() {
         if (r) {
           setReminderOn(true);
           setReminderTime(r.time);
+          savedTime.current = r.time;
         }
       })
       .catch(() => {
@@ -85,15 +107,20 @@ export default function Account() {
       if (next) {
         const { error, welcomed } = await enableReminder(reminderTime);
         if (error) {
-          setReminderError(error);
+          if (notificationsBlocked()) setReminderBlocked(true);
+          else if (error === "Notifications were not allowed.")
+            // Prompt dismissed without choosing — not blocked, so it can be asked again.
+            setReminderError("Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow.");
+          else setReminderError(error);
           return;
         }
         track({ type: "reminder_set", enabled: true });
         setReminderOn(true);
+        savedTime.current = reminderTime;
         setReminderNotice(
           welcomed
-            ? `Today's verse is on its way to this device. From tomorrow it arrives daily at ${reminderTime}.`
-            : `Daily verse reminder set for ${reminderTime}.`
+            ? `Done — today's verse has been sent to this device so you can see how it looks. From tomorrow it arrives at ${formatTime(reminderTime)}.`
+            : `Daily verse reminder set for ${formatTime(reminderTime)}.`
         );
       } else {
         await disableReminder();
@@ -110,9 +137,10 @@ export default function Account() {
 
   // With the reminder already on, a time edit must reach the stored
   // subscription — otherwise pushes keep firing at the old time.
-  async function changeReminderTime(time: string) {
-    setReminderTime(time);
-    if (!reminderOn) return;
+  // Called on blur, not per keystroke: time inputs fire change for each
+  // segment edit, and each update would be a racing network write.
+  async function commitReminderTime(time: string) {
+    if (!reminderOn || !time || time === savedTime.current) return;
     setReminderBusy(true);
     setReminderError(null);
     try {
@@ -121,12 +149,20 @@ export default function Account() {
         setReminderError(error);
         return;
       }
-      setReminderNotice(`Daily verse reminder set for ${time}.`);
+      savedTime.current = time;
+      setReminderNotice(`Daily verse reminder set for ${formatTime(time)}.`);
     } catch {
       setReminderError("Couldn't update the reminder time — please try again.");
     } finally {
       setReminderBusy(false);
     }
+  }
+
+  // Only promise a backup once the first sync actually landed.
+  function signedInNotice(): string {
+    return getSyncStatus() === "synced"
+      ? "Signed in — your journal is now backed up to your account."
+      : "Signed in.";
   }
 
   async function submit(e: React.FormEvent) {
@@ -156,7 +192,10 @@ export default function Account() {
       }
       await refresh();
       await syncNow();
-      setNotice("Signed in — your journal is now backed up to your account.");
+      setNotice(signedInNotice());
+    } catch {
+      setNotice(null);
+      setError(NETWORK_ERROR);
     } finally {
       setBusy(false);
     }
@@ -177,7 +216,10 @@ export default function Account() {
       setOtp("");
       await refresh();
       await syncNow();
-      setNotice("Signed in — your journal is now backed up to your account.");
+      setNotice(signedInNotice());
+    } catch {
+      setNotice(null);
+      setError(NETWORK_ERROR);
     } finally {
       setBusy(false);
     }
@@ -312,6 +354,20 @@ export default function Account() {
               <button className="btn" type="submit" disabled={busy} style={{ width: "100%" }}>
                 {busy ? "Verifying…" : "Verify & sign in"}
               </button>
+              <p className="soft" style={{ margin: 0, textAlign: "center", fontSize: ".95rem" }}>
+                <button
+                  type="button"
+                  className="link-btn"
+                  onClick={() => {
+                    setPendingVerification(false);
+                    setOtp("");
+                    setError(null);
+                    setNotice(null);
+                  }}
+                >
+                  Use a different email
+                </button>
+              </p>
             </form>
           ) : (
             <>
@@ -354,14 +410,20 @@ export default function Account() {
                   {mode === "signin" ? (
                     <>
                       New here?{" "}
-                      <button type="button" className="link-btn" onClick={() => setMode("signup")}>
+                      <button type="button" className="link-btn" onClick={() => {
+                          setMode("signup");
+                          setError(null);
+                        }}>
                         Create an account
                       </button>
                     </>
                   ) : (
                     <>
                       Already have an account?{" "}
-                      <button type="button" className="link-btn" onClick={() => setMode("signin")}>
+                      <button type="button" className="link-btn" onClick={() => {
+                          setMode("signin");
+                          setError(null);
+                        }}>
                         Sign in
                       </button>
                     </>
@@ -441,46 +503,103 @@ export default function Account() {
             </Link>
           </div>
 
-          <div className="auth-section">
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Daily verse reminder</div>
-            {pushSupport() === "needs-install" && (
-              <p className="soft" style={{ margin: 0 }}>
-                To get reminders on iPhone, first add MindfulVerse to your Home Screen
-                (Share → Add to Home Screen), then return here.
+          <div className="auth-section stack">
+            <div>
+              <div style={{ fontWeight: 600 }}>Daily verse reminder</div>
+              <p className="soft" style={{ margin: "4px 0 0" }}>
+                Get today&rsquo;s verse as a notification at a time you choose — on this
+                phone or computer. Tap it to open your check-in.
               </p>
+            </div>
+            {pushSupport() === "needs-install" && (
+              <ol className="soft" style={{ margin: 0, paddingLeft: 20 }}>
+                <li>Tap <strong>Share</strong> in Safari.</li>
+                <li>Choose <strong>Add to Home Screen</strong>.</li>
+                <li>
+                  Open MindfulVerse from your Home Screen and come back here to turn on
+                  the reminder.
+                </li>
+              </ol>
             )}
             {pushSupport() === "unsupported" && (
               <p className="soft" style={{ margin: 0 }}>
-                This browser doesn&rsquo;t support notifications.
+                This browser can&rsquo;t show notifications. Try Chrome, Edge, Firefox or
+                Safari — on a computer or phone.
               </p>
             )}
-            {pushSupport() === "ok" && (
-              <div className="stack">
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={reminderOn}
-                      disabled={reminderBusy}
-                      onChange={(e) => void toggleReminder(e.target.checked)}
-                    />
-                    <span className="soft">Remind me daily</span>
-                  </label>
-                  <input
-                    type="time"
-                    className="field-input"
-                    value={reminderTime}
-                    disabled={reminderBusy}
-                    onChange={(e) => void changeReminderTime(e.target.value)}
-                    style={{ width: "auto" }}
-                  />
-                </div>
-                {reminderNotice && (
-                  <p className="soft" style={{ margin: 0 }}>{reminderNotice}</p>
-                )}
-                {reminderError && <p className="form-error">{reminderError}</p>}
-              </div>
+            {pushSupport() === "ok" && reminderBlocked && !reminderOn && (
+              <p className="soft" style={{ margin: 0 }}>
+                Notifications are blocked for MindfulVerse in this browser. To turn them
+                on, open your browser&rsquo;s site settings (the icon left of the address
+                bar), allow Notifications, then reload this page.
+              </p>
             )}
+            {pushSupport() === "ok" && !reminderBlocked && !reminderOn && (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <label htmlFor="reminder-time" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>Remind me at</span>
+                    <input
+                      id="reminder-time"
+                      type="time"
+                      className="field-input"
+                      value={reminderTime}
+                      onChange={(e) => setReminderTime(e.target.value)}
+                      style={{ width: "auto" }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={reminderBusy || !reminderTime}
+                    onClick={() => void toggleReminder(true)}
+                  >
+                    {reminderBusy ? "Turning on…" : "Turn on reminder"}
+                  </button>
+                </div>
+                <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
+                  Your browser will ask to allow notifications — choose Allow.
+                </p>
+              </>
+            )}
+            {pushSupport() === "ok" && reminderOn && (
+              <>
+                <p style={{ margin: 0 }}>
+                  On — today&rsquo;s verse arrives daily at {formatTime(savedTime.current)} on
+                  this device.
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <label htmlFor="reminder-time" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="soft">Change time</span>
+                    <input
+                      id="reminder-time"
+                      type="time"
+                      className="field-input"
+                      value={reminderTime}
+                      onChange={(e) => setReminderTime(e.target.value)}
+                      onBlur={(e) => void commitReminderTime(e.target.value)}
+                      style={{ width: "auto" }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="link-btn"
+                    disabled={reminderBusy}
+                    onClick={() => void toggleReminder(false)}
+                  >
+                    Turn off
+                  </button>
+                </div>
+                <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
+                  Reminders are set per device. Turn them on on each phone or computer you
+                  use. On a computer they arrive while your browser is running.
+                </p>
+              </>
+            )}
+            {reminderNotice && (
+              <p className="soft" style={{ margin: 0 }}>{reminderNotice}</p>
+            )}
+            {reminderError && <p className="form-error">{reminderError}</p>}
           </div>
 
           <div className="auth-section">

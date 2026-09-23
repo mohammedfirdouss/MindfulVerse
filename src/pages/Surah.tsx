@@ -188,7 +188,6 @@ function SurahReader() {
   const [view, setView] = useState<ReadView>(() =>
     localStorage.getItem(VIEW_KEY) === "arabic" ? "arabic" : "both"
   );
-  const [jumpMiss, setJumpMiss] = useState(false);
   const [shared, setShared] = useState<{ key: string; label: string } | null>(null);
   const sharedTimer = useRef<number | undefined>(undefined);
   const tafsirPromise = useRef<Promise<SurahTafsir> | null>(null);
@@ -324,7 +323,6 @@ function SurahReader() {
     const n = Number(jump);
     if (!Number.isFinite(n)) return;
     const el = document.getElementById(`v${n}`);
-    setJumpMiss(!el);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
       recordLastRead(surahNumber, n);
@@ -395,16 +393,13 @@ function SurahReader() {
               </button>
             </div>
           </div>
-          <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input
               type="number"
               min={1}
               max={meta?.ayahCount ?? 300}
               value={jump}
-              onChange={(e) => {
-                setJump(e.target.value);
-                setJumpMiss(false);
-              }}
+              onChange={(e) => setJump(e.target.value)}
               placeholder="Verse"
               aria-label="Jump to verse number"
               className="field-input"
@@ -413,11 +408,6 @@ function SurahReader() {
             <button type="submit" className="btn secondary" style={{ padding: "7px 14px" }}>
               Go
             </button>
-            {jumpMiss && (
-              <span className="muted" role="status" style={{ fontSize: ".85rem" }}>
-                This surah has {ayahs.length} verses
-              </span>
-            )}
           </form>
         </div>
       )}

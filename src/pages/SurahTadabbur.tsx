@@ -18,10 +18,8 @@ import { track } from "../lib/analytics";
 import { getSurahTadabbur, recordSurahTadabbur } from "../lib/progress";
 import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
 
-// ---------------------------------------------------------------------------
 // Motion helpers — transform + opacity only, under 400ms (same approach as
 // SessionPlayer). Reduced motion: content simply appears.
-// ---------------------------------------------------------------------------
 
 function prefersReducedMotion(): boolean {
   return (
@@ -66,9 +64,7 @@ function useMounted(resetKey: unknown): boolean {
   return mounted;
 }
 
-// ---------------------------------------------------------------------------
 // Shared bits
-// ---------------------------------------------------------------------------
 
 interface SurahInfo {
   surah: number;
@@ -99,10 +95,8 @@ const textareaStyle: CSSProperties = {
   resize: "vertical",
 };
 
-// ---------------------------------------------------------------------------
 // The surah's background text, shown first (per user feedback). Long infos are
 // trimmed to the opening paragraphs with a "Read more" expander.
-// ---------------------------------------------------------------------------
 
 const ABOUT_COLLAPSED_PARAGRAPHS = 5;
 
@@ -139,22 +133,30 @@ function InfoText({ text }: { text: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // Collapsible commentary for one verse (lazy tafsir fetch, covering-entry).
-// ---------------------------------------------------------------------------
 
 function VerseCommentary({
   ayah,
   covering,
   ensureTafsir,
   tafsir,
+  indexUnavailable,
 }: {
   ayah: Ayah;
   covering: number | null;
   ensureTafsir: () => void;
   tafsir: SurahTafsir | null;
+  indexUnavailable: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  if (indexUnavailable) {
+    return (
+      <p className="muted" style={{ margin: 0, fontSize: ".9rem" }}>
+        The commentary isn’t available right now.
+      </p>
+    );
+  }
 
   if (covering === null) {
     return (
@@ -216,14 +218,36 @@ function VerseCommentary({
   );
 }
 
-// ---------------------------------------------------------------------------
 // The reflection area — the physical tadabbur journal's three questions.
-// ---------------------------------------------------------------------------
 
-function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
-  const [lessons, setLessons] = useState("");
-  const [stirs, setStirs] = useState("");
-  const [action, setAction] = useState("");
+interface Draft {
+  lessons: string;
+  stirs: string;
+  action: string;
+}
+
+const EMPTY_DRAFT: Draft = { lessons: "", stirs: "", action: "" };
+
+function hasText(d: Draft): boolean {
+  return (
+    d.lessons.trim().length > 0 ||
+    d.stirs.trim().length > 0 ||
+    d.action.trim().length > 0
+  );
+}
+
+function ReflectionArea({
+  ayah,
+  name,
+  draft,
+  onDraft,
+}: {
+  ayah: Ayah;
+  name: string;
+  draft: Draft;
+  onDraft: (d: Draft) => void;
+}) {
+  const { lessons, stirs, action } = draft;
   const [saved, setSaved] = useState(false);
 
   const canSave =
@@ -244,9 +268,7 @@ function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
       context: { kind: "tadabbur", ref: ayah.verseKey },
     });
     track({ type: "journal_save", context: "tadabbur" });
-    setLessons("");
-    setStirs("");
-    setAction("");
+    onDraft(EMPTY_DRAFT);
     setSaved(true);
   }
 
@@ -270,7 +292,7 @@ function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
           rows={2}
           value={lessons}
           onChange={(e) => {
-            setLessons(e.target.value);
+            onDraft({ ...draft, lessons: e.target.value });
             setSaved(false);
           }}
           style={textareaStyle}
@@ -284,7 +306,7 @@ function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
           rows={2}
           value={stirs}
           onChange={(e) => {
-            setStirs(e.target.value);
+            onDraft({ ...draft, stirs: e.target.value });
             setSaved(false);
           }}
           style={textareaStyle}
@@ -298,7 +320,7 @@ function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
           rows={2}
           value={action}
           onChange={(e) => {
-            setAction(e.target.value);
+            onDraft({ ...draft, action: e.target.value });
             setSaved(false);
           }}
           style={textareaStyle}
@@ -318,13 +340,18 @@ function ReflectionArea({ ayah, name }: { ayah: Ayah; name: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // The page
-// ---------------------------------------------------------------------------
 
 type LoadStatus = "loading" | "ready" | "error";
 
+// Keyed on the surah so "Next surah" starts from clean state — no stale ayahs,
+// in-flight tafsir or drafts carried over from the previous surah.
 export default function SurahTadabbur() {
+  const { surah } = useParams<{ surah: string }>();
+  return <SurahTadabburPage key={surah} />;
+}
+
+function SurahTadabburPage() {
   const { surah } = useParams<{ surah: string }>();
   const [params] = useSearchParams();
   const surahNumber = Number(surah);
@@ -334,6 +361,7 @@ export default function SurahTadabbur() {
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [indexed, setIndexed] = useState<number[]>([]);
+  const [indexFailed, setIndexFailed] = useState(false);
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [info, setInfo] = useState<SurahInfo | null>(null);
   const [tafsir, setTafsir] = useState<SurahTafsir | null>(null);
@@ -342,11 +370,17 @@ export default function SurahTadabbur() {
   /** -1 = about screen, 0..count-1 = a verse, count = completion. */
   const [phase, setPhase] = useState(-1);
   const [started, setStarted] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [leaveWarned, setLeaveWarned] = useState(false);
   const reduce = useMemo(prefersReducedMotion, []);
+  // Re-read on every phase change so returning to the about screen offers the
+  // latest resume point, not the one from when the page opened.
   const saved = useMemo(
     () => (validSurah ? getSurahTadabbur(surahNumber) : undefined),
-    [validSurah, surahNumber]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [validSurah, surahNumber, phase]
   );
+  const hasUnsaved = Object.values(drafts).some(hasText);
 
   useEffect(() => {
     if (!validSurah) return;
@@ -360,13 +394,14 @@ export default function SurahTadabbur() {
 
     Promise.all([
       loadSurahAyahs(surahNumber),
-      loadTafsirIndex().catch<Record<string, number[]>>(() => ({})),
+      loadTafsirIndex().catch<Record<string, number[]> | null>(() => null),
       loadSurahs().catch<SurahMeta[]>(() => []),
     ])
       .then(([ayahData, indexData, surahList]) => {
         if (!active) return;
         setAyahs(ayahData);
-        setIndexed(indexData[String(surahNumber)] ?? []);
+        setIndexed(indexData?.[String(surahNumber)] ?? []);
+        setIndexFailed(indexData === null);
         setMeta(surahList.find((s) => s.number === surahNumber));
         setStatus("ready");
       })
@@ -411,8 +446,14 @@ export default function SurahTadabbur() {
   useEffect(() => {
     if (status !== "ready" || phase < 0 || ayahs.length === 0) return;
     const a = ayahs[Math.min(phase, ayahs.length - 1)];
+    if (a.surah !== surahNumber) return;
     recordSurahTadabbur(surahNumber, a.ayah);
   }, [phase, status, ayahs, surahNumber]);
+
+  // Each verse starts at the top — Next sits below the reflection area.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [phase]);
 
   const mounted = useMounted(phase);
 
@@ -577,9 +618,24 @@ export default function SurahTadabbur() {
 
   return (
     <div className="stack">
-      <Link to="/sessions" className="muted">
+      <Link
+        to="/sessions"
+        className="muted"
+        onClick={(e) => {
+          if (hasUnsaved && !leaveWarned) {
+            e.preventDefault();
+            setLeaveWarned(true);
+          }
+        }}
+      >
         All tadabbur
       </Link>
+      {hasUnsaved && leaveWarned && (
+        <p className="soft" role="status" style={{ margin: 0, fontSize: ".9rem" }}>
+          You have an unsaved reflection on this surah. Save it below, or tap
+          “All tadabbur” again to leave without saving.
+        </p>
+      )}
 
       <p className="eyebrow" aria-live="polite">
         Verse {phase + 1} of {count}
@@ -608,9 +664,19 @@ export default function SurahTadabbur() {
             covering={covering}
             ensureTafsir={ensureTafsir}
             tafsir={tafsir}
+            indexUnavailable={indexFailed}
           />
 
-          <ReflectionArea key={a.verseKey} ayah={a} name={name} />
+          <ReflectionArea
+            key={a.verseKey}
+            ayah={a}
+            name={name}
+            draft={drafts[a.verseKey] ?? EMPTY_DRAFT}
+            onDraft={(d) => {
+              setLeaveWarned(false);
+              setDrafts((prev) => ({ ...prev, [a.verseKey]: d }));
+            }}
+          />
         </div>
       </FadeRise>
 
