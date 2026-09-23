@@ -9,9 +9,10 @@ export default function NotFound() {
   return (
     <div className="stack">
       <header>
-        <h1>This page isn't here</h1>
+        <p className="eyebrow">Not found</p>
+        <h1>This page isn’t here</h1>
         <p className="soft">
-          The path you followed doesn't lead anywhere — but the Qur'an is
+          The path you followed doesn’t lead anywhere — but the Qur’an is
           always open.
         </p>
       </header>
@@ -20,7 +21,7 @@ export default function NotFound() {
           Go home
         </Link>
         <Link to="/read" className="btn secondary">
-          Read the Qur'an
+          Read the Qur’an
         </Link>
       </div>
     </div>

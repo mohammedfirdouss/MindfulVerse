@@ -317,8 +317,9 @@ export default function Account() {
         </h1>
         {!user && (
           <p className="muted" style={{ marginTop: 0 }}>
-            Optional. The Qur&rsquo;an is always free here — an account only backs
-            up your journal and progress so they follow you to another device.
+            Optional. The Qur&rsquo;an is always free here and an account backs up your
+            journal and progress so they follow you to another device, and lets you
+            get today&rsquo;s verse as a daily reminder on your phone or computer.
           </p>
         )}
       </header>
@@ -591,8 +592,8 @@ export default function Account() {
                   </button>
                 </div>
                 <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
-                  Reminders are set per device. Turn them on on each phone or computer you
-                  use. On a computer they arrive while your browser is running.
+                  Reminders are set per device — switch them on wherever you&rsquo;d like
+                  them. On a computer they arrive while your browser is running.
                 </p>
               </>
             )}

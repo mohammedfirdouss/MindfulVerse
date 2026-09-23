@@ -151,7 +151,7 @@ export default function Search() {
           type="search"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Search the translation — e.g. mercy, patience"
+          placeholder="e.g. mercy, patience"
           aria-label="Search the translation"
           className="field-input"
           style={{ flex: 1, minWidth: 0, width: "auto" }}

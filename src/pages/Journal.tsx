@@ -3,7 +3,13 @@ import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "../lib/data";
 import { getEntries, deleteEntry } from "../lib/journal";
 import { groupEntries, type JournalGroup } from "../lib/journalGroups";
-import { buildJournalText, saveFile, toSections, type ExportInput } from "../lib/journalExport";
+import {
+  buildJournalText,
+  formatDate,
+  saveFile,
+  toSections,
+  type ExportInput,
+} from "../lib/journalExport";
 import { useAccount } from "../lib/sync/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
 import type { Ayah, JournalEntry } from "../lib/types";
@@ -87,7 +93,7 @@ function EntryCard({
   return (
     <div className="card stack">
       <div className="muted" style={{ fontSize: ".8rem" }}>
-        {new Date(entry.createdAt).toLocaleString()}
+        {formatDate(entry.createdAt)}
       </div>
       {verseRef && <EntryVerse verseKey={verseRef} />}
       {sessionRef && (
@@ -188,13 +194,13 @@ export default function Journal() {
       ),
     ];
     const ayahs = await loadAyahsByKeys(keys).catch(() => [] as Ayah[]);
-    const translations = new Map(ayahs.map((a) => [a.verseKey, a.translation]));
+    const verses = new Map(ayahs.map((a) => [a.verseKey, a]));
     return {
       sections: toSections(
         groups,
         (g) => groupTitle(g, surahNames, sessionTitles),
         surahNames,
-        translations
+        verses
       ),
       exportedAt: new Date(),
     };
@@ -229,9 +235,9 @@ export default function Journal() {
       <header>
         <p className="eyebrow">Journal</p>
         <h1>Your reflections</h1>
-        <p className="muted" style={{ marginTop: 0 }}>
-          {user ? "Backed up to your account." : "Saved on this device only."}
-        </p>
+        {user && (
+          <p className="muted" style={{ marginTop: 0 }}>Backed up to your account.</p>
+        )}
       </header>
 
       {entries.length > 0 && (

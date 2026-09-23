@@ -4,8 +4,6 @@
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import {
-  countEntries,
-  formatDate,
   formatDay,
   hasTranslations,
   TRANSLATION_CREDIT,
@@ -94,6 +92,103 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
   page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.ochre });
 }
 
+/* ---- Script the PDF's Latin face can't set: let the browser draw it ---- */
+
+// PDF text can't shape Arabic (joining, marks, right-to-left) or draw colour
+// emoji, but the browser's canvas can — with the app's own mushaf font. Such
+// lines are rendered crisply at 3x and placed as images.
+const RASTER = 3;
+const ARABIC_STACK = `"Uthmanic Hafs", "Scheherazade New", "Noto Naskh Arabic", serif`;
+// Canvas can't pick a weight from a variable font (it draws the default, the
+// Black), so mixed lines use the same static regular cut as the vector text.
+const LATIN_FACE = "MindfulVerse PDF Serif";
+const MIXED_STACK = `"${LATIN_FACE}", ${ARABIC_STACK}, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"`;
+
+let latinFace: Promise<void> | null = null;
+function loadLatinFace(): Promise<void> {
+  latinFace ??= new FontFace(LATIN_FACE, "url(/fonts/pdf/fraunces-regular.ttf)")
+    .load()
+    .then((f) => {
+      document.fonts.add(f);
+    })
+    .catch(() => {});
+  return latinFace;
+}
+
+interface RasterLine {
+  png: Uint8Array;
+  width: number; // points
+}
+
+async function rasterLines(
+  str: string,
+  opts: { family: string; size: number; leading: number; width: number; color: string; rtl: boolean }
+): Promise<RasterLine[]> {
+  const fontSpec = `${opts.size}px ${opts.family}`;
+  await loadLatinFace();
+  await document.fonts.load(fontSpec, str).catch(() => []);
+  const measure = document.createElement("canvas").getContext("2d")!;
+  measure.font = fontSpec;
+  measure.direction = opts.rtl ? "rtl" : "ltr";
+
+  const lines: string[] = [];
+  for (const para of str.split(/\r?\n/)) {
+    let line = "";
+    for (const word of para.split(/\s+/).filter(Boolean)) {
+      const next = line ? `${line} ${word}` : word;
+      if (!line || measure.measureText(next).width <= opts.width) line = next;
+      else {
+        lines.push(line);
+        line = word;
+      }
+    }
+    lines.push(line);
+  }
+
+  const out: RasterLine[] = [];
+  for (const line of lines) {
+    const w = Math.ceil(Math.min(opts.width, measure.measureText(line).width + 2)) || 1;
+    const canvas = document.createElement("canvas");
+    canvas.width = w * RASTER;
+    canvas.height = Math.ceil(opts.leading * RASTER);
+    const ctx = canvas.getContext("2d")!;
+    ctx.scale(RASTER, RASTER);
+    ctx.font = fontSpec;
+    ctx.fillStyle = opts.color;
+    ctx.direction = opts.rtl ? "rtl" : "ltr";
+    ctx.textAlign = opts.rtl ? "right" : "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(line, opts.rtl ? w - 1 : 1, opts.leading / 2);
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/png"));
+    if (!blob) continue;
+    out.push({ png: new Uint8Array(await blob.arrayBuffer()), width: w });
+  }
+  return out;
+}
+
+function dayLabel(ms: number): string {
+  return new Date(ms).toLocaleDateString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function timeLabel(ms: number): string {
+  return new Date(ms).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function spanLabel(input: ExportInput): string {
+  const times = input.sections.flatMap((s) => s.items.map((i) => i.entry.createdAt));
+  const n = times.length;
+  const count = `${n} ${n === 1 ? "reflection" : "reflections"}`;
+  if (n === 0) return count;
+  const first = formatDay(new Date(Math.min(...times)));
+  const last = formatDay(new Date(Math.max(...times)));
+  return first === last ? `${count} · ${first}` : `${count} · ${first} – ${last}`;
+}
+
 export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
@@ -115,16 +210,9 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   const font = await doc.embedFont(regularBytes, { subset: true });
   const bold = await doc.embedFont(semiboldBytes, { subset: true });
 
-  // Characters the Latin face can't draw (Arabic, emoji) are left out of the
-  // PDF rather than printed as boxes; the plain-text export keeps everything.
   const drawable = new Set(font.getCharacterSet());
-  const clean = (s: string) =>
-    Array.from(s)
-      .filter((ch) => ch === "\n" || drawable.has(ch.codePointAt(0)!))
-      .join("")
-      .replace(/[ \t]{2,}/g, " ");
-  const loses = (s: string) =>
-    Array.from(s).some((ch) => !/\s/.test(ch) && !drawable.has(ch.codePointAt(0)!));
+  const settable = (s: string) =>
+    Array.from(s).every((ch) => /\s/.test(ch) || drawable.has(ch.codePointAt(0)!));
 
   let page!: PDFPage;
   let y = 0;
@@ -141,119 +229,147 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     if (y - h < BOTTOM) newPage();
   }
 
-  function text(
-    str: string,
-    opts: {
-      size: number;
-      color: ReturnType<typeof rgb>;
-      leading: number;
-      x?: number;
-      width?: number;
-      face?: PDFFont;
-    }
-  ) {
-    const x = opts.x ?? MARGIN_X;
-    const face = opts.face ?? font;
-    for (const line of wrap(clean(str), face, opts.size, opts.width ?? TEXT_W)) {
-      room(opts.leading);
-      y -= opts.leading;
-      if (line) page.drawText(line, { x, y, size: opts.size, font: face, color: opts.color });
-    }
+  const INSET = 16;
+  /** The app's verse quote: a pale indigo rule at the inline start. */
+  function rule(leading: number) {
+    page.drawRectangle({ x: MARGIN_X, y: y - 3, width: 2.5, height: leading, color: C.indigoWash });
   }
 
-  // --- Title block ---
+  type Color = ReturnType<typeof rgb>;
+  interface TextOpts {
+    size: number;
+    color: Color;
+    leading: number;
+    face?: PDFFont;
+    quoted?: boolean; // indented, with the quote rule
+  }
+
+  async function text(str: string, opts: TextOpts) {
+    const x = opts.quoted ? MARGIN_X + INSET : MARGIN_X;
+    const width = opts.quoted ? TEXT_W - INSET : TEXT_W;
+    const face = opts.face ?? font;
+
+    if (settable(str)) {
+      for (const line of wrap(str, face, opts.size, width)) {
+        room(opts.leading);
+        y -= opts.leading;
+        if (opts.quoted) rule(opts.leading);
+        if (line) page.drawText(line, { x, y, size: opts.size, font: face, color: opts.color });
+      }
+      return;
+    }
+    // Mixed script (Arabic, emoji…): let the browser set it.
+    const c = opts.color;
+    const css = `rgb(${Math.round(c.red * 255)}, ${Math.round(c.green * 255)}, ${Math.round(c.blue * 255)})`;
+    const lines = await rasterLines(str, {
+      family: MIXED_STACK,
+      size: opts.size,
+      leading: opts.leading,
+      width,
+      color: css,
+      rtl: false,
+    });
+    for (const l of lines) await image(l, opts.leading, x, false, opts.quoted);
+  }
+
+  async function image(l: RasterLine, leading: number, x: number, alignRight: boolean, quoted?: boolean) {
+    room(leading);
+    y -= leading;
+    if (quoted) rule(leading);
+    const img = await doc.embedPng(l.png);
+    const left = alignRight ? PAGE_W - MARGIN_X - l.width : x;
+    // Canvas lines are centred on their leading; nudge to sit like text does.
+    page.drawImage(img, { x: left, y: y - leading * 0.28, width: l.width, height: leading });
+  }
+
+  // --- Opening ---
   newPage();
-  const n = countEntries(input);
   drawMark(page, MARGIN_X, y - 34, 34);
-  page.drawText("MindfulVerse", {
-    x: MARGIN_X + 46,
-    y: y - 23,
-    size: 15,
-    font: bold,
-    color: C.indigo,
-  });
-  y -= 76;
-  text("Your reflections", { size: 30, color: C.indigoDeep, leading: 34, face: bold });
-  y -= 6;
-  text(
-    `Exported ${formatDay(input.exportedAt)} · ${n} ${n === 1 ? "reflection" : "reflections"}`,
-    { size: 11, color: C.inkFaint, leading: 15 }
-  );
-  y -= 26;
+  page.drawText("MindfulVerse", { x: MARGIN_X + 46, y: y - 23, size: 15, font: bold, color: C.indigo });
+  y -= 84;
+  await text("Your reflections", { size: 32, color: C.indigoDeep, leading: 36, face: bold });
+  y -= 8;
+  await text(spanLabel(input), { size: 11.5, color: C.inkSoft, leading: 16 });
+  await text(`Exported ${formatDay(input.exportedAt)}`, { size: 9.5, color: C.inkFaint, leading: 14 });
+  y -= 30;
 
   // --- Sections ---
   for (const section of input.sections) {
-    room(80); // never strand a heading at the foot of a page
-    y -= 8;
-    text(section.title, { size: 18, color: C.indigo, leading: 22, face: bold });
-    y -= 8;
+    room(96); // never strand a heading at the foot of a page
+    y -= 6;
+    await text(section.title, { size: 19, color: C.indigo, leading: 24, face: bold });
+    y -= 9;
     page.drawLine({
       start: { x: MARGIN_X, y },
       end: { x: PAGE_W - MARGIN_X, y },
       thickness: 0.75,
       color: C.line,
     });
-    y -= 10;
+    y -= 12;
 
-    for (const { entry, verseLabel, translation } of section.items) {
-      room(70);
+    for (const { entry, verseLabel, translation, arabic } of section.items) {
+      room(90);
+      y -= 10;
+      // Date as a journal page heading; the time stays quiet beside it.
+      const day = dayLabel(entry.createdAt);
+      y -= 14;
+      page.drawText(day, { x: MARGIN_X, y, size: 10, font: bold, color: C.indigo });
+      page.drawText(`  ·  ${timeLabel(entry.createdAt)}`, {
+        x: MARGIN_X + bold.widthOfTextAtSize(day, 10),
+        y,
+        size: 10,
+        font,
+        color: C.inkFaint,
+      });
       y -= 8;
-      text(formatDate(entry.createdAt), { size: 9.5, color: C.indigo, leading: 13, face: bold });
 
       if (verseLabel) {
-        // A quiet rule at the inline start, like the app's verse quote.
-        const startY = y;
-        y -= 4;
-        const inset = 14;
+        if (arabic) {
+          const lines = await rasterLines(arabic, {
+            family: ARABIC_STACK,
+            size: 19,
+            leading: 34,
+            width: TEXT_W - INSET,
+            color: "#221d15",
+            rtl: true,
+          });
+          for (const l of lines) await image(l, 34, 0, true, true);
+        }
         if (translation) {
-          text(`“${translation}”`, {
-            size: 11,
-            color: C.inkSoft,
-            leading: 16,
-            x: MARGIN_X + inset,
-            width: TEXT_W - inset,
-          });
+          await text(`“${translation}”`, { size: 11, color: C.inkSoft, leading: 16.5, quoted: true });
         }
-        text(verseLabel, {
-          size: 9,
-          color: C.inkFaint,
-          leading: 14,
-          x: MARGIN_X + inset,
-          width: TEXT_W - inset,
-        });
-        if (y < startY) {
-          page.drawRectangle({
-            x: MARGIN_X,
-            y: y - 2,
-            width: 2.5,
-            height: Math.min(startY - y, TOP - y),
-            color: C.indigoWash,
-          });
-        }
+        await text(verseLabel, { size: 9, color: C.inkFaint, leading: 15, quoted: true });
+        y -= 8;
       }
 
       if (entry.prompt) {
-        y -= 6;
-        text(entry.prompt, { size: 10.5, color: C.inkSoft, leading: 15 });
-      }
-      y -= 4;
-      text(entry.body, { size: 12, color: C.ink, leading: 18.5 });
-      if (loses(entry.body)) {
+        room(14 + 2 + 20); // keep the prompt with the first line of the reflection
+        await text(entry.prompt, { size: 9.5, color: C.inkFaint, leading: 14 });
         y -= 2;
-        text(
-          "Some characters here (such as Arabic script or emoji) can’t be shown in a PDF. The plain-text download keeps them.",
-          { size: 8.5, color: C.inkFaint, leading: 12 }
-        );
       }
-      y -= 14;
+      // The reflection is the point of the page — it gets the largest type.
+      await text(entry.body, { size: 13, color: C.ink, leading: 20 });
+      y -= 18;
     }
     y -= 10;
   }
 
+  // --- Closing mark, then the credit ---
+  room(60);
+  y -= 16;
+  const cx = PAGE_W / 2;
+  page.drawSvgPath(`M ${cx} ${-(y + 6)} L ${cx + 6} ${-y} L ${cx} ${-(y - 6)} L ${cx - 6} ${-y} Z`, {
+    borderColor: C.indigo,
+    borderWidth: 1,
+  });
+  page.drawCircle({ x: cx, y, size: 1.6, color: C.ochre });
+  y -= 22;
+
   if (hasTranslations(input)) {
-    room(30);
-    y -= 10;
-    text(TRANSLATION_CREDIT, { size: 8.5, color: C.inkFaint, leading: 12 });
+    const w = font.widthOfTextAtSize(TRANSLATION_CREDIT, 8.5);
+    room(14);
+    y -= 12;
+    page.drawText(TRANSLATION_CREDIT, { x: (PAGE_W - w) / 2, y, size: 8.5, font, color: C.inkFaint });
   }
 
   // --- Footers, once the page count is known ---

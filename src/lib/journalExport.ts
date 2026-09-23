@@ -9,6 +9,8 @@ export interface ExportItem {
   verseLabel?: string;
   /** The verse's English translation, verbatim. */
   translation?: string;
+  /** The verse in Arabic, verbatim. */
+  arabic?: string;
 }
 
 export interface ExportSection {
@@ -28,7 +30,7 @@ export function toSections(
   groups: JournalGroup[],
   titleFor: (g: JournalGroup) => string,
   surahNames: Map<number, string>,
-  translations: Map<string, string>
+  verses: Map<string, { arabic: string; translation: string }>
 ): ExportSection[] {
   return groups.map((g) => ({
     title: titleFor(g),
@@ -37,10 +39,13 @@ export function toSections(
       if (!ref || !VERSE_KEY_RE.test(ref)) return { entry };
       const surah = Number(ref.split(":")[0]);
       const name = surahNames.get(surah);
+      const verse = verses.get(ref);
       return {
         entry,
-        verseLabel: name ? `${name} · ${ref}` : `Qur’an ${ref}`,
-        translation: translations.get(ref),
+        // Under its own surah's heading the name would only repeat.
+        verseLabel: g.surah === surah ? ref : name ? `${name} · ${ref}` : `Qur’an ${ref}`,
+        translation: verse?.translation,
+        arabic: verse?.arabic,
       };
     }),
   }));
@@ -78,9 +83,10 @@ export function buildJournalText(input: ExportInput): string {
   ];
   for (const section of input.sections) {
     out.push("", "", section.title);
-    for (const { entry, verseLabel, translation } of section.items) {
+    for (const { entry, verseLabel, translation, arabic } of section.items) {
       const lines = [formatDate(entry.createdAt)];
       if (verseLabel) lines.push(verseLabel);
+      if (arabic) lines.push(arabic);
       if (translation) lines.push(`“${translation}”`);
       if (entry.prompt) lines.push(entry.prompt);
       lines.push(entry.body);

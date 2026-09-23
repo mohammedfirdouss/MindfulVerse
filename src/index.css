@@ -332,5 +332,5 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 }
 
 /* Journal export: the PDF as the main action, plain text as a quiet aside. */
-.journal-export { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; }
+.journal-export { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 18px; }
 .journal-export button:disabled { opacity: .6; cursor: default; }
