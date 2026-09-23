@@ -37,13 +37,24 @@ export default function Sheet({
 
   // The phone's back button/gesture must close the sheet, not leave the page.
   useEffect(() => {
-    const onPop = () => onClose();
+    const onPop = () => {
+      // StrictMode's dev double-mount pushes a second sheet entry; the stray
+      // back() from the first cleanup lands on it — that is not a real "back".
+      if (!window.history.state?.mvSheet) onClose();
+    };
     window.history.pushState({ mvSheet: true }, "");
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
       // Closed via ✕/backdrop/Escape: remove the extra history entry we added.
-      if (window.history.state?.mvSheet) window.history.back();
+      // Deferred to a microtask: calling history.back() synchronously here
+      // can race with a synchronous remount's pushState (exactly what
+      // StrictMode's dev double-invoke does), which makes the browser
+      // overshoot past the entry the remount just pushed. Deferring lets
+      // that pushState land first, so back() only ever takes one clean step.
+      queueMicrotask(() => {
+        if (window.history.state?.mvSheet) window.history.back();
+      });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
