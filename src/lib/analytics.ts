@@ -29,6 +29,13 @@ interface StoredEvent {
   e: AnalyticsEvent;
 }
 
+/** Host hook called after each event is stored (web: console.debug in dev). */
+let onTrack: ((e: AnalyticsEvent) => void) | null = null;
+
+export function configureAnalytics(opts: { onTrack?: (e: AnalyticsEvent) => void }): void {
+  onTrack = opts.onTrack ?? null;
+}
+
 const KEY = "mindfulverse.events.v1";
 const FIRST_SEEN = "mindfulverse.firstSeen.v1";
 
@@ -38,7 +45,7 @@ export function track(e: AnalyticsEvent): void {
     const events: StoredEvent[] = raw ? JSON.parse(raw) : [];
     events.push({ t: Date.now(), e });
     localStorage.setItem(KEY, JSON.stringify(events));
-    if (import.meta.env.DEV) console.debug("[track]", e);
+    onTrack?.(e);
   } catch {
     /* analytics must never break the app */
   }
