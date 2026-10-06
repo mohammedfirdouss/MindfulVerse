@@ -97,22 +97,37 @@ root. Metro pins React to this app's copy (see `metro.config.js`), and
 `check:bundle` proves only one React is bundled. React is not a native module,
 so the native build is unaffected.
 
-## Push (daily reminders): not yet configured
+## Push (daily reminders): off in this release
 
-`src/push.ts` implements registration per the Phase 3 contract, but three
-things are missing. Until they exist, `pushSupport()` returns `"no-project"`
-and `enableReminder()` returns a clear error instead of throwing.
+`src/push.ts` implements registration per the Phase 3 contract, and the EAS
+project id is already in `app.json` (`extra.eas.projectId`). Firebase/FCM is
+deliberately not set up yet, so `pushSupport()` returns `"not-configured"`
+(it needs `expo.android.googleServicesFile` in the app config) and the
+Account screen shows "Reminders aren't available in this version of the app
+yet". iOS also returns `"not-configured"`; it isn't shipping yet.
 
-1. **EAS project:** run `npx eas init` in `apps/mobile`. It writes
-   `extra.eas.projectId` into the app config. `getExpoPushTokenAsync` needs it.
-2. **FCM:** create a Firebase project with an Android app `dev.mindfulverse.app`.
-   Download `google-services.json` into `apps/mobile/` (gitignored; for EAS
-   builds, upload it as a file env var), and add
-   `"googleServicesFile": "./google-services.json"` under `expo.android` in
-   `app.json`. Then upload an FCM V1 service-account key with
-   `npx eas credentials`.
-3. **Backend:** apply the migration and redeploy `send-reminders`, as described
-   under "Apply later" in `docs/superpowers/plans/2026-10-06-rn-phase3-push-platform.md`.
+To turn push on later, all of these:
+
+1. **Firebase project:** create one with an Android app whose package is
+   `dev.mindfulverse.app`, and download its `google-services.json` into
+   `apps/mobile/` (keep it out of git; for EAS builds, upload it as a file
+   environment variable, e.g. `GOOGLE_SERVICES_JSON`, and point the config at
+   that path).
+2. **App config:** add `"googleServicesFile": "./google-services.json"` under
+   `expo.android` in `app.json`. This is what flips `pushSupport()` to `"ok"`,
+   so it must never ship without the file. Needs a new native build.
+3. **FCM V1 key:** in Firebase, create a service-account key (Project settings →
+   Service accounts), then upload it with `npx eas credentials` (Android →
+   production → Google Service Account → FCM V1). Expo's push service uses it to
+   deliver to FCM.
+4. **Backend:** apply the Phase 3 migration and redeploy the `send-reminders`
+   function, as described under "Apply later" in
+   `docs/superpowers/plans/2026-10-06-rn-phase3-push-platform.md`.
+5. Test end to end on a device: turn the reminder on (the welcome push should
+   arrive), tap it (opens `/checkin`), change the time, turn it off.
+
+For iOS later: APNs credentials via `eas credentials`, then change
+`fcmConfigured()` in `src/push.ts` to accept iOS.
 
 ## Not in scope yet
 

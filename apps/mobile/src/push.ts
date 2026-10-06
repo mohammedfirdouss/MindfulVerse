@@ -4,12 +4,17 @@
 // one push_subscriptions row per device+account, endpoint = Expo push token,
 // platform = 'expo', keys omitted, user_id defaulted by the server.
 //
-// Requires (none exist yet, see README "Push"):
-//   - an EAS project id in app config `extra.eas.projectId` (`eas init`);
-//   - FCM credentials: google-services.json + FCM V1 key uploaded to EAS;
+// Push is OFF in this release. Turning it on needs (README "Push"):
+//   - an EAS project id in app config `extra.eas.projectId` (present);
+//   - FCM: google-services.json referenced by `android.googleServicesFile`,
+//     plus an FCM V1 service-account key uploaded with `eas credentials`;
 //   - the Phase 3 migration + send-reminders deploy ("Apply later").
-// Until then pushSupport() is "no-project" and enableReminder() fails with a
-// clear message instead of throwing.
+// pushSupport() is "not-configured" until android.googleServicesFile is set
+// (without it getExpoPushTokenAsync fails on Android with "Default FirebaseApp
+// is not initialized"), and "no-project" without a project id. iOS is not
+// shipping yet: its APNs setup can't be detected from app config, so it is
+// "not-configured" too. ReminderSection shows its "not in this version yet"
+// copy for anything but "ok"; enableReminder() returns a friendly error.
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
@@ -20,19 +25,27 @@ const TOKEN_KEY = "mindfulverse.expoPushToken.v1";
 // channel, so configure that one rather than a named channel.
 export const REMINDER_CHANNEL = "default";
 
-export type PushSupport = "ok" | "no-project";
+export type PushSupport = "ok" | "no-project" | "not-configured";
 
 function projectId(): string | null {
   const fromExtra = (Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined)?.eas?.projectId;
   return fromExtra ?? Constants.easConfig?.projectId ?? null;
 }
 
-export function pushSupport(): PushSupport {
-  return projectId() ? "ok" : "no-project";
+/** True when this build carries the native push credentials config. */
+function fcmConfigured(): boolean {
+  if (Platform.OS !== "android") return false; // iOS (APNs) isn't shipping yet
+  return !!Constants.expoConfig?.android?.googleServicesFile;
 }
 
-const NO_PROJECT_MESSAGE =
-  "Reminders aren't set up in this build yet (no EAS project id). See apps/mobile/README.md.";
+export function pushSupport(): PushSupport {
+  if (!projectId()) return "no-project";
+  return fcmConfigured() ? "ok" : "not-configured";
+}
+
+const NOT_AVAILABLE_MESSAGE = "Reminders aren’t available in this version of the app yet.";
+const TOKEN_FAILED_MESSAGE =
+  "Couldn’t set up reminders on this phone right now. Please try again later.";
 
 /** The token this device last registered, without prompting. */
 function storedToken(): string | null {
@@ -58,7 +71,7 @@ type TokenResult = { token: string; error: null } | { token: null; error: string
 /** Asks permission (if needed) and returns this device's Expo push token. */
 async function obtainToken(): Promise<TokenResult> {
   const id = projectId();
-  if (!id) return { token: null, error: NO_PROJECT_MESSAGE };
+  if (!id || pushSupport() !== "ok") return { token: null, error: NOT_AVAILABLE_MESSAGE };
   await ensureChannel();
   let { status } = await Notifications.getPermissionsAsync();
   if (status !== "granted") ({ status } = await Notifications.requestPermissionsAsync());
@@ -72,8 +85,10 @@ async function obtainToken(): Promise<TokenResult> {
     }
     return { token: data, error: null };
   } catch (e) {
-    // Typically missing FCM config (google-services.json) in this build.
-    return { token: null, error: `Couldn't get a push token: ${e instanceof Error ? e.message : String(e)}` };
+    // Typically missing/invalid FCM config in this build. The raw message
+    // ("Default FirebaseApp is not initialized…") means nothing to a reader.
+    console.warn("[push] getExpoPushTokenAsync failed:", e);
+    return { token: null, error: TOKEN_FAILED_MESSAGE };
   }
 }
 

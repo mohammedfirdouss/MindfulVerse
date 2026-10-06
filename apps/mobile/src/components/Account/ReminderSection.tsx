@@ -1,7 +1,8 @@
 // Daily verse reminder: enable at a chosen time, change the time, turn off.
 // Ported from web's Account.tsx over src/push.ts (same results). Native
 // differences: no "install to Home Screen" / unsupported-browser branches;
-// instead "no-project" (this build can't register for push yet) and a
+// instead any pushSupport() other than "ok" ("no-project", "not-configured":
+// this build can't register for push yet) shows calm copy, and a
 // permission the OS will no longer prompt for (only Settings can fix it).
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, Linking, View } from "react-native";
