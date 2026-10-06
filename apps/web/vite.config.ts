@@ -1,10 +1,12 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 // Offline-first PWA. Quran data lives in /public/data and is fetched at runtime,
 // then cached by the service worker so the app works fully offline after first load.
 export default defineConfig({
+  // .env / .env.local stay at the repo root (shared with the InsForge CLI setup).
+  envDir: "../..", // resolved against this app root
   plugins: [
     react(),
     VitePWA({
@@ -37,9 +39,4 @@ export default defineConfig({
       },
     }),
   ],
-  test: {
-    // Playwright specs live under e2e/ and run via `npx playwright test`,
-    // not vitest — keep the two runners from colliding on the same files.
-    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**"],
-  },
 });
