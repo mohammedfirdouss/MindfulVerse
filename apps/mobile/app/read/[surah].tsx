@@ -21,7 +21,7 @@ import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
 import { chunkAyahs, rowIndexFor, type ReadingChunk } from "../../src/components/Reader/chunks";
 import { BASMALAH, parseVerseParam, showsBasmalah, type TafsirIndex } from "../../src/components/Reader/commentary";
 import { JumpToVerse } from "../../src/components/Reader/JumpToVerse";
-import { createLastReadScheduler, topmostAyah } from "../../src/components/Reader/lastRead";
+import { createLastReadScheduler, topmostRow } from "../../src/components/Reader/lastRead";
 import { ReadingControls } from "../../src/components/Reader/ReadingControls";
 import { ReadingParagraph } from "../../src/components/Reader/ReadingParagraph";
 import { CommentarySheet, VerseSheet } from "../../src/components/Reader/Sheets";
@@ -107,10 +107,10 @@ function SurahReader({ surah }: { surah: string }) {
   const topRef = useRef<number | null>(null);
   // FlatList requires a stable callback; it only touches refs/stable values.
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken<Row>[] }) => {
-    const firsts = viewableItems.filter((t) => t.isViewable && t.item).map((t) => t.item.first);
-    const top = topmostAyah(firsts);
-    if (top !== null) topRef.current = top;
-    scheduler.update(firsts);
+    const visible = viewableItems.filter((t) => t.isViewable && t.item).map((t) => t.item);
+    const top = topmostRow(visible);
+    if (top !== null) topRef.current = top.first;
+    scheduler.update(visible);
   }).current;
 
   // ---- scrolling to a verse -------------------------------------------------

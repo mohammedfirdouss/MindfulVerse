@@ -4,8 +4,25 @@
 // Web: an IntersectionObserver over every verse; after 800 ms of quiet, the
 // topmost visible verse becomes last-read. Native: FlatList's
 // onViewableItemsChanged reports the visible rows; each row covers a run of
-// ayahs (one in Translation view, a paragraph in Reading view) and reports its
-// first ayah. Same debounce, same "topmost wins" rule.
+// ayahs (one in Translation view, a paragraph in Reading view). Same debounce,
+// same "topmost wins" rule; the topmost row's first ayah is recorded, unless
+// the last recorded verse already lies inside that row (a jump to 2:255 lands
+// mid-paragraph in Reading view and must not slide back to 2:253).
+
+export interface RowRange {
+  first: number;
+  last: number;
+}
+
+/** The topmost visible row (lowest first ayah), or null. */
+export function topmostRow(rows: Iterable<RowRange>): RowRange | null {
+  let best: RowRange | null = null;
+  for (const r of rows) {
+    if (!Number.isFinite(r.first) || r.first < 1) continue;
+    if (best === null || r.first < best.first) best = r;
+  }
+  return best;
+}
 
 export const LAST_READ_DEBOUNCE_MS = 800;
 
@@ -30,8 +47,8 @@ const realTimers: Timers = {
 };
 
 /** Debounces viewability reports into one record() call per pause in
- *  scrolling. `update` takes the first ayah of every visible row; `cancel`
- *  drops a pending write (unmount, view swap). */
+ *  scrolling. `update` takes the visible rows' ayah ranges; `cancel` drops a
+ *  pending write (unmount). */
 export function createLastReadScheduler(
   record: (ayah: number) => void,
   delayMs: number = LAST_READ_DEBOUNCE_MS,
@@ -46,17 +63,17 @@ export function createLastReadScheduler(
     pending = false;
   }
 
-  function update(visible: Iterable<number>) {
+  function update(visible: Iterable<RowRange>) {
     cancel();
-    const top = topmostAyah(visible);
+    const top = topmostRow(visible);
     if (top === null) return;
     pending = true;
     handle = timers.set(() => {
       pending = false;
-      // Settling back on the same verse doesn't need another write.
-      if (top === last) return;
-      last = top;
-      record(top);
+      // Still on the verse already recorded (or the paragraph holding it).
+      if (last !== null && last >= top.first && last <= top.last) return;
+      last = top.first;
+      record(top.first);
     }, delayMs);
   }
 
