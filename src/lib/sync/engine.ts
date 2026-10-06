@@ -1,6 +1,6 @@
 // Local-first sync: pull remote → merge (commutative, from merge.ts) → write
-// merged state locally → push the diff. Runs on sign-in, tab focus, reconnect,
-// and debounced after local writes. Failures set status and retry on the next
+// merged state locally → push the diff. Runs on sign-in, foreground, reconnect
+// (via the host's SyncTriggers), and debounced after local writes. Failures set status and retry on the next
 // trigger — they never surface as exceptions to callers.
 import { insforge } from "./insforge";
 import {
@@ -11,6 +11,32 @@ import type { LocalProgress } from "../types";
 import { getEntries, getTombstones, replaceAll } from "../journal";
 import { getLocalProgress, replaceLocalProgress, clearLocalProgress } from "../progress";
 import { isDirty, clearDirty, onDirty } from "../syncFlags";
+
+/**
+ * What starts a sync pass, per platform. Web wires these to navigator.onLine,
+ * the window "online" event and document visibilitychange; native to NetInfo
+ * and AppState. The host installs one with configureSyncTriggers() before
+ * calling initSync() or syncNow().
+ */
+export interface SyncTriggers {
+  /** Best current guess at connectivity; false skips a pass as "offline". */
+  isOnline(): boolean;
+  /** Call cb whenever connectivity returns. Returns an unsubscribe. */
+  onOnline(cb: () => void): () => void;
+  /** Call cb whenever the app returns to the foreground. Returns an unsubscribe. */
+  onForeground(cb: () => void): () => void;
+}
+
+let triggers: SyncTriggers | null = null;
+
+export function configureSyncTriggers(t: SyncTriggers): void {
+  triggers = t;
+}
+
+function getTriggers(): SyncTriggers {
+  if (!triggers) throw new Error("configureSyncTriggers() must run before sync");
+  return triggers;
+}
 
 export type SyncStatus =
   | "idle" | "syncing" | "synced" | "offline" | "error" | "signed-out" | "switched-account";
@@ -96,7 +122,7 @@ export async function syncNow(): Promise<void> {
   if (inFlight) return;
   inFlight = true;
   try {
-    if (!navigator.onLine) { setStatus("offline"); return; }
+    if (!getTriggers().isOnline()) { setStatus("offline"); return; }
     const { data: userData, error: authErr } = await insforge.auth.getCurrentUser();
     const userId = userData?.user?.id;
     // An auth error here is indistinguishable from signed-out (a cold load
@@ -198,7 +224,7 @@ export async function syncNow(): Promise<void> {
     clearDirty();
     setStatus("synced");
   } catch {
-    setStatus(navigator.onLine ? "error" : "offline");
+    setStatus(getTriggers().isOnline() ? "error" : "offline");
   } finally {
     inFlight = false;
   }
@@ -226,11 +252,10 @@ export async function resolveOwnerMismatch(choice: "merge" | "fresh"): Promise<v
 const debouncedSync = makeDebounced(() => void syncNow(), 3000);
 
 export function initSync(): void {
+  const t = getTriggers();
   onDirty(debouncedSync);
-  window.addEventListener("online", () => { if (!knownSignedOut) void syncNow(); });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && !knownSignedOut) void syncNow();
-  });
+  t.onOnline(() => { if (!knownSignedOut) void syncNow(); });
+  t.onForeground(() => { if (!knownSignedOut) void syncNow(); });
   if (isDirty()) debouncedSync();
   void syncNow(); // covers the sign-in-then-reload case
 }

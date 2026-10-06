@@ -2,6 +2,9 @@
 // Imported first in main.tsx as a side-effect import: ES imports are hoisted,
 // so a plain statement in main.tsx would run after its sibling imports.
 import { configureData } from "./lib/data";
+import { configureSyncTriggers } from "./lib/sync/engine";
 import { fetchJson } from "./platform/data";
+import { webSyncTriggers } from "./platform/syncTriggers";
 
 configureData(fetchJson);
+configureSyncTriggers(webSyncTriggers);

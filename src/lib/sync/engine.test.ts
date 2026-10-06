@@ -8,7 +8,6 @@ vi.stubGlobal("localStorage", {
   setItem: (k: string, v: string) => void store.set(k, v),
   removeItem: (k: string) => void store.delete(k),
 });
-vi.stubGlobal("navigator", { onLine: true });
 
 let currentUserId: string | null = "user-b";
 
@@ -42,11 +41,19 @@ vi.mock("./insforge", () => ({
 
 import {
   makeDebounced, ownerMismatch, getSyncOwner, getSyncStatus, syncNow, resolveOwnerMismatch,
+  configureSyncTriggers,
 } from "./engine";
 import { addEntry, getEntries, getTombstones } from "../journal";
 import { recordVisit, recordLastRead, getLocalProgress } from "../progress";
 
 const OWNER_KEY = "mindfulverse.sync.owner.v1";
+
+// Always online; passive triggers never fire (these tests call syncNow directly).
+configureSyncTriggers({
+  isOnline: () => true,
+  onOnline: () => () => {},
+  onForeground: () => () => {},
+});
 
 beforeEach(() => {
   store.clear();
