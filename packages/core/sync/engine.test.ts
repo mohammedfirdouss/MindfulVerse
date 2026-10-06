@@ -10,6 +10,7 @@ vi.stubGlobal("localStorage", {
 });
 
 let currentUserId: string | null = "user-b";
+let authCalls = 0;
 
 /** Every query builder method chains; awaiting one yields an empty result. */
 function query(): Record<string, unknown> {
@@ -30,10 +31,13 @@ function query(): Record<string, unknown> {
 vi.mock("./insforge", () => ({
   insforge: {
     auth: {
-      getCurrentUser: async () => ({
-        data: currentUserId ? { user: { id: currentUserId } } : null,
-        error: null,
-      }),
+      getCurrentUser: async () => {
+        authCalls++;
+        return {
+          data: currentUserId ? { user: { id: currentUserId } } : null,
+          error: null,
+        };
+      },
     },
     database: { from: () => query() },
   },
@@ -41,7 +45,7 @@ vi.mock("./insforge", () => ({
 
 import {
   makeDebounced, ownerMismatch, getSyncOwner, getSyncStatus, syncNow, resolveOwnerMismatch,
-  configureSyncTriggers,
+  configureSyncTriggers, initSync, type SyncTriggers,
 } from "./engine";
 import { addEntry, getEntries, getTombstones } from "../journal";
 import { recordVisit, recordLastRead, getLocalProgress } from "../progress";
@@ -49,11 +53,15 @@ import { recordVisit, recordLastRead, getLocalProgress } from "../progress";
 const OWNER_KEY = "mindfulverse.sync.owner.v1";
 
 // Always online; passive triggers never fire (these tests call syncNow directly).
-configureSyncTriggers({
+const testTriggers: SyncTriggers = {
   isOnline: () => true,
   onOnline: () => () => {},
   onForeground: () => () => {},
-});
+};
+configureSyncTriggers(testTriggers);
+
+/** Let a fire-and-forget syncNow() run to completion (all stubs resolve at once). */
+const settle = () => new Promise((r) => setTimeout(r, 0));
 
 beforeEach(() => {
   store.clear();
@@ -139,5 +147,38 @@ describe("resolveOwnerMismatch", () => {
     expect(getSyncStatus()).toBe("signed-out");
     expect(getEntries()).toHaveLength(1);
     expect(getSyncOwner()).toBe("user-a");
+  });
+});
+
+describe("sync triggers", () => {
+  it("reports offline without calling auth when the host says it is offline", async () => {
+    configureSyncTriggers({ ...testTriggers, isOnline: () => false });
+    authCalls = 0;
+    await syncNow();
+    expect(getSyncStatus()).toBe("offline");
+    expect(authCalls).toBe(0);
+    configureSyncTriggers(testTriggers);
+  });
+
+  it("initSync runs a pass now, on reconnect and on return to foreground", async () => {
+    let fireOnline = () => {};
+    let fireForeground = () => {};
+    configureSyncTriggers({
+      isOnline: () => true,
+      onOnline: (cb) => { fireOnline = cb; return () => {}; },
+      onForeground: (cb) => { fireForeground = cb; return () => {}; },
+    });
+    authCalls = 0;
+    initSync();
+    await settle();
+    expect(authCalls).toBe(1);
+    fireOnline();
+    await settle();
+    expect(authCalls).toBe(2);
+    fireForeground();
+    await settle();
+    expect(authCalls).toBe(3);
+    expect(getSyncStatus()).toBe("synced");
+    configureSyncTriggers(testTriggers);
   });
 });
