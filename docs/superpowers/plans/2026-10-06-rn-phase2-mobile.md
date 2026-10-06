@@ -81,8 +81,8 @@ apps/mobile/
 5. `RootNavigator` mounts the Stack and `useNotificationRouting()`.
 
 `restore()` waits at most 4 s, so a launch with no network is never held on
-the splash. If the refresh lands later, `onSessionChange` fires and
-`SessionBridge` calls `useAccount().refresh()`.
+the splash. If the refresh lands later (or on a reconnect), `onSessionChange` fires and
+`SessionBridge` calls `useAccount().refresh()`, then `syncNow()` when signed in.
 
 ## Session (`src/session.ts`)
 
@@ -94,9 +94,12 @@ facts that shape this module:
   TokenManager**, and `getCurrentUser()` reads the TokenManager. On its own, AccountProvider would
   report signed-out right after a successful sign-in. Every success therefore calls
   `insforge.setAccessToken(token, event)`.
-- **Server mode turns off the SDK's refresh-and-retry on a 401.** `session.ts` refreshes
-  2 minutes before the JWT `exp` (on a timer), and again when the app comes back to the
-  foreground if the token is near expiry or there is no session yet.
+- **Server mode turns off the SDK's refresh-and-retry on a 401.** `session.ts` refreshes on a
+  timer, 2 minutes before the end of the token's server-issued lifetime (`exp - iat`, laid onto
+  the device clock; see `sessionClock.ts`). `ensureFreshSession()` runs before every
+  foreground/reconnect sync (setup.ts wraps the engine's triggers): it waits for a refresh in
+  flight, refreshes a token near expiry, and retries a stored refresh token when there is no
+  session yet.
 
 `refreshSession` sends `{ refresh_token }`. The backend accepts that key and
 `refreshToken` alike; this was probed with a bogus token, and both return
@@ -143,7 +146,9 @@ JS bundle, and keep it out of git.
   `Asset.fromModule(id).downloadAsync()` then copies the raw resource into the cache dir once
   (`ExpoAsset` native `openAssetResourceStream` → `openRawResource`), and
   `new File(localUri).text()` reads it. Dev builds take the same code path, except the "download"
-  fetches from Metro. Core's `data.ts` caches each parsed result per path.
+  fetches from Metro. Core's `data.ts` caches each load's promise per path (concurrent loads share
+  one read; a failed read is dropped so the next call retries), and keeps only the 3 most
+  recently used tafsir surahs.
 - `metro.config.js` runs `sync-data` itself when `assets/data/manifest.js` is missing or older than
   any source file. Every bundling path loads that file (start, export, and the Gradle `export:embed`),
   so "run before android builds" happens automatically. EAS also has an
@@ -213,10 +218,12 @@ so convert with `Number()`. Set titles per screen with
   `platform: 'expo'`, `user_id`/`keys` are omitted, and `send-reminders` is invoked for the welcome
   push. The token is cached in localStorage, so reads don't prompt for permission. The Android
   channel is `default`, because `send-reminders` sets no `channelId`.
-- **Not runnable yet.** There is no EAS project id: `pushSupport()` returns `"no-project"` and
-  `enableReminder` returns a clear error. There is no `google-services.json` or FCM key, and the
-  Phase 3 migration is not applied. README "Push" lists the steps. The Account screen should show
-  the reminder control only when `pushSupport() === "ok"`.
+- **Off in this release.** The EAS project id is set, but Firebase/FCM is deferred:
+  `pushSupport()` returns `"not-configured"` until `android.googleServicesFile` is in the app
+  config (iOS: always, until it ships), so the Account screen shows its "not in this version yet"
+  copy. Token errors map to friendly text. README "Push" lists exactly what turns it on
+  (google-services.json, `android.googleServicesFile`, FCM V1 key via `eas credentials`, the
+  Phase 3 migration + `send-reminders` deploy).
 
 ## Conventions for screen builders
 
@@ -366,8 +373,7 @@ pure `logic.ts` with vitest tests).
 - **Differs**: no `/sessions` route on mobile, so "All tadabbur"/"Back to tadabbur" become the header
   back and "Go back"/"Done" (`router.back()`, or Home when the stack has nothing behind).
 - Pure logic (`logic.ts`) is covered by `logic.test.ts` in the root vitest run.
-- Shared follow-ups: `verseShareText` duplicates web's `lib/share.ts`, and `Sheet.tsx` is local; move
-  both to core / `src/ui` when the Reader's verse sheet needs them.
+- Share and the bottom sheet are now shared: `src/share.ts` and `src/ui/Sheet.tsx` (see Review fixes).
 
 ## Home / Check-in / Journal notes
 
@@ -384,7 +390,7 @@ pure `logic.ts` with vitest tests).
   `emotion`, `journal_save {context:"checkin"}`, `share_verse {where:"checkin"}` fired on the tap) and
   the same entry shape (`context: { kind: "checkin", ref: verseKey }`). The verse key refreshes on focus
   and on AppState `active` (web: `visibilitychange`). Share uses RN `Share` with web's exact text
-  (`verseText`); there is no clipboard fallback, so "Copied" never shows. Keyboard: `KeyboardAvoidingView`
+  (`src/share.ts`); there is no clipboard fallback, so "Copied" never shows. Keyboard: `KeyboardAvoidingView`
   `behavior="padding"`, offset by `useHeaderHeight()` (from `expo-router/react-navigation`) on both
   platforms, on the assumption that edge-to-edge Android doesn't resize the window (unverified on a device).
   Opened cold with nothing to go back to, a "Go to Home" button appears.
@@ -430,3 +436,36 @@ vitest tests under `apps/mobile/src/**`, which the root `npm test` already inclu
 - **Unverified on a device:** `textAlign: "justify"` on RTL Hafs text, the nested-span tap targets
   in Reading view (TalkBack reads each paragraph as one block; Translation view is the accessible
   path), and the `scrollToIndex` retry for far deep links such as 2:255.
+
+## Review fixes
+
+Applied after review, on `feat/mobile-app`:
+
+- **Push off cleanly.** `pushSupport()` is `"not-configured"` without `android.googleServicesFile`
+  (and on iOS), so the reminder UI shows its calm copy instead of failing with "Default FirebaseApp
+  is not initialized". Token and insert errors are friendly text. README "Push" has the turn-on steps.
+- **Sign-out keeps other devices' reminders.** Sign-out calls `disableReminder()` (this device's
+  `endpoint`) and `forgetPushToken()`, as web does. Deleting by `user_id` (`unregisterPush`) is only
+  in "Delete my data". A shared phone keeps its Expo token across accounts; `enableReminder` deletes
+  by `endpoint` before inserting, and if another account's row survived an offline sign-out the
+  insert hits the PK and the app says so (Phase 3 doc, "Known gaps").
+- **Session.** `ensureFreshSession()` gates the engine's foreground/reconnect syncs (setup.ts),
+  replacing session.ts's own foreground listener, so a resume after expiry no longer syncs with a
+  stale token and lands in "signed-out". A reconnect with no session retries the stored refresh
+  token. `SessionBridge` syncs after a late or offline restore. A generation counter (bumped on
+  `clearLocal`) stops an in-flight refresh from undoing sign-out. Refresh is scheduled from the
+  token's lifetime on the device clock with a doubling floor (5 s → 10 min), so a skewed clock can't
+  refresh every 5 s. Tests: `session.test.ts`, `sessionClock.test.ts`.
+- **One share module** (`src/share.ts`): web's text (one copy, tested), `share_verse` with each
+  screen's `where`, "Shared ✓" only for an iOS `sharedAction` (Android never claims success),
+  "Couldn’t share" on error, announced to screen readers. Used by Check-in, Reader and Tadabbur.
+- **One bottom sheet** (`src/ui/Sheet.tsx`, from Tadabbur's): translucent status/nav bars, handle,
+  ✕, ink backdrop, `scroll` for text bodies. It pads by the bottom safe-area inset (floored at 8 dp),
+  which covers both 3-button and gesture navigation. **Unverified on a device.**
+- **Data cache:** promise cache + 3-surah tafsir LRU (core tests added). Web behaviour unchanged
+  apart from deduped concurrent fetches.
+- **Notifications:** a handled tap is cleared with `clearLastNotificationResponse()`, so a JS reload
+  doesn't re-route it.
+- Checks: root `npm test` 20 files / 165 tests green; web build green (15 precache entries);
+  mobile typecheck green; `export:android` + `check:bundle` OK (one React; 367 assets, 349 data;
+  bundle 2.95 MB).
