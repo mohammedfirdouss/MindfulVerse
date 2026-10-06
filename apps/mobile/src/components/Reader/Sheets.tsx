@@ -12,7 +12,7 @@ import {
   splitParagraphs,
   type TafsirIndex,
 } from "./commentary";
-import { useShareFeedback } from "./share";
+import { useShareVerse } from "../../share";
 import { Sheet } from "./Sheet";
 import type { Tafsir } from "./useTafsir";
 
@@ -89,7 +89,7 @@ export function VerseSheet({
 }) {
   const router = useRouter();
   const [showCommentary, setShowCommentary] = useState(false);
-  const share = useShareFeedback("reader");
+  const share = useShareVerse("reader");
   const covering = coveringFor(index, ayah);
 
   function openCommentary() {

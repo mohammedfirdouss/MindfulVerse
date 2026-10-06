@@ -1,5 +1,5 @@
-// Pure helpers ported verbatim from apps/web/src/components/Commentary.tsx and
-// apps/web/src/lib/share.ts, so labels and shared text match web exactly.
+// Pure helpers ported verbatim from apps/web/src/components/Commentary.tsx, so
+// labels match web exactly. (Share text lives in src/share.ts.)
 import type { Ayah } from "@mindfulverse/core/types";
 
 /** Per-surah list of ayahs that carry a direct Ibn Kathir entry. */
@@ -43,10 +43,6 @@ export function splitParagraphs(text: string | null): string[] {
     .split("\n\n")
     .map((p) => p.trim())
     .filter(Boolean);
-}
-
-export function verseShareText(ayah: Ayah): string {
-  return `${ayah.arabic}\n\n“${ayah.translation}”\n\n— Qur’an ${ayah.surah}:${ayah.ayah}\n\nvia MindfulVerse`;
 }
 
 /** A `?v=` param as an ayah number, or null when absent/invalid. */

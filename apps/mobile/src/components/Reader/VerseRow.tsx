@@ -5,7 +5,7 @@ import { fonts, space, useTheme } from "../../theme";
 import { ArabicText, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
 import { commentaryLabel, coveringFor, type TafsirIndex } from "./commentary";
-import { useShareFeedback } from "./share";
+import { useShareVerse } from "../../share";
 
 /** Web's `.roundel`: the verse number on an indigo diamond. */
 function Roundel({ n }: { n: number }) {
@@ -37,7 +37,7 @@ export const VerseRow = memo(function VerseRow({
   onCommentary: (a: Ayah) => void;
 }) {
   const { colors } = useTheme();
-  const share = useShareFeedback("reader");
+  const share = useShareVerse("reader");
   const covering = coveringFor(index, ayah);
   return (
     <View

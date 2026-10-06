@@ -12,7 +12,6 @@ import {
   resumeAyahFor,
   splitParagraphs,
   verseCount,
-  verseShareText,
 } from "./logic";
 
 describe("coveringFromIndex", () => {
@@ -106,10 +105,5 @@ describe("text helpers", () => {
     expect(commentaryToggleLabel(true, 3, 1)).toBe("Hide the commentary");
     expect(commentaryToggleLabel(false, 3, 3)).toBe("Read the commentary");
     expect(commentaryToggleLabel(false, 3, 1)).toBe("Read the commentary (with verse 1)");
-  });
-  it("shares the same text as web", () => {
-    expect(verseShareText({ arabic: "ع", translation: "T", surah: 1, ayah: 2 })).toBe(
-      "ع\n\n“T”\n\n— Qur’an 1:2\n\nvia MindfulVerse",
-    );
   });
 });

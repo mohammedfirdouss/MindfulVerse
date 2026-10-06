@@ -45,7 +45,7 @@ import {
   type Draft,
 } from "../../src/components/Tadabbur/logic";
 import { ReflectionArea } from "../../src/components/Tadabbur/ReflectionArea";
-import { useShareVerse } from "../../src/components/Tadabbur/useShareVerse";
+import { useShareVerse } from "../../src/share";
 import { VerseCommentary } from "../../src/components/Tadabbur/VerseCommentary";
 import { VersePicker } from "../../src/components/Tadabbur/VersePicker";
 import { fonts, space, useTheme } from "../../src/theme";

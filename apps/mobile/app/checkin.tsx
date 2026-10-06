@@ -13,7 +13,7 @@ import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
 import { AyahView } from "../src/components/CheckIn/AyahView";
 import { readDraft, writeDraft } from "../src/components/CheckIn/draft";
-import { shareVerse, type ShareResult } from "../src/components/CheckIn/shareVerse";
+import { useShareVerse } from "../src/share";
 import { fonts, radius, space, type as typeScale, useTheme } from "../src/theme";
 import { Button, Card, Screen, Text } from "../src/ui";
 
@@ -65,7 +65,7 @@ export default function CheckIn() {
   const [saved, setSaved] = useState(false);
   const [focused, setFocused] = useState(false);
 
-  const [shareResult, setShareResult] = useState<Exclude<ShareResult, "cancelled"> | null>(null);
+  const share = useShareVerse("checkin");
 
   // Emotion picker.
   const [emotions, setEmotions] = useState<EmotionEntry[]>([]);
@@ -181,19 +181,10 @@ export default function CheckIn() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                 <Button
                   kind="secondary"
-                  title="Share this verse"
-                  onPress={() => {
-                    void shareVerse(dailyAyah, "checkin").then((r) => {
-                      // Closing the share sheet is not an outcome worth confirming.
-                      if (r !== "cancelled") setShareResult(r);
-                    });
-                  }}
+                  title={share.label ?? "Share this verse"}
+                  accessibilityLabel={share.label ?? `Share verse ${dailyAyah.verseKey}`}
+                  onPress={() => void share.share(dailyAyah)}
                 />
-                {shareResult ? (
-                  <Text variant="muted" accessibilityLiveRegion="polite">
-                    {shareResult === "shared" ? "Shared" : "Couldn’t share"}
-                  </Text>
-                ) : null}
               </View>
             </View>
           ) : (

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ayah } from "@mindfulverse/core/types";
-import { commentaryLabel, commentaryTitle, coveringFor, parseVerseParam, showsBasmalah, splitParagraphs, verseShareText } from "./commentary";
+import { commentaryLabel, commentaryTitle, coveringFor, parseVerseParam, showsBasmalah, splitParagraphs } from "./commentary";
 
 const a = (surah: number, ayah: number): Ayah => ({
   surah,
@@ -29,9 +29,6 @@ describe("commentary helpers (ported from web)", () => {
   it("splits tafsir into paragraphs", () => {
     expect(splitParagraphs(" one \n\n\n\ntwo")).toEqual(["one", "two"]);
     expect(splitParagraphs(null)).toEqual([]);
-  });
-  it("shares the same text as web", () => {
-    expect(verseShareText(a(2, 255))).toBe("عربي\n\n“Text”\n\n— Qur’an 2:255\n\nvia MindfulVerse");
   });
   it("basmalah opens every surah but 1 and 9", () => {
     expect([1, 2, 9, 114].map(showsBasmalah)).toEqual([false, true, false, true]);

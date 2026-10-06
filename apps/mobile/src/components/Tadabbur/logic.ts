@@ -1,6 +1,5 @@
-// Pure tadabbur logic, ported from web's pages/SurahTadabbur.tsx (and the
-// share text from lib/share.ts). No react-native imports, so vitest runs it.
-import type { Ayah } from "@mindfulverse/core/types";
+// Pure tadabbur logic, ported from web's pages/SurahTadabbur.tsx. No
+// react-native imports, so vitest runs it.
 
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Find the entry covering this ayah.
@@ -107,7 +106,3 @@ export function commentaryToggleLabel(open: boolean, ayah: number, covering: num
   return covering === ayah ? "Read the commentary" : `Read the commentary (with verse ${covering})`;
 }
 
-/** Web's lib/share.ts verseText, verbatim. */
-export function verseShareText(a: Pick<Ayah, "arabic" | "translation" | "surah" | "ayah">): string {
-  return `${a.arabic}\n\n“${a.translation}”\n\n— Qur’an ${a.surah}:${a.ayah}\n\nvia MindfulVerse`;
-}
