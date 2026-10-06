@@ -27,10 +27,10 @@ import * as SecureStore from "expo-secure-store";
 import { AppState } from "react-native";
 import { AuthChangeEvent } from "@insforge/sdk";
 import { insforge } from "@mindfulverse/core/sync/insforge";
+import { jwtClaims, nextRefreshDelay, tokenDeadline, type TokenDeadline } from "./sessionClock";
 
 const REFRESH_KEY = "mindfulverse.refreshToken.v1";
 const RESTORE_TIMEOUT_MS = 4000;
-const REFRESH_LEEWAY_S = 120;
 
 export interface AuthResult {
   /** User-facing message, or null on success. */
@@ -62,40 +62,29 @@ let inflight: Promise<boolean> | null = null;
 // the user taps Sign out would otherwise sign them straight back in.
 let generation = 0;
 
-/** JWT `exp` in seconds, or null if the token can't be decoded. */
-function jwtExp(token: string): number | null {
-  try {
-    const part = token.split(".")[1];
-    if (!part) return null;
-    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
-    const json = JSON.parse(atob(b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=")));
-    return typeof json.exp === "number" ? json.exp : null;
-  } catch {
-    return null;
-  }
-}
-
 // The access token this module last handed to the SDK (the SDK's own
-// TokenManager is private).
+// TokenManager is private), and when to refresh it (device clock, see
+// sessionClock.ts).
 let accessToken: string | null = null;
+let deadline: TokenDeadline | null = null;
+let quickStreak = 0;
 
 function currentAccessToken(): string | null {
   return accessToken;
 }
 
 function expiresSoon(): boolean {
-  const token = currentAccessToken();
-  if (!token) return false;
-  const exp = jwtExp(token);
-  return exp !== null && exp - Date.now() / 1000 < REFRESH_LEEWAY_S;
+  return accessToken !== null && deadline !== null && Date.now() >= deadline.refreshAtMs;
 }
 
-function scheduleRefresh(accessToken: string): void {
+function scheduleRefresh(token: string): void {
   if (refreshTimer) clearTimeout(refreshTimer);
-  const exp = jwtExp(accessToken);
-  if (exp === null) return;
-  const ms = Math.max(5_000, (exp - REFRESH_LEEWAY_S) * 1000 - Date.now());
-  refreshTimer = setTimeout(() => void refreshNow(), ms);
+  refreshTimer = undefined;
+  deadline = tokenDeadline(jwtClaims(token), Date.now());
+  if (!deadline) return;
+  const next = nextRefreshDelay(deadline, Date.now(), quickStreak);
+  quickStreak = next.quickStreak;
+  refreshTimer = setTimeout(() => void refreshNow().catch(() => false), next.delayMs);
 }
 
 /** Applies a successful auth response: fills the SDK's token manager,
@@ -131,6 +120,8 @@ async function clearLocal(): Promise<void> {
   if (refreshTimer) clearTimeout(refreshTimer);
   refreshTimer = undefined;
   accessToken = null;
+  deadline = null;
+  quickStreak = 0;
   insforge.setAccessToken(null);
   insforge.getHttpClient().setRefreshToken(null);
   try {
