@@ -1,8 +1,12 @@
-// Typed runtime loaders for the bundled Quran data (served from /public/data).
-// The service worker caches these for offline use after first load.
+// Typed runtime loaders for the bundled Quran data. Paths are relative to the
+// data root ("surahs.json", "quran/2.json"); how a path becomes bytes is the
+// host's job — web fetches /data/<path> (cached offline by the service
+// worker), native reads a bundled asset. The host installs its reader with
+// configureData() at startup, before any loader runs.
 
 import type {
   Ayah,
+  SurahInfo,
   SurahMeta,
   SurahTafsir,
   Theme,
@@ -11,43 +15,55 @@ import type {
   Divisions,
 } from "./types";
 
+/** Resolves a data-root-relative path to its parsed JSON, or rejects. */
+export type ReadJson = (path: string) => Promise<unknown>;
+
+let readJson: ReadJson | null = null;
+
+export function configureData(fn: ReadJson): void {
+  readJson = fn;
+}
+
 const cache = new Map<string, unknown>();
 
 async function getJson<T>(path: string): Promise<T> {
   if (cache.has(path)) return cache.get(path) as T;
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
-  const data = (await res.json()) as T;
+  if (!readJson) throw new Error("configureData() must run before loading data");
+  const data = (await readJson(path)) as T;
   cache.set(path, data);
   return data;
 }
 
-export const loadSurahs = () => getJson<SurahMeta[]>("/data/surahs.json");
+export const loadSurahs = () => getJson<SurahMeta[]>("surahs.json");
 
 export const loadSurahAyahs = (surah: number) =>
-  getJson<Ayah[]>(`/data/quran/${surah}.json`);
+  getJson<Ayah[]>(`quran/${surah}.json`);
 
 export const loadSurahTafsir = (surah: number) =>
-  getJson<SurahTafsir>(`/data/tafsir/${surah}.json`);
+  getJson<SurahTafsir>(`tafsir/${surah}.json`);
 
-export const loadThemes = () => getJson<Theme[]>("/data/themes.json");
+/** Ibn Kathir's introduction to a surah (a few KB each). */
+export const loadSurahInfo = (surah: number) =>
+  getJson<SurahInfo>(`info/${surah}.json`);
+
+export const loadThemes = () => getJson<Theme[]>("themes.json");
 
 /** Per-surah list of ayah numbers that carry a direct tafsir entry (~6KB).
  *  Lets the reader label commentary links without downloading the tafsir. */
 export const loadTafsirIndex = () =>
-  getJson<Record<string, number[]>>("/data/tafsir-index.json");
+  getJson<Record<string, number[]>>("tafsir-index.json");
 
 /** [verseKey, translation] pairs (~1MB) — fetch only when the user searches. */
 export const loadSearchIndex = () =>
-  getJson<[string, string][]>("/data/search.json");
+  getJson<[string, string][]>("search.json");
 
 export const loadSessions = () =>
-  getJson<TadabburSession[]>("/data/sessions.json");
+  getJson<TadabburSession[]>("sessions.json");
 
-export const loadEmotions = () => getJson<EmotionMap>("/data/emotions.json");
+export const loadEmotions = () => getJson<EmotionMap>("emotions.json");
 
 /** Juz / hizb / quarter / sajdah boundaries (a few KB). */
-export const loadDivisions = () => getJson<Divisions>("/data/divisions.json");
+export const loadDivisions = () => getJson<Divisions>("divisions.json");
 
 /** Convenience: fetch a specific ayah (surah + translation + arabic). */
 export async function loadAyah(surah: number, ayah: number): Promise<Ayah | undefined> {

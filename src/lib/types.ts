@@ -27,6 +27,13 @@ export interface SurahMeta {
  *  as a map keyed by ayah number (string). Text is cleaned, verbatim (no rewriting). */
 export type SurahTafsir = Record<string, string>;
 
+/** A surah's introduction (Ibn Kathir). Served from /data/info/{n}.json. */
+export interface SurahInfo {
+  surah: number;
+  name: string;
+  text: string;
+}
+
 /** A theme → verse-range mapping from the ayah-themes dataset.
  *  Served from /data/themes.json (array). */
 export interface Theme {

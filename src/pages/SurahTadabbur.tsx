@@ -9,6 +9,7 @@ import {
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   loadSurahAyahs,
+  loadSurahInfo,
   loadSurahTafsir,
   loadSurahs,
   loadTafsirIndex,
@@ -16,7 +17,7 @@ import {
 import { addEntry } from "../lib/journal";
 import { track } from "../lib/analytics";
 import { getSurahTadabbur, recordSurahTadabbur } from "../lib/progress";
-import type { Ayah, SurahMeta, SurahTafsir } from "../lib/types";
+import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "../lib/types";
 
 // Motion helpers — transform + opacity only, under 400ms (same approach as
 // SessionPlayer). Reduced motion: content simply appears.
@@ -65,12 +66,6 @@ function useMounted(resetKey: unknown): boolean {
 }
 
 // Shared bits
-
-interface SurahInfo {
-  surah: number;
-  name: string;
-  text: string;
-}
 
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Find the entry covering this ayah. */
@@ -409,9 +404,8 @@ function SurahTadabburPage() {
         if (active) setStatus("error");
       });
 
-    fetch(`/data/info/${surahNumber}.json`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: SurahInfo | null) => {
+    loadSurahInfo(surahNumber)
+      .then((d) => {
         if (active && d) setInfo(d);
       })
       .catch(() => {});
