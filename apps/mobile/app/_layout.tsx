@@ -9,10 +9,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { trackAppOpen } from "@mindfulverse/core/analytics";
 import { recordVisit } from "@mindfulverse/core/progress";
 import { AccountProvider, useAccount } from "@mindfulverse/core/sync/auth";
-import { initSync } from "@mindfulverse/core/sync/engine";
+import { initSync, syncNow } from "@mindfulverse/core/sync/engine";
 import { AppState } from "react-native";
 import { useNotificationRouting } from "../src/notifications";
-import { onSessionChange, restore } from "../src/session";
+import { hasSession, onSessionChange, restore } from "../src/session";
 import { fonts, ThemeProvider, useTheme } from "../src/theme";
 
 void SplashScreen.preventAutoHideAsync();
@@ -64,11 +64,24 @@ export default function RootLayout() {
   );
 }
 
-/** Re-reads the account when session.ts changes state on its own
- *  (a late restore, or a refresh that found the session revoked). */
+/** Re-reads the account when session.ts changes state on its own (a late
+ *  or offline restore that lands later, or a refresh that found the session
+ *  revoked), and starts a sync when that left us signed in: the launch sync
+ *  already ran signed-out, and passive triggers skip while the engine
+ *  believes nobody is signed in. A reconnect retries a stored refresh token
+ *  (setup.ts wraps the engine's onOnline in ensureFreshSession()), which
+ *  lands here. No loop: session.ts emits only on a signed-in/out transition,
+ *  and neither refresh() nor syncNow() triggers a session refresh. */
 function SessionBridge() {
   const { refresh } = useAccount();
-  useEffect(() => onSessionChange(() => void refresh()), [refresh]);
+  useEffect(
+    () =>
+      onSessionChange(() => {
+        void refresh();
+        if (hasSession()) void syncNow();
+      }),
+    [refresh],
+  );
   return null;
 }
 
