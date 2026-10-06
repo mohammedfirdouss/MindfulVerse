@@ -27,6 +27,10 @@ AppState.addEventListener("change", (s) => {
 // Session restore starts immediately, in parallel with font loading.
 const restored = restore().then(() => initSync());
 
+// A cold deep link (reminder tap → /tadabbur/2?v=255 or /checkin) still gets the
+// tabs underneath it, so "back" lands on Home instead of closing the app.
+export const unstable_settings = { initialRouteName: "(tabs)" };
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     [fonts.arabic]: require("../assets/fonts/uthmanic-hafs.ttf"),
