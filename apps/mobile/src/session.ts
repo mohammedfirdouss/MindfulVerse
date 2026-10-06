@@ -7,9 +7,9 @@
 //     email verification and refresh;
 //   - restores the session on launch (restore()), BEFORE <AccountProvider>
 //     mounts, so its first getCurrentUser() already sees the user;
-//   - refreshes the access token before it expires and when the app returns
-//     to the foreground, because server mode turns off the SDK's own
-//     401-refresh-and-retry.
+//   - refreshes the access token before it expires (timer) and, through
+//     ensureFreshSession(), before every foreground/reconnect sync, because
+//     server mode turns off the SDK's own 401-refresh-and-retry.
 //
 // Two SDK details this relies on (read from @insforge/sdk 1.5.2 dist):
 //   - in server mode, signIn/refresh set the HTTP bearer token but NOT the
@@ -24,7 +24,6 @@
 // Screens call these, then `await refresh()` from useAccount() and
 // `await syncNow()` — the same sequence web's Account page uses.
 import * as SecureStore from "expo-secure-store";
-import { AppState } from "react-native";
 import { AuthChangeEvent } from "@insforge/sdk";
 import { insforge } from "@mindfulverse/core/sync/insforge";
 import { jwtClaims, nextRefreshDelay, tokenDeadline, type TokenDeadline } from "./sessionClock";
@@ -132,7 +131,7 @@ async function clearLocal(): Promise<void> {
 }
 
 /** Exchanges the stored refresh token for a fresh session. Returns true if
- *  signed in afterwards. A rejected token (401/403) is forgotten; a network
+ *  signed in afterwards. May reject on a network error. A rejected token (401/403) is forgotten; a network
  *  failure keeps it so the next attempt (foreground) can succeed. */
 function refreshNow(): Promise<boolean> {
   inflight ??= (async () => {
@@ -224,8 +223,18 @@ export function hasSession(): boolean {
   return currentAccessToken() !== null;
 }
 
-// Server mode has no automatic refresh-on-401, and timers don't fire while
-// the app is suspended: refresh on return to the foreground when close to expiry.
-AppState.addEventListener("change", (state) => {
-  if (state === "active" && (expiresSoon() || (!hasSession() && !inflight))) void refreshNow();
-});
+/** Settles once the access token is usable: waits for a refresh already in
+ *  flight, refreshes when the token is near expiry, and retries a stored
+ *  refresh token when there is no session (a restore that ran offline, or
+ *  timed out). Server mode has no automatic refresh-on-401 and timers don't
+ *  fire while the app is suspended, so setup.ts runs this before every
+ *  foreground/reconnect sync; otherwise that sync would go out with an
+ *  expired token, read as signed-out, and stop passive syncs. Never throws. */
+export async function ensureFreshSession(): Promise<void> {
+  try {
+    if (inflight) await inflight;
+    else if (expiresSoon() || !hasSession()) await refreshNow(); // no stored token: returns at once
+  } catch {
+    /* offline or server error: the stored token is kept for the next attempt */
+  }
+}
