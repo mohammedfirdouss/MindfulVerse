@@ -279,8 +279,8 @@ In scope for v1 (spec):
       card (`getLastRead`/`latestSurahTadabbur`), the check-in prompt (`checkedInToday`), and the streak.
 - [x] **Check-in** (`app/checkin.tsx`): emotions (`loadEmotions`) → verse → reflection → `addEntry`
       with `context.kind = "checkin"`.
-- [ ] **Read: surah list** (`app/(tabs)/read.tsx`): `loadSurahs()`. The juz tab (`loadDivisions`) is optional for v1.
-- [ ] **Reader** (`app/read/[surah].tsx`): `FlatList` of ayahs, translation/reading view and size
+- [x] **Read: surah list** (`app/(tabs)/read.tsx`): `loadSurahs()`. The juz tab (`loadDivisions`) is optional for v1.
+- [x] **Reader** (`app/read/[surah].tsx`): `FlatList` of ayahs, translation/reading view and size
       (`readingPrefs`), `recordLastRead` on scroll (web uses an IntersectionObserver; use `onViewableItemsChanged`),
       and a verse sheet with tafsir.
 - [x] **Surah tadabbur** (`app/tadabbur/[surah].tsx`): resume at `?v=`, `recordSurahTadabbur`, and the
@@ -395,3 +395,35 @@ pure `logic.ts` with vitest tests).
   (that file also holds browser-only `saveFile`). A parity test runs both formatters on the same input and
   asserts identical output; move the formatter to `packages/core` later and delete the copy. PDF is deferred.
   A very large journal may exceed Android's share-intent size, which shows the error line.
+
+## Reader notes
+
+Built on `feat/mobile-reader`: `app/(tabs)/read.tsx`, `app/read/[surah].tsx`, and
+`src/components/Reader/`. Pure logic (`lastRead.ts`, `chunks.ts`, `commentary.ts`) has
+vitest tests under `apps/mobile/src/**`, which the root `npm test` already includes.
+
+- **Ported as on web:** the continue-reading card (re-read on focus), Surah/Juz browse, search by
+  name or number, A/A/A size and the Translation/Reading view (`readingPrefs`, so `read_view` is
+  tracked), jump to a verse, `?v=` deep link (scroll, flash, `recordLastRead`), the basmalah,
+  per-verse commentary (the tafsir index loads with the surah, the text on the first tap), Share
+  (`share_verse`, `where: "reader"`), the verse sheet in Reading view with "Reflect on this verse"
+  pushing `/tadabbur/[surah]?v=`, and "Next surah".
+- **Last-read:** `onViewableItemsChanged` → `createLastReadScheduler`, which uses the same rule as
+  `useLastReadTracker` (topmost visible verse, 800 ms debounce). Rows report ayah ranges, so a
+  Reading-view paragraph doesn't pull a jumped-to verse back to the paragraph's first ayah.
+- **Differs from web:**
+  - Reading view is split into ~600-character paragraphs at ayah boundaries, so it can be
+    virtualised. Each paragraph break shows as a short last line. Last-read in this view is
+    accurate to the paragraph.
+  - Switching views keeps your place; web jumps back to `?v=`.
+  - "Next surah" replaces the reader instead of pushing, so Back returns to the list.
+  - "Reflect" pushes; web replaces.
+  - Share has no clipboard fallback.
+  - Juz and hizb rows open the surah reader at their first verse, because the juz page is
+    deferred.
+  - The "Search the translation" and "Find verses by topic" links are omitted, because those
+    screens are deferred.
+  - In-page "← All surahs" and the h1 are replaced by the Stack header (back + surah name).
+- **Unverified on a device:** `textAlign: "justify"` on RTL Hafs text, the nested-span tap targets
+  in Reading view (TalkBack reads each paragraph as one block; Translation view is the accessible
+  path), and the `scrollToIndex` retry for far deep links such as 2:255.
