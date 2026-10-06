@@ -287,7 +287,7 @@ In scope for v1 (spec):
       reflection → `addEntry`.
 - [ ] **Journal** (`app/(tabs)/journal.tsx`): `groupEntries(getEntries())`, delete. Export/PDF are deferred
       (`journalExport` is still web-only).
-- [ ] **Account** (`app/(tabs)/account.tsx`): email/password sign-in/up and the OTP step (`session.ts`), sync
+- [x] **Account** (`app/(tabs)/account.tsx`): email/password sign-in/up and the OTP step (`session.ts`), sync
       status, account-switch resolution, reminder toggle and time (`push.ts`, shown only when
       `pushSupport() === "ok"`), sign-out (unregister push first), delete-my-data, theme toggle.
 
@@ -310,3 +310,31 @@ Platform follow-ups:
 - Session restore against a real account: `signIn`, kill the app, relaunch, and check it is still signed in. This
   depends on `setAccessToken` filling the TokenManager in server mode, as read from the SDK source.
 - Fraunces and Hafs rendering on Android, and cold start time.
+
+## Account notes
+
+Built on `feat/mobile-account`: `app/(tabs)/account.tsx` plus `src/components/Account/`
+(`AuthForm`, `SyncSection`, `ReminderSection`, `TimeStepper`, `SettingsSection`, `parts`, and the
+pure `logic.ts` with vitest tests).
+
+- **Ported from web, same copy, errors and analytics** (`account_signin`/`account_signup` with
+  `method: "password"`, `account_signout`, `sync_done` on terminal transitions, `reminder_set`):
+  sign-in, sign-up, the 6-digit code step ("Use a different email"), the signed-in notice that promises a
+  backup only once the first sync landed, status line + Sync now, the switched-account Merge / Start fresh
+  choice (`Alert.alert` replaces `window.confirm`), reminder on / time / off, sign-out, delete-my-data
+  (signs out only when every delete succeeded) and the feedback mailto.
+- **Sign-out** calls `unregisterPush(user.id)` first (best effort), then `session.signOut()`, then `refresh()`.
+- **Reminders** render only when `pushSupport() === "ok"`; otherwise a calm "not in this version yet" line.
+  A permission the OS will no longer prompt for (`denied` and `!canAskAgain`) shows "Open settings"
+  (`Linking.openSettings`); it is re-checked when the app returns to the foreground. The time selector is
+  RN-only (±15 min / ±1 h steppers, an `adjustable` readout for screen readers), because
+  `@react-native-community/datetimepicker` isn't installed. Changing the time of an active reminder
+  shows "Save new time" / "Keep old time" instead of web's commit-on-blur.
+- **Differs from web:** no Google button. When the backend has Google enabled
+  (`getPublicAuthConfig`), a one-line note says to use email in the app. No "Export journal" button
+  (export is still web-only). Theme choice (Light / Dark / Match phone) and the app version live on this
+  screen, and the feedback link shows signed out too. Client-side checks (email shape, empty password,
+  6 digits) run before the network call. The server stays the authority.
+- **Unverified on a device:** keyboard avoidance (`KeyboardAvoidingView`, `height` on Android with
+  edge-to-edge), OTP autofill (`sms-otp` / `oneTimeCode`), and the reminder flow end to end (it needs the
+  EAS project and FCM).
