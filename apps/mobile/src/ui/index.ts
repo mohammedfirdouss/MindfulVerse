@@ -1,0 +1,7 @@
+// Shared UI primitives. Screens import from "../src/ui" (relative; there is
+// no path alias, see tsconfig.json).
+export { ArabicText } from "./ArabicText";
+export { Button, type ButtonKind } from "./Button";
+export { Card } from "./Card";
+export { Screen } from "./Screen";
+export { Text, type TextVariant } from "./Text";
