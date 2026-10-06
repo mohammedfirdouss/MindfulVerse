@@ -283,7 +283,7 @@ In scope for v1 (spec):
 - [ ] **Reader** (`app/read/[surah].tsx`): `FlatList` of ayahs, translation/reading view and size
       (`readingPrefs`), `recordLastRead` on scroll (web uses an IntersectionObserver; use `onViewableItemsChanged`),
       and a verse sheet with tafsir.
-- [ ] **Surah tadabbur** (`app/tadabbur/[surah].tsx`): resume at `?v=`, `recordSurahTadabbur`, and the
+- [x] **Surah tadabbur** (`app/tadabbur/[surah].tsx`): resume at `?v=`, `recordSurahTadabbur`, and the
       reflection → `addEntry`.
 - [ ] **Journal** (`app/(tabs)/journal.tsx`): `groupEntries(getEntries())`, delete. Export/PDF are deferred
       (`journalExport` is still web-only).
@@ -310,3 +310,31 @@ Platform follow-ups:
 - Session restore against a real account: `signIn`, kill the app, relaunch, and check it is still signed in. This
   depends on `setAccessToken` filling the TokenManager in server mode, as read from the SDK source.
 - Fraunces and Hafs rendering on Android, and cold start time.
+
+## Tadabbur notes
+
+`app/tadabbur/[surah].tsx` + `src/components/Tadabbur/` (branch `feat/mobile-tadabbur`).
+
+- **Same flow as web**: about screen (Ibn Kathir intro, "Read more" after 5 paragraphs) → one verse per
+  step → completion. Same copy, `session_start` (`surah-{n}`, once), `journal_save` (`tadabbur`),
+  `recordSurahTadabbur` (furthest verse), resume offer from `getSurahTadabbur`, same journal entry
+  (`Tadabbur on {key}`, `Lessons:/Reflection:/Action:`, `context.kind = "tadabbur"`).
+- **`?v=`**: honoured once the surah has loaded (cold start shows "Opening the surah…" first). Each new
+  `v` value is honoured once, so a second reminder tap while the screen is open jumps too.
+  Invalid/out-of-range `v` opens the about screen, as on web.
+- **Reflection inputs** own their state (keyed per verse); the screen mirrors drafts in a ref, so
+  typing never re-renders the verse. The focused input is scrolled above the keyboard
+  (`KeyboardAvoidingView` padding + `measureLayout` on `keyboardDidShow`). `addEntry` is wrapped:
+  a failed MMKV write keeps the draft and says so. Nothing listens for `JOURNAL_SAVED_EVENT`.
+- **Leaving with an unsaved reflection** (header back, Android back, Next surah) asks via
+  `Alert` (`usePreventRemove`), instead of web's "tap All tadabbur again" line.
+- **Additions over web**: "Go to a verse" bottom sheet (Modal, FlatList with fixed-height memoized
+  rows, opens at the current verse) for long surahs; a Share action (RN `Share`, web's text,
+  `share_verse` with `where: "tadabbur"`); "Try again" on the load error; Arabic follows the
+  reader's size key.
+- **Differs**: no `/sessions` route on mobile, so "All tadabbur"/"Back to tadabbur" become the header
+  back and "Go back"/"Done" (`router.back()`, or Home when the stack has nothing behind).
+- Pure logic (`logic.ts`) is covered by `logic.test.ts` in the root vitest run.
+- Shared follow-ups: `verseShareText` duplicates web's `lib/share.ts`, and `Sheet.tsx` is local; move
+  both to core / `src/ui` when the Reader's verse sheet needs them.
+
