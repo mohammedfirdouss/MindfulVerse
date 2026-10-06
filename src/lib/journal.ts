@@ -6,8 +6,20 @@ import { markJournalDirty } from "./syncFlags";
 const KEY = "mindfulverse.journal.v1";
 const TOMBSTONES_KEY = "mindfulverse.journal.deleted.v1";
 
-/** Fired on window after the user saves an entry (not on sync writes). */
+/** Fired on window after the user saves an entry (not on sync writes).
+ *  Only where window is an EventTarget: on React Native `window` aliases the
+ *  global but has no dispatchEvent, and saving must not throw there. */
 export const JOURNAL_SAVED_EVENT = "mindfulverse:journal-saved";
+
+function notifySaved(): void {
+  const g = globalThis as {
+    window?: { dispatchEvent?: (e: unknown) => boolean };
+    Event?: new (type: string) => unknown;
+  };
+  if (typeof g.window?.dispatchEvent === "function" && typeof g.Event === "function") {
+    g.window.dispatchEvent(new g.Event(JOURNAL_SAVED_EVENT));
+  }
+}
 
 function readAll(): JournalEntry[] {
   try {
@@ -51,7 +63,7 @@ export function addEntry(
   all.push(entry);
   writeAll(all);
   markJournalDirty();
-  if (typeof window !== "undefined") window.dispatchEvent(new Event(JOURNAL_SAVED_EVENT));
+  notifySaved();
   return entry;
 }
 
