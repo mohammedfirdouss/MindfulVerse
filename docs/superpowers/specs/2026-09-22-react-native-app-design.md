@@ -148,6 +148,34 @@ of tafsir there would wreck cold start. Native therefore ships data via
 `assetBundlePatterns` and reads it with `expo-file-system` — files stay on disk
 and load lazily per surah, mirroring web's existing behaviour.
 
+### Phase 1 as built (2026-10-06)
+
+Executed on `feat/mobile-app`; details in
+`../plans/2026-10-06-rn-phase1-extraction.md`. Where reality differs from
+the text above:
+
+- **Tests:** the suite was 62 (F2), not 47. It is now 69, adding seam tests.
+  `npm test` at the root runs core, web and `functions/` together.
+- **Core also holds** `divisions.ts` and `readingPrefs.ts` (both DOM-free).
+  `journalExport.ts` stays in web for now, because its pure shaping ships
+  alongside a DOM `saveFile`.
+- **More injection than planned:** `insforge.ts` and `analytics.ts` read
+  `import.meta.env`, so core gained `configureInsforge(config)` and
+  `configureAnalytics({ onTrack })` alongside `configureData` and
+  `configureSyncTriggers`. The trigger adapter also carries `isOnline()`,
+  which replaces `navigator.onLine`.
+- **F1 fixed** with a `dispatchEvent` guard in `journal.ts`.
+- **Data loader paths are relative** (`"quran/2.json"`); web prefixes
+  `/data/`. A ninth loader, `loadSurahInfo`, replaces a direct fetch in
+  `SurahTadabbur`.
+- **Core typechecks** with `globals.d.ts` declaring `localStorage`,
+  `crypto.randomUUID` and `setTimeout`/`clearTimeout`. The root build
+  runs that check first.
+- **Vercel:** no Root Directory change. The root `vercel.json` sets
+  `buildCommand`/`outputDirectory` (`apps/web/dist`). This replaces the
+  "changes its root-directory setting" line under Rollout.
+- `apps/mobile/` is not created in Phase 1. It is Phase 2.
+
 ---
 
 ## Phase 2 — native app
