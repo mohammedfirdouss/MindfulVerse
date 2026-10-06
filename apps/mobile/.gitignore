@@ -1,0 +1,30 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Generated native projects (expo prebuild / expo run:android)
+/android
+/ios
+.kotlin/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Firebase config is environment-specific; add it locally when FCM is set up
+google-services.json
+GoogleService-Info.plist
+
+.metro-health-check*
+
+# Secrets: copy .env.example to .env
+.env
+.env*.local
+
+# Copied from apps/web/public/data by `npm run sync-data` (16MB; never commit)
+/assets/data/
