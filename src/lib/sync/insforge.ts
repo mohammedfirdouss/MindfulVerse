@@ -1,9 +1,14 @@
-// Shared InsForge client. The SDK auto-detects `insforge_code` in the URL on
-// OAuth return and exchanges it for a session, so this module must be imported
-// during app startup (it is, via AccountProvider).
-import { createClient } from "@insforge/sdk";
+// Shared InsForge client, created by the host with configureInsforge() at
+// startup — the base URL, anon key and platform options (e.g. isServerMode on
+// native) come from the app, so this module reads no build-time env.
+// On web the SDK auto-detects `insforge_code` in the URL on OAuth return and
+// exchanges it for a session, so the client must be created during startup.
+import { createClient, type InsForgeClient, type InsForgeConfig } from "@insforge/sdk";
 
-export const insforge = createClient({
-  baseUrl: import.meta.env.VITE_INSFORGE_URL,
-  anonKey: import.meta.env.VITE_INSFORGE_ANON_KEY,
-});
+/** Live binding: undefined until configureInsforge() runs. */
+export let insforge: InsForgeClient;
+
+export function configureInsforge(config: InsForgeConfig): InsForgeClient {
+  insforge = createClient(config);
+  return insforge;
+}
