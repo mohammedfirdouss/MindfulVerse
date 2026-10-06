@@ -275,9 +275,9 @@ so convert with `Number()`. Set titles per screen with
 
 In scope for v1 (spec):
 
-- [ ] **Home** (`app/(tabs)/index.tsx`): daily verse (`todayVerseKey` + `loadAyahsByKeys`), a "continue"
+- [x] **Home** (`app/(tabs)/index.tsx`): daily verse (`todayVerseKey` + `loadAyahsByKeys`), a "continue"
       card (`getLastRead`/`latestSurahTadabbur`), the check-in prompt (`checkedInToday`), and the streak.
-- [ ] **Check-in** (`app/checkin.tsx`): emotions (`loadEmotions`) → verse → reflection → `addEntry`
+- [x] **Check-in** (`app/checkin.tsx`): emotions (`loadEmotions`) → verse → reflection → `addEntry`
       with `context.kind = "checkin"`.
 - [ ] **Read: surah list** (`app/(tabs)/read.tsx`): `loadSurahs()`. The juz tab (`loadDivisions`) is optional for v1.
 - [ ] **Reader** (`app/read/[surah].tsx`): `FlatList` of ayahs, translation/reading view and size
@@ -285,7 +285,7 @@ In scope for v1 (spec):
       and a verse sheet with tafsir.
 - [ ] **Surah tadabbur** (`app/tadabbur/[surah].tsx`): resume at `?v=`, `recordSurahTadabbur`, and the
       reflection → `addEntry`.
-- [ ] **Journal** (`app/(tabs)/journal.tsx`): `groupEntries(getEntries())`, delete. Export/PDF are deferred
+- [x] **Journal** (`app/(tabs)/journal.tsx`): `groupEntries(getEntries())`, delete. Export/PDF are deferred
       (`journalExport` is still web-only).
 - [ ] **Account** (`app/(tabs)/account.tsx`): email/password sign-in/up and the OTP step (`session.ts`), sync
       status, account-switch resolution, reminder toggle and time (`push.ts`, shown only when
@@ -310,3 +310,33 @@ Platform follow-ups:
 - Session restore against a real account: `signIn`, kill the app, relaunch, and check it is still signed in. This
   depends on `setAccessToken` filling the TokenManager in server mode, as read from the SDK source.
 - Fraunces and Hafs rendering on Android, and cold start time.
+
+## Home / Check-in / Journal notes
+
+- **Home** (`app/(tabs)/index.tsx`, `src/components/Home/`): greeting, streak line (day 2+), verse of the
+  day, then "Reflect on today’s verse" → `/checkin`, or once checked in "Go deeper" → `/tadabbur/[surah]?v=`.
+  Streak, last-read, check-in state, latest tadabbur and reader size are re-read on focus, and so is the
+  day's verse key (the day can turn while backgrounded). Section rows: Tadabbur, Read (continues at
+  `/read/[surah]?v=` when there is a last-read verse, else the `/read` tab), and Dhikr shown as
+  "Coming soon" with no route. **Differs from web:** web sends Tadabbur and "begin tadabbur" to
+  `/sessions` (the surah picker, deferred); native continues the latest surah tadabbur or begins at
+  Al-Fatihah (`tadabburTarget`). No reveal animation. The hero has an error line where web waits forever.
+- **Check-in** (`app/checkin.tsx`, `src/components/CheckIn/`): same copy, same draft key
+  (`mindfulverse.checkinDraft.v1`), same events (`checkin_view` on mount and per emotion tap with
+  `emotion`, `journal_save {context:"checkin"}`, `share_verse {where:"checkin"}` fired on the tap) and
+  the same entry shape (`context: { kind: "checkin", ref: verseKey }`). The verse key refreshes on focus
+  and on AppState `active` (web: `visibilitychange`). Share uses RN `Share` with web's exact text
+  (`verseText`); there is no clipboard fallback, so "Copied" never shows. Keyboard: `KeyboardAvoidingView`
+  `behavior="padding"`, offset by `useHeaderHeight()` (from `expo-router/react-navigation`) on both
+  platforms, on the assumption that edge-to-edge Android doesn't resize the window (unverified on a device).
+  Opened cold with nothing to go back to, a "Go to Home" button appears.
+- **Journal** (`app/(tabs)/journal.tsx`, `src/components/Journal/`): a `SectionList` (one section per
+  `groupEntries` group, same titles/counts, "Continue this surah’s tadabbur" → `/tadabbur/[surah]`). Entries are
+  re-read on focus and on sync `synced`; the sync status line follows web's rules. Entry verses are loaded once
+  per set of keys at list level, not per card. Delete confirms with `Alert.alert` (Keep / Yes, delete).
+  Session entries show their session title as a label, not a link (Sessions deferred).
+  **Export:** "Share as text" sends web's plain-text export through RN `Share` (`message`). The formatter is
+  a **copy** of the pure half of `apps/web/src/lib/journalExport.ts` in `src/components/Journal/journalText.ts`
+  (that file also holds browser-only `saveFile`). A parity test runs both formatters on the same input and
+  asserts identical output; move the formatter to `packages/core` later and delete the copy. PDF is deferred.
+  A very large journal may exceed Android's share-intent size, which shows the error line.
