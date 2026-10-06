@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { useRouter } from "expo-router";
 import type { Ayah } from "@mindfulverse/core/types";
 import { space, useTheme } from "../../theme";
-import { ArabicText, Text } from "../../ui";
+import { ArabicText, Sheet, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
 import {
   commentaryLabel,
@@ -13,7 +13,6 @@ import {
   type TafsirIndex,
 } from "./commentary";
 import { useShareVerse } from "../../share";
-import { Sheet } from "./Sheet";
 import type { Tafsir } from "./useTafsir";
 
 /** Web's CommentaryBody: the verse, then Ibn Kathir's paragraphs. */
@@ -68,7 +67,7 @@ export function CommentarySheet({
   }, [request, ayah.surah]);
   if (covering === null) return null;
   return (
-    <Sheet label={`Commentary on verse ${ayah.verseKey}`} title={commentaryTitle(ayah, covering)} onClose={onClose}>
+    <Sheet scroll label={`Commentary on verse ${ayah.verseKey}`} title={commentaryTitle(ayah, covering)} onClose={onClose}>
       <CommentaryBody ayah={ayah} text={tafsir.textFor(ayah, covering)} failed={tafsir.failedFor(ayah.surah)} />
     </Sheet>
   );
@@ -106,6 +105,7 @@ export function VerseSheet({
   const inCommentary = showCommentary && covering !== null;
   return (
     <Sheet
+      scroll
       label={`Verse ${ayah.verseKey}`}
       title={inCommentary ? commentaryTitle(ayah, covering) : `Verse ${ayah.verseKey}`}
       onClose={onClose}

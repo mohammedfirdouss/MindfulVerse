@@ -1,25 +1,40 @@
-// Web's components/Sheet.tsx on RN: a bottom sheet over a dimmed backdrop.
+// Web's components/Sheet.tsx on RN: a bottom sheet over an ink backdrop,
+// shared by the Reader (verse + commentary) and Tadabbur (go to a verse).
 // Built on Modal (no gesture/bottom-sheet dependency): tapping the backdrop,
-// the ✕, or the Android back button closes it. The header (title + ✕) stays
-// fixed; the body is whatever the caller passes (a ScrollView or FlatList).
+// the ✕, or the Android back button closes it. The header (handle, title, ✕)
+// stays fixed; the body is the caller's list (`scroll={false}`, the default)
+// or plain content wrapped in a padded ScrollView (`scroll`).
+//
+// Bottom inset: the modal window is drawn edge to edge on Android
+// (statusBarTranslucent + navigationBarTranslucent; SDK 57 apps are
+// edge-to-edge), so the sheet pads by the safe-area bottom inset itself:
+// ~48 dp above the 3-button bar, the small gesture-bar inset with gesture
+// navigation (floored at space.sm so content never touches the edge when a
+// device reports 0), and the home indicator on iOS. Without the translucent
+// nav bar the window would stop above the bar and that padding would double.
 import type { ReactNode } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { fonts, radius, space, useTheme } from "../../theme";
-import { Text } from "../../ui";
+import { fonts, radius, space, useTheme } from "../theme";
+import { Text } from "./Text";
 
 export function Sheet({
-  visible,
+  visible = true,
   label,
   title,
   onClose,
+  scroll = false,
   children,
 }: {
-  visible: boolean;
+  /** Defaults to true, for sheets mounted only while open. */
+  visible?: boolean;
   /** Accessible name of the dialog, e.g. "Go to a verse". */
   label: string;
   title: string;
   onClose: () => void;
+  /** Wrap the body in a padded ScrollView (text content); leave false when
+   *  the body brings its own FlatList. */
+  scroll?: boolean;
   children: ReactNode;
 }) {
   const { colors } = useTheme();
@@ -45,11 +60,11 @@ export function Sheet({
           accessibilityViewIsModal
           accessibilityLabel={label}
           style={{
-            maxHeight: "80%",
+            maxHeight: "85%",
             backgroundColor: colors.cottonRaised,
             borderTopLeftRadius: radius.md * 3,
             borderTopRightRadius: radius.md * 3,
-            paddingBottom: insets.bottom,
+            paddingBottom: Math.max(insets.bottom, space.sm),
           }}
         >
           <View
@@ -86,7 +101,11 @@ export function Sheet({
               <Text style={{ fontFamily: fonts.read, fontSize: 20, color: colors.inkSoft }}>✕</Text>
             </Pressable>
           </View>
-          {children}
+          {scroll ? (
+            <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl }}>{children}</ScrollView>
+          ) : (
+            children
+          )}
         </View>
       </View>
     </Modal>

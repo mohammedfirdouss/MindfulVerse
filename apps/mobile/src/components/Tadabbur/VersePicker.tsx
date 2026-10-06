@@ -6,8 +6,7 @@ import { memo, useCallback } from "react";
 import { FlatList, Pressable, View, type ListRenderItem } from "react-native";
 import type { Ayah } from "@mindfulverse/core/types";
 import { fonts, space, useTheme } from "../../theme";
-import { Text } from "../../ui";
-import { Sheet } from "./Sheet";
+import { Sheet, Text } from "../../ui";
 
 const ROW_HEIGHT = 56;
 
