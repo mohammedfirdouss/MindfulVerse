@@ -87,7 +87,8 @@ export function spokenTime(time: string): string {
 
 /** Notifications permission as expo-notifications reports it. */
 export interface PermissionInfo {
-  status: "granted" | "denied" | "undetermined";
+  /** "granted" | "denied" | "undetermined" (expo's PermissionStatus enum). */
+  status: string;
   canAskAgain: boolean;
 }
 
