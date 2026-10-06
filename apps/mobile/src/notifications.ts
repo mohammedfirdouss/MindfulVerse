@@ -33,6 +33,15 @@ function open(response: Notifications.NotificationResponse | null): void {
   const id = response.notification.request.identifier;
   if (handled.has(id)) return; // cold-start response can also reach the listener
   handled.add(id);
+  // Forget it natively too: `handled` lives in JS memory, so after a JS reload
+  // (dev reload, an update) getLastNotificationResponse() would return the same
+  // tap again and re-route. Best effort (SDK 57: clearLastNotificationResponse;
+  // the Async variant is deprecated).
+  try {
+    Notifications.clearLastNotificationResponse();
+  } catch {
+    /* not available on this platform */
+  }
   const url = routeForNotification(response.notification.request.content.data);
   if (url) router.push(url as Href);
 }
