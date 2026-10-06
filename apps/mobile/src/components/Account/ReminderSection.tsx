@@ -91,7 +91,11 @@ export function ReminderSection() {
     setBusy(true);
     setError(null);
     try {
-      await disableReminder();
+      const { error: offError } = await disableReminder();
+      if (offError) {
+        setError("Couldn't turn off the reminder — please try again.");
+        return;
+      }
       track({ type: "reminder_set", enabled: false });
       setReminderOn(false);
       setNotice(null);

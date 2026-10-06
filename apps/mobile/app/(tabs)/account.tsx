@@ -71,7 +71,8 @@ export default function Account() {
     // Drop this account's push rows first: once signed out, RLS no longer
     // lets us delete them, and this phone would keep receiving reminders.
     try {
-      await unregisterPush(userId);
+      const { error: pushError } = await unregisterPush(userId);
+      if (pushError) console.warn("unregisterPush failed before sign-out:", pushError);
     } catch {
       /* best effort — sign-out must proceed regardless */
     }

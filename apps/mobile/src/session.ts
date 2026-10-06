@@ -198,9 +198,12 @@ export async function verifyEmail(email: string, otp: string): Promise<AuthResul
 /** Signs out on the server (best effort) and forgets the stored token.
  *  Unregister push first (push.ts unregisterPush): once signed out, RLS no
  *  longer lets this device delete its own push_subscriptions row. */
+/** Best effort: the local session is always cleared, even if the server call fails. */
 export async function signOut(): Promise<void> {
   try {
     await insforge.auth.signOut();
+  } catch {
+    /* offline or token already invalid — local sign-out still happens */
   } finally {
     await clearLocal();
   }

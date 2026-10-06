@@ -133,14 +133,16 @@ export async function updateReminderTime(time: string): Promise<{ error: string 
   return { error: error ? error.message : null };
 }
 
-export async function disableReminder(): Promise<void> {
+export async function disableReminder(): Promise<{ error: string | null }> {
   const token = storedToken();
-  if (!token) return;
-  await insforge.database.from("push_subscriptions").delete().eq("endpoint", token);
+  if (!token) return { error: null };
+  const { error } = await insforge.database.from("push_subscriptions").delete().eq("endpoint", token);
+  return { error: error ? error.message : null };
 }
 
 /** Call BEFORE session.signOut(): once signed out, RLS blocks deleting the
  *  account's rows, and this device would keep receiving its reminders. */
-export async function unregisterPush(userId: string): Promise<void> {
-  await insforge.database.from("push_subscriptions").delete().eq("user_id", userId);
+export async function unregisterPush(userId: string): Promise<{ error: string | null }> {
+  const { error } = await insforge.database.from("push_subscriptions").delete().eq("user_id", userId);
+  return { error: error ? error.message : null };
 }
