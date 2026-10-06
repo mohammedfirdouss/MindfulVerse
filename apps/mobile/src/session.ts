@@ -57,6 +57,10 @@ const emit = () => listeners.forEach((cb) => cb());
 
 let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 let inflight: Promise<boolean> | null = null;
+// Bumped by clearLocal() (sign-out, revoked token). An auth call that started
+// before it must not adopt its result afterwards: a refresh in flight when
+// the user taps Sign out would otherwise sign them straight back in.
+let generation = 0;
 
 /** JWT `exp` in seconds, or null if the token can't be decoded. */
 function jwtExp(token: string): number | null {
@@ -99,8 +103,9 @@ function scheduleRefresh(accessToken: string): void {
 async function adopt(
   res: TokenResponse | null | undefined,
   event: typeof AuthChangeEvent.SIGNED_IN | typeof AuthChangeEvent.TOKEN_REFRESHED,
+  gen: number,
 ): Promise<boolean> {
-  if (!res?.accessToken) return false;
+  if (!res?.accessToken || gen !== generation) return false;
   accessToken = res.accessToken;
   insforge.setAccessToken(res.accessToken, event);
   if (res.refreshToken) {
@@ -110,12 +115,19 @@ async function adopt(
       // Signed in for this run; just won't survive a restart.
       console.warn("[session] could not persist refresh token:", e);
     }
+    // Signed out while the token was being written: clearLocal() has already
+    // reset memory, but its delete may have run before this write landed.
+    if (gen !== generation) {
+      await SecureStore.deleteItemAsync(REFRESH_KEY).catch(() => {});
+      return false;
+    }
   }
   scheduleRefresh(res.accessToken);
   return true;
 }
 
 async function clearLocal(): Promise<void> {
+  generation++;
   if (refreshTimer) clearTimeout(refreshTimer);
   refreshTimer = undefined;
   accessToken = null;
@@ -133,6 +145,7 @@ async function clearLocal(): Promise<void> {
  *  failure keeps it so the next attempt (foreground) can succeed. */
 function refreshNow(): Promise<boolean> {
   inflight ??= (async () => {
+    const gen = generation;
     let stored: string | null = null;
     try {
       stored = await SecureStore.getItemAsync(REFRESH_KEY);
@@ -142,10 +155,12 @@ function refreshNow(): Promise<boolean> {
     if (!stored) return false;
     const wasSignedIn = currentAccessToken() !== null;
     const { data, error } = await insforge.auth.refreshSession({ refreshToken: stored });
-    if (!error && (await adopt(data, AuthChangeEvent.TOKEN_REFRESHED))) {
+    if (!error && (await adopt(data, AuthChangeEvent.TOKEN_REFRESHED, gen))) {
       if (!wasSignedIn) emit();
       return true;
     }
+    // Signed out meanwhile: whatever the server said is about the old session.
+    if (gen !== generation) return false;
     if (error && (error.statusCode === 401 || error.statusCode === 403)) {
       await clearLocal();
       if (wasSignedIn) emit();
@@ -166,9 +181,10 @@ export async function restore(): Promise<void> {
 }
 
 export async function signIn(email: string, password: string): Promise<AuthResult> {
+  const gen = generation;
   const { data, error } = await insforge.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
-  return (await adopt(data, AuthChangeEvent.SIGNED_IN))
+  return (await adopt(data, AuthChangeEvent.SIGNED_IN, gen))
     ? { error: null }
     : { error: "Sign-in did not return a session." };
 }
@@ -179,18 +195,20 @@ export async function signUp(
   email: string,
   password: string,
 ): Promise<AuthResult & { needsVerification: boolean }> {
+  const gen = generation;
   const { data, error } = await insforge.auth.signUp({ email, password });
   if (error) return { error: error.message, needsVerification: false };
   if (data?.requireEmailVerification) return { error: null, needsVerification: true };
-  return (await adopt(data, AuthChangeEvent.SIGNED_IN))
+  return (await adopt(data, AuthChangeEvent.SIGNED_IN, gen))
     ? { error: null, needsVerification: false }
     : { error: null, needsVerification: true };
 }
 
 export async function verifyEmail(email: string, otp: string): Promise<AuthResult> {
+  const gen = generation;
   const { data, error } = await insforge.auth.verifyEmail({ email, otp });
   if (error) return { error: error.message };
-  return (await adopt(data, AuthChangeEvent.SIGNED_IN))
+  return (await adopt(data, AuthChangeEvent.SIGNED_IN, gen))
     ? { error: null }
     : { error: "Verification did not return a session." };
 }
