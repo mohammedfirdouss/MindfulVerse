@@ -5,9 +5,9 @@ import ReadingControls from "../components/ReadingControls";
 import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
-import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
-import { juzOf, spansInRange, verseId } from "../lib/divisions";
-import { recordLastRead } from "../lib/progress";
+import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "@mindfulverse/core/data";
+import { juzOf, spansInRange, verseId } from "@mindfulverse/core/divisions";
+import { recordLastRead } from "@mindfulverse/core/progress";
 import {
   getReadView,
   getSizeKey,
@@ -15,8 +15,8 @@ import {
   saveSizeKey,
   scaleFor,
   type ReadView,
-} from "../lib/readingPrefs";
-import type { Ayah, Division } from "../lib/types";
+} from "@mindfulverse/core/readingPrefs";
+import type { Ayah, Division } from "@mindfulverse/core/types";
 import { useLastReadTracker } from "../lib/useLastReadTracker";
 
 // Keyed on the juz so moving to the next one starts from clean state.

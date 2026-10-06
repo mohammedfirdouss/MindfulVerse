@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { shareVerse } from "./share";
-import type { Ayah } from "./types";
+import type { Ayah } from "@mindfulverse/core/types";
 
 /** One share button's confirmation: "Shared ✓" / "Copied ✓" for two seconds,
  *  nothing when the share sheet is dismissed or fails. */

@@ -1,6 +1,6 @@
 // Web Push subscription management. A subscription row belongs to this
 // device+account pair; a user can hold one row per device.
-import { insforge } from "./insforge";
+import { insforge } from "@mindfulverse/core/sync/insforge";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);

@@ -1,6 +1,6 @@
 // Web data reader for the shared core's loaders: data paths resolve under
 // /data/ (public/data), and the service worker caches them for offline use.
-import type { ReadJson } from "../lib/data";
+import type { ReadJson } from "@mindfulverse/core/data";
 
 export const fetchJson: ReadJson = async (path) => {
   const url = `/data/${path}`;

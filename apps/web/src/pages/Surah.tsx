@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
-import { recordLastRead } from "../lib/progress";
-import type { Ayah, SurahMeta } from "../lib/types";
+import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "@mindfulverse/core/data";
+import { recordLastRead } from "@mindfulverse/core/progress";
+import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
 import {
   CommentarySheet,
   useTafsir,
@@ -12,7 +12,7 @@ import ReadingControls from "../components/ReadingControls";
 import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
-import { verseId } from "../lib/divisions";
+import { verseId } from "@mindfulverse/core/divisions";
 import {
   getReadView,
   getSizeKey,
@@ -20,7 +20,7 @@ import {
   saveSizeKey,
   scaleFor,
   type ReadView,
-} from "../lib/readingPrefs";
+} from "@mindfulverse/core/readingPrefs";
 import { useLastReadTracker } from "../lib/useLastReadTracker";
 
 type Status = "loading" | "ready" | "error";

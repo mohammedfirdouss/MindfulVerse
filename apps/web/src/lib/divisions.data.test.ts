@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Divisions, SurahMeta } from "./types";
+import type { Divisions, SurahMeta } from "@mindfulverse/core/types";
 import divisionsJson from "../../public/data/divisions.json";
 import surahsJson from "../../public/data/surahs.json";
 

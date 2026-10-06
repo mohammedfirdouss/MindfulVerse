@@ -13,11 +13,11 @@ import {
   loadSurahTafsir,
   loadSurahs,
   loadTafsirIndex,
-} from "../lib/data";
-import { addEntry } from "../lib/journal";
-import { track } from "../lib/analytics";
-import { getSurahTadabbur, recordSurahTadabbur } from "../lib/progress";
-import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "../lib/types";
+} from "@mindfulverse/core/data";
+import { addEntry } from "@mindfulverse/core/journal";
+import { track } from "@mindfulverse/core/analytics";
+import { getSurahTadabbur, recordSurahTadabbur } from "@mindfulverse/core/progress";
+import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "@mindfulverse/core/types";
 
 // Motion helpers — transform + opacity only, under 400ms (same approach as
 // SessionPlayer). Reduced motion: content simply appears.

@@ -36,7 +36,7 @@ describe("timezone math", () => {
 });
 
 describe("verse rotation", () => {
-  it("stride-53 walk over a 139-verse pool, matching src/lib/dailyVerse.ts", () => {
+  it("stride-53 walk over a 139-verse pool, matching packages/core/dailyVerse.ts", () => {
     expect(verseKeyForDayIndex(0)).toBe("94:5");    // index 0
     expect(verseKeyForDayIndex(1)).toBe("3:31");    // (1*53)%139 = 53
     expect(verseKeyForDayIndex(139)).toBe(verseKeyForDayIndex(0)); // full cycle
@@ -97,9 +97,9 @@ describe("pickContinueTarget", () => {
 });
 
 describe("verse pool parity with the client", () => {
-  it("is deep-equal to the pool in src/lib/dailyVerse.ts", async () => {
+  it("is deep-equal to the pool in packages/core/dailyVerse.ts", async () => {
     const fn = await import("./send-reminders");
-    const client = await import("../apps/web/src/lib/dailyVerse");
+    const client = await import("../packages/core/dailyVerse");
     expect(fn.DAILY_VERSES).toEqual(client.DAILY_VERSES);
   });
 });

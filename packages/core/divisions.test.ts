@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import divisionsJson from "../../public/data/divisions.json";
-import surahsJson from "../../public/data/surahs.json";
+import divisionsJson from "../../apps/web/public/data/divisions.json";
+import surahsJson from "../../apps/web/public/data/surahs.json";
 import {
   compareKeys,
   hizbOf,

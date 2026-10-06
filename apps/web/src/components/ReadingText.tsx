@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import { toArabicDigits, verseId } from "../lib/divisions";
-import type { Ayah } from "../lib/types";
+import { toArabicDigits, verseId } from "@mindfulverse/core/divisions";
+import type { Ayah } from "@mindfulverse/core/types";
 
 /** Every surah except Al-Fatihah (where it is ayah 1) and At-Tawbah opens
  *  with the basmalah in the mushaf. */

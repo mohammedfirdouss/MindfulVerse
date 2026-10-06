@@ -1,7 +1,7 @@
 // Journal export: shaping entries for export, the plain-text file, and saving.
 // The designed PDF lives in journalPdf.ts, loaded only when asked for.
-import type { JournalGroup } from "./journalGroups";
-import type { JournalEntry } from "./types";
+import type { JournalGroup } from "@mindfulverse/core/journalGroups";
+import type { JournalEntry } from "@mindfulverse/core/types";
 
 export interface ExportItem {
   entry: JournalEntry;

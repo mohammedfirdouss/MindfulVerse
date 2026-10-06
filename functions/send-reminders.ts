@@ -5,7 +5,7 @@
 
 declare const Deno: { env: { get(k: string): string | undefined } };
 
-// Same pool + stride as src/lib/dailyVerse.ts — keep the two in sync.
+// Same pool + stride as packages/core/dailyVerse.ts — keep the two in sync.
 export const DAILY_VERSES: string[] = [
   "94:5", "94:6", "94:1", "94:2", "94:3", "94:4", "94:7", "94:8", "93:1", "93:2",
   "93:3", "93:4", "93:5", "93:7", "93:11", "3:139", "39:53", "12:87", "10:57", "10:58",

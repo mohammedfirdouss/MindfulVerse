@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { Ayah, EmotionEntry } from "../lib/types";
-import { loadAyahsByKeys, loadEmotions, loadSurahs } from "../lib/data";
-import { addEntry } from "../lib/journal";
-import { todayVerseKey } from "../lib/dailyVerse";
+import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
+import { loadAyahsByKeys, loadEmotions, loadSurahs } from "@mindfulverse/core/data";
+import { addEntry } from "@mindfulverse/core/journal";
+import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
 import { shareVerse } from "../lib/share";
-import { track } from "../lib/analytics";
+import { track } from "@mindfulverse/core/analytics";
 
 const VERSE_PROMPT = "What stays with you from this verse?";
 // An unsaved reflection survives leaving the page (or the OS killing the PWA).

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { Ayah } from "../lib/types";
+import type { Ayah } from "@mindfulverse/core/types";
 import { useShareFeedback } from "../lib/useShareFeedback";
 import {
   CommentaryBody,

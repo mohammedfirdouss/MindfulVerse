@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { loadSearchIndex, parseVerseKey } from "../lib/data";
+import { loadSearchIndex, parseVerseKey } from "@mindfulverse/core/data";
 
 const MAX_RESULTS = 50;
 const SNIPPET_RADIUS = 90;

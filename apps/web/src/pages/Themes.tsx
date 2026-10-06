@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { loadThemes } from "../lib/data";
-import type { Theme } from "../lib/types";
+import { loadThemes } from "@mindfulverse/core/data";
+import type { Theme } from "@mindfulverse/core/types";
 
 const PAGE_SIZE = 120;
 

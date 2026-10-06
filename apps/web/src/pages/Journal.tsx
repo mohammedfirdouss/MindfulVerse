@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "../lib/data";
-import { getEntries, deleteEntry } from "../lib/journal";
-import { groupEntries, type JournalGroup } from "../lib/journalGroups";
+import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "@mindfulverse/core/data";
+import { getEntries, deleteEntry } from "@mindfulverse/core/journal";
+import { groupEntries, type JournalGroup } from "@mindfulverse/core/journalGroups";
 import {
   buildJournalText,
   formatDate,
@@ -10,9 +10,9 @@ import {
   toSections,
   type ExportInput,
 } from "../lib/journalExport";
-import { useAccount } from "../lib/sync/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
-import type { Ayah, JournalEntry } from "../lib/types";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
+import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
 

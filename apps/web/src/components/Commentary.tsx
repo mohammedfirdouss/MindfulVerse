@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { loadSurahTafsir } from "../lib/data";
-import type { Ayah, SurahTafsir } from "../lib/types";
+import { loadSurahTafsir } from "@mindfulverse/core/data";
+import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
 import Sheet from "./Sheet";
 
 /** Per-surah list of ayahs that carry a direct Ibn Kathir entry. */

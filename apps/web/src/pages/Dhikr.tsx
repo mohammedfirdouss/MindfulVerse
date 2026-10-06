@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { track } from "../lib/analytics";
+import { track } from "@mindfulverse/core/analytics";
 
 // Mass-transmitted adhkar only — universally known formulas, no authored
 // religious content. Arabic + transliteration + meaning, per the plan.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getEntries, JOURNAL_SAVED_EVENT } from "../lib/journal";
+import { getEntries, JOURNAL_SAVED_EVENT } from "@mindfulverse/core/journal";
 
 // A quiet, dismissible nudge to install the PWA. An icon on the home screen is
 // the strongest return-visit mechanic a backend-less app has.

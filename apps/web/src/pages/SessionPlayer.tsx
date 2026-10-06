@@ -6,16 +6,16 @@ import {
   loadSurahs,
   loadSurahTafsir,
   parseVerseKey,
-} from "../lib/data";
-import { addEntry } from "../lib/journal";
+} from "@mindfulverse/core/data";
+import { addEntry } from "@mindfulverse/core/journal";
 import FeedbackLink from "../components/FeedbackLink";
-import { track } from "../lib/analytics";
+import { track } from "@mindfulverse/core/analytics";
 import {
   getSessionProgress,
   recordSessionComplete,
   recordSessionStep,
-} from "../lib/progress";
-import type { Ayah, SessionStep, TadabburSession } from "../lib/types";
+} from "@mindfulverse/core/progress";
+import type { Ayah, SessionStep, TadabburSession } from "@mindfulverse/core/types";
 
 // Motion helpers — transform + opacity only, all under 400ms. No index.css edits.
 

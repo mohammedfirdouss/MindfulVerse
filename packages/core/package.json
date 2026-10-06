@@ -1,0 +1,36 @@
+{
+  "name": "@mindfulverse/core",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Platform-neutral MindfulVerse logic shared by the web and mobile apps (no DOM, no react-native).",
+  "exports": {
+    "./analytics": "./analytics.ts",
+    "./dailyVerse": "./dailyVerse.ts",
+    "./data": "./data.ts",
+    "./divisions": "./divisions.ts",
+    "./journal": "./journal.ts",
+    "./journalGroups": "./journalGroups.ts",
+    "./progress": "./progress.ts",
+    "./readingPrefs": "./readingPrefs.ts",
+    "./sync/auth": "./sync/auth.tsx",
+    "./sync/engine": "./sync/engine.ts",
+    "./sync/insforge": "./sync/insforge.ts",
+    "./sync/merge": "./sync/merge.ts",
+    "./syncFlags": "./syncFlags.ts",
+    "./types": "./types.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@insforge/sdk": "^1.5.2"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5",
+    "react": "^18.3.1"
+  }
+}

@@ -1,4 +1,4 @@
-import { SIZES, type ReadView } from "../lib/readingPrefs";
+import { SIZES, type ReadView } from "@mindfulverse/core/readingPrefs";
 
 export default function ReadingControls({
   sizeKey,

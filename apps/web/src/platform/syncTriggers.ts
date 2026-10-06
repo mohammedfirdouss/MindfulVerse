@@ -1,6 +1,6 @@
 // Web sync triggers: connectivity from navigator.onLine and the window
 // "online" event; foreground from the document becoming visible again.
-import type { SyncTriggers } from "../lib/sync/engine";
+import type { SyncTriggers } from "@mindfulverse/core/sync/engine";
 
 export const webSyncTriggers: SyncTriggers = {
   isOnline: () => navigator.onLine,

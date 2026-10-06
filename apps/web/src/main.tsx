@@ -5,10 +5,10 @@ import { BrowserRouter } from "react-router-dom";
 import { inject } from "@vercel/analytics";
 import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { trackAppOpen } from "./lib/analytics";
-import { AccountProvider } from "./lib/sync/auth";
-import { recordVisit } from "./lib/progress";
-import { initSync } from "./lib/sync/engine";
+import { trackAppOpen } from "@mindfulverse/core/analytics";
+import { AccountProvider } from "@mindfulverse/core/sync/auth";
+import { recordVisit } from "@mindfulverse/core/progress";
+import { initSync } from "@mindfulverse/core/sync/engine";
 import { applyTheme, getTheme } from "./lib/theme";
 import "./index.css";
 

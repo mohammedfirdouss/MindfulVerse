@@ -2,13 +2,13 @@
 // only backs up your journal and progress across devices.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAccount } from "../lib/sync/auth";
-import { insforge } from "../lib/sync/insforge";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import { insforge } from "@mindfulverse/core/sync/insforge";
 import {
   getSyncStatus, onSyncStatus, resolveOwnerMismatch, statusLabel, syncNow, type SyncStatus,
-} from "../lib/sync/engine";
-import { track } from "../lib/analytics";
-import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/sync/push";
+} from "@mindfulverse/core/sync/engine";
+import { track } from "@mindfulverse/core/analytics";
+import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/push";
 import FeedbackLink from "../components/FeedbackLink";
 
 const NETWORK_ERROR = "Couldn't reach the server — check your connection and try again.";

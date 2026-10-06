@@ -3,12 +3,12 @@
 // button lets testers email their numbers to the founder.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { getEvents } from "../lib/analytics";
-import { currentStreak, totalVisitDays } from "../lib/progress";
-import { getEntries } from "../lib/journal";
-import { getReadView } from "../lib/readingPrefs";
-import { useAccount } from "../lib/sync/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "../lib/sync/engine";
+import { getEvents } from "@mindfulverse/core/analytics";
+import { currentStreak, totalVisitDays } from "@mindfulverse/core/progress";
+import { getEntries } from "@mindfulverse/core/journal";
+import { getReadView } from "@mindfulverse/core/readingPrefs";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
 
 const FIRST_SEEN_KEY = "mindfulverse.firstSeen.v1";
 

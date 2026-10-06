@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAyahsByKeys, loadSurahs } from "../lib/data";
-import { todayVerseKey } from "../lib/dailyVerse";
-import { checkedInToday } from "../lib/journal";
-import { currentStreak, getLastRead, latestSurahTadabbur } from "../lib/progress";
-import type { Ayah } from "../lib/types";
+import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
+import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { checkedInToday } from "@mindfulverse/core/journal";
+import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
+import type { Ayah } from "@mindfulverse/core/types";
 
 function greeting(hour: number): string {
   if (hour < 5) return "Peace be upon you tonight";

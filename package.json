@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @mindfulverse/web",
-    "build": "npm run build -w @mindfulverse/web",
+    "build": "npm run typecheck -w @mindfulverse/core && npm run build -w @mindfulverse/web",
     "preview": "npm run preview -w @mindfulverse/web",
+    "typecheck": "npm run typecheck -w @mindfulverse/core",
     "build:data": "node scripts/build-data.mjs",
     "test": "vitest run",
     "test:e2e": "npm run test:e2e -w @mindfulverse/web"

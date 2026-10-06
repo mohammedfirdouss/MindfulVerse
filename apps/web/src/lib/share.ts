@@ -1,7 +1,7 @@
 // Share a verse — the v0 distribution loop. Uses the Web Share API where
 // available (mobile, straight into WhatsApp), falls back to clipboard.
-import { track } from "./analytics";
-import type { Ayah } from "./types";
+import { track } from "@mindfulverse/core/analytics";
+import type { Ayah } from "@mindfulverse/core/types";
 
 function verseText(ayah: Ayah): string {
   return `${ayah.arabic}\n\n“${ayah.translation}”\n\n— Qur’an ${ayah.surah}:${ayah.ayah}\n\nvia MindfulVerse`;

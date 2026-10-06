@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { loadDivisions, loadSurahs } from "../lib/data";
-import { getLastRead } from "../lib/progress";
-import type { Division, SurahMeta } from "../lib/types";
+import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
+import { getLastRead } from "@mindfulverse/core/progress";
+import type { Division, SurahMeta } from "@mindfulverse/core/types";
 
 type Status = "loading" | "ready" | "error";
 

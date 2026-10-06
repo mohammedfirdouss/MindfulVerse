@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { parseVerseId } from "./divisions";
-import { recordLastRead } from "./progress";
+import { parseVerseId } from "@mindfulverse/core/divisions";
+import { recordLastRead } from "@mindfulverse/core/progress";
 
 /** The topmost visible verse becomes "last read". Watches both translation
  *  blocks (article.verse) and reading spans (.rv). `fallbackSurah` names the

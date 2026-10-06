@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadSessions, loadSurahs } from "../lib/data";
+import { loadSessions, loadSurahs } from "@mindfulverse/core/data";
 import {
   getAllSessionProgress,
   getSurahTadabbur,
   latestSurahTadabbur,
-} from "../lib/progress";
-import type { SurahMeta, TadabburSession } from "../lib/types";
+} from "@mindfulverse/core/progress";
+import type { SurahMeta, TadabburSession } from "@mindfulverse/core/types";
 
 type SessionsStatus =
   | { kind: "loading" }
