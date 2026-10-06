@@ -2,7 +2,8 @@
 // data root ("surahs.json", "quran/2.json"); how a path becomes bytes is the
 // host's job — web fetches /data/<path> (cached offline by the service
 // worker), native reads a bundled asset. The host installs its reader with
-// configureData() at startup, before any loader runs.
+// configureData() at startup, before any loader runs. Results are cached per
+// path for the session (tafsir: the last few surahs only).
 
 import type {
   Ayah,
@@ -24,14 +25,45 @@ export function configureData(fn: ReadJson): void {
   readJson = fn;
 }
 
-const cache = new Map<string, unknown>();
+// Promises, not values: concurrent loads of one path share a single read
+// (a surah's ayahs and its tafsir are often requested together). A rejected
+// read is dropped so the next call retries.
+const cache = new Map<string, Promise<unknown>>();
 
-async function getJson<T>(path: string): Promise<T> {
-  if (cache.has(path)) return cache.get(path) as T;
-  if (!readJson) throw new Error("configureData() must run before loading data");
-  const data = (await readJson(path)) as T;
-  cache.set(path, data);
-  return data;
+// Tafsir files are the big ones (up to ~1 MB of text per surah) and are read
+// one surah at a time, so keep only the most recently used few in memory.
+// Insertion order of this Map is the LRU order (oldest first).
+export const TAFSIR_CACHE_SURAHS = 3;
+const tafsirLru = new Map<string, true>();
+const isTafsir = (path: string) => path.startsWith("tafsir/");
+
+function touchTafsir(path: string): void {
+  tafsirLru.delete(path);
+  tafsirLru.set(path, true);
+  while (tafsirLru.size > TAFSIR_CACHE_SURAHS) {
+    const oldest = tafsirLru.keys().next().value as string;
+    tafsirLru.delete(oldest);
+    cache.delete(oldest);
+  }
+}
+
+function getJson<T>(path: string): Promise<T> {
+  let p = cache.get(path);
+  if (!p) {
+    const read = readJson;
+    if (!read) return Promise.reject(new Error("configureData() must run before loading data"));
+    // Via then(): a reader that throws synchronously still yields a rejection.
+    const pending: Promise<unknown> = Promise.resolve().then(() => read(path));
+    p = pending;
+    cache.set(path, pending);
+    pending.catch(() => {
+      if (cache.get(path) !== pending) return; // already evicted or replaced
+      cache.delete(path);
+      tafsirLru.delete(path);
+    });
+  }
+  if (isTafsir(path)) touchTafsir(path);
+  return p as Promise<T>;
 }
 
 export const loadSurahs = () => getJson<SurahMeta[]>("surahs.json");
