@@ -119,8 +119,10 @@ await refresh();   // from useAccount()
 await syncNow();   // from @mindfulverse/core/sync/engine
 ```
 
-Before `signOut()`, call `unregisterPush(user.id)` from `push.ts`. RLS stops
-the delete once the user is signed out. **OAuth is out of scope.** PKCE needs
+Before `signOut()`, call `disableReminder()` then `forgetPushToken()` from
+`push.ts` (this device's row only, as web does). RLS stops the delete once the
+user is signed out. `unregisterPush(user.id)` deletes every device's row and is
+only for "Delete my data". **OAuth is out of scope.** PKCE needs
 `crypto.subtle` (Hermes has none) and a redirect flow (`expo-web-browser`).
 Hide the Google/GitHub buttons on native for now.
 
@@ -289,7 +291,7 @@ In scope for v1 (spec):
       (`journalExport` is still web-only).
 - [x] **Account** (`app/(tabs)/account.tsx`): email/password sign-in/up and the OTP step (`session.ts`), sync
       status, account-switch resolution, reminder toggle and time (`push.ts`, shown only when
-      `pushSupport() === "ok"`), sign-out (unregister push first), delete-my-data, theme toggle.
+      `pushSupport() === "ok"`), sign-out (this device's reminder off first), delete-my-data, theme toggle.
 
 Deferred (fast follow, per spec): Sessions, SessionPlayer, Search, Themes, Dhikr, Stats, Juz reader.
 
@@ -323,7 +325,8 @@ pure `logic.ts` with vitest tests).
   backup only once the first sync landed, status line + Sync now, the switched-account Merge / Start fresh
   choice (`Alert.alert` replaces `window.confirm`), reminder on / time / off, sign-out, delete-my-data
   (signs out only when every delete succeeded) and the feedback mailto.
-- **Sign-out** calls `unregisterPush(user.id)` first (best effort), then `session.signOut()`, then `refresh()`.
+- **Sign-out** calls `disableReminder()` + `forgetPushToken()` first (this device only, best effort), then
+  `session.signOut()`, then `refresh()`. "Delete my data" deletes every device's row (`unregisterPush`).
 - **Reminders** render only when `pushSupport() === "ok"`; otherwise a calm "not in this version yet" line.
   A permission the OS will no longer prompt for (`denied` and `!canAskAgain`) shows "Open settings"
   (`Linking.openSettings`); it is re-checked when the app returns to the foreground. The time selector is

@@ -108,7 +108,11 @@ await insforge.database.from("push_subscriptions").select("reminder_time").eq("e
 await insforge.database.from("push_subscriptions").update({ reminder_time: time }).eq("endpoint", token);
 // disable
 await insforge.database.from("push_subscriptions").delete().eq("endpoint", token);
-// before sign-out (Account.tsx does this): RLS blocks it once signed out
+// before sign-out, this device only (web's Account.tsx calls disableReminder()):
+// RLS blocks it once signed out. Never delete by user_id here, or the account's
+// reminders on its other devices stop too.
+await insforge.database.from("push_subscriptions").delete().eq("endpoint", token);
+// "Delete my data" only: every device's row for the account
 await insforge.database.from("push_subscriptions").delete().eq("user_id", user.id);
 ```
 
@@ -175,7 +179,14 @@ version, e.g. by moving the SQL into the file from
   `failed` and are not stamped. The next run is already outside that row's
   15-minute window, so the reminder is effectively dropped for the day. Web
   failures behave the same way today.
-- A device token is the PK. If account B signs in on a device whose token
-  still belongs to account A's row, B's delete matches nothing under RLS and
-  the insert hits a PK conflict. This is the same limit web has. The app must
-  delete by `user_id` before sign-out, as web does.
+- A device token is the PK, and a shared phone keeps the same Expo token
+  across accounts. Sign-out deletes this device's row by `endpoint` (as web's
+  `disableReminder()` does), so account A's other devices keep their
+  reminders. When account B then enables a reminder on the same phone,
+  `enableReminder` deletes by `endpoint` first, exactly as web does; RLS lets
+  that delete match only B's own row, so it is a no-op for A's row. The
+  residual case: if A's sign-out could not reach the server (offline), A's row
+  survives, B's insert hits the PK, and the app says the phone still has
+  another account's reminder (sign in as A and turn it off). Web has the same
+  limit, but browsers mint a new endpoint after `unsubscribe()`, so it rarely
+  bites there. Deleting by `user_id` is reserved for "Delete my data".

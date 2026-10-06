@@ -116,12 +116,24 @@ export async function enableReminder(time: string): Promise<EnableResult> {
   if (got.error !== null) return { error: got.error, welcomed: false };
   const token = got.token;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  // endpoint is the PK: delete-then-insert acts as an upsert under RLS.
+  // endpoint is the PK: delete-then-insert acts as an upsert under RLS (as
+  // web does). RLS only lets the delete match this account's own row, so if
+  // another account still owns this device's token (its sign-out couldn't
+  // reach the server), the insert hits the PK. That residual case can only be
+  // cleared by that account (sign in, turn off) or by the server pruning it.
   await insforge.database.from("push_subscriptions").delete().eq("endpoint", token);
   const { error } = await insforge.database
     .from("push_subscriptions")
     .insert([{ endpoint: token, platform: "expo", reminder_time: time, timezone }]);
-  if (error) return { error: error.message, welcomed: false };
+  if (error) {
+    const pkConflict = (error as { code?: string }).code === "23505";
+    return {
+      error: pkConflict
+        ? "This phone still has a reminder from another account. Sign in to that account and turn it off, then try again."
+        : "Couldn’t turn on the reminder — please try again.",
+      welcomed: false,
+    };
+  }
 
   // Today's verse right away, through the same pipeline: doubles as a live
   // end-to-end test. Best effort.
@@ -155,8 +167,19 @@ export async function disableReminder(): Promise<{ error: string | null }> {
   return { error: error ? error.message : null };
 }
 
-/** Call BEFORE session.signOut(): once signed out, RLS blocks deleting the
- *  account's rows, and this device would keep receiving its reminders. */
+/** Forgets this device's cached Expo token (sign-out). The next account to
+ *  enable a reminder here fetches it again. */
+export function forgetPushToken(): void {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* nothing stored */
+  }
+}
+
+/** Deletes every reminder row of the account, on all its devices. Only for
+ *  "Delete my data"; sign-out uses disableReminder() (this device only), as
+ *  web does. Must run while signed in (RLS). */
 export async function unregisterPush(userId: string): Promise<{ error: string | null }> {
   const { error } = await insforge.database.from("push_subscriptions").delete().eq("user_id", userId);
   return { error: error ? error.message : null };

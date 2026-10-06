@@ -195,10 +195,11 @@ export async function verifyEmail(email: string, otp: string): Promise<AuthResul
     : { error: "Verification did not return a session." };
 }
 
-/** Signs out on the server (best effort) and forgets the stored token.
- *  Unregister push first (push.ts unregisterPush): once signed out, RLS no
- *  longer lets this device delete its own push_subscriptions row. */
-/** Best effort: the local session is always cleared, even if the server call fails. */
+/** Signs out on the server (best effort) and forgets the stored token. The
+ *  local session is always cleared, even if the server call fails.
+ *  Turn off this device's reminder first (push.ts disableReminder, then
+ *  forgetPushToken): once signed out, RLS no longer lets this device delete
+ *  its own push_subscriptions row. */
 export async function signOut(): Promise<void> {
   try {
     await insforge.auth.signOut();

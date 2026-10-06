@@ -13,7 +13,7 @@ import { FormError, LinkButton, Notice, Section, Small } from "../../src/compone
 import { ReminderSection } from "../../src/components/Account/ReminderSection";
 import { SettingsSection } from "../../src/components/Account/SettingsSection";
 import { SyncSection } from "../../src/components/Account/SyncSection";
-import { unregisterPush } from "../../src/push";
+import { disableReminder, forgetPushToken, unregisterPush } from "../../src/push";
 import { signOut as endSession } from "../../src/session";
 import { fonts, space } from "../../src/theme";
 import { Button, Card, Screen, Text } from "../../src/ui";
@@ -65,17 +65,19 @@ export default function Account() {
     );
   }
 
-  async function signOut(userId: string) {
+  async function signOut() {
     setBusy(true);
     setError(null);
-    // Drop this account's push rows first: once signed out, RLS no longer
-    // lets us delete them, and this phone would keep receiving reminders.
+    // Drop this device's reminder first (as web does): once signed out, RLS no
+    // longer lets us delete it, and this phone would keep receiving reminders.
+    // Only this device's row: the account's other phones keep theirs.
     try {
-      const { error: pushError } = await unregisterPush(userId);
-      if (pushError) console.warn("unregisterPush failed before sign-out:", pushError);
+      const { error: pushError } = await disableReminder();
+      if (pushError) console.warn("disableReminder failed before sign-out:", pushError);
     } catch {
       /* best effort — sign-out must proceed regardless */
     }
+    forgetPushToken();
     try {
       await endSession();
     } catch {
@@ -106,7 +108,7 @@ export default function Account() {
       const results = await Promise.all([
         insforge.database.from("journal_entries").delete().eq("user_id", userId),
         insforge.database.from("progress").delete().eq("user_id", userId),
-        insforge.database.from("push_subscriptions").delete().eq("user_id", userId),
+        unregisterPush(userId), // every device's reminder for this account
       ]);
       if (results.some((r) => r.error)) {
         setNotice(null);
@@ -120,7 +122,7 @@ export default function Account() {
       setBusy(false);
       return;
     }
-    await signOut(userId);
+    await signOut();
   }
 
   const header = (
@@ -165,7 +167,7 @@ export default function Account() {
 
             <Section>
               <View style={{ alignItems: "flex-start" }}>
-                <Button title="Sign out" kind="secondary" disabled={busy} busy={busy} onPress={() => void signOut(user.id)} />
+                <Button title="Sign out" kind="secondary" disabled={busy} busy={busy} onPress={() => void signOut()} />
               </View>
             </Section>
 
