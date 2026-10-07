@@ -3,6 +3,7 @@
 export { ArabicText } from "./ArabicText";
 export { Button, type ButtonKind } from "./Button";
 export { Card } from "./Card";
+export { LinkPressable } from "./LinkPressable";
 export { Screen } from "./Screen";
 export { Sheet } from "./Sheet";
 export { Text, type TextVariant } from "./Text";

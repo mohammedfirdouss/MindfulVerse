@@ -37,7 +37,8 @@ type Row =
   | { kind: "chunk"; key: string; first: number; last: number; chunk: ReadingChunk };
 
 const FLASH_MS = 1600;
-const VIEWABILITY = { minimumViewTime: 100 } as const;
+// RN 0.86 requires exactly one threshold; 1% keeps the old "any part visible" behaviour.
+const VIEWABILITY = { minimumViewTime: 100, itemVisiblePercentThreshold: 1 } as const;
 
 // Keyed on the surah (as web) so "Next surah" or a new deep link starts from
 // clean state; an in-flight load can't land on the wrong surah.

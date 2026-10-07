@@ -1,8 +1,8 @@
 // Read tab — port of apps/web/src/pages/Reader.tsx: continue-reading card,
 // Surah / Juz browse, search by name or number.
-import { Link, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
-import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
 import { getLastRead, type LastRead } from "@mindfulverse/core/progress";
@@ -10,7 +10,7 @@ import type { Division, SurahMeta } from "@mindfulverse/core/types";
 import { JuzRow, SurahRow, verseHref } from "../../src/components/Reader/IndexRows";
 import { Segmented } from "../../src/components/Reader/Segmented";
 import { fonts, radius, space, useTheme } from "../../src/theme";
-import { Card, Text } from "../../src/ui";
+import { Card, LinkPressable, Text } from "../../src/ui";
 
 type Status = "loading" | "ready" | "error";
 type Tab = "surah" | "juz";
@@ -87,22 +87,20 @@ export default function Read() {
       </View>
 
       {lastRead ? (
-        <Link href={verseHref(lastRead.surah, lastRead.ayah)} asChild>
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel={`Continue reading ${nameOf(lastRead.surah)}, verse ${lastRead.ayah}`}
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.indigoWash : colors.shea,
-              borderRadius: radius.md,
-              padding: space.lg,
-            })}
-          >
-            <Text variant="eyebrow">Continue reading</Text>
-            <Text style={{ fontFamily: fonts.readSemiBold }}>
-              {nameOf(lastRead.surah)} · verse {lastRead.ayah}
-            </Text>
-          </Pressable>
-        </Link>
+        <LinkPressable
+          href={verseHref(lastRead.surah, lastRead.ayah)}
+          accessibilityLabel={`Continue reading ${nameOf(lastRead.surah)}, verse ${lastRead.ayah}`}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? colors.indigoWash : colors.shea,
+            borderRadius: radius.md,
+            padding: space.lg,
+          })}
+        >
+          <Text variant="eyebrow">Continue reading</Text>
+          <Text style={{ fontFamily: fonts.readSemiBold }}>
+            {nameOf(lastRead.surah)} · verse {lastRead.ayah}
+          </Text>
+        </LinkPressable>
       ) : null}
 
       <View style={{ alignItems: "flex-start" }}>

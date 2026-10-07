@@ -1,9 +1,8 @@
 import { memo } from "react";
-import { Pressable, View } from "react-native";
-import { Link } from "expo-router";
+import { View } from "react-native";
 import type { Division, SurahMeta } from "@mindfulverse/core/types";
 import { fonts, radius, space, useTheme } from "../../theme";
-import { ArabicText, Text } from "../../ui";
+import { ArabicText, LinkPressable, Text } from "../../ui";
 
 /** href for "surah s from ayah a": no ?v= when it starts at the top. */
 export function verseHref(surah: number, ayah: number) {
@@ -26,23 +25,21 @@ export const SurahRow = memo(function SurahRow({ surah }: { surah: SurahMeta }) 
   const card = useCardStyle();
   const ayahs = `${surah.ayahCount} ${surah.ayahCount === 1 ? "ayah" : "ayahs"}`;
   return (
-    <Link href={verseHref(surah.number, 1)} asChild>
-      <Pressable
-        accessibilityRole="link"
-        accessibilityLabel={`Surah ${surah.number}, ${surah.name}, ${ayahs}`}
-        style={(s) => [card(s), { flexDirection: "row", alignItems: "center", gap: 14 }]}
-      >
-        <Text variant="eyebrow" style={{ minWidth: 36, textAlign: "center" }}>
-          {surah.number}
+    <LinkPressable
+      href={verseHref(surah.number, 1)}
+      accessibilityLabel={`Surah ${surah.number}, ${surah.name}, ${ayahs}`}
+      style={(s) => [card(s), { flexDirection: "row", alignItems: "center", gap: 14 }]}
+    >
+      <Text variant="eyebrow" style={{ minWidth: 36, textAlign: "center" }}>
+        {surah.number}
+      </Text>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: fonts.readSemiBold }}>{surah.name}</Text>
+        <Text variant="muted" style={{ fontSize: 15, lineHeight: 22 }}>
+          {ayahs}
         </Text>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.readSemiBold }}>{surah.name}</Text>
-          <Text variant="muted" style={{ fontSize: 15, lineHeight: 22 }}>
-            {ayahs}
-          </Text>
-        </View>
-      </Pressable>
-    </Link>
+      </View>
+    </LinkPressable>
   );
 });
 
@@ -70,39 +67,35 @@ export const JuzRow = memo(function JuzRow({
   const range = `${nameOf(fs)} ${fa} – ${nameOf(ls)} ${la}`;
   return (
     <View style={{ backgroundColor: colors.shea, borderRadius: radius.md }}>
-      <Link href={verseHref(fs, fa)} asChild>
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel={`Juz ${juz.n}, ${range}`}
-          style={(s) => [card(s), { flexDirection: "row", alignItems: "center", gap: 14, paddingBottom: space.sm }]}
-        >
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontFamily: fonts.readSemiBold }}>Juz {juz.n}</Text>
-            <Text variant="muted" style={{ fontSize: 15, lineHeight: 22 }}>
-              {range}
-            </Text>
-          </View>
-          {juz.opening ? (
-            <ArabicText
-              scale={0.62}
-              numberOfLines={1}
-              style={{ flexShrink: 0, maxWidth: "45%" }}
-              importantForAccessibility="no"
-            >
-              {juz.opening}
-            </ArabicText>
-          ) : null}
-        </Pressable>
-      </Link>
+      <LinkPressable
+        href={verseHref(fs, fa)}
+        accessibilityLabel={`Juz ${juz.n}, ${range}`}
+        style={(s) => [card(s), { flexDirection: "row", alignItems: "center", gap: 14, paddingBottom: space.sm }]}
+      >
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ fontFamily: fonts.readSemiBold }}>Juz {juz.n}</Text>
+          <Text variant="muted" style={{ fontSize: 15, lineHeight: 22 }}>
+            {range}
+          </Text>
+        </View>
+        {juz.opening ? (
+          <ArabicText
+            scale={0.62}
+            numberOfLines={1}
+            style={{ flexShrink: 0, maxWidth: "45%" }}
+            importantForAccessibility="no"
+          >
+            {juz.opening}
+          </ArabicText>
+        ) : null}
+      </LinkPressable>
       <View style={{ flexDirection: "row", gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.md }}>
         {hizbs.map((h) => {
           const [hs, ha] = split(h.first);
           return (
-            <Link key={h.n} href={verseHref(hs, ha)} asChild>
-              <Pressable accessibilityRole="link" accessibilityLabel={`Hizb ${h.n}`} hitSlop={10}>
-                <Text style={{ color: colors.indigo, fontSize: 15.5, lineHeight: 24 }}>Hizb {h.n}</Text>
-              </Pressable>
-            </Link>
+            <LinkPressable key={h.n} href={verseHref(hs, ha)} accessibilityLabel={`Hizb ${h.n}`} hitSlop={10}>
+              <Text style={{ color: colors.indigo, fontSize: 15.5, lineHeight: 24 }}>Hizb {h.n}</Text>
+            </LinkPressable>
           );
         })}
       </View>

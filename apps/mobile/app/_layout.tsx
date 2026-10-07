@@ -97,6 +97,8 @@ function RootNavigator() {
           headerTintColor: colors.indigo,
           headerTitleStyle: { fontFamily: fonts.readSemiBold, color: colors.indigoDeep },
           headerShadowVisible: false,
+          // iOS otherwise labels the back button with the route group, "(tabs)".
+          headerBackButtonDisplayMode: "minimal",
           contentStyle: { backgroundColor: colors.cotton },
         }}
       >

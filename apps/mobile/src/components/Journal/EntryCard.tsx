@@ -1,12 +1,11 @@
 // One reflection (web Journal.tsx EntryCard): date, the verse it was written
 // about, the session it came from, prompt, body, and a quiet delete that
 // confirms with Alert.alert instead of web's inline "Yes, delete / Keep".
-import { Link } from "expo-router";
 import { Alert, Pressable, View } from "react-native";
 import { parseVerseKey } from "@mindfulverse/core/data";
 import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
 import { space, useTheme } from "../../theme";
-import { ArabicText, Card, Text } from "../../ui";
+import { ArabicText, Card, LinkPressable, Text } from "../../ui";
 import { entryVerseKey, formatDate } from "./journalText";
 
 // Web shows the entry's verse at 1.35rem against .arabic's 1.9rem.
@@ -16,26 +15,24 @@ function EntryVerse({ verseKey, ayah }: { verseKey: string; ayah: Ayah }) {
   const { colors } = useTheme();
   const { surah, ayah: n } = parseVerseKey(verseKey);
   return (
-    <Link href={{ pathname: "/read/[surah]", params: { surah: String(surah), v: String(n) } }} asChild>
-      <Pressable
-        accessibilityRole="link"
-        accessibilityLabel={`Verse ${verseKey}: ${ayah.translation}. Open in the reader.`}
-        style={({ pressed }) => ({
-          borderLeftWidth: 3,
-          borderLeftColor: colors.indigoWash,
-          paddingLeft: 14,
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <ArabicText scale={ENTRY_ARABIC}>{ayah.arabic}</ArabicText>
-        <Text variant="soft" style={{ fontSize: 16.2, lineHeight: 25, marginTop: 4 }}>
-          {ayah.translation}
-        </Text>
-        <Text variant="eyebrow" style={{ marginTop: 4 }}>
-          {verseKey}
-        </Text>
-      </Pressable>
-    </Link>
+    <LinkPressable
+      href={{ pathname: "/read/[surah]", params: { surah: String(surah), v: String(n) } }}
+      accessibilityLabel={`Verse ${verseKey}: ${ayah.translation}. Open in the reader.`}
+      style={({ pressed }) => ({
+        borderLeftWidth: 3,
+        borderLeftColor: colors.indigoWash,
+        paddingLeft: 14,
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <ArabicText scale={ENTRY_ARABIC}>{ayah.arabic}</ArabicText>
+      <Text variant="soft" style={{ fontSize: 16.2, lineHeight: 25, marginTop: 4 }}>
+        {ayah.translation}
+      </Text>
+      <Text variant="eyebrow" style={{ marginTop: 4 }}>
+        {verseKey}
+      </Text>
+    </LinkPressable>
   );
 }
 
