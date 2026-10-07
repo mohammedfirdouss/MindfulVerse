@@ -8,6 +8,7 @@
 import * as Notifications from "expo-notifications";
 import { router, type Href } from "expo-router";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 // Foreground presentation. shouldShowAlert is deprecated in SDK 57 (F5).
 Notifications.setNotificationHandler({
@@ -49,6 +50,7 @@ function open(response: Notifications.NotificationResponse | null): void {
 /** Mount once, inside the root navigator (app/_layout.tsx). */
 export function useNotificationRouting(): void {
   useEffect(() => {
+    if (Platform.OS === "web") return; // the browser design preview has no notifications
     open(Notifications.getLastNotificationResponse());
     const sub = Notifications.addNotificationResponseReceivedListener(open);
     return () => sub.remove();

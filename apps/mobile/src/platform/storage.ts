@@ -39,6 +39,8 @@ function openStore(): KV {
 export const kv: KV = openStore();
 
 export function installLocalStorage(): void {
+  // The web preview (expo start --web) has a real localStorage, and it can't be replaced.
+  if (typeof window !== "undefined" && typeof document !== "undefined") return;
   const shim = {
     getItem(key: string): string | null {
       try {
