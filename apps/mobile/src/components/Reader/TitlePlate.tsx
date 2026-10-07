@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { arabicSurahName, revelationPlace } from "../../data/surahs";
+import { arabicSurahName, revelationPlace } from "@mindfulverse/core/surahNames";
 import { fonts, space } from "../../theme";
 import { AdireCloth, ArabicText, Text, useOnCloth } from "../../ui";
 

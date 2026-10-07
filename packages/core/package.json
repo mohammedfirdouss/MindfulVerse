@@ -13,6 +13,7 @@
     "./journalGroups": "./journalGroups.ts",
     "./progress": "./progress.ts",
     "./readingPrefs": "./readingPrefs.ts",
+    "./surahNames": "./surahNames.ts",
     "./sync/auth": "./sync/auth.tsx",
     "./sync/engine": "./sync/engine.ts",
     "./sync/insforge": "./sync/insforge.ts",

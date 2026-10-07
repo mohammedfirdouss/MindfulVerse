@@ -46,6 +46,12 @@
   --font-ui: var(--font-read);
 
   /* The adire band — dye-resist diamonds, drawn once, used as the one ornament. */
+  /* Dyed cloth: deep indigo ground with faint resist motifs (mobile src/ui/adire.tsx). */
+  --cloth-ground: var(--indigo-deep);
+  --cloth-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23f5efe2' stroke-width='1.3' opacity='0.13'%3E%3Cpath d='M22 10.56 L33.44 22 L22 33.44 L10.56 22Z'/%3E%3Cpath d='M22 16.85 L27.15 22 L22 27.15 L16.85 22Z' fill='%23f5efe2' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='44' cy='0' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='0' cy='44' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='44' cy='44' r='3.96' stroke-width='1.2'/%3E%3Cpath d='M19 0H25M19 44H25M0 19V25M44 19V25' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E");
+  --on-cloth: #fbf7ec;
+  --on-cloth-soft: #d6d9ea;
+  --on-cloth-accent: #e9a174;
   --adire-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='12' viewBox='0 0 36 12'%3E%3Crect width='36' height='12' fill='%232a3a8c'/%3E%3Cpath d='M9 1 14 6 9 11 4 6Z' fill='none' stroke='%23f5efe2' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='2.4' fill='none' stroke='%23f5efe2' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='0.9' fill='%23f5efe2'/%3E%3C/svg%3E");
 }
 
@@ -65,6 +71,11 @@
   --ink-faint: #7f7869;
   --line: #2b2f42;
   --line-strong: #3a3f58;
+  --cloth-ground: #262e4d;
+  --cloth-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%2393a5e4' stroke-width='1.3' opacity='0.13'%3E%3Cpath d='M22 10.56 L33.44 22 L22 33.44 L10.56 22Z'/%3E%3Cpath d='M22 16.85 L27.15 22 L22 27.15 L16.85 22Z' fill='%2393a5e4' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='44' cy='0' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='0' cy='44' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='44' cy='44' r='3.96' stroke-width='1.2'/%3E%3Cpath d='M19 0H25M19 44H25M0 19V25M44 19V25' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E");
+  --on-cloth: #e9e4d8;
+  --on-cloth-soft: #b3ab99;
+  --on-cloth-accent: #dd9059;
   --adire-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='12' viewBox='0 0 36 12'%3E%3Crect width='36' height='12' fill='%231b2559'/%3E%3Cpath d='M9 1 14 6 9 11 4 6Z' fill='none' stroke='%2393a5e4' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='2.4' fill='none' stroke='%2393a5e4' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='0.9' fill='%2393a5e4'/%3E%3C/svg%3E");
 }
 
@@ -379,3 +390,69 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 .juz-range { font-size: .9rem; }
 .juz-range > span { white-space: nowrap; }
 .juz-hizbs { display: flex; gap: 16px; margin: 8px 0 0; font-size: .92rem; }
+
+/* ============================================================================
+   Adire language, shared with the mobile app (apps/mobile/src/ui/adire.tsx):
+   dyed cloth for the verse that matters, diamond numerals, dye-rules.
+   ============================================================================ */
+.cloth {
+  background: var(--cloth-motif) 0 0 / 44px 44px, var(--cloth-ground);
+  color: var(--on-cloth);
+  border-radius: 6px;
+  padding: 22px;
+}
+.cloth .arabic, .cloth h1, .cloth h2, .cloth h3 { color: var(--on-cloth); }
+.cloth .translation { color: var(--on-cloth); }
+.cloth-soft { color: var(--on-cloth-soft); }
+.cloth-eyebrow {
+  margin: 0 0 4px; font-size: .78rem; font-weight: 600; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--on-cloth-accent);
+}
+.cloth a { color: var(--on-cloth); }
+/* The cotton button that sits on cloth; light indigo on night cloth. */
+.btn.cloth-btn { background: var(--cotton-raised); border-color: var(--cotton-raised); color: var(--indigo-deep); }
+.btn.cloth-btn:hover { background: var(--indigo-wash); border-color: var(--indigo-wash); }
+[data-theme="dark"] .btn.cloth-btn { background: var(--indigo); border-color: var(--indigo); color: var(--cotton); }
+[data-theme="dark"] .btn.cloth-btn:hover { background: var(--indigo-deep); border-color: var(--indigo-deep); }
+
+/* A disabled filled button becomes an empty outline: clearly off, no muddy violet. */
+.btn:disabled, .btn[aria-disabled="true"] {
+  background: transparent; border-color: var(--line-strong); color: var(--ink-faint);
+  cursor: default; transform: none;
+}
+
+/* Diamond numeral (the .roundel, in two weights). */
+.diamond {
+  flex: none; width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-read); font-size: .88rem; font-weight: 600;
+  color: var(--cotton-raised); background: var(--indigo);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.diamond.small { font-size: .74rem; }
+/* Outline weight: an SVG frame (components/Adire.tsx) behind the numeral. */
+.diamond.outline { background: none; clip-path: none; color: var(--indigo); position: relative; }
+.diamond.outline svg { position: absolute; inset: 0; }
+.diamond.outline span { position: relative; }
+
+/* Dye-rule: hairline with a kola diamond at its centre. */
+.dye-rule { display: flex; align-items: center; gap: 10px; margin: 22px 0; border: 0; }
+.dye-rule::before, .dye-rule::after { content: ""; flex: 1; height: 1px; background: var(--line-strong); }
+.dye-rule > i {
+  width: 10px; height: 10px; background: var(--kola);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+/* Surah title plate. */
+.title-plate { text-align: center; padding: 24px 22px; }
+.title-plate .plate-arabic {
+  font-family: var(--font-arabic); font-size: 2.6rem; line-height: 1.7;
+  direction: rtl; color: var(--on-cloth);
+}
+.title-plate .plate-name { font-size: 1.3rem; font-weight: 600; margin: 0; color: var(--on-cloth); }
+.title-plate .plate-meta { margin: 2px 0 0; font-size: .9rem; color: var(--on-cloth-soft); }
+
+/* Fade-rise entrance for the moment that matters. */
+.fade-rise { animation: fade-rise 340ms var(--ease-out) both; }
+@keyframes fade-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fade-rise { animation: none; } }

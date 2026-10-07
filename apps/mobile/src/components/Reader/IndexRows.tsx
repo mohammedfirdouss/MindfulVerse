@@ -2,7 +2,7 @@ import { memo } from "react";
 import { View } from "react-native";
 import type { Division, SurahMeta } from "@mindfulverse/core/types";
 import { fonts, radius, space, useTheme } from "../../theme";
-import { arabicSurahName, revelationPlace } from "../../data/surahs";
+import { arabicSurahName, revelationPlace } from "@mindfulverse/core/surahNames";
 import { ArabicText, Diamond, LinkPressable, Text } from "../../ui";
 
 /** href for "surah s from ayah a": no ?v= when it starts at the top. */
