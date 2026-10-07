@@ -15,7 +15,7 @@ import { SettingsSection } from "../../src/components/Account/SettingsSection";
 import { SyncSection } from "../../src/components/Account/SyncSection";
 import { disableReminder, forgetPushToken, unregisterPush } from "../../src/push";
 import { signOut as endSession } from "../../src/session";
-import { fonts, space } from "../../src/theme";
+import { fonts } from "../../src/theme";
 import { Button, Card, Screen, Text } from "../../src/ui";
 
 function confirm(title: string, message: string, action: string): Promise<boolean> {
@@ -129,12 +129,6 @@ export default function Account() {
     <View>
       <Text variant="eyebrow">Account</Text>
       <Text variant="h1">{loading || user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}</Text>
-      {!loading && !user ? (
-        <Text variant="muted" style={{ marginTop: space.sm }}>
-          Optional. The Qur’an is always free here and an account backs up your journal and progress so they
-          follow you to another device, and lets you get today’s verse as a daily reminder on your phone.
-        </Text>
-      ) : null}
     </View>
   );
 

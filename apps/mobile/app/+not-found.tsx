@@ -1,4 +1,4 @@
-import { Link, Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { Button, Screen, Text } from "../src/ui";
 
 export default function NotFound() {
@@ -6,9 +6,7 @@ export default function NotFound() {
     <Screen edges="bottom">
       <Stack.Screen options={{ title: "Not found" }} />
       <Text variant="h1">Page not found</Text>
-      <Link href="/" asChild>
-        <Button title="Go home" />
-      </Link>
+      <Button title="Go home" onPress={() => router.replace("/")} />
     </Screen>
   );
 }

@@ -1,7 +1,7 @@
 // Daily check-in (web: apps/web/src/pages/CheckIn.tsx). Pushed from Home and
 // the target of the daily-verse / welcome push (data.url "/checkin"), so it
 // must stand on its own on a cold start.
-import { Link, useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, KeyboardAvoidingView, TextInput, View } from "react-native";
@@ -297,9 +297,7 @@ export default function CheckIn() {
 
         {/* Opened cold from a push there is nothing to go back to. */}
         {!router.canGoBack() ? (
-          <Link href="/" asChild>
-            <Button kind="ghost" title="Go to Home" />
-          </Link>
+          <Button kind="ghost" title="Go to Home" onPress={() => router.navigate("/")} />
         ) : null}
       </Screen>
     </KeyboardAvoidingView>

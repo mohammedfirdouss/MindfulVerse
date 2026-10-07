@@ -3,7 +3,7 @@
 // flowing): rows are paragraphs of a few ayahs (src/components/Reader/chunks).
 // Last-read follows the topmost visible row (web: IntersectionObserver;
 // here: onViewableItemsChanged + the same 800 ms debounce).
-import { Link, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, View, type ListRenderItem, type ViewToken } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,8 +27,9 @@ import { ReadingParagraph } from "../../src/components/Reader/ReadingParagraph";
 import { CommentarySheet, VerseSheet } from "../../src/components/Reader/Sheets";
 import { useTafsir } from "../../src/components/Reader/useTafsir";
 import { VerseRow } from "../../src/components/Reader/VerseRow";
-import { space, useTheme } from "../../src/theme";
-import { ArabicText, Button, Card, Text } from "../../src/ui";
+import { arabicSurahName, revelationPlace } from "../../src/data/surahs";
+import { fonts, space, useTheme } from "../../src/theme";
+import { AdireCloth, ArabicText, Button, Card, DyeRule, Text, useOnCloth } from "../../src/ui";
 
 type Status = "loading" | "ready" | "error";
 
@@ -220,7 +221,7 @@ function SurahReader({ surah }: { surah: string }) {
   const header = useMemo(
     () => (
       <View style={{ paddingTop: space.md }}>
-        {meta ? <Text variant="muted">{meta.ayahCount} verses</Text> : null}
+        <TitlePlate surah={surahNumber} name={meta?.name} ayahCount={meta?.ayahCount} />
         <View
           style={{
             flexDirection: "row",
@@ -228,10 +229,8 @@ function SurahReader({ surah }: { surah: string }) {
             alignItems: "center",
             justifyContent: "space-between",
             gap: space.md,
-            paddingTop: space.sm,
+            paddingTop: space.md,
             paddingBottom: space.md,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.line,
             marginBottom: 4,
           }}
         >
@@ -239,25 +238,30 @@ function SurahReader({ surah }: { surah: string }) {
           <JumpToVerse max={meta?.ayahCount ?? ayahs.length} onJump={goToVerse} />
         </View>
         {showsBasmalah(surahNumber) ? (
-          <ArabicText
-            scale={scale * (view === "reading" ? 1.7 / 1.9 : 1)}
-            style={{ textAlign: "center", paddingTop: 18, paddingBottom: 4 }}
-          >
-            {BASMALAH}
-          </ArabicText>
+          <View style={{ paddingTop: 6 }}>
+            <DyeRule />
+            <ArabicText
+              scale={scale * (view === "reading" ? 1.7 / 1.9 : 1)}
+              style={{ textAlign: "center", paddingTop: 10, paddingBottom: 4 }}
+            >
+              {BASMALAH}
+            </ArabicText>
+          </View>
         ) : null}
       </View>
     ),
-    [meta, colors.line, sizeKey, chooseSize, view, chooseView, ayahs.length, goToVerse, surahNumber, scale],
+    [meta, sizeKey, chooseSize, view, chooseView, ayahs.length, goToVerse, surahNumber, scale],
   );
 
   const footer = useMemo(
     () =>
       surahNumber < 114 ? (
         <View style={{ paddingTop: 28, paddingBottom: 8, alignItems: "flex-start" }}>
-          <Link href={{ pathname: "/read/[surah]", params: { surah: String(surahNumber + 1) } }} replace asChild>
-            <Button title="Next surah" kind="secondary" />
-          </Link>
+          <Button
+            title="Next surah"
+            kind="secondary"
+            onPress={() => router.replace({ pathname: "/read/[surah]", params: { surah: String(surahNumber + 1) } })}
+          />
         </View>
       ) : null,
     [surahNumber],
@@ -316,5 +320,29 @@ function SurahReader({ surah }: { surah: string }) {
         <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
       ) : null}
     </View>
+  );
+}
+
+/** The surah's opening: its Arabic name on dyed cloth, then the English name,
+ *  place of revelation and length. */
+function TitlePlate({ surah, name, ayahCount }: { surah: number; name?: string; ayahCount?: number }) {
+  const cloth = useOnCloth();
+  const arabic = arabicSurahName(surah);
+  const place = revelationPlace(surah);
+  const details = [place, ayahCount ? `${ayahCount} verses` : null].filter(Boolean).join(" · ");
+  return (
+    <AdireCloth style={{ paddingVertical: 22, paddingHorizontal: space.lg, alignItems: "center" }}>
+      <View accessible accessibilityRole="header" accessibilityLabel={[name, details].filter(Boolean).join(", ")} style={{ alignItems: "center" }}>
+        {arabic ? (
+          <ArabicText style={{ color: cloth.strong, textAlign: "center", fontSize: 42, lineHeight: 72 }}>{arabic}</ArabicText>
+        ) : null}
+        {name ? (
+          <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 21, lineHeight: 27, color: cloth.strong }}>{name}</Text>
+        ) : null}
+        <Text style={{ fontSize: 14.5, lineHeight: 21, color: cloth.soft, marginTop: 2 }}>
+          {`Surah ${surah}${details ? ` · ${details}` : ""}`}
+        </Text>
+      </View>
+    </AdireCloth>
   );
 }

@@ -1,6 +1,6 @@
 // Home (web: apps/web/src/pages/Home.tsx): greeting, streak, the verse of the
 // day, the check-in / go-deeper action, and the places to go with more time.
-import { Link, useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Linking, View } from "react-native";
 import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
@@ -9,7 +9,7 @@ import { checkedInToday } from "@mindfulverse/core/journal";
 import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import type { Ayah } from "@mindfulverse/core/types";
-import { HomeEntry } from "../../src/components/Home/HomeEntry";
+import { HomeEntry, HomeEntryDivider } from "../../src/components/Home/HomeEntry";
 import {
   deeperLabel,
   greeting,
@@ -18,8 +18,10 @@ import {
   tadabburTarget,
   type VersePos,
 } from "../../src/components/Home/homeModel";
-import { space, useTheme } from "../../src/theme";
-import { ArabicText, Button, Screen, Text } from "../../src/ui";
+import Svg, { Path } from "react-native-svg";
+import { fonts, space, useTheme } from "../../src/theme";
+import { AdireCloth, ArabicText, Button, DyeRule, Screen, Text, useOnCloth } from "../../src/ui";
+import { DhikrIcon, ReadIcon, TadabburIcon } from "../../src/ui/icons";
 
 // Web's hero Arabic is 2.4rem against .arabic's 1.9rem, times the reader size.
 const HERO_ARABIC = 2.4 / 1.9;
@@ -48,6 +50,7 @@ function readLocal(): Local {
 
 export default function Home() {
   const { colors } = useTheme();
+  const cloth = useOnCloth();
   const [local, setLocal] = useState<Local>(readLocal);
   const [verseKey, setVerseKey] = useState<string | null>(null);
   const [hero, setHero] = useState<Ayah | null>(null);
@@ -99,62 +102,61 @@ export default function Home() {
 
   return (
     <Screen>
-      <View style={{ marginTop: space.sm }}>
-        <Text variant="eyebrow">{greeting(hour)}</Text>
-        {returning ? (
-          <Text variant="soft" style={{ fontSize: 15.3, marginTop: 6 }}>
-            {returning}
-          </Text>
-        ) : null}
+      <View style={{ marginTop: space.xs, gap: 4 }}>
+        <Text variant="muted" style={{ fontSize: 14.5, lineHeight: 20 }}>
+          {todayLabel()}
+        </Text>
+        <Text variant="h2">{greeting(hour)}</Text>
+        {returning ? <StreakBeads streak={streak} label={returning} /> : null}
       </View>
 
-      <View accessibilityLabel="A verse to begin with" style={{ marginTop: 10, marginBottom: 18 }}>
-        {hero ? (
-          <View>
-            <ArabicText scale={HERO_ARABIC * scale}>{hero.arabic}</ArabicText>
-            <Text
-              variant="translation"
-              style={{ fontSize: 20.4, lineHeight: 32.6, marginTop: 14, color: colors.ink }}
-            >
-              {hero.translation}
-            </Text>
-            <Text variant="eyebrow" style={{ marginTop: 12 }}>
-              {surahName ? `${surahName} · ` : ""}
-              {hero.surah}:{hero.ayah}
-            </Text>
-          </View>
-        ) : heroError ? (
-          <Text variant="muted">
-            Today’s verse is still being gathered. Come back in a little while and it will be
-            waiting for you.
+      <AdireCloth style={{ padding: space.lg, paddingTop: 20, marginTop: 6 }}>
+        <View accessibilityLabel="A verse to begin with">
+          <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 13, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
+            TODAY’S VERSE
           </Text>
-        ) : (
-          <Text variant="muted">Opening today’s verse…</Text>
-        )}
-
-        <View style={{ marginTop: 24, alignItems: "flex-start", gap: 12 }}>
-          {doneToday ? (
-            <>
-              <Text variant="soft">Today’s reflection is saved.</Text>
-              <Link href={tadabburHref} asChild>
-                <Button kind="secondary" title={deeperLabel(deeper, surahNames)} />
-              </Link>
-            </>
+          {hero ? (
+            <View>
+              <ArabicText scale={HERO_ARABIC * scale} style={{ color: cloth.strong, marginTop: 6 }}>
+                {hero.arabic}
+              </ArabicText>
+              <Text
+                variant="translation"
+                style={{ fontSize: 20.4, lineHeight: 31, marginTop: 6, color: cloth.strong }}
+              >
+                {hero.translation}
+              </Text>
+              <Text style={{ marginTop: 10, fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>
+                {surahName ? `${surahName} · ` : ""}
+                {hero.surah}:{hero.ayah}
+              </Text>
+            </View>
           ) : (
-            <Link href="/checkin" asChild>
-              <Button title="Reflect on today’s verse" />
-            </Link>
+            <Text style={{ color: cloth.soft, marginTop: 10 }}>
+              {heroError
+                ? "Today’s verse is still being gathered. Come back in a little while and it will be waiting for you."
+                : "Opening today’s verse…"}
+            </Text>
           )}
-        </View>
-      </View>
 
-      <View accessibilityLabel="Sections" style={{ borderTopWidth: 1, borderTopColor: colors.line }}>
+          <View style={{ marginTop: 22, alignItems: "flex-start", gap: 10 }}>
+            {doneToday ? (
+              <>
+                <Text style={{ color: cloth.soft, fontSize: 15.5, lineHeight: 22 }}>Today’s reflection is saved.</Text>
+                <Button kind="cloth" title={deeperLabel(deeper, surahNames)} onPress={() => router.push(tadabburHref)} />
+              </>
+            ) : (
+              <Button kind="cloth" title="Reflect on today’s verse" onPress={() => router.push("/checkin")} />
+            )}
+          </View>
+        </View>
+      </AdireCloth>
+
+      <View accessibilityLabel="Sections" style={{ marginTop: space.sm }}>
+        <HomeEntry Icon={TadabburIcon} title="Tadabbur" desc="Ponder the Qur’an, surah by surah." href={tadabburHref} />
+        <HomeEntryDivider />
         <HomeEntry
-          title="Tadabbur"
-          desc="Ponder the Qur’an, surah by surah."
-          href={tadabburHref}
-        />
-        <HomeEntry
+          Icon={ReadIconFlat}
           title="Read"
           desc={readDesc(lastRead)}
           href={
@@ -166,11 +168,14 @@ export default function Home() {
               : "/read"
           }
         />
-        <HomeEntry title="Dhikr & breath" desc="Remembrance, paced to your breath." />
+        <HomeEntryDivider />
+        <HomeEntry Icon={DhikrIcon} title="Dhikr & breath" desc="Remembrance, paced to your breath." />
       </View>
 
+      <DyeRule style={{ marginTop: space.lg }} />
+
       {/* Required attribution — the translation is CC BY-NC-ND. */}
-      <Text variant="muted" style={{ fontSize: 13.6, lineHeight: 20, marginTop: 30 }}>
+      <Text variant="muted" style={{ fontSize: 13.6, lineHeight: 20, textAlign: "center" }}>
         English translation by{" "}
         <Text
           accessibilityRole="link"
@@ -182,4 +187,37 @@ export default function Home() {
       </Text>
     </Screen>
   );
+}
+
+/** "Wednesday, 7 October" in the phone's language. */
+function todayLabel(): string {
+  try {
+    return new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+  } catch {
+    return new Date().toDateString();
+  }
+}
+
+/** The returning streak as a string of beads: one per day, up to a week. */
+function StreakBeads({ streak, label }: { streak: number; label: string }) {
+  const { colors } = useTheme();
+  const filled = Math.min(streak, 7);
+  return (
+    <View accessible accessibilityLabel={label} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 }}>
+      <View style={{ flexDirection: "row", gap: 4 }}>
+        {Array.from({ length: 7 }, (_, i) => (
+          <Svg key={i} width={9} height={9}>
+            <Path d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z" fill={i < filled ? colors.kola : colors.lineStrong} />
+          </Svg>
+        ))}
+      </View>
+      <Text variant="soft" style={{ fontSize: 14.5, lineHeight: 20 }}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function ReadIconFlat({ color, size }: { color: string; size?: number }) {
+  return <ReadIcon color={color} focused={false} size={size} />;
 }

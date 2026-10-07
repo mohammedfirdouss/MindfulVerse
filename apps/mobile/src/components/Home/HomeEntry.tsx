@@ -1,56 +1,78 @@
-// One row of Home's section list (web .home-entry): title, description, arrow.
-// Without `href` the row is inert and reads "coming soon" (deferred screens).
-import { Link, type Href } from "expo-router";
-import { Pressable, View } from "react-native";
+// One row of Home's section list (web .home-entry): icon, title, description,
+// chevron. Without `href` the row is inert and reads "coming soon".
+import type { Href } from "expo-router";
+import type { ComponentType } from "react";
+import { View } from "react-native";
 import { space, useTheme } from "../../theme";
-import { Text } from "../../ui";
+import { LinkPressable, Text } from "../../ui";
+import { ChevronIcon } from "../../ui/icons";
 
-export function HomeEntry({ title, desc, href }: { title: string; desc: string; href?: Href }) {
+export function HomeEntry({
+  title,
+  desc,
+  href,
+  Icon,
+}: {
+  title: string;
+  desc: string;
+  href?: Href;
+  Icon: ComponentType<{ color: string; size?: number }>;
+}) {
   const { colors } = useTheme();
-  const body = (pressed: boolean) => (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: space.md,
-        paddingVertical: 14,
-        paddingLeft: pressed ? space.sm : 2,
-        paddingRight: 2,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.line,
-      }}
-    >
+  const live = !!href;
+  const body = (
+    <>
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: live ? colors.indigoWash : colors.shea,
+        }}
+      >
+        <Icon color={live ? colors.indigo : colors.inkFaint} size={22} />
+      </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 17.8, color: href ? colors.ink : colors.inkFaint }}>{title}</Text>
-        <Text variant="muted" style={{ fontSize: 15.6, lineHeight: 22, marginTop: 2 }}>
+        <Text style={{ fontSize: 17.8, color: live ? colors.ink : colors.inkFaint }}>{title}</Text>
+        <Text variant="muted" style={{ fontSize: 15.2, lineHeight: 21, marginTop: 1 }}>
           {desc}
         </Text>
       </View>
-      {href ? (
-        <Text aria-hidden style={{ color: colors.indigo, fontSize: 18.7 }}>
-          →
-        </Text>
+      {live ? (
+        <ChevronIcon color={colors.indigo} />
       ) : (
-        <Text variant="muted" style={{ fontSize: 13 }}>
-          Coming soon
-        </Text>
+        <View style={{ borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+          <Text variant="muted" style={{ fontSize: 12, lineHeight: 16 }}>
+            Soon
+          </Text>
+        </View>
       )}
-    </View>
+    </>
   );
+  const row = { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 14 } as const;
 
   if (!href) {
     return (
-      <View accessible accessibilityLabel={`${title}. ${desc}. Coming soon.`}>
-        {body(false)}
+      <View accessible accessibilityLabel={`${title}. ${desc}. Coming soon.`} style={row}>
+        {body}
       </View>
     );
   }
   return (
-    <Link href={href} asChild>
-      <Pressable accessibilityRole="link" accessibilityLabel={`${title}. ${desc}`}>
-        {({ pressed }) => body(pressed)}
-      </Pressable>
-    </Link>
+    <LinkPressable
+      href={href}
+      accessibilityLabel={`${title}. ${desc}`}
+      style={({ pressed }) => [row, { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }]}
+    >
+      {body}
+    </LinkPressable>
   );
+}
+
+/** Spacing between rows: a hairline that starts after the icon column. */
+export function HomeEntryDivider() {
+  const { colors } = useTheme();
+  return <View style={{ height: 1, backgroundColor: colors.line, marginLeft: 44 + 14 + space.xs }} />;
 }

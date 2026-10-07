@@ -1,7 +1,7 @@
 // Journal (web: apps/web/src/pages/Journal.tsx): reflections grouped by what
 // they were written about, newest group first; delete; share as plain text.
 // PDF export is deferred on native.
-import { Link, useFocusEffect } from "expo-router";
+import { Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SectionList, Share, View } from "react-native";
 import { loadAyahsByKeys, loadSessions, loadSurahs } from "@mindfulverse/core/data";
@@ -30,9 +30,7 @@ function EmptyJournal() {
       <Text variant="soft" style={{ textAlign: "center" }}>
         When a verse stops you, write what it said to you.
       </Text>
-      <Link href="/checkin" asChild>
-        <Button title="Begin with today’s verse" style={{ marginTop: 14 }} />
-      </Link>
+      <Button title="Begin with today’s verse" style={{ marginTop: 14 }} onPress={() => router.push("/checkin")} />
     </View>
   );
 }

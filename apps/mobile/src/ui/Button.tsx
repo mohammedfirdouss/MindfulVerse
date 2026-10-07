@@ -1,17 +1,20 @@
 import { ActivityIndicator, Pressable, type PressableProps, type ViewStyle } from "react-native";
+import { tapLight } from "../platform/haptics";
 import { fonts, radius, useTheme } from "../theme";
 import { Text } from "./Text";
 
-export type ButtonKind = "primary" | "secondary" | "ghost";
+export type ButtonKind = "primary" | "secondary" | "ghost" | "cloth";
 
 /** Web's .btn: flat indigo block, square-shouldered; .secondary is outlined,
- *  .ghost is a bare link-style action. */
+ *  .ghost is a bare link-style action. `cloth` is the cotton button that sits
+ *  on an AdireCloth panel. Primary and cloth buttons tap lightly on press. */
 export function Button({
   title,
   kind = "primary",
   busy = false,
   disabled,
   style,
+  onPress,
   ...rest
 }: Omit<PressableProps, "children" | "style"> & {
   title: string;
@@ -21,13 +24,18 @@ export function Button({
 }) {
   const { colors } = useTheme();
   const filled = kind === "primary";
-  const fg = filled ? colors.cottonRaised : colors.indigo;
+  const cloth = kind === "cloth";
+  const fg = filled ? colors.cottonRaised : cloth ? colors.indigoDeep : colors.indigo;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: !!(disabled || busy), busy }}
       disabled={disabled || busy}
       {...rest}
+      onPress={(e) => {
+        if (filled || cloth) tapLight();
+        onPress?.(e);
+      }}
       style={({ pressed }) => [
         {
           flexDirection: "row",
@@ -39,14 +47,25 @@ export function Button({
           paddingHorizontal: kind === "ghost" ? 4 : 22,
           borderWidth: 2,
           borderRadius: radius.sm,
-          borderColor: kind === "ghost" ? "transparent" : pressed && filled ? colors.indigoDeep : colors.indigo,
-          backgroundColor: filled
+          borderColor:
+            kind === "ghost"
+              ? "transparent"
+              : cloth
+                ? colors.cottonRaised
+                : pressed && filled
+                  ? colors.indigoDeep
+                  : colors.indigo,
+          backgroundColor: cloth
             ? pressed
-              ? colors.indigoDeep
-              : colors.indigo
-            : pressed && kind === "secondary"
-              ? colors.indigoWash
-              : "transparent",
+              ? colors.shea
+              : colors.cottonRaised
+            : filled
+              ? pressed
+                ? colors.indigoDeep
+                : colors.indigo
+              : pressed && kind === "secondary"
+                ? colors.indigoWash
+                : "transparent",
           opacity: disabled ? 0.5 : 1,
           transform: [{ scale: pressed ? 0.97 : 1 }],
         },

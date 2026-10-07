@@ -7,20 +7,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
 import { getLastRead, type LastRead } from "@mindfulverse/core/progress";
 import type { Division, SurahMeta } from "@mindfulverse/core/types";
-import { JuzRow, SurahRow, verseHref } from "../../src/components/Reader/IndexRows";
+import { IndexDivider, JuzRow, SurahRow, verseHref } from "../../src/components/Reader/IndexRows";
 import { Segmented } from "../../src/components/Reader/Segmented";
 import { fonts, radius, space, useTheme } from "../../src/theme";
-import { Card, LinkPressable, Text } from "../../src/ui";
+import { AdireCloth, Card, LinkPressable, Text, TopBand, useOnCloth } from "../../src/ui";
+import { ChevronIcon } from "../../src/ui/icons";
 
 type Status = "loading" | "ready" | "error";
 type Tab = "surah" | "juz";
 
-function Separator() {
-  return <View style={{ height: space.md }} />;
-}
-
 export default function Read() {
   const { colors } = useTheme();
+  const cloth = useOnCloth();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<Tab>(params.tab === "juz" ? "juz" : "surah");
@@ -90,16 +88,20 @@ export default function Read() {
         <LinkPressable
           href={verseHref(lastRead.surah, lastRead.ayah)}
           accessibilityLabel={`Continue reading ${nameOf(lastRead.surah)}, verse ${lastRead.ayah}`}
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? colors.indigoWash : colors.shea,
-            borderRadius: radius.md,
-            padding: space.lg,
-          })}
+          style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.98 : 1 }] })}
         >
-          <Text variant="eyebrow">Continue reading</Text>
-          <Text style={{ fontFamily: fonts.readSemiBold }}>
-            {nameOf(lastRead.surah)} · verse {lastRead.ayah}
-          </Text>
+          <AdireCloth style={{ padding: space.lg, flexDirection: "row", alignItems: "center", gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 12.5, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
+                CONTINUE READING
+              </Text>
+              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 20, lineHeight: 27, color: cloth.strong, marginTop: 2 }}>
+                {nameOf(lastRead.surah)}
+              </Text>
+              <Text style={{ fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>Verse {lastRead.ayah}</Text>
+            </View>
+            <ChevronIcon color={cloth.strong} size={22} />
+          </AdireCloth>
         </LinkPressable>
       ) : null}
 
@@ -144,7 +146,7 @@ export default function Read() {
 
   const contentStyle = {
     paddingHorizontal: space.lg,
-    paddingTop: insets.top + space.lg,
+    paddingTop: space.lg,
     paddingBottom: insets.bottom + space.xxl,
   };
 
@@ -170,13 +172,14 @@ export default function Read() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.cotton }}>
+      <TopBand />
       {tab === "surah" ? (
         <FlatList
           key="surah"
           data={status === "ready" ? filtered : []}
           keyExtractor={(s) => String(s.number)}
           renderItem={({ item }) => <SurahRow surah={item} />}
-          ItemSeparatorComponent={Separator}
+          ItemSeparatorComponent={IndexDivider}
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
           initialNumToRender={12}
@@ -196,7 +199,7 @@ export default function Read() {
               nameOf={nameOf}
             />
           )}
-          ItemSeparatorComponent={Separator}
+          ItemSeparatorComponent={IndexDivider}
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
           initialNumToRender={8}
