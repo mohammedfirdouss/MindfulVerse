@@ -1,4 +1,4 @@
-// build-data.mjs — reads raw Quran data and emits app-bundled JSON under public/data/.
+// build-data.mjs — reads raw Quran data and emits app-bundled JSON under apps/web/public/data/.
 // Pure Node ESM. Run from repo root: `node scripts/build-data.mjs`.
 
 import fs from "node:fs";
@@ -9,7 +9,7 @@ import Database from "better-sqlite3";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const QUL = path.join(ROOT, "QUL copy");
-const OUT = path.join(ROOT, "public", "data");
+const OUT = path.join(ROOT, "apps", "web", "public", "data");
 
 /**
  * Resolve the "directory-named-file" quirk: some sources are named e.g.

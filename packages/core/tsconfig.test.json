@@ -1,0 +1,8 @@
+{
+  // Tests run under vitest in node, so they may use node globals (EventTarget,
+  // vi.stubGlobal targets); sources are held to tsconfig.json's no-DOM rule.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "lib": ["ES2022", "DOM"] },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

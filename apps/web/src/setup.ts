@@ -1,0 +1,19 @@
+// Installs the web implementations of the shared core's platform seams.
+// Imported first in main.tsx as a side-effect import: ES imports are hoisted,
+// so a plain statement in main.tsx would run after its sibling imports.
+import { configureAnalytics } from "@mindfulverse/core/analytics";
+import { configureData } from "@mindfulverse/core/data";
+import { configureSyncTriggers } from "@mindfulverse/core/sync/engine";
+import { configureInsforge } from "@mindfulverse/core/sync/insforge";
+import { fetchJson } from "./platform/data";
+import { webSyncTriggers } from "./platform/syncTriggers";
+
+configureInsforge({
+  baseUrl: import.meta.env.VITE_INSFORGE_URL,
+  anonKey: import.meta.env.VITE_INSFORGE_ANON_KEY,
+});
+configureData(fetchJson);
+configureAnalytics({
+  onTrack: import.meta.env.DEV ? (e) => console.debug("[track]", e) : undefined,
+});
+configureSyncTriggers(webSyncTriggers);

@@ -1,0 +1,21 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUnusedLocals": true,
+    "noFallthroughCasesInSwitch": true,
+    // packages/core is typechecked as source inside this program. Its `react`
+    // import would otherwise resolve to the root @types/react (18, for web);
+    // pin every React type to this app's copy (19) so there is one React here
+    // too. These paths are for tsc ONLY: app.json sets
+    // experiments.tsconfigPaths=false so Metro ignores them (Metro would try
+    // to bundle @types/react); metro.config.js does the runtime pinning.
+    // Expo's base lib includes DOM, which already declares the globals
+    // core needs (packages/core/globals.d.ts), so that file isn't included.
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

@@ -12,7 +12,7 @@ playwright/.cache
 .env
 .env*.local
 
-# Large raw source data + working copy are not committed; pipeline regenerates public/data.
+# Large raw source data + working copy are not committed; pipeline regenerates apps/web/public/data.
 raw-data/
 QUL copy/
 

@@ -1,0 +1,13 @@
+/* Journal empty state: a diamond of dyed cloth with the reed pen at its centre. */
+.journal-swatch {
+  width: 136px; height: 136px; margin: 0 auto 22px;
+  display: flex; align-items: center; justify-content: center;
+}
+.journal-swatch .cloth {
+  width: 96px; height: 96px; padding: 0;
+  background-size: 30px 30px, auto;
+  transform: rotate(45deg);
+  display: flex; align-items: center; justify-content: center;
+}
+.journal-swatch svg { transform: rotate(-45deg); color: var(--on-cloth); }
+.empty-quiet p.journal-empty-lead { font-size: 1.2rem; font-weight: 600; }

@@ -3,36 +3,24 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
+    "dev": "npm run dev -w @mindfulverse/web",
+    "build": "npm run typecheck -w @mindfulverse/core && npm run build -w @mindfulverse/web",
+    "preview": "npm run preview -w @mindfulverse/web",
+    "typecheck": "npm run typecheck -w @mindfulverse/core",
     "build:data": "node scripts/build-data.mjs",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@insforge/sdk": "^1.5.2",
-    "@pdf-lib/fontkit": "^1.1.1",
-    "@vercel/analytics": "^2.0.1",
-    "pdf-lib": "^1.17.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2"
+    "test": "vitest run",
+    "test:e2e": "npm run test:e2e -w @mindfulverse/web"
   },
   "devDependencies": {
     "@playwright/test": "1.49",
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
     "better-sqlite3": "^11.3.0",
     "playwright": "1.49",
     "typescript": "^5.5.4",
-    "vite": "^5.4.6",
-    "vite-plugin-pwa": "^0.20.5",
-    "vitest": "^2.1.9",
-    "workbox-expiration": "^7.4.1",
-    "workbox-precaching": "^7.4.1",
-    "workbox-routing": "^7.4.1",
-    "workbox-strategies": "^7.4.1"
+    "vitest": "^2.1.9"
   }
 }

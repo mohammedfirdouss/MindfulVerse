@@ -35,13 +35,23 @@ The app never rewrites or generates religious content.
 
 ## Run it
 
+The repo is an npm workspaces monorepo. Run everything from the root:
+
 ```bash
 npm install
-npm run build:data
-npm run dev
+npm run build:data   # writes apps/web/public/data
+npm run dev          # web app dev server
 ```
 
-Other commands: `npm run build` makes a production build, and `npm run preview` serves it.
+| Command | What it does |
+| --- | --- |
+| `npm test` | The whole vitest suite: `packages/core`, `apps/web`, and `functions/` |
+| `npm run build` | Typechecks `packages/core` (no DOM), then builds the web app to `apps/web/dist` |
+| `npm run preview` | Serves the production build |
+| `npm run typecheck` | Typechecks `packages/core` only |
+| `npm run test:e2e` | Playwright smoke test in `apps/web/e2e` (skips without `E2E_EMAIL`/`E2E_PASSWORD`) |
+
+`.env` / `.env.local` stay at the repo root; the web app reads them from there.
 
 ## How it is built
 
@@ -51,12 +61,22 @@ component is an optional [InsForge](https://insforge.dev) backend for account
 sync and reminders (see "Accounts & sync" below).
 
 ```text
-src/lib/       data loaders, journal, analytics
-src/pages/     the screens
-scripts/       build-data.mjs, which turns raw datasets into app data
-public/data/   generated Qur'an, tafsir, themes, sessions, emotions
-raw-data/      source datasets, not committed
+packages/core/        shared logic, no DOM: data loaders, journal, progress,
+                      analytics, divisions, sync engine + merge, InsForge
+                      client, account context (@mindfulverse/core)
+apps/web/             the Vite PWA: pages, components, service worker, and the
+                      web side of the core's platform seams (src/setup.ts)
+apps/web/public/data/ generated Qur'an, tafsir, themes, sessions, emotions
+functions/            InsForge edge functions (daily reminder)
+migrations/           InsForge SQL migrations
+scripts/              build-data.mjs, which turns raw datasets into app data
+raw-data/             source datasets, not committed
 ```
+
+The core never touches browser APIs directly. A host app wires it up once at
+startup — `configureInsforge`, `configureData`, `configureSyncTriggers`, and
+`configureAnalytics` — and provides `localStorage` and `crypto.randomUUID`.
+See `docs/superpowers/plans/2026-10-06-rn-phase1-extraction.md`.
 
 To change the data, update the files in `raw-data/` and run `npm run build:data` again.
 

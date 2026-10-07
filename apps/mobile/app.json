@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "MindfulVerse",
+    "slug": "mindfulverse",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "mindfulverse",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#f5efe2",
+    "ios": {
+      "bundleIdentifier": "dev.mindfulverse.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "dev.mindfulverse.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#2a3a8c"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-asset",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#f5efe2",
+          "dark": {
+            "image": "./assets/images/icon.png",
+            "backgroundColor": "#14161f"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#2a3a8c"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "27abc628-7361-469a-8752-6393623f7db2"
+      }
+    },
+    "owner": "mohdfird"
+  }
+}
