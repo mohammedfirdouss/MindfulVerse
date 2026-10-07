@@ -22,10 +22,16 @@ export function Button({
   busy?: boolean;
   style?: ViewStyle;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const filled = kind === "primary";
   const cloth = kind === "cloth";
-  const fg = filled ? colors.cottonRaised : cloth ? colors.indigoDeep : colors.indigo;
+  // On night cloth a cotton button would read as a dark slab: use the light indigo instead.
+  const clothFace = scheme === "dark" ? colors.indigo : colors.cottonRaised;
+  const clothText = scheme === "dark" ? colors.cotton : colors.indigoDeep;
+  // A disabled filled button becomes an empty outline: clearly off, no new colour
+  // (half-strength indigo over cotton reads as a muddy violet).
+  const off = !!disabled && !busy && (filled || cloth);
+  const fg = off ? colors.inkFaint : filled ? colors.cottonRaised : cloth ? clothText : colors.indigo;
   return (
     <Pressable
       accessibilityRole="button"
@@ -47,26 +53,31 @@ export function Button({
           paddingHorizontal: kind === "ghost" ? 4 : 22,
           borderWidth: 2,
           borderRadius: radius.sm,
-          borderColor:
-            kind === "ghost"
+          borderColor: off
+            ? colors.lineStrong
+            : kind === "ghost"
               ? "transparent"
               : cloth
-                ? colors.cottonRaised
+                ? clothFace
                 : pressed && filled
                   ? colors.indigoDeep
                   : colors.indigo,
-          backgroundColor: cloth
-            ? pressed
-              ? colors.shea
-              : colors.cottonRaised
-            : filled
+          backgroundColor: off
+            ? "transparent"
+            : cloth
               ? pressed
-                ? colors.indigoDeep
-                : colors.indigo
-              : pressed && kind === "secondary"
-                ? colors.indigoWash
-                : "transparent",
-          opacity: disabled ? 0.5 : 1,
+                ? scheme === "dark"
+                  ? colors.indigoDeep
+                  : colors.indigoWash
+                : clothFace
+              : filled
+                ? pressed
+                  ? colors.indigoDeep
+                  : colors.indigo
+                : pressed && kind === "secondary"
+                  ? colors.indigoWash
+                  : "transparent",
+          opacity: disabled && !off ? 0.5 : 1,
           transform: [{ scale: pressed ? 0.97 : 1 }],
         },
         style,

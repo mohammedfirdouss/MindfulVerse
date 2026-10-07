@@ -45,6 +45,20 @@ export function infoBlocks(
   };
 }
 
+/** The collapsed "About this surah": its first section only (an opening
+ *  subheading(s) and the paragraph under them, or just the first paragraph).
+ *  `clamp` is true when that paragraph is long enough to be trimmed to a few
+ *  lines; `more` is true when there is anything left to show. */
+export const ABOUT_EXCERPT_CHARS = 200;
+export function aboutExcerpt(blocks: readonly InfoBlock[]): { count: number; clamp: boolean; more: boolean } {
+  let count = 0;
+  while (blocks[count]?.kind === "heading") count += 1;
+  if (blocks[count]?.kind === "paragraph") count += 1;
+  const last = blocks[count - 1];
+  const clamp = last?.kind === "paragraph" && last.text.length > ABOUT_EXCERPT_CHARS;
+  return { count, clamp, more: clamp || blocks.length > count };
+}
+
 /** The physical tadabbur journal's three questions. */
 export interface Draft {
   lessons: string;

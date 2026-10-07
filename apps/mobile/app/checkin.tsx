@@ -4,7 +4,7 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppState, KeyboardAvoidingView, TextInput, View } from "react-native";
+import { AppState, KeyboardAvoidingView, Pressable, TextInput, View } from "react-native";
 import { track } from "@mindfulverse/core/analytics";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
 import { loadAyahsByKeys, loadEmotions, loadSurahs } from "@mindfulverse/core/data";
@@ -13,14 +13,16 @@ import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
 import { AyahView } from "../src/components/CheckIn/AyahView";
 import { readDraft, writeDraft } from "../src/components/CheckIn/draft";
+import { tapSuccess, tickSelection } from "../src/platform/haptics";
 import { useShareVerse } from "../src/share";
 import { fonts, radius, space, type as typeScale, useTheme } from "../src/theme";
-import { Button, Card, Screen, Text } from "../src/ui";
+import { AdireCloth, Button, Card, DyeRule, Screen, Text, useOnCloth } from "../src/ui";
 
 const VERSE_PROMPT = "What stays with you from this verse?";
 
 export default function CheckIn() {
   const { colors } = useTheme();
+  const cloth = useOnCloth();
   const router = useRouter();
   const headerHeight = useHeaderHeight();
   const [scale, setScale] = useState(() => scaleFor(getSizeKey()));
@@ -116,6 +118,7 @@ export default function CheckIn() {
   );
 
   function selectEmotion(entry: EmotionEntry): void {
+    if (entry.id !== selectedId) tickSelection();
     setSelectedId(entry.id);
     setEmotionAyahs([]);
     setEmotionAyahsError(false);
@@ -149,9 +152,17 @@ export default function CheckIn() {
     setJournalBody("");
     writeDraft("");
     setSaved(true);
+    tapSuccess();
   }
 
   const canSave = journalBody.trim().length > 0;
+  const sectionHeading = {
+    fontFamily: fonts.readSemiBold,
+    fontSize: 20,
+    lineHeight: 27,
+    color: colors.indigoDeep,
+    letterSpacing: -0.2,
+  } as const;
 
   return (
     <KeyboardAvoidingView
@@ -167,86 +178,115 @@ export default function CheckIn() {
           <Text variant="h1">A quiet moment</Text>
         </View>
 
-        {/* Verse of the day */}
-        <Card>
-          <Text variant="eyebrow">Verse of the day</Text>
+        {/* Verse of the day: the verse that matters, so it is laid on the
+            dyed cloth, as Home's hero is. */}
+        <AdireCloth style={{ padding: space.lg, paddingTop: 20, marginTop: space.xs }}>
+          <Text
+            style={{
+              fontFamily: fonts.readSemiBold,
+              fontSize: 13,
+              lineHeight: 18,
+              color: cloth.accent,
+              letterSpacing: 1.2,
+            }}
+          >
+            VERSE OF THE DAY
+          </Text>
           {dailyError ? (
-            <Text variant="muted">
+            <Text style={{ color: cloth.soft, marginTop: 10 }}>
               Today’s verse is still being gathered. Come back in a little while and it will be
               waiting for you.
             </Text>
           ) : dailyAyah ? (
-            <View style={{ gap: space.md }}>
-              <AyahView ayah={dailyAyah} surahName={surahNames.get(dailyAyah.surah)} scale={scale} />
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <Button
-                  kind="secondary"
-                  title={share.label ?? "Share this verse"}
+            <AyahView
+              ayah={dailyAyah}
+              surahName={surahNames.get(dailyAyah.surah)}
+              scale={scale}
+              onCloth
+              trailing={
+                <Pressable
+                  accessibilityRole="button"
                   accessibilityLabel={share.label ?? `Share verse ${dailyAyah.verseKey}`}
                   onPress={() => void share.share(dailyAyah)}
-                />
-              </View>
-            </View>
-          ) : (
-            <Text variant="muted">Bringing today’s verse to you…</Text>
-          )}
-
-          <View
-            style={{
-              marginTop: 28 - space.md,
-              paddingTop: space.lg,
-              borderTopWidth: 1,
-              borderTopColor: colors.line,
-              gap: space.md,
-            }}
-          >
-            <Text nativeID="checkin-journal-label" style={{ fontFamily: fonts.readSemiBold }}>
-              {VERSE_PROMPT}
-            </Text>
-            <TextInput
-              accessibilityLabel={VERSE_PROMPT}
-              accessibilityLabelledBy="checkin-journal-label"
-              value={journalBody}
-              onChangeText={(v) => {
-                setJournalBody(v);
-                writeDraft(v);
-                if (saved) setSaved(false);
-              }}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              placeholder="Write as much or as little as you like…"
-              placeholderTextColor={colors.inkFaint}
-              multiline
-              textAlignVertical="top"
-              style={{
-                minHeight: typeScale.body.lineHeight * 5 + 22,
-                paddingVertical: 11,
-                paddingHorizontal: 12,
-                borderWidth: 1,
-                borderColor: focused ? colors.indigo : colors.lineStrong,
-                borderRadius: radius.sm,
-                backgroundColor: colors.cotton,
-                color: colors.ink,
-                fontFamily: fonts.read,
-                fontSize: typeScale.body.fontSize,
-                lineHeight: typeScale.body.lineHeight,
-              }}
+                  hitSlop={{ top: 4, bottom: 4, left: 8, right: 8 }}
+                  style={({ pressed }) => ({
+                    minHeight: 44,
+                    justifyContent: "center",
+                    opacity: pressed ? 0.6 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontFamily: fonts.readSemiBold,
+                      fontSize: 15,
+                      lineHeight: 20,
+                      color: cloth.strong,
+                      textDecorationLine: "underline",
+                    }}
+                  >
+                    {share.label ?? "Share this verse"}
+                  </Text>
+                </Pressable>
+              }
             />
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <Button title="Save" onPress={saveJournal} disabled={!canSave} />
-              {saved ? (
-                <Text variant="muted" accessibilityLiveRegion="polite" style={{ flex: 1, minWidth: 160 }}>
-                  Kept in your journal. A new verse arrives tomorrow.
-                </Text>
-              ) : null}
-            </View>
+          ) : (
+            <Text style={{ color: cloth.soft, marginTop: 10 }}>Bringing today’s verse to you…</Text>
+          )}
+        </AdireCloth>
+
+        <DyeRule style={{ marginVertical: space.sm }} />
+
+        {/* Reflection on the verse, on the open cotton. */}
+        <View style={{ gap: space.md }}>
+          <Text nativeID="checkin-journal-label" style={sectionHeading}>
+            {VERSE_PROMPT}
+          </Text>
+          <TextInput
+            accessibilityLabel={VERSE_PROMPT}
+            accessibilityLabelledBy="checkin-journal-label"
+            value={journalBody}
+            onChangeText={(v) => {
+              setJournalBody(v);
+              writeDraft(v);
+              if (saved) setSaved(false);
+            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="Write as much or as little as you like…"
+            placeholderTextColor={colors.inkFaint}
+            multiline
+            textAlignVertical="top"
+            style={{
+              minHeight: typeScale.body.lineHeight * 6 + space.xl,
+              paddingVertical: space.md,
+              paddingHorizontal: space.md,
+              borderWidth: 1,
+              borderColor: focused ? colors.indigo : colors.lineStrong,
+              borderRadius: radius.md,
+              backgroundColor: colors.cottonRaised,
+              color: colors.ink,
+              fontFamily: fonts.read,
+              fontSize: typeScale.body.fontSize,
+              lineHeight: typeScale.body.lineHeight,
+            }}
+          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, flexWrap: "wrap" }}>
+            <Button title="Save" onPress={saveJournal} disabled={!canSave} style={{ minWidth: 112 }} />
+            {saved ? (
+              <Text variant="soft" accessibilityLiveRegion="polite" style={{ flex: 1, minWidth: 160, fontSize: 15.5, lineHeight: 22 }}>
+                Kept in your journal. A new verse arrives tomorrow.
+              </Text>
+            ) : null}
           </View>
-        </Card>
+        </View>
+
+        <DyeRule style={{ marginVertical: space.sm }} />
 
         {/* Emotion picker — kept in the app's quiet indigo voice; kola stays
-            reserved for small accents, never a whole section. */}
-        <Card>
-          <Text variant="eyebrow">How is your heart today?</Text>
+            reserved for small accents, never a whole section. Chips follow
+            the reader's Segmented control: outlined, the chosen one indigo. */}
+        <View style={{ gap: space.md }}>
+          <Text style={sectionHeading}>How is your heart today?</Text>
 
           {emotionsError ? (
             <Text variant="muted">
@@ -256,24 +296,49 @@ export default function CheckIn() {
           ) : emotions.length === 0 ? (
             <Text variant="muted">Gathering a few words for you…</Text>
           ) : (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
               {emotions.map((entry) => {
                 const isActive = entry.id === selectedId;
                 return (
-                  <Button
+                  <Pressable
                     key={entry.id}
-                    kind={isActive ? "primary" : "secondary"}
-                    title={entry.label}
+                    accessibilityRole="button"
                     accessibilityState={{ selected: isActive }}
                     onPress={() => selectEmotion(entry)}
-                  />
+                    style={({ pressed }) => ({
+                      minHeight: 44,
+                      paddingHorizontal: space.md,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: 1,
+                      borderRadius: radius.sm,
+                      borderColor: isActive ? colors.indigo : colors.lineStrong,
+                      backgroundColor: isActive
+                        ? colors.indigo
+                        : pressed
+                          ? colors.indigoWash
+                          : colors.cottonRaised,
+                      transform: [{ scale: pressed ? 0.97 : 1 }],
+                    })}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: isActive ? fonts.readSemiBold : fonts.read,
+                        fontSize: 16,
+                        lineHeight: 21,
+                        color: isActive ? colors.cotton : colors.inkSoft,
+                      }}
+                    >
+                      {entry.label}
+                    </Text>
+                  </Pressable>
                 );
               })}
             </View>
           )}
 
           {selected ? (
-            <View style={{ gap: space.md, marginTop: 6 }}>
+            <View style={{ gap: space.md, marginTop: space.sm }}>
               <Text variant="h2" style={{ fontSize: 18.7, lineHeight: 26, color: colors.ink }}>
                 {selected.framing}
               </Text>
@@ -286,14 +351,14 @@ export default function CheckIn() {
                 <Text variant="muted">Gathering a few verses…</Text>
               ) : (
                 emotionAyahs.map((ayah) => (
-                  <Card key={ayah.verseKey} style={{ backgroundColor: colors.cottonRaised }}>
+                  <Card key={ayah.verseKey}>
                     <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} scale={scale} />
                   </Card>
                 ))
               )}
             </View>
           ) : null}
-        </Card>
+        </View>
 
         {/* Opened cold from a push there is nothing to go back to. */}
         {!router.canGoBack() ? (

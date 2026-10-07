@@ -135,3 +135,19 @@ For iOS later: APNs credentials via `eas credentials`, then change
   lacks, plus a redirect flow (`expo-web-browser`). Only email/password is wired.
 - The real screens. Every route is a placeholder; see the checklist in the
   Phase 2 doc.
+
+## Design language
+
+The app carries the web's West African indigo identity (see the header of
+`apps/web/src/index.css`) a little further, using the ornaments in `src/ui/adire.tsx`:
+
+- **Adire band** across the top of every tab screen (`TopBand`), as on the web.
+- **Dyed cloth** (`AdireCloth`) only for the verse that matters: today's verse
+  on Home and Check-in, Continue reading, and each surah's `TitlePlate`. Text on
+  cloth uses `useOnCloth()`; buttons on it use `Button kind="cloth"`.
+- **Diamond** numerals for surahs, juz and verses; **DyeRule** for section breaks.
+- Icons in `src/ui/icons.tsx` share the band's line weight. Haptics live in
+  `src/platform/haptics.ts` (selection on choices, success on save).
+
+Design review in a browser: `npx expo start --web` (web-only shims:
+`src/platform/data.web.ts`, and storage/notifications skip themselves on web).

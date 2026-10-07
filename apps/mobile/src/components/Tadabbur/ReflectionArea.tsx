@@ -10,8 +10,9 @@ import { addEntry } from "@mindfulverse/core/journal";
 import { track } from "@mindfulverse/core/analytics";
 import { memo, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
+import { tapSuccess } from "../../platform/haptics";
 import { fonts, radius, space, useTheme } from "../../theme";
-import { Button, Text } from "../../ui";
+import { Button, DyeRule, Text } from "../../ui";
 import { composeReflection, EMPTY_DRAFT, hasText, type Draft } from "./logic";
 
 const FIELDS: { key: keyof Draft; label: string }[] = [
@@ -38,6 +39,7 @@ export const ReflectionArea = memo(function ReflectionArea({
   const [draft, setDraft] = useState<Draft>(initial);
   const [status, setStatus] = useState<"idle" | "saved" | "failed">("idle");
   const inputs = useRef<Partial<Record<keyof Draft, TextInput | null>>>({});
+  const [focusedKey, setFocusedKey] = useState<keyof Draft | null>(null);
 
   const canSave = status !== "saved" && hasText(draft);
 
@@ -64,28 +66,26 @@ export const ReflectionArea = memo(function ReflectionArea({
     setDraft(EMPTY_DRAFT);
     onDraft(verseKey, EMPTY_DRAFT);
     setStatus("saved");
+    tapSuccess();
   }
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.cottonRaised,
-        borderWidth: 1,
-        borderColor: colors.lineStrong,
-        borderRadius: radius.md,
-        padding: space.lg,
-        gap: space.md,
-      }}
-    >
-      <Text variant="eyebrow" accessibilityRole="header">
-        Your tadabbur
-      </Text>
-      <Text variant="muted">
-        Sit with {name} {verseKey} — write as little or as much as you like.
-      </Text>
+    <View style={{ gap: space.md }}>
+      <DyeRule style={{ marginVertical: space.sm }} />
+      <View style={{ gap: space.xs }}>
+        <Text variant="eyebrow" accessibilityRole="header">
+          Your tadabbur
+        </Text>
+        <Text variant="muted">
+          Sit with {name} {verseKey} — write as little or as much as you like.
+        </Text>
+      </View>
       {FIELDS.map((f) => (
-        <View key={f.key} style={{ gap: space.xs }}>
-          <Text variant="soft" nativeID={`tadabbur-${f.key}`} style={{ fontSize: 15.5 }}>
+        <View key={f.key} style={{ gap: space.sm }}>
+          <Text
+            nativeID={`tadabbur-${f.key}`}
+            style={{ fontFamily: fonts.readSemiBold, fontSize: 16, lineHeight: 22, color: colors.indigoDeep }}
+          >
             {f.label}
           </Text>
           <TextInput
@@ -95,9 +95,11 @@ export const ReflectionArea = memo(function ReflectionArea({
             value={draft[f.key]}
             onChangeText={(t) => change(f.key, t)}
             onFocus={() => {
+              setFocusedKey(f.key);
               const r = inputs.current[f.key];
               if (r) onFocusInput(r);
             }}
+            onBlur={() => setFocusedKey((k) => (k === f.key ? null : k))}
             multiline
             textAlignVertical="top"
             accessibilityLabel={f.label}
@@ -105,16 +107,18 @@ export const ReflectionArea = memo(function ReflectionArea({
             placeholderTextColor={colors.inkFaint}
             selectionColor={colors.indigo}
             style={{
-              minHeight: 72,
-              padding: 10,
+              minHeight: 112,
+              paddingHorizontal: space.md,
+              paddingTop: space.sm + 4,
+              paddingBottom: space.sm + 4,
               borderRadius: radius.md,
               borderWidth: 1,
-              borderColor: colors.line,
-              backgroundColor: colors.cotton,
+              borderColor: focusedKey === f.key ? colors.indigo : colors.lineStrong,
+              backgroundColor: colors.cottonRaised,
               color: colors.ink,
               fontFamily: fonts.read,
-              fontSize: 16,
-              lineHeight: 24,
+              fontSize: 17,
+              lineHeight: 26,
             }}
           />
         </View>

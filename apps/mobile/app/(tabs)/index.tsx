@@ -21,6 +21,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 import { fonts, space, useTheme } from "../../src/theme";
 import { AdireCloth, ArabicText, Button, DyeRule, Screen, Text, useOnCloth } from "../../src/ui";
+import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
 import { DhikrIcon, ReadIcon, TadabburIcon } from "../../src/ui/icons";
 
 // Web's hero Arabic is 2.4rem against .arabic's 1.9rem, times the reader size.
@@ -51,6 +52,7 @@ function readLocal(): Local {
 export default function Home() {
   const { colors } = useTheme();
   const cloth = useOnCloth();
+  const reduce = useReducedMotion();
   const [local, setLocal] = useState<Local>(readLocal);
   const [verseKey, setVerseKey] = useState<string | null>(null);
   const [hero, setHero] = useState<Ayah | null>(null);
@@ -110,47 +112,49 @@ export default function Home() {
         {returning ? <StreakBeads streak={streak} label={returning} /> : null}
       </View>
 
-      <AdireCloth style={{ padding: space.lg, paddingTop: 20, marginTop: 6 }}>
-        <View accessibilityLabel="A verse to begin with">
-          <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 13, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
-            TODAY’S VERSE
-          </Text>
-          {hero ? (
-            <View>
-              <ArabicText scale={HERO_ARABIC * scale} style={{ color: cloth.strong, marginTop: 6 }}>
-                {hero.arabic}
-              </ArabicText>
-              <Text
-                variant="translation"
-                style={{ fontSize: 20.4, lineHeight: 31, marginTop: 6, color: cloth.strong }}
-              >
-                {hero.translation}
-              </Text>
-              <Text style={{ marginTop: 10, fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>
-                {surahName ? `${surahName} · ` : ""}
-                {hero.surah}:{hero.ayah}
-              </Text>
-            </View>
-          ) : (
-            <Text style={{ color: cloth.soft, marginTop: 10 }}>
-              {heroError
-                ? "Today’s verse is still being gathered. Come back in a little while and it will be waiting for you."
-                : "Opening today’s verse…"}
+      <FadeRise reduce={reduce} style={{ marginTop: 6 }}>
+        <AdireCloth style={{ padding: space.lg, paddingTop: 20 }}>
+          <View accessibilityLabel="A verse to begin with">
+            <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 13, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
+              TODAY’S VERSE
             </Text>
-          )}
-
-          <View style={{ marginTop: 22, alignItems: "flex-start", gap: 10 }}>
-            {doneToday ? (
-              <>
-                <Text style={{ color: cloth.soft, fontSize: 15.5, lineHeight: 22 }}>Today’s reflection is saved.</Text>
-                <Button kind="cloth" title={deeperLabel(deeper, surahNames)} onPress={() => router.push(tadabburHref)} />
-              </>
+            {hero ? (
+              <View>
+                <ArabicText scale={HERO_ARABIC * scale} style={{ color: cloth.strong, marginTop: 6 }}>
+                  {hero.arabic}
+                </ArabicText>
+                <Text
+                  variant="translation"
+                  style={{ fontSize: 20.4, lineHeight: 31, marginTop: 6, color: cloth.strong }}
+                >
+                  {hero.translation}
+                </Text>
+                <Text style={{ marginTop: 10, fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>
+                  {surahName ? `${surahName} · ` : ""}
+                  {hero.surah}:{hero.ayah}
+                </Text>
+              </View>
             ) : (
-              <Button kind="cloth" title="Reflect on today’s verse" onPress={() => router.push("/checkin")} />
+              <Text style={{ color: cloth.soft, marginTop: 10 }}>
+                {heroError
+                  ? "Today’s verse is still being gathered. Come back in a little while and it will be waiting for you."
+                  : "Opening today’s verse…"}
+              </Text>
             )}
+
+            <View style={{ marginTop: 22, alignItems: "flex-start", gap: 10 }}>
+              {doneToday ? (
+                <>
+                  <Text style={{ color: cloth.soft, fontSize: 15.5, lineHeight: 22 }}>Today’s reflection is saved.</Text>
+                  <Button kind="cloth" title={deeperLabel(deeper, surahNames)} onPress={() => router.push(tadabburHref)} />
+                </>
+              ) : (
+                <Button kind="cloth" title="Reflect on today’s verse" onPress={() => router.push("/checkin")} />
+              )}
+            </View>
           </View>
-        </View>
-      </AdireCloth>
+        </AdireCloth>
+      </FadeRise>
 
       <View accessibilityLabel="Sections" style={{ marginTop: space.sm }}>
         <HomeEntry Icon={TadabburIcon} title="Tadabbur" desc="Ponder the Qur’an, surah by surah." href={tadabburHref} />

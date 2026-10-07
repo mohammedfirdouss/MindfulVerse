@@ -32,7 +32,7 @@ import {
   type TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FadeRise, useReducedMotion } from "../../src/components/Tadabbur/FadeRise";
+import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
 import { InfoText } from "../../src/components/Tadabbur/InfoText";
 import {
   coveringFromIndex,
@@ -48,8 +48,11 @@ import { ReflectionArea } from "../../src/components/Tadabbur/ReflectionArea";
 import { useShareVerse } from "../../src/share";
 import { VerseCommentary } from "../../src/components/Tadabbur/VerseCommentary";
 import { VersePicker } from "../../src/components/Tadabbur/VersePicker";
-import { fonts, space, useTheme } from "../../src/theme";
-import { ArabicText, Button, Card, Text } from "../../src/ui";
+import { ActionLink } from "../../src/components/Reader/ActionLink";
+import { TitlePlate } from "../../src/components/Reader/TitlePlate";
+import { tickSelection } from "../../src/platform/haptics";
+import { space, useTheme } from "../../src/theme";
+import { ArabicText, Button, Card, Diamond, Text } from "../../src/ui";
 
 type LoadStatus = "loading" | "ready" | "error";
 
@@ -247,6 +250,7 @@ function TadabburPage() {
   const pickVerse = useCallback(
     (ayah: number) => {
       setPickerOpen(false);
+      tickSelection();
       begin(ayah - 1);
     },
     [begin],
@@ -332,17 +336,14 @@ function TadabburPage() {
       <>
         <FadeRise reduce={reduce} style={{ gap: space.sm }}>
           <Text variant="eyebrow">Tadabbur</Text>
-          <Text variant="h1">{name}</Text>
-          <Text variant="muted">{verseCount(count)}, one at a time.</Text>
+          <TitlePlate surah={n} name={meta?.name} />
+          <Text variant="muted" style={{ textAlign: "center" }}>
+            {verseCount(count)}, one at a time.
+          </Text>
         </FadeRise>
         {info ? (
           <FadeRise reduce={reduce} delay={60}>
-            <Card>
-              <Text variant="eyebrow" accessibilityRole="header">
-                About this surah
-              </Text>
-              <InfoText text={info.text} />
-            </Card>
+            <InfoText text={info.text} />
           </FadeRise>
         ) : null}
         <FadeRise reduce={reduce} delay={120} style={{ flexDirection: "row", gap: space.md, flexWrap: "wrap" }}>
@@ -403,43 +404,26 @@ function TadabburPage() {
 
       <FadeRise key={phase} reduce={reduce} style={{ gap: space.md }}>
         <View style={{ gap: space.sm }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm + 2 }}>
-            <View
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 17,
-                borderWidth: 1.5,
-                borderColor: colors.indigo,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              importantForAccessibility="no-hide-descendants"
-              accessibilityElementsHidden
-            >
-              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 14, lineHeight: 18, color: colors.indigo }}>
-                {a.ayah}
-              </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm + 4 }}>
+            <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+              <Diamond label={a.ayah} />
             </View>
             <Text variant="eyebrow">
               {name} · {a.verseKey}
             </Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: colors.line }} />
+            <View style={{ flex: 1, height: 2, backgroundColor: colors.indigoWash }} />
           </View>
-          <ArabicText scale={arabicScale} selectable accessibilityLanguage="ar">
+          <ArabicText
+            scale={arabicScale}
+            selectable
+            accessibilityLanguage="ar"
+            style={{ marginTop: space.sm, marginBottom: space.sm }}
+          >
             {a.arabic}
           </ArabicText>
           <Text variant="translation" selectable>
             {a.translation}
           </Text>
-          <View style={{ alignItems: "flex-start" }}>
-            <Button
-              kind="ghost"
-              title={share.label ?? "Share"}
-              accessibilityLabel={share.label ?? `Share verse ${a.verseKey}`}
-              onPress={() => void share.share(a)}
-            />
-          </View>
         </View>
 
         <VerseCommentary
@@ -449,6 +433,13 @@ function TadabburPage() {
           ensureTafsir={ensureTafsir}
           tafsir={tafsir}
           indexUnavailable={indexFailed}
+          actions={
+            <ActionLink
+              title={share.label ?? "Share"}
+              accessibilityLabel={share.label ?? `Share verse ${a.verseKey}`}
+              onPress={() => void share.share(a)}
+            />
+          }
         />
 
         <ReflectionArea
@@ -461,7 +452,7 @@ function TadabburPage() {
         />
       </FadeRise>
 
-      <View style={{ flexDirection: "row", gap: space.md }}>
+      <View style={{ flexDirection: "row", gap: space.md, marginTop: space.md }}>
         <Button kind="secondary" title="Back" onPress={() => setPhase((p) => Math.max(-1, p - 1))} />
         <Button title={phase + 1 === count ? "Finish" : "Next verse"} onPress={() => setPhase((p) => p + 1)} />
       </View>

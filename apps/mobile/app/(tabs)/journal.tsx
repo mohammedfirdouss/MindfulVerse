@@ -18,19 +18,40 @@ import {
   toSections,
 } from "../../src/components/Journal/journalText";
 import { space, useTheme } from "../../src/theme";
-import { Button, Screen, Text } from "../../src/ui";
+import { AdireCloth, Button, Screen, Text, useOnCloth } from "../../src/ui";
+import { JournalIcon } from "../../src/ui/icons";
 
 /** Empty state: quiet and minimal — one line of intent, one way to begin. */
 function EmptyJournal() {
   return (
     <View style={{ alignItems: "center", paddingVertical: space.xxl, paddingHorizontal: 20, gap: 6 }}>
-      <Text style={{ textAlign: "center" }} variant="body">
+      <ClothSwatch />
+      <Text style={{ textAlign: "center", fontSize: 19, marginTop: space.lg }} variant="body">
         Nothing here yet, and that’s fine.
       </Text>
       <Text variant="soft" style={{ textAlign: "center" }}>
         When a verse stops you, write what it said to you.
       </Text>
       <Button title="Begin with today’s verse" style={{ marginTop: 14 }} onPress={() => router.push("/checkin")} />
+    </View>
+  );
+}
+
+/** A diamond of indigo cloth with the reed pen at its centre. */
+function ClothSwatch() {
+  const cloth = useOnCloth();
+  const size = 96;
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: size * 1.42, height: size * 1.42, alignItems: "center", justifyContent: "center" }}
+    >
+      <AdireCloth tile={30} motifOpacity={0.16} style={{ width: size, height: size, transform: [{ rotate: "45deg" }] }}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-45deg" }] }}>
+          <JournalIcon color={cloth.strong} focused={false} size={36} />
+        </View>
+      </AdireCloth>
     </View>
   );
 }

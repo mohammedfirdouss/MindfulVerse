@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ABOUT_COLLAPSED_PARAGRAPHS,
+  aboutExcerpt,
   EMPTY_DRAFT,
   commentaryToggleLabel,
   composeReflection,
@@ -105,5 +106,26 @@ describe("text helpers", () => {
     expect(commentaryToggleLabel(true, 3, 1)).toBe("Hide the commentary");
     expect(commentaryToggleLabel(false, 3, 3)).toBe("Read the commentary");
     expect(commentaryToggleLabel(false, 3, 1)).toBe("Read the commentary (with verse 1)");
+  });
+});
+
+describe("aboutExcerpt", () => {
+  const h = (text: string) => ({ kind: "heading" as const, text });
+  const p = (text: string) => ({ kind: "paragraph" as const, text });
+  it("shows the opening subheading and its paragraph", () => {
+    expect(aboutExcerpt([h("Name"), p("Short."), h("Theme"), p("More.")])).toEqual({ count: 2, clamp: false, more: true });
+  });
+  it("keeps stacked subheadings with their paragraph", () => {
+    expect(aboutExcerpt([h("Name"), h("Why the name?"), p("Because."), h("Theme")])).toEqual({ count: 3, clamp: false, more: true });
+  });
+  it("shows just the first paragraph when there is no subheading", () => {
+    expect(aboutExcerpt([p("One."), p("Two.")])).toEqual({ count: 1, clamp: false, more: true });
+  });
+  it("clamps a long opening paragraph and offers more", () => {
+    expect(aboutExcerpt([h("Name"), p("x.".repeat(150))])).toEqual({ count: 2, clamp: true, more: true });
+  });
+  it("offers nothing more when the whole text fits", () => {
+    expect(aboutExcerpt([p("Only.")])).toEqual({ count: 1, clamp: false, more: false });
+    expect(aboutExcerpt([])).toEqual({ count: 0, clamp: false, more: false });
   });
 });
