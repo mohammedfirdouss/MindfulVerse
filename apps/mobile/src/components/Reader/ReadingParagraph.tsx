@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Text as RNText } from "react-native";
+import { Platform, Text as RNText } from "react-native";
 import { toArabicDigits } from "@mindfulverse/core/divisions";
 import type { Ayah } from "@mindfulverse/core/types";
 import { type as typeScale, useTheme } from "../../theme";
@@ -28,9 +28,14 @@ export const ReadingParagraph = memo(function ReadingParagraph({
       scale={scale}
       accessibilityHint="Tap a verse to see its translation and commentary"
       style={{
-        // web .reading-text: line-height 2.5, justified, last line at start
+        // web .reading-text: line-height 2.5, justified, last line at start.
+        // iOS justifies nested-span RTL paragraphs badly: the last line is laid
+        // out left-to-right and long lines spill past the edges, so iOS aligns
+        // right (the start edge for Arabic). Android justifies correctly.
         lineHeight: typeScale.arabic.fontSize * 2.5 * scale,
-        textAlign: "justify",
+        textAlign: Platform.OS === "ios" ? "right" : "justify",
+        // Room for Hafs glyphs that overhang their advance at line ends.
+        paddingHorizontal: 4,
       }}
     >
       {chunk.ayahs.map((a) => (
