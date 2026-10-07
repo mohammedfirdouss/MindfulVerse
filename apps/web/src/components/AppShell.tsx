@@ -2,19 +2,21 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import InstallPrompt from "./InstallPrompt";
 import { getTheme, setTheme, type Theme } from "../lib/theme";
+import "./shell.css";
 
-/* --- Inline stroke icons: 22px, currentColor, calm 1.8 stroke --- */
+/* --- Nav icons, drawn like the mobile tab icons (apps/mobile/src/ui/icons.tsx):
+   a 24-unit grid, 1.6 stroke, currentColor. The open page's motif is filled. --- */
 
-function IconBase({ children }: { children: ReactNode }) {
+function IconBase({ children, size = 22 }: { children: ReactNode; size?: number }) {
   return (
     <svg
       aria-hidden="true"
-      width="22"
-      height="22"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
       focusable="false"
@@ -24,71 +26,85 @@ function IconBase({ children }: { children: ReactNode }) {
   );
 }
 
-function HomeIcon() {
+type NavIconProps = { active: boolean };
+
+/** A tinted fill for the open page's motif (the mobile tab's 18% fill). */
+const tint = (active: boolean) =>
+  active ? { fill: "currentColor", fillOpacity: 0.18 } : { fill: "none" };
+
+/** Home: the adire diamond, today's verse at its centre. */
+function HomeIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M3 10.5 12 3l9 7.5" />
-      <path d="M5.5 9v11h13V9" />
-      <path d="M10 20v-5.5h4V20" />
+      <path d="M12 2.5 21.5 12 12 21.5 2.5 12Z" />
+      <path d="M12 8.2 15.8 12 12 15.8 8.2 12Z" fill={active ? "currentColor" : "none"} />
     </IconBase>
   );
 }
 
-function HeartIcon() {
+/** Check-in: a heart, the day's turning toward the verse. */
+function HeartIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M12 20.5S3.5 15.3 3.5 9.4C3.5 6.4 5.9 4.5 8.2 4.5c1.6 0 3 .9 3.8 2.2.8-1.3 2.2-2.2 3.8-2.2 2.3 0 4.7 1.9 4.7 4.9 0 5.9-8.5 11.1-8.5 11.1Z" />
+      <path
+        d="M12 20.2S3.6 15.2 3.6 9.5c0-2.8 2.2-4.7 4.5-4.7 1.6 0 3 .9 3.9 2.2.9-1.3 2.3-2.2 3.9-2.2 2.3 0 4.5 1.9 4.5 4.7 0 5.7-8.4 10.7-8.4 10.7Z"
+        {...tint(active)}
+      />
     </IconBase>
   );
 }
 
-/* Tadabbur — open book, pages fanned for reflection */
-function OpenBookIcon() {
+/** Tadabbur: ripples spreading from a still point. */
+function TadabburNavIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M12 6.5C10.5 5 8.2 4.3 5.5 4.3c-.9 0-1.8.1-2.5.3v13.6c.7-.2 1.6-.3 2.5-.3 2.7 0 5 .7 6.5 2.2 1.5-1.5 3.8-2.2 6.5-2.2.9 0 1.8.1 2.5.3V4.6c-.7-.2-1.6-.3-2.5-.3-2.7 0-5 .7-6.5 2.2Z" />
-      <path d="M12 6.5V20" />
+      <path d="M12 9.6 14.4 12 12 14.4 9.6 12Z" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="5.6" {...tint(active)} />
+      <circle cx="12" cy="12" r="9.4" strokeDasharray="2.2 2.6" />
     </IconBase>
   );
 }
 
-/* Read — closed mushaf with lines of text, distinct from tadabbur */
-function MushafIcon() {
+/** Read: an open mushaf. */
+function MushafIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H19v17.5H7.5A2.5 2.5 0 0 0 5 22V4.5Z" />
-      <path d="M5 19.5A2.5 2.5 0 0 1 7.5 17H19" />
-      <path d="M9.5 7h6M9.5 10.5h6" />
+      <path
+        d="M2.8 5.6C6 4.6 9.2 5 12 6.8c2.8-1.8 6-2.2 9.2-1.2v13c-3.2-1-6.4-.6-9.2 1.2-2.8-1.8-6-2.2-9.2-1.2Z"
+        {...tint(active)}
+      />
+      <path d="M12 6.8v13" />
     </IconBase>
   );
 }
 
-function PenIcon() {
+/** Journal: a reed pen over its line. */
+function PenIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M4 20s.5-3.5 1.5-4.5L16.8 4.2a1.9 1.9 0 0 1 2.7 0l.3.3a1.9 1.9 0 0 1 0 2.7L8.5 18.5C7.5 19.5 4 20 4 20Z" />
-      <path d="M14.5 6.5l3 3" />
+      <path d="M6 17.2 7 13.4l8.9-8.9a1.9 1.9 0 0 1 2.7 2.7l-8.9 8.9Z" {...tint(active)} />
+      <path d="M3.5 20.5h17" />
     </IconBase>
   );
 }
 
-/* Account — simple person glyph, consistent stroke set */
-function PersonIcon() {
+/** Account: a person. */
+function PersonIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <circle cx="12" cy="8" r="3.6" />
-      <path d="M4.8 20c.9-3.9 4-6 7.2-6s6.3 2.1 7.2 6" />
+      <circle cx="12" cy="8.4" r="3.6" {...tint(active)} />
+      <path d="M4.8 20.2c1-4.6 13.4-4.6 14.4 0" />
     </IconBase>
   );
 }
 
 const tabs = [
-  { to: "/", label: "Home", end: true, icon: <HomeIcon /> },
-  { to: "/checkin", label: "Check-in", icon: <HeartIcon /> },
-  { to: "/sessions", label: "Tadabbur", icon: <OpenBookIcon /> },
-  { to: "/read", label: "Read", icon: <MushafIcon /> },
-  { to: "/journal", label: "Journal", icon: <PenIcon /> },
-  { to: "/account", label: "Account", icon: <PersonIcon /> },
+  { to: "/", label: "Home", end: true, Icon: HomeIcon },
+  { to: "/checkin", label: "Check-in", Icon: HeartIcon },
+  { to: "/sessions", label: "Tadabbur", Icon: TadabburNavIcon },
+  { to: "/read", label: "Read", Icon: MushafIcon },
+  { to: "/journal", label: "Journal", Icon: PenIcon },
+  { to: "/account", label: "Account", Icon: PersonIcon },
 ];
 
 const COLLAPSE_KEY = "mindfulverse.sidebarCollapsed.v1";
@@ -165,8 +181,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 isActive ? "side-link active" : "side-link"
               }
             >
-              {t.icon}
-              <span className="side-label">{t.label}</span>
+              {({ isActive }) => (
+                <>
+                  <t.Icon active={isActive} />
+                  <span className="side-label">{t.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -203,118 +223,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
             end={t.end}
             className={({ isActive }) => (isActive ? "tab active" : "tab")}
           >
-            {t.icon}
-            <span className="tab-label">{t.label}</span>
+            {({ isActive }) => (
+              <>
+                <t.Icon active={isActive} />
+                <span className="tab-label">{t.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      <style>{`
-        /* --- Theme toggle: quiet, below the adire band --- */
-        .theme-toggle {
-          position: absolute; top: 22px; right: 14px; z-index: 25;
-          width: 40px; height: 40px; border-radius: 50%;
-          display: inline-flex; align-items: center; justify-content: center;
-          background: var(--cotton-raised); border: 1px solid var(--line);
-          color: var(--ink-soft); cursor: pointer;
-          transition: color .15s ease, background .15s ease;
-        }
-        .theme-toggle:hover { color: var(--indigo); }
-        .theme-toggle:active { transform: scale(0.94); }
-        /* Scrolls away on phones so it never sits over right-aligned Arabic. */
-        @media (min-width: 900px) { .theme-toggle { position: fixed; top: 26px; right: 22px; } }
-
-        /* --- Mobile: fixed bottom tab bar, icon above small label --- */
-        .tabbar {
-          position: fixed; left: 0; right: 0; bottom: 0;
-          display: flex; justify-content: space-around;
-          background: var(--surface); border-top: 1px solid var(--line);
-          padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-          z-index: 20;
-        }
-        .tab {
-          display: flex; flex-direction: column; align-items: center; gap: 2px;
-          color: var(--ink-faint); font-weight: 500;
-          flex: 1 1 0; min-width: 0; max-width: 84px;
-          padding: 6px 2px; border-radius: 3px;
-          transition: color .15s ease, background .15s ease;
-        }
-        .tab-label { font-size: .68rem; line-height: 1.2; white-space: nowrap; }
-        .tab:active { transform: scale(0.96); }
-        .tab.active { color: var(--cotton-raised); background: var(--indigo); }
-
-        /* --- Desktop sidebar (hidden on mobile) --- */
-        .sidebar { display: none; }
-
-        @media (min-width: 900px) {
-          .tabbar { display: none; }
-
-          .shell { --sidebar-w: 220px; }
-          .shell.shell-collapsed { --sidebar-w: 64px; }
-
-          .sidebar {
-            position: fixed; top: 12px; bottom: 0; left: 0;
-            width: var(--sidebar-w);
-            display: flex; flex-direction: column;
-            background: var(--cotton-raised);
-            border-right: 1px solid var(--line);
-            padding: 22px 12px 16px;
-            z-index: 20;
-            overflow: hidden;
-            transition: width .2s var(--ease-out);
-          }
-
-          .side-wordmark {
-            font-family: var(--font-read);
-            color: var(--indigo-deep);
-            font-weight: 600; font-size: 1.15rem; letter-spacing: -0.015em;
-            padding: 0 10px 22px;
-            white-space: nowrap;
-          }
-          .wordmark-mini { display: none; }
-          .shell-collapsed .wordmark-full { display: none; }
-          .shell-collapsed .wordmark-mini { display: inline; }
-          .shell-collapsed .side-wordmark { text-align: center; padding-left: 0; padding-right: 0; }
-
-          .side-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-          .side-link {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px; border-radius: 3px;
-            color: var(--ink-soft); font-weight: 500; font-size: .95rem;
-            white-space: nowrap;
-            transition: color .15s ease, background .15s ease;
-          }
-          .side-link svg { flex: none; }
-          .side-link:hover { background: var(--cotton); color: var(--indigo); }
-          .side-link.active { background: var(--indigo-wash); color: var(--indigo); }
-          .shell-collapsed .side-link { justify-content: center; padding-left: 0; padding-right: 0; }
-          .shell-collapsed .side-label { display: none; }
-
-          .side-collapse {
-            display: inline-flex; align-items: center; justify-content: center;
-            align-self: flex-end;
-            width: 40px; height: 40px;
-            background: none; border: none; border-radius: 3px;
-            color: var(--ink-faint); cursor: pointer;
-            transition: color .15s ease, background .15s ease;
-          }
-          .side-collapse:hover { background: var(--cotton); color: var(--indigo); }
-          .shell-collapsed .side-collapse { align-self: center; }
-
-          /* Clear the sidebar, and center the column in the remaining space. */
-          .shell main.container {
-            margin-left: max(var(--sidebar-w), calc(var(--sidebar-w) + (100% - var(--sidebar-w) - var(--maxw)) / 2));
-            margin-right: 0;
-            max-width: var(--maxw);
-            padding-bottom: 56px;
-            transition: margin-left .2s var(--ease-out);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .sidebar, .shell main.container { transition: none; }
-        }
-      `}</style>
     </div>
   );
 }

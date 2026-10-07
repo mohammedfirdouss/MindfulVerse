@@ -3,6 +3,9 @@ import { Link, useSearchParams } from "react-router-dom";
 import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
 import { getLastRead } from "@mindfulverse/core/progress";
 import type { Division, SurahMeta } from "@mindfulverse/core/types";
+import { arabicSurahName, revelationPlace } from "@mindfulverse/core/surahNames";
+import { ChevronIcon, Diamond } from "../components/Adire";
+import "./reader.css";
 
 type Status = "loading" | "ready" | "error";
 
@@ -77,17 +80,17 @@ export default function Reader() {
       {lastRead && (
         <Link
           to={`/read/${lastRead.surah}?v=${lastRead.ayah}`}
-          className="card"
-          style={{ display: "block", color: "var(--ink)" }}
+          className="cloth continue-cloth"
         >
-          <span className="eyebrow" style={{ display: "block" }}>
-            Continue reading
+          <span className="continue-text">
+            <span className="cloth-eyebrow">Continue reading</span>
+            <span className="continue-name">
+              {surahs.find((s) => s.number === lastRead.surah)?.name ??
+                `Surah ${lastRead.surah}`}
+            </span>
+            <span className="cloth-soft">Verse {lastRead.ayah}</span>
           </span>
-          <span style={{ fontWeight: 650 }}>
-            {surahs.find((s) => s.number === lastRead.surah)?.name ??
-              `Surah ${lastRead.surah}`}{" "}
-            · verse {lastRead.ayah}
-          </span>
+          <ChevronIcon />
         </Link>
       )}
 
@@ -124,50 +127,38 @@ export default function Reader() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or number…"
             aria-label="Search surahs"
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              borderRadius: "var(--radius)",
-              border: "1px solid var(--line)",
-              background: "var(--surface)",
-              color: "var(--ink)",
-              font: "inherit",
-            }}
+            className="index-search"
           />
 
           {filtered.length === 0 ? (
             <p className="muted">No surahs match “{query}”.</p>
           ) : (
-            <div className="stack">
-              {filtered.map((s) => (
-                <Link
-                  key={s.number}
-                  to={`/read/${s.number}`}
-                  className="card"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    color: "var(--ink)",
-                  }}
-                >
-                  <span
-                    className="eyebrow"
-                    style={{ minWidth: 36, textAlign: "center" }}
-                  >
-                    {s.number}
-                  </span>
-                  <span style={{ flex: 1 }}>
-                    <span style={{ fontWeight: 650, display: "block" }}>
-                      {s.name}
-                    </span>
-                    <span className="muted" style={{ fontSize: ".9rem" }}>
-                      {s.ayahCount} {s.ayahCount === 1 ? "ayah" : "ayahs"}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <ul className="index-list">
+              {filtered.map((s) => {
+                const place = revelationPlace(s.number);
+                const arabic = arabicSurahName(s.number);
+                return (
+                  <li key={s.number}>
+                    <Link to={`/read/${s.number}`} className="index-row">
+                      <Diamond n={s.number} outline />
+                      <span className="row-text">
+                        <span className="read-sr">Surah {s.number}, </span>
+                        <span className="row-title">{s.name}</span>
+                        <span className="row-meta">
+                          {place ? `${place} · ` : ""}
+                          {s.ayahCount} {s.ayahCount === 1 ? "ayah" : "ayahs"}
+                        </span>
+                      </span>
+                      {arabic && (
+                        <span className="row-arabic" lang="ar" dir="rtl" aria-hidden="true">
+                          {arabic}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </>
       )}
@@ -183,41 +174,45 @@ export default function Reader() {
       )}
 
       {tab === "juz" && !juzFailed && juzList.length > 0 && (
-        <div className="stack">
+        <ul className="index-list">
           {juzList.map((j) => {
             const [fs, fa] = j.first.split(":").map(Number);
             const [ls, la] = j.last.split(":").map(Number);
             const name = (s: number) => surahs.find((x) => x.number === s)?.name ?? `Surah ${s}`;
             const hizbs = hizbList.filter((h) => h.n === j.n * 2 - 1 || h.n === j.n * 2);
             return (
-              <div key={j.n} className="card juz-card">
-                <Link to={`/read/juz/${j.n}`} className="juz-main">
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontWeight: 650, display: "block" }}>Juz {j.n}</span>
-                    <span className="muted juz-range">
-                      <span>{name(fs)} {fa}</span> – <span>{name(ls)} {la}</span>
+              <li key={j.n} className="juz-row">
+                <Link to={`/read/juz/${j.n}`} className="index-row">
+                  <span className="row-head">
+                    <Diamond n={j.n} />
+                    <span className="row-text">
+                      <span className="row-title">Juz {j.n}</span>
+                      <span className="row-meta">
+                        <span>{name(fs)} {fa}</span> – <span>{name(ls)} {la}</span>
+                      </span>
                     </span>
                   </span>
                   {j.opening && (
-                    <span className="juz-opening" lang="ar" dir="rtl">
+                    <span className="juz-open" lang="ar" dir="rtl">
                       {j.opening}
                     </span>
                   )}
                 </Link>
-                <p className="juz-hizbs">
+                <p className="hizb-pills">
                   {hizbs.map((h) => (
                     <Link
                       key={h.n}
+                      className="hizb-pill"
                       to={h.first === j.first ? `/read/juz/${j.n}` : `/read/juz/${j.n}?v=${h.first}`}
                     >
                       Hizb {h.n}
                     </Link>
                   ))}
                 </p>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

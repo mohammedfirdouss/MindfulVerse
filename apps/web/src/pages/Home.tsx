@@ -5,6 +5,8 @@ import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
 import { checkedInToday } from "@mindfulverse/core/journal";
 import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
 import type { Ayah } from "@mindfulverse/core/types";
+import { ChevronIcon, DhikrIcon, DyeRule, ReadIcon, TadabburIcon } from "../components/Adire";
+import "./home.css";
 
 function greeting(hour: number): string {
   if (hour < 5) return "Peace be upon you tonight";
@@ -15,10 +17,19 @@ function greeting(hour: number): string {
 
 // The daily check-in is the habit and leads from the verse above; these are
 // the places to go when there is more time, or a need.
-const entries = [
-  { to: "/sessions", title: "Tadabbur", desc: "Ponder the Qur’an, surah by surah." },
-  { to: "/read", title: "Read", desc: "The Qur’an, with translation and commentary." },
-  { to: "/dhikr", title: "Dhikr & breath", desc: "Remembrance, paced to your breath." },
+// An entry with `soon` renders inert, with a "Soon" pill instead of a chevron.
+interface Entry {
+  to: string;
+  title: string;
+  desc: string;
+  Icon: () => JSX.Element;
+  soon?: boolean;
+}
+
+const entries: Entry[] = [
+  { to: "/sessions", title: "Tadabbur", desc: "Ponder the Qur’an, surah by surah.", Icon: TadabburIcon },
+  { to: "/read", title: "Read", desc: "The Qur’an, with translation and commentary.", Icon: ReadIcon },
+  { to: "/dhikr", title: "Dhikr & breath", desc: "Remembrance, paced to your breath.", Icon: DhikrIcon },
 ];
 
 export default function Home() {
@@ -73,7 +84,7 @@ export default function Home() {
   const lastRead = getLastRead();
   const doneToday = checkedInToday();
   const deeper = latestSurahTadabbur();
-  const navEntries = lastRead
+  const navEntries: Entry[] = lastRead
     ? entries.map((e) =>
         e.to === "/read"
           ? {
@@ -86,47 +97,49 @@ export default function Home() {
     : entries;
 
   return (
-    <div>
-      <p className="eyebrow" style={{ marginTop: 8, ...reveal(0) }}>
-        {greeting(hours)}
-      </p>
+    <div className="home">
+      <header style={reveal(0)}>
+        <p className="home-date">{todayLabel()}</p>
+        <h1 className="home-greeting">{greeting(hours)}</h1>
+      </header>
 
       {streak >= 2 && (
-        <p className="soft" style={{ fontSize: ".9rem", marginTop: 6, ...reveal(60) }}>
+        <p className="home-streak soft" style={reveal(60)}>
+          <span className="home-beads" aria-hidden="true">
+            {Array.from({ length: 7 }, (_, i) => (
+              <i key={i} className={i < Math.min(streak, 7) ? "on" : undefined} />
+            ))}
+          </span>
           Day {streak} of returning to the Qur’an
         </p>
       )}
 
-      <section aria-label="A verse to begin with" style={{ margin: "26px 0 34px", ...reveal(120) }}>
+      <section aria-label="A verse to begin with" className="cloth home-verse fade-rise">
+        <p className="cloth-eyebrow">Today’s verse</p>
         {hero ? (
           <>
             <p className="arabic" lang="ar" style={{ fontSize: "calc(2.4rem * var(--read-scale,1))" }}>
               {hero.arabic}
             </p>
-            <p
-              className="translation"
-              style={{ fontSize: "1.2rem", lineHeight: 1.6, marginTop: 14, color: "var(--ink)" }}
-            >
-              {hero.translation}
-            </p>
-            <p className="eyebrow" style={{ marginTop: 12 }}>
+            <p className="translation home-verse-translation">{hero.translation}</p>
+            <p className="cloth-soft home-verse-ref">
               {surahName ? `${surahName} · ` : ""}
               {hero.surah}:{hero.ayah}
             </p>
           </>
         ) : (
-          <p className="muted">Opening today’s verse…</p>
+          <p className="cloth-soft">Opening today’s verse…</p>
         )}
 
         <div className="home-today">
           {doneToday ? (
             <>
-              <p className="soft" style={{ margin: 0 }}>
+              <p className="cloth-soft" style={{ margin: 0 }}>
                 Today’s reflection is saved.
               </p>
               <Link
                 to={deeper ? `/tadabbur/${deeper.surah}?v=${deeper.ayah}` : "/sessions"}
-                className="btn secondary"
+                className="btn cloth-btn"
               >
                 {deeper
                   ? `Go deeper — continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
@@ -134,7 +147,7 @@ export default function Home() {
               </Link>
             </>
           ) : (
-            <Link to="/checkin" className="btn">
+            <Link to="/checkin" className="btn cloth-btn">
               Reflect on today’s verse
             </Link>
           )}
@@ -142,42 +155,56 @@ export default function Home() {
       </section>
 
       <nav aria-label="Sections" className="home-entries" style={reveal(260)}>
-        {navEntries.map((e) => (
-          <Link key={e.to} to={e.to} className="home-entry">
-            <span>
-              <span className="home-entry-title">{e.title}</span>
-              <span className="home-entry-desc">{e.desc}</span>
-            </span>
-            <span className="home-entry-arrow" aria-hidden="true">→</span>
-          </Link>
-        ))}
+        {navEntries.map((e) => {
+          const body = (
+            <>
+              <span className="home-entry-well" aria-hidden="true">
+                <e.Icon />
+              </span>
+              <span className="home-entry-text">
+                <span className="home-entry-title">{e.title}</span>
+                <span className="home-entry-desc">{e.desc}</span>
+              </span>
+              {e.soon ? (
+                <span className="home-entry-soon">Soon</span>
+              ) : (
+                <span className="home-entry-chevron" aria-hidden="true">
+                  <ChevronIcon />
+                </span>
+              )}
+            </>
+          );
+          return e.soon ? (
+            <div key={e.to} className="home-entry inert">
+              {body}
+            </div>
+          ) : (
+            <Link key={e.to} to={e.to} className="home-entry">
+              {body}
+            </Link>
+          );
+        })}
       </nav>
 
-      <footer style={{ marginTop: 30, ...reveal(320) }} className="stack">
+      <footer style={reveal(320)}>
+        <DyeRule />
         {/* Required attribution — the translation is CC BY-NC-ND. */}
-        <p className="muted" style={{ fontSize: ".8rem", margin: "10px 0 0" }}>
+        <p className="muted home-attribution">
           English translation by{" "}
           <a href="https://www.clearquran.com" target="_blank" rel="noopener noreferrer">
             Talal Itani (ClearQuran)
           </a>
         </p>
       </footer>
-
-
-      <style>{`
-        .home-today { margin-top: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-        .home-entries { border-top: 1px solid var(--line); }
-        .home-entry {
-          display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          padding: 14px 2px; border-bottom: 1px solid var(--line);
-          color: var(--ink); transition: padding-left .18s var(--ease-out);
-        }
-        .home-entry:hover { padding-left: 8px; }
-        .home-entry-title { display: block; font-size: 1.05rem; font-weight: 500; }
-        .home-entry-desc { display: block; color: var(--ink-faint); font-size: .92rem; margin-top: 2px; }
-        .home-entry-arrow { color: var(--lapis); font-size: 1.1rem; flex: none; }
-        @media (prefers-reduced-motion: reduce) { .home-entry, .home-entry:hover { transition: none; padding-left: 2px; } }
-      `}</style>
     </div>
   );
+}
+
+/** "Wednesday 7 October" in the browser's language. */
+function todayLabel(): string {
+  try {
+    return new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+  } catch {
+    return new Date().toDateString();
+  }
 }

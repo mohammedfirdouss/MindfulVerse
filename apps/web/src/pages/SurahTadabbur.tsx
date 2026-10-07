@@ -18,6 +18,8 @@ import { addEntry } from "@mindfulverse/core/journal";
 import { track } from "@mindfulverse/core/analytics";
 import { getSurahTadabbur, recordSurahTadabbur } from "@mindfulverse/core/progress";
 import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "@mindfulverse/core/types";
+import { Diamond, DyeRule, TitlePlate } from "../components/Adire";
+import "./tadabbur.css";
 
 // Motion helpers — transform + opacity only, under 400ms (same approach as
 // SessionPlayer). Reduced motion: content simply appears.
@@ -78,22 +80,12 @@ function coveringFromIndex(indexed: number[], ayah: number): number | null {
   return best;
 }
 
-const textareaStyle: CSSProperties = {
-  width: "100%",
-  font: "inherit",
-  fontSize: ".95rem",
-  padding: 10,
-  borderRadius: "var(--radius)",
-  border: "1px solid var(--line)",
-  background: "var(--surface)",
-  color: "var(--ink)",
-  resize: "vertical",
-};
 
 // The surah's background text, shown first (per user feedback). Long infos are
 // trimmed to the opening paragraphs with a "Read more" expander.
 
 const ABOUT_COLLAPSED_PARAGRAPHS = 5;
+const ABOUT_EXCERPT_CHARS = 200;
 
 function InfoText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -101,26 +93,23 @@ function InfoText({ text }: { text: string }) {
     .split("\n\n")
     .map((p) => p.trim())
     .filter(Boolean);
-  const shown = expanded
-    ? paragraphs
-    : paragraphs.slice(0, ABOUT_COLLAPSED_PARAGRAPHS);
-  const truncated = paragraphs.length > shown.length;
+  const isHeading = (p: string) => p.length < 60 && !p.includes(".");
+  // Collapsed: the first section only (leading subheadings + one paragraph).
+  let first = 0;
+  while (first < paragraphs.length && isHeading(paragraphs[first])) first += 1;
+  const excerpt = Math.min(paragraphs.length, first + 1);
+  const shown = expanded ? paragraphs : paragraphs.slice(0, Math.min(excerpt, ABOUT_COLLAPSED_PARAGRAPHS));
+  const more = paragraphs.length > excerpt || (paragraphs[excerpt - 1]?.length ?? 0) > ABOUT_EXCERPT_CHARS;
 
   return (
     <div className="stack">
-      <div className="tafsir">
-        {shown.map((p, i) =>
-          p.length < 60 && !p.includes(".") ? (
-            <h3 key={i}>{p}</h3>
-          ) : (
-            <p key={i}>{p}</p>
-          )
-        )}
+      <div className={`tafsir${expanded ? "" : " tad-about-clamp"}`}>
+        {shown.map((p, i) => (isHeading(p) ? <h3 key={i}>{p}</h3> : <p key={i}>{p}</p>))}
       </div>
-      {truncated && (
+      {more && (
         <div>
-          <button className="commentary-open" onClick={() => setExpanded(true)}>
-            Read more
+          <button className="commentary-open" aria-expanded={expanded} onClick={() => setExpanded((e) => !e)}>
+            {expanded ? "Show less" : "Read more"}
           </button>
         </div>
       )}
@@ -268,10 +257,8 @@ function ReflectionArea({
   }
 
   return (
-    <div
-      className="card stack"
-      style={{ background: "var(--surface-2)", borderColor: "var(--line-strong)" }}
-    >
+    <div className="stack tad-reflect">
+      <DyeRule />
       <p className="eyebrow" style={{ margin: 0 }}>
         Your tadabbur
       </p>
@@ -280,7 +267,7 @@ function ReflectionArea({
         like.
       </p>
       <label className="stack" style={{ gap: 4 }}>
-        <span className="soft" style={{ fontSize: ".9rem" }}>
+        <span className="tad-prompt">
           What does it teach?
         </span>
         <textarea
@@ -290,11 +277,11 @@ function ReflectionArea({
             onDraft({ ...draft, lessons: e.target.value });
             setSaved(false);
           }}
-          style={textareaStyle}
+          className="tad-input"
         />
       </label>
       <label className="stack" style={{ gap: 4 }}>
-        <span className="soft" style={{ fontSize: ".9rem" }}>
+        <span className="tad-prompt">
           What stays with you?
         </span>
         <textarea
@@ -304,11 +291,11 @@ function ReflectionArea({
             onDraft({ ...draft, stirs: e.target.value });
             setSaved(false);
           }}
-          style={textareaStyle}
+          className="tad-input"
         />
       </label>
       <label className="stack" style={{ gap: 4 }}>
-        <span className="soft" style={{ fontSize: ".9rem" }}>
+        <span className="tad-prompt">
           What will you do?
         </span>
         <textarea
@@ -318,7 +305,7 @@ function ReflectionArea({
             onDraft({ ...draft, action: e.target.value });
             setSaved(false);
           }}
-          style={textareaStyle}
+          className="tad-input"
         />
       </label>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -538,15 +525,15 @@ function SurahTadabburPage() {
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
             <p className="eyebrow">Tadabbur</p>
-            <h1>{name}</h1>
-            <p className="muted" style={{ margin: 0 }}>
+            <TitlePlate surah={surahNumber} name={name} />
+            <p className="muted" style={{ margin: "10px 0 0", textAlign: "center" }}>
               {count} {count === 1 ? "verse" : "verses"}, one at a time.
             </p>
           </div>
         </FadeRise>
         {info && (
           <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 60}>
-            <div className="card stack">
+            <div className="card stack tad-about">
               <p className="eyebrow" style={{ margin: 0 }}>
                 About this surah
               </p>
@@ -639,7 +626,7 @@ function SurahTadabburPage() {
         <div className="stack">
           <div className="verse" style={{ paddingTop: 0 }}>
             <div className="verse-head">
-              <span className="roundel">{a.ayah}</span>
+              <Diamond n={a.ayah} />
               <span className="eyebrow">
                 {name} · {a.verseKey}
               </span>

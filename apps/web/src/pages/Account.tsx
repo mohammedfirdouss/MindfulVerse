@@ -308,13 +308,6 @@ export default function Account() {
         <h1>
           {user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}
         </h1>
-        {!user && (
-          <p className="muted" style={{ marginTop: 0 }}>
-            Optional. The Qur&rsquo;an is always free here and an account backs up your
-            journal and progress so they follow you to another device, and lets you
-            get today&rsquo;s verse as a daily reminder on your phone or computer.
-          </p>
-        )}
       </header>
 
       {notice && (

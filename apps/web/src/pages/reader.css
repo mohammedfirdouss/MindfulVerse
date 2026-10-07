@@ -1,0 +1,90 @@
+/* Read index (Reader.tsx) and the surah reader (Surah.tsx).
+   Mirrors apps/mobile: app/(tabs)/read.tsx + src/components/Reader/IndexRows.tsx. */
+
+/* --- Continue reading: a cloth panel, the whole panel is the link --- */
+.continue-cloth {
+  display: flex; align-items: center; gap: 14px;
+  text-decoration: none;
+  transition: transform .15s var(--ease-out, ease);
+}
+.cloth.continue-cloth { color: var(--on-cloth); }
+.continue-cloth:active { transform: scale(.98); }
+.continue-cloth .continue-text { flex: 1; min-width: 0; }
+.continue-cloth .cloth-eyebrow { display: block; }
+.continue-cloth .continue-name {
+  display: block; font-size: 1.25rem; font-weight: 600; line-height: 1.35; margin-top: 2px;
+  color: var(--on-cloth);
+}
+.continue-cloth .cloth-soft { display: block; font-size: .92rem; line-height: 1.4; }
+.continue-cloth svg { flex: none; color: var(--on-cloth); }
+@media (prefers-reduced-motion: reduce) { .continue-cloth:active { transform: none; } }
+
+/* --- Search field --- */
+.index-search {
+  width: 100%; padding: 12px 14px;
+  border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--cotton-raised); color: var(--ink); font: inherit;
+}
+
+/* --- Index rows: light rows, hairlines start under the text column --- */
+.index-list { list-style: none; margin: 0; padding: 0; }
+.index-list > li + li { position: relative; }
+.index-list > li + li::before {
+  content: ""; position: absolute; top: 0; right: 0; left: 54px;
+  height: 1px; background: var(--line);
+}
+
+.index-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 8px; margin: 0 -8px;
+  border-radius: 8px; color: var(--ink);
+  transition: background .15s ease;
+}
+.index-row:hover, .index-row:active { background: var(--indigo-wash); }
+.index-row:focus-visible { outline-offset: 0; border-radius: 8px; }
+.index-row .row-text { flex: 1; min-width: 0; }
+.index-row .row-title { display: block; font-weight: 600; font-size: 1.03rem; line-height: 1.4; }
+.index-row .row-meta { display: block; font-size: .85rem; line-height: 1.4; color: var(--ink-faint); }
+.index-row .row-arabic {
+  flex: none; max-width: 40%;
+  font-family: var(--font-arabic); font-size: 1.4rem; line-height: 1.8;
+  color: var(--indigo-deep); direction: rtl;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* --- Juz rows --- */
+.juz-row { padding: 12px 0; }
+.juz-row .index-row { display: block; padding-top: 4px; padding-bottom: 4px; }
+.juz-row .row-head { display: flex; align-items: center; gap: 14px; }
+.juz-row .row-meta > span { white-space: nowrap; }
+.juz-row .juz-open {
+  display: block; margin-left: 54px;
+  font-family: var(--font-arabic); font-size: 1.3rem; line-height: 1.9;
+  color: var(--indigo-deep); direction: rtl; text-align: right;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hizb-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0 54px; padding: 0; }
+.hizb-pill {
+  display: inline-block; padding: 3px 12px;
+  border: 1px solid var(--line-strong); border-radius: 14px;
+  background: var(--cotton-raised); color: var(--indigo);
+  font-size: .85rem; line-height: 1.45;
+  transition: background .15s ease;
+}
+.hizb-pill:hover, .hizb-pill:active { background: var(--indigo-wash); }
+.hizb-pill:focus-visible { border-radius: 14px; }
+
+/* --- Surah reader --- */
+.surah-plate { margin-top: 14px; }
+.surah-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap; padding: 14px 0 12px; margin-bottom: 4px;
+}
+.surah-opening .dye-rule, .dye-rule.reading-rule { margin: 10px 0 0; }
+.surah-opening .arabic { text-align: center; padding: 10px 0 4px; margin: 0; }
+
+/* Visually hidden, still announced (the diamond numeral is aria-hidden). */
+.read-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

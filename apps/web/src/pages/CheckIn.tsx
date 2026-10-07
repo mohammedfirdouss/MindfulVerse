@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
 import { loadAyahsByKeys, loadEmotions, loadSurahs } from "@mindfulverse/core/data";
 import { addEntry } from "@mindfulverse/core/journal";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
 import { shareVerse } from "../lib/share";
 import { track } from "@mindfulverse/core/analytics";
+import { DyeRule } from "../components/Adire";
+import "./checkin.css";
 
 const VERSE_PROMPT = "What stays with you from this verse?";
 // An unsaved reflection survives leaving the page (or the OS killing the PWA).
@@ -58,14 +60,29 @@ function revealStyle(index: number, mounted: boolean, reduced: boolean): CSSProp
   };
 }
 
-function AyahView({ ayah, surahName }: { ayah: Ayah; surahName?: string }) {
+/** A verse as the check-in shows it. `onCloth` lays it on the dyed cloth (the
+ *  verse of the day); the reference row can carry a trailing action. */
+function AyahView({
+  ayah,
+  surahName,
+  onCloth = false,
+  trailing,
+}: {
+  ayah: Ayah;
+  surahName?: string;
+  onCloth?: boolean;
+  trailing?: ReactNode;
+}) {
   return (
-    <div className="stack">
-      <div className="arabic">{ayah.arabic}</div>
+    <div className={`ci-ayah${onCloth ? " on-cloth" : ""}`}>
+      <div className="arabic" lang="ar">{ayah.arabic}</div>
       <div className="translation">{ayah.translation}</div>
-      <div className="muted" style={{ fontSize: ".8rem" }}>
-        {surahName ? `${surahName} · ` : ""}
-        {ayah.verseKey}
+      <div className="ci-ref-row">
+        <span className={onCloth ? "ci-ref cloth-soft" : "ci-ref muted"}>
+          {surahName ? `${surahName} · ` : ""}
+          {ayah.verseKey}
+        </span>
+        {trailing}
       </div>
     </div>
   );
@@ -230,94 +247,100 @@ export default function CheckIn() {
   }
 
   return (
-    <div className="stack">
+    <div className="stack ci-page">
       <header>
         <p className="eyebrow">Daily check-in</p>
         <h1>A quiet moment</h1>
       </header>
 
-      {/* Verse of the day */}
-      <section className="card stack">
-        <p className="eyebrow">Verse of the day</p>
+      {/* Verse of the day: the verse that matters, laid on the dyed cloth. */}
+      <section className="cloth fade-rise ci-verse" aria-labelledby="ci-verse-title">
+        <p className="cloth-eyebrow" id="ci-verse-title">Verse of the day</p>
         {dailyError ? (
-          <p className="muted">
+          <p className="cloth-soft ci-note">
             Today&rsquo;s verse is still being gathered. Come back in a little
             while and it will be waiting for you.
           </p>
         ) : dailyAyah ? (
-          <div className="stack" style={revealStyle(0, dailyMounted, reduced)}>
-            <AyahView ayah={dailyAyah} surahName={surahNames.get(dailyAyah.surah)} />
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => {
-                  void shareVerse(dailyAyah, "checkin").then((r: string) => {
-                    // Closing the share sheet is not an outcome worth confirming.
-                    if (r !== "cancelled") setShareResult(r as "shared" | "copied" | "failed");
-                  });
-                }}
-              >
-                Share this verse
-              </button>
-              {shareResult && (
-                <span className="muted" role="status">
-                  {shareResult === "shared"
-                    ? "Shared"
-                    : shareResult === "copied"
-                      ? "Copied to clipboard"
-                      : "Couldn’t share"}
+          <div style={revealStyle(0, dailyMounted, reduced)}>
+            <AyahView
+              ayah={dailyAyah}
+              surahName={surahNames.get(dailyAyah.surah)}
+              onCloth
+              trailing={
+                <span className="ci-share">
+                  {shareResult && (
+                    <span className="cloth-soft ci-share-status" role="status">
+                      {shareResult === "shared"
+                        ? "Shared"
+                        : shareResult === "copied"
+                          ? "Copied to clipboard"
+                          : "Couldn’t share"}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="ci-share-btn"
+                    onClick={() => {
+                      void shareVerse(dailyAyah, "checkin").then((r: string) => {
+                        // Closing the share sheet is not an outcome worth confirming.
+                        if (r !== "cancelled") setShareResult(r as "shared" | "copied" | "failed");
+                      });
+                    }}
+                  >
+                    Share this verse
+                  </button>
                 </span>
-              )}
-            </div>
+              }
+            />
           </div>
         ) : (
-          <p className="muted">Bringing today&rsquo;s verse to you&hellip;</p>
+          <p className="cloth-soft ci-note">Bringing today&rsquo;s verse to you&hellip;</p>
         )}
+      </section>
 
-        <div
-          className="stack"
-          style={{ marginTop: 28, paddingTop: 22, borderTop: "1px solid var(--line)" }}
-        >
-          <label htmlFor="checkin-journal" style={{ fontWeight: 600 }}>
-            {VERSE_PROMPT}
-          </label>
-          <textarea
-            id="checkin-journal"
-            value={journalBody}
-            onChange={(e) => {
-              setJournalBody(e.target.value);
-              writeDraft(e.target.value);
-              if (saved) setSaved(false);
-            }}
-            placeholder="Write as much or as little as you like…"
-            rows={5}
-            className="field-input"
-            style={{ resize: "vertical" }}
-          />
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button
-              type="button"
-              className="btn"
-              onClick={saveJournal}
-              disabled={!journalBody.trim()}
-              style={{ opacity: journalBody.trim() ? 1 : 0.5 }}
-            >
-              Save
-            </button>
-            {saved && (
-              <span className="muted" role="status">
-                Kept in your journal. A new verse arrives tomorrow.
-              </span>
-            )}
-          </div>
+      <DyeRule className="ci-rule" />
+
+      {/* Reflection on the verse, on the open cotton. */}
+      <section className="ci-section">
+        <label htmlFor="checkin-journal" className="ci-heading">
+          {VERSE_PROMPT}
+        </label>
+        <textarea
+          id="checkin-journal"
+          value={journalBody}
+          onChange={(e) => {
+            setJournalBody(e.target.value);
+            writeDraft(e.target.value);
+            if (saved) setSaved(false);
+          }}
+          placeholder="Write as much or as little as you like…"
+          rows={6}
+          className="ci-textarea"
+        />
+        <div className="ci-actions">
+          <button
+            type="button"
+            className="btn ci-save"
+            onClick={saveJournal}
+            disabled={!journalBody.trim()}
+          >
+            Save
+          </button>
+          {saved && (
+            <span className="soft" role="status">
+              Kept in your journal. A new verse arrives tomorrow.
+            </span>
+          )}
         </div>
       </section>
 
+      <DyeRule className="ci-rule" />
+
       {/* Emotion picker — kept in the app's quiet indigo voice; kola stays
           reserved for small accents, never a whole section. */}
-      <section className="card stack">
-        <p className="eyebrow">How is your heart today?</p>
+      <section className="ci-section" aria-labelledby="ci-heart-title">
+        <h2 className="ci-heading" id="ci-heart-title">How is your heart today?</h2>
 
         {emotionsError ? (
           <p className="muted">
@@ -327,14 +350,14 @@ export default function CheckIn() {
         ) : emotions.length === 0 ? (
           <p className="muted">Gathering a few words for you&hellip;</p>
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          <div className="ci-chips">
             {emotions.map((entry) => {
               const isActive = entry.id === selectedId;
               return (
                 <button
                   key={entry.id}
                   type="button"
-                  className={isActive ? "btn" : "btn secondary"}
+                  className="ci-chip"
                   aria-pressed={isActive}
                   onClick={() => selectEmotion(entry)}
                 >
@@ -346,10 +369,8 @@ export default function CheckIn() {
         )}
 
         {selected && (
-          <div className="stack" style={{ marginTop: 6 }}>
-            <h2 style={{ fontSize: "1.1rem", color: "var(--ink)" }}>
-              {selected.framing}
-            </h2>
+          <div className="ci-framed">
+            <h3 className="ci-framing">{selected.framing}</h3>
             {emotionAyahsError ? (
               <p className="muted">
                 These verses are still being gathered. Come back in a little

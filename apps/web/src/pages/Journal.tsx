@@ -13,14 +13,40 @@ import {
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
 import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
+import "./journal-empty.css";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
+
+/** A diamond of indigo cloth with the reed pen at its centre. */
+function ClothSwatch() {
+  return (
+    <div className="journal-swatch" aria-hidden="true">
+      <div className="cloth">
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          focusable="false"
+        >
+          <path d="M6 17.2 7 13.4l8.9-8.9a1.9 1.9 0 0 1 2.7 2.7l-8.9 8.9Z" />
+          <path d="M3.5 20.5h17" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 /** Empty state: quiet and minimal — one line of intent, one way to begin. */
 function EmptyJournal() {
   return (
     <div className="empty-quiet">
-      <p style={{ fontWeight: 600 }}>Nothing here yet, and that’s fine.</p>
+      <ClothSwatch />
+      <p className="journal-empty-lead">Nothing here yet, and that’s fine.</p>
       <p className="soft">When a verse stops you, write what it said to you.</p>
       <Link to="/checkin" className="btn" style={{ marginTop: 14 }}>
         Begin with today’s verse

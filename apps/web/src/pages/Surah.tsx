@@ -22,6 +22,8 @@ import {
   type ReadView,
 } from "@mindfulverse/core/readingPrefs";
 import { useLastReadTracker } from "../lib/useLastReadTracker";
+import { DyeRule, TitlePlate } from "../components/Adire";
+import "./reader.css";
 
 type Status = "loading" | "ready" | "error";
 
@@ -127,31 +129,19 @@ function SurahReader() {
 
   return (
     <div style={{ ["--read-scale" as string]: String(scaleFor(sizeKey)) }}>
-      <header style={{ marginBottom: 12 }}>
-        <Link to="/read" className="btn ghost">
-          ← All surahs
-        </Link>
-        <h1 style={{ marginTop: 14 }}>{meta ? meta.name : `Surah ${surahNumber}`}</h1>
-        {meta && (
-          <p className="muted" style={{ margin: "4px 0 0" }}>
-            {meta.ayahCount} verses
-          </p>
-        )}
-      </header>
+      <Link to="/read" className="btn ghost">
+        ← All surahs
+      </Link>
+      <div className="surah-plate">
+        <TitlePlate
+          surah={surahNumber}
+          name={meta ? meta.name : `Surah ${surahNumber}`}
+          ayahCount={meta?.ayahCount}
+        />
+      </div>
 
       {status === "ready" && ayahs.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 14,
-            flexWrap: "wrap",
-            padding: "10px 0 16px",
-            borderBottom: "1px solid var(--line)",
-            marginBottom: 4,
-          }}
-        >
+        <div className="surah-toolbar">
           <ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
           <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input
@@ -185,18 +175,24 @@ function SurahReader() {
       {status === "ready" && (
         <div>
           {view === "reading" ? (
-            <ReadingText
-              ayahs={ayahs}
-              headings={false}
-              activeKey={selected?.verseKey ?? flashKey}
-              onSelect={setSelected}
-            />
+            <>
+              {surahNumber !== 1 && surahNumber !== 9 && <DyeRule className="reading-rule" />}
+              <ReadingText
+                ayahs={ayahs}
+                headings={false}
+                activeKey={selected?.verseKey ?? flashKey}
+                onSelect={setSelected}
+              />
+            </>
           ) : (
             <>
               {surahNumber !== 1 && surahNumber !== 9 && (
-                <p className="arabic" lang="ar" style={{ textAlign: "center", padding: "18px 0 4px" }}>
-                  {BASMALAH}
-                </p>
+                <div className="surah-opening">
+                  <DyeRule />
+                  <p className="arabic" lang="ar">
+                    {BASMALAH}
+                  </p>
+                </div>
               )}
               {ayahs.map((a) => (
                 <VerseBlock

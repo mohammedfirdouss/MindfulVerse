@@ -1,0 +1,14 @@
+/* Surah tadabbur: light About box, open reflection section (mobile parity). */
+.card.tad-about { background: var(--cotton-raised); border: 1px solid var(--line); }
+.tad-about-clamp > p:last-child {
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+.tad-reflect .dye-rule { margin: 6px 0 4px; }
+.tad-prompt { font-weight: 600; color: var(--indigo-deep); font-size: .98rem; }
+.tad-input {
+  width: 100%; min-height: 112px; font: inherit; font-size: 1rem; line-height: 1.6;
+  padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--line-strong);
+  background: var(--cotton-raised); color: var(--ink); resize: vertical;
+}
+.tad-input:focus { outline: none; border-color: var(--indigo); }
+.verse-head .diamond { width: 34px; height: 34px; font-size: .82rem; }

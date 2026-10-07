@@ -1,0 +1,61 @@
+/* Home: date + greeting, returning beads, today's verse on cloth, the section list. */
+.home-date { margin: 8px 0 2px; font-size: .92rem; color: var(--ink-faint); }
+.home-greeting { font-size: 1.4rem; margin: 0; }
+
+.home-streak { display: flex; align-items: center; gap: 10px; margin: 6px 0 0; font-size: .92rem; }
+.home-beads { display: inline-flex; gap: 4px; flex: none; }
+.home-beads i {
+  width: 9px; height: 9px; background: var(--line-strong);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.home-beads i.on { background: var(--kola); }
+
+.home-verse { margin: 22px 0 18px; padding-top: 20px; }
+.home-verse .cloth-eyebrow { margin-bottom: 6px; }
+.home-verse .arabic { margin: 6px 0 0; }
+.home-verse-translation { font-size: 1.2rem; line-height: 1.6; margin: 8px 0 0; }
+.home-verse-ref { margin: 10px 0 0; font-size: .92rem; }
+.home-today { margin-top: 22px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+
+/* Section rows: icon well, title + description, chevron (or a Soon pill). */
+.home-entry {
+  position: relative;
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 2px;
+  color: var(--ink);
+  transition: transform .16s var(--ease-out), opacity .16s ease;
+}
+/* Hairline divider that starts after the icon column. */
+.home-entry + .home-entry::before {
+  content: ""; position: absolute; top: 0; right: 0; left: 62px;
+  height: 1px; background: var(--line);
+}
+a.home-entry:hover .home-entry-title { color: var(--indigo); }
+a.home-entry:hover .home-entry-chevron { transform: translateX(3px); }
+a.home-entry:active { transform: scale(.985); opacity: .7; }
+.home-entry-well {
+  flex: none; width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--indigo-wash); color: var(--indigo);
+}
+.home-entry.inert .home-entry-well { background: var(--shea); color: var(--ink-faint); }
+.home-entry-text { flex: 1; min-width: 0; }
+.home-entry-title { display: block; font-size: 1.1rem; font-weight: 500; transition: color .15s ease; }
+.home-entry.inert .home-entry-title { color: var(--ink-faint); }
+.home-entry-desc { display: block; color: var(--ink-faint); font-size: .95rem; line-height: 1.4; margin-top: 1px; }
+.home-entry-chevron {
+  flex: none; display: inline-flex; color: var(--indigo);
+  transition: transform .18s var(--ease-out);
+}
+.home-entry-soon {
+  flex: none; font-size: .75rem; line-height: 1.3; color: var(--ink-faint);
+  border: 1px solid var(--line-strong); border-radius: 10px; padding: 2px 8px;
+}
+
+.home-attribution { font-size: .85rem; margin: 0; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-entry, .home-entry-chevron, .home-entry-title { transition: none; }
+  a.home-entry:active { transform: none; }
+  a.home-entry:hover .home-entry-chevron { transform: none; }
+}
