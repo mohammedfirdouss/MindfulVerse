@@ -631,7 +631,6 @@ function SurahTadabburPage() {
         </Link>
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
-            <p className="eyebrow">Tadabbur</p>
             <TitlePlate surah={surahNumber} name={name} />
             <p className="muted" style={{ margin: "10px 0 0", textAlign: "center" }}>
               {count} {count === 1 ? "verse" : "verses"}, one at a time.
@@ -676,7 +675,6 @@ function SurahTadabburPage() {
       <div className="stack">
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
-            <p className="eyebrow">Tadabbur</p>
             <h1>You’ve sat with all of {name}.</h1>
             <p className="soft">
               {count} {count === 1 ? "verse" : "verses"}, pondered at your own

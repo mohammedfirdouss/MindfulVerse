@@ -156,7 +156,6 @@ export default function Journal() {
   const header = (
     <View style={{ gap: space.md, marginBottom: space.md }}>
       <View>
-        <Text variant="eyebrow">Journal</Text>
         <Text variant="h1">Your reflections</Text>
         {user ? <Text variant="muted">Backed up to your account.</Text> : null}
       </View>

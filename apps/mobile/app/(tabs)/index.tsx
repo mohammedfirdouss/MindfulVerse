@@ -118,13 +118,10 @@ export default function Home() {
 
       <FadeRise reduce={reduce} style={{ marginTop: 6 }}>
         <AdireCloth style={{ padding: space.lg, paddingTop: 20 }}>
-          <View accessibilityLabel="A verse to begin with">
-            <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 13, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
-              TODAY’S VERSE
-            </Text>
+          <View accessibilityLabel="Today’s verse">
             {hero ? (
               <View>
-                <ArabicText scale={HERO_ARABIC * scale} style={{ color: cloth.strong, marginTop: 6 }}>
+                <ArabicText scale={scale} style={{ color: cloth.strong }}>
                   {hero.arabic}
                 </ArabicText>
                 <Text

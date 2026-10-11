@@ -323,7 +323,6 @@ function TadabburPage() {
     return page(
       <>
         <FadeRise reduce={reduce} style={{ gap: space.sm }}>
-          <Text variant="eyebrow">Tadabbur</Text>
           <TitlePlate surah={n} name={meta?.name} />
           <Text variant="muted" style={{ textAlign: "center" }}>
             {verseCount(count)}, one at a time.
@@ -353,7 +352,6 @@ function TadabburPage() {
     return page(
       <>
         <FadeRise reduce={reduce} style={{ gap: space.sm }}>
-          <Text variant="eyebrow">Tadabbur</Text>
           <Text variant="h1">You’ve sat with all of {name}.</Text>
           <Text variant="soft">
             {verseCount(count)}, pondered at your own pace. May what you wrote stay with you.

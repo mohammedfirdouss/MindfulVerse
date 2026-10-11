@@ -142,7 +142,6 @@ export default function Search() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Search</p>
         <h1>Find a verse</h1>
       </header>
 

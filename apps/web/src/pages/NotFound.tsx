@@ -9,7 +9,6 @@ export default function NotFound() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Not found</p>
         <h1>This page isn’t here</h1>
         <p className="soft">
           The path you followed doesn’t lead anywhere — but the Qur’an is

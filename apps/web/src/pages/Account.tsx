@@ -291,7 +291,6 @@ export default function Account() {
     return (
       <div className="stack">
         <header>
-          <p className="eyebrow">Account</p>
           <h1>Your account</h1>
         </header>
         <div className="auth-card">
@@ -304,7 +303,6 @@ export default function Account() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Account</p>
         <h1>
           {user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}
         </h1>

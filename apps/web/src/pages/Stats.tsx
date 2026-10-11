@@ -228,7 +228,6 @@ export default function Stats() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Stats</p>
         <h1>Your numbers</h1>
         <p className="muted" style={{ marginTop: 0 }}>
           These numbers are private and stay on this device unless you copy and send them.

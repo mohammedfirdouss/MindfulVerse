@@ -127,7 +127,6 @@ export default function Account() {
 
   const header = (
     <View>
-      <Text variant="eyebrow">Account</Text>
       <Text variant="h1">{loading || user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}</Text>
     </View>
   );

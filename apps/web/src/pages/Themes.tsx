@@ -95,7 +95,6 @@ export default function Themes() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Read</p>
         <h1>Verses by topic</h1>
         <p className="soft">
           An index of topics across the Qur’an — each links to the passages

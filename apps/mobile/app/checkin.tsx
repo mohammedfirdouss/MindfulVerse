@@ -192,7 +192,6 @@ export default function CheckIn() {
     >
       <Screen edges="bottom">
         <View>
-          <Text variant="eyebrow">Daily check-in</Text>
           <Text variant="h1">{atVerse ? "A quiet moment" : "How is your heart today?"}</Text>
           {!atVerse ? (
             <Text variant="soft" style={{ marginTop: space.sm, fontSize: 17, lineHeight: 25 }}>
@@ -297,17 +296,6 @@ export default function CheckIn() {
             {/* Verse of the day: the anchor, laid on the dyed cloth, as Home's
                 hero is. */}
             <AdireCloth style={{ padding: space.lg, paddingTop: 20 }}>
-              <Text
-                style={{
-                  fontFamily: fonts.readSemiBold,
-                  fontSize: 13,
-                  lineHeight: 18,
-                  color: cloth.accent,
-                  letterSpacing: 1.2,
-                }}
-              >
-                VERSE OF THE DAY
-              </Text>
               {dailyError ? (
                 <Text style={{ color: cloth.soft, marginTop: 10 }}>
                   Today’s verse is still being gathered. Come back in a little while and it will be

@@ -277,7 +277,6 @@ export default function CheckIn() {
   return (
     <div className={`stack ci-page${atVerse ? " at-verse" : ""}`}>
       <header>
-        <p className="eyebrow">Daily check-in</p>
         {atVerse ? (
           <h1>A quiet moment</h1>
         ) : (
@@ -336,7 +335,7 @@ export default function CheckIn() {
             ref={verseRef}
             tabIndex={-1}
           >
-            <p className="cloth-eyebrow" id="ci-verse-title">Verse of the day</p>
+            <h2 className="sr-only" id="ci-verse-title">Verse of the day</h2>
             {dailyError ? (
               <p className="cloth-soft ci-note">
                 Today&rsquo;s verse is still being gathered. Come back in a little

@@ -259,7 +259,6 @@ export default function Journal() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Journal</p>
         <h1>Your reflections</h1>
         {user && (
           <p className="muted" style={{ marginTop: 0 }}>Backed up to your account.</p>

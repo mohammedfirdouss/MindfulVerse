@@ -119,16 +119,15 @@ export default function Home() {
         </p>
       )}
 
-      <section aria-label="A verse to begin with" className="cloth home-verse fade-rise">
-        <p className="cloth-eyebrow">Today’s verse</p>
+      <section aria-label="Today’s verse" className="cloth home-verse fade-rise">
         {hero ? (
           <>
-            <p className="arabic" lang="ar" style={{ fontSize: "calc(2.4rem * var(--read-scale,1))" }}>
+            <p className="arabic" lang="ar" style={{ fontSize: "calc(2rem * var(--read-scale,1))" }}>
               {hero.arabic}
             </p>
             <p className="translation home-verse-translation">{hero.translation}</p>
             <p className="cloth-soft home-verse-ref">
-              {surahName ? `${surahName} · ` : ""}
+              {surahName ? `${surahName} ` : ""}
               {hero.surah}:{hero.ayah}
             </p>
           </>
