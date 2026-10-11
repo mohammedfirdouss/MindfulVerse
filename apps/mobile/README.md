@@ -97,25 +97,21 @@ root. Metro pins React to this app's copy (see `metro.config.js`), and
 `check:bundle` proves only one React is bundled. React is not a native module,
 so the native build is unaffected.
 
-## Push (daily reminders): off in this release
+## Push (daily reminders): Android
 
-`src/push.ts` implements registration per the Phase 3 contract, and the EAS
-project id is already in `app.json` (`extra.eas.projectId`). Firebase/FCM is
-deliberately not set up yet, so `pushSupport()` returns `"not-configured"`
-(it needs `expo.android.googleServicesFile` in the app config) and the
-Account screen shows "Reminders aren't available in this version of the app
-yet". iOS also returns `"not-configured"`; it isn't shipping yet.
+`src/push.ts` implements registration per the Phase 3 contract. `pushSupport()`
+is `"ok"` on Android once the app config has `android.googleServicesFile`, which
+`app.config.js` sets from the `GOOGLE_SERVICES_JSON` EAS file env var (cloud
+builds) or `./google-services.json` (local, gitignored). iOS still returns
+`"not-configured"`.
 
-To turn push on later, all of these:
+Status:
 
-1. **Firebase project:** create one with an Android app whose package is
-   `dev.mindfulverse.app`, and download its `google-services.json` into
-   `apps/mobile/` (keep it out of git; for EAS builds, upload it as a file
-   environment variable, e.g. `GOOGLE_SERVICES_JSON`, and point the config at
-   that path).
-2. **App config:** add `"googleServicesFile": "./google-services.json"` under
-   `expo.android` in `app.json`. This is what flips `pushSupport()` to `"ok"`,
-   so it must never ship without the file. Needs a new native build.
+1. **Firebase project** `mindfulverse-824bd` with Android app
+   `dev.mindfulverse.app`: done. `google-services.json` is in `apps/mobile/`
+   (gitignored) and uploaded to EAS as the secret file `GOOGLE_SERVICES_JSON`
+   (development, preview, production).
+2. **App config:** done (`app.config.js`). Needs a new native build.
 3. **FCM V1 key:** in Firebase, create a service-account key (Project settings →
    Service accounts), then upload it with `npx eas credentials` (Android →
    production → Google Service Account → FCM V1). Expo's push service uses it to
@@ -133,8 +129,6 @@ For iOS later: APNs credentials via `eas credentials`, then change
 
 - OAuth (Google/GitHub). The SDK's PKCE needs `crypto.subtle`, which Hermes
   lacks, plus a redirect flow (`expo-web-browser`). Only email/password is wired.
-- The real screens. Every route is a placeholder; see the checklist in the
-  Phase 2 doc.
 
 ## Design language
 

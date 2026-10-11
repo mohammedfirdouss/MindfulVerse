@@ -4,10 +4,11 @@
 // one push_subscriptions row per device+account, endpoint = Expo push token,
 // platform = 'expo', keys omitted, user_id defaulted by the server.
 //
-// Push is OFF in this release. Turning it on needs (README "Push"):
+// Push on Android needs (README "Push"):
 //   - an EAS project id in app config `extra.eas.projectId` (present);
-//   - FCM: google-services.json referenced by `android.googleServicesFile`,
-//     plus an FCM V1 service-account key uploaded with `eas credentials`;
+//   - FCM: google-services.json referenced by `android.googleServicesFile`
+//     (app.config.js: the GOOGLE_SERVICES_JSON EAS file env var, or the local
+//     file), plus an FCM V1 service-account key uploaded to EAS credentials;
 //   - the Phase 3 migration + send-reminders deploy ("Apply later").
 // pushSupport() is "not-configured" until android.googleServicesFile is set
 // (without it getExpoPushTokenAsync fails on Android with "Default FirebaseApp
