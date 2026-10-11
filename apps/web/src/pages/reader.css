@@ -92,7 +92,7 @@
 .reader-tool:hover { background: var(--indigo-wash); }
 .reader-tool:active { transform: scale(.94); }
 .reader-tool svg { position: absolute; }
-.reader-tool-hash { position: relative; font-size: .82rem; font-weight: 600; line-height: 1; }
+.reader-tool-hash { position: relative; font-size: .9rem; font-weight: 600; line-height: 1; }
 .reader-tool-aa > span { font-size: 1.12rem; font-weight: 600; letter-spacing: .01em; line-height: 1; }
 @media (prefers-reduced-motion: reduce) { .reader-tool:active { transform: none; } }
 
@@ -117,3 +117,6 @@
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+.jump-row .field-input { -moz-appearance: textfield; appearance: textfield; }
+.jump-row .field-input::-webkit-outer-spin-button,
+.jump-row .field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

@@ -20,9 +20,8 @@ import {
 import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
 import { chunkAyahs, rowIndexFor, type ReadingChunk } from "../../src/components/Reader/chunks";
 import { BASMALAH, parseVerseParam, showsBasmalah, type TafsirIndex } from "../../src/components/Reader/commentary";
-import { JumpToVerse } from "../../src/components/Reader/JumpToVerse";
 import { createLastReadScheduler, topmostRow } from "../../src/components/Reader/lastRead";
-import { ReadingControls } from "../../src/components/Reader/ReadingControls";
+import { JumpSheet, ReaderToolbar, ReadingSettingsSheet, type ReaderPanel } from "../../src/components/Reader/ReaderTools";
 import { ReadingParagraph } from "../../src/components/Reader/ReadingParagraph";
 import { CommentarySheet, VerseSheet } from "../../src/components/Reader/Sheets";
 import { useTafsir } from "../../src/components/Reader/useTafsir";
@@ -63,6 +62,7 @@ function SurahReader({ surah }: { surah: string }) {
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
   const [selected, setSelected] = useState<Ayah | null>(null);
   const [flashKey, setFlashKey] = useState<string | null>(null);
+  const [panel, setPanel] = useState<ReaderPanel>(null);
   const tafsir = useTafsir();
   const scale = scaleFor(sizeKey);
 
@@ -222,21 +222,7 @@ function SurahReader({ surah }: { surah: string }) {
     () => (
       <View style={{ paddingTop: space.md }}>
         <TitlePlate surah={surahNumber} name={meta?.name} ayahCount={meta?.ayahCount} />
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: space.md,
-            paddingTop: space.md,
-            paddingBottom: space.md,
-            marginBottom: 4,
-          }}
-        >
-          <ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
-          <JumpToVerse max={meta?.ayahCount ?? ayahs.length} onJump={goToVerse} />
-        </View>
+        <ReaderToolbar onOpen={setPanel} />
         {showsBasmalah(surahNumber) ? (
           <View style={{ paddingTop: 6 }}>
             <DyeRule />
@@ -250,7 +236,7 @@ function SurahReader({ surah }: { surah: string }) {
         ) : null}
       </View>
     ),
-    [meta, sizeKey, chooseSize, view, chooseView, ayahs.length, goToVerse, surahNumber, scale],
+    [meta, surahNumber, scale, view],
   );
 
   const footer = useMemo(
@@ -318,6 +304,25 @@ function SurahReader({ surah }: { surah: string }) {
       ) : null}
       {selected ? (
         <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
+      ) : null}
+      {panel === "display" ? (
+        <ReadingSettingsSheet
+          onClose={() => setPanel(null)}
+          sizeKey={sizeKey}
+          onSize={chooseSize}
+          view={view}
+          onView={chooseView}
+        />
+      ) : null}
+      {panel === "jump" ? (
+        <JumpSheet
+          onClose={() => setPanel(null)}
+          max={meta?.ayahCount ?? ayahs.length}
+          onJump={(n) => {
+            setPanel(null);
+            goToVerse(n);
+          }}
+        />
       ) : null}
     </View>
   );
