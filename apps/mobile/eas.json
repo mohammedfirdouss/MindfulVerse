@@ -25,6 +25,12 @@
         "buildType": "app-bundle"
       },
       "environment": "production"
+    },
+    "simulator": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {
