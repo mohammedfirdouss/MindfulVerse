@@ -8,7 +8,7 @@ import {
   useTafsir,
   type TafsirIndex,
 } from "../components/Commentary";
-import ReadingControls from "../components/ReadingControls";
+import ReaderTools from "../components/ReaderTools";
 import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
@@ -45,7 +45,6 @@ function SurahReader() {
   const [meta, setMeta] = useState<SurahMeta | undefined>(undefined);
   const [status, setStatus] = useState<Status>("loading");
   const [openAyah, setOpenAyah] = useState<Ayah | null>(null);
-  const [jump, setJump] = useState<string>("");
   const [view, setView] = useState<ReadView>(getReadView);
   const [sizeKey, setSizeKey] = useState<string>(getSizeKey);
   const [selected, setSelected] = useState<Ayah | null>(null);
@@ -116,15 +115,14 @@ function SurahReader() {
     saveSizeKey(k);
   }
 
-  function goToVerse(e: React.FormEvent) {
-    e.preventDefault();
-    const n = Number(jump);
-    if (!Number.isFinite(n)) return;
+  // Out-of-range numbers are caught in the jump sheet; a missing row is a no-op.
+  function goToVerse(n: number) {
     const el = document.getElementById(view === "reading" ? verseId(surahNumber, n) : `v${n}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      recordLastRead(surahNumber, n);
-    }
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    recordLastRead(surahNumber, n);
+    setFlashKey(`${surahNumber}:${n}`);
+    window.setTimeout(() => setFlashKey(null), 1600);
   }
 
   return (
@@ -142,23 +140,14 @@ function SurahReader() {
 
       {status === "ready" && ayahs.length > 0 && (
         <div className="surah-toolbar">
-          <ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
-          <form onSubmit={goToVerse} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <input
-              type="number"
-              min={1}
-              max={meta?.ayahCount ?? 300}
-              value={jump}
-              onChange={(e) => setJump(e.target.value)}
-              placeholder="Verse"
-              aria-label="Jump to verse number"
-              className="field-input"
-              style={{ width: 76, padding: "7px 10px", fontSize: ".9rem" }}
-            />
-            <button type="submit" className="btn secondary" style={{ padding: "7px 14px" }}>
-              Go
-            </button>
-          </form>
+          <ReaderTools
+            sizeKey={sizeKey}
+            onSize={chooseSize}
+            view={view}
+            onView={chooseView}
+            maxVerse={meta?.ayahCount ?? ayahs.length}
+            onJump={goToVerse}
+          />
         </div>
       )}
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
 import { loadAyahsByKeys, loadEmotions, loadSurahs } from "@mindfulverse/core/data";
-import { addEntry } from "@mindfulverse/core/journal";
+import { addEntry, checkedInToday } from "@mindfulverse/core/journal";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import { shareVerse } from "../lib/share";
@@ -31,11 +31,11 @@ function writeDraft(v: string): void {
   }
 }
 
-// One tasteful motion: a staggered reveal. Each item fades and rises in with a
-// small per-index delay. We cap the stagger so a long list never blocks reading
-// or interaction, and we honour prefers-reduced-motion (opacity only, no rise).
+// One tasteful motion: a short staggered reveal. Each item fades and rises in
+// with a small per-index delay, capped so nothing waits long, and opacity only
+// under prefers-reduced-motion. Kept under 240ms so each step feels immediate.
 const STAGGER_MS = 40;
-const MAX_STAGGER_MS = 240;
+const MAX_STAGGER_MS = 120;
 
 function prefersReducedMotion(): boolean {
   return (
@@ -49,17 +49,22 @@ function revealStyle(index: number, mounted: boolean, reduced: boolean): CSSProp
   if (reduced) {
     return {
       opacity: mounted ? 1 : 0,
-      transition: `opacity .32s var(--ease-out)`,
+      transition: `opacity .22s var(--ease-out)`,
       transitionDelay: `${delay}ms`,
     };
   }
   return {
     opacity: mounted ? 1 : 0,
     transform: mounted ? "none" : "translateY(6px)",
-    transition: `opacity .32s var(--ease-out), transform .32s var(--ease-out)`,
+    transition: `opacity .22s var(--ease-out), transform .22s var(--ease-out)`,
     transitionDelay: `${delay}ms`,
   };
 }
+
+// One thing at a time: the heart first, then the verse, then an optional
+// reflection. Someone who already checked in today, or left words half
+// written, opens straight on the verse (mobile: CheckIn/flow.ts).
+type Stage = "feel" | "verse";
 
 /** A verse as the check-in shows it. `onCloth` lays it on the dyed cloth (the
  *  verse of the day); the reference row can carry a trailing action. */
@@ -136,9 +141,15 @@ export default function CheckIn() {
   const [dailyError, setDailyError] = useState(false);
   const [dailyMounted, setDailyMounted] = useState(false);
 
-  // Journal for the verse of the day.
+  // Journal for the verse of the day. The draft is written on every change,
+  // so nothing typed is lost to a reload or a closed tab.
   const [journalBody, setJournalBody] = useState(readDraft);
-  const [saved, setSaved] = useState(false);
+  const [doneToday] = useState(() => checkedInToday());
+  const [saved, setSaved] = useState(() => doneToday && !readDraft().trim());
+  const [stage, setStage] = useState<Stage>(() =>
+    doneToday || readDraft().trim() ? "verse" : "feel"
+  );
+  const verseRef = useRef<HTMLElement>(null);
 
   // Sharing the verse of the day.
   const [shareResult, setShareResult] = useState<"shared" | "copied" | "failed" | null>(null);
@@ -215,6 +226,7 @@ export default function CheckIn() {
   );
 
   function selectEmotion(entry: EmotionEntry): void {
+    setStage("verse");
     setSelectedId(entry.id);
     setEmotionAyahs([]);
     setEmotionAyahsError(false);
@@ -235,6 +247,13 @@ export default function CheckIn() {
       });
   }
 
+  // "Just show me today's verse": the skip link leaves the page, so carry
+  // focus to the verse it opened.
+  function skipToVerse(): void {
+    setStage("verse");
+    requestAnimationFrame(() => verseRef.current?.focus());
+  }
+
   function saveJournal(): void {
     const body = journalBody.trim();
     if (!body) return;
@@ -251,152 +270,3 @@ export default function CheckIn() {
     setSaved(true);
   }
 
-  return (
-    <div className="stack ci-page">
-      <header>
-        <p className="eyebrow">Daily check-in</p>
-        <h1>A quiet moment</h1>
-      </header>
-
-      {/* Verse of the day: the verse that matters, laid on the dyed cloth. */}
-      <section className="cloth fade-rise ci-verse" aria-labelledby="ci-verse-title">
-        <p className="cloth-eyebrow" id="ci-verse-title">Verse of the day</p>
-        {dailyError ? (
-          <p className="cloth-soft ci-note">
-            Today&rsquo;s verse is still being gathered. Come back in a little
-            while and it will be waiting for you.
-          </p>
-        ) : dailyAyah ? (
-          <div style={revealStyle(0, dailyMounted, reduced)}>
-            <AyahView
-              ayah={dailyAyah}
-              surahName={surahNames.get(dailyAyah.surah)}
-              onCloth
-              trailing={
-                <span className="ci-share">
-                  {shareResult && (
-                    <span className="cloth-soft ci-share-status" role="status">
-                      {shareResult === "shared"
-                        ? "Shared"
-                        : shareResult === "copied"
-                          ? "Copied to clipboard"
-                          : "Couldn’t share"}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="ci-share-btn"
-                    onClick={() => {
-                      void shareVerse(dailyAyah, "checkin").then((r: string) => {
-                        // Closing the share sheet is not an outcome worth confirming.
-                        if (r !== "cancelled") setShareResult(r as "shared" | "copied" | "failed");
-                      });
-                    }}
-                  >
-                    Share this verse
-                  </button>
-                </span>
-              }
-            />
-          </div>
-        ) : (
-          <p className="cloth-soft ci-note">Bringing today&rsquo;s verse to you&hellip;</p>
-        )}
-      </section>
-
-      <DyeRule className="ci-rule" />
-
-      {/* Reflection on the verse, on the open cotton. */}
-      <section className="ci-section">
-        <label htmlFor="checkin-journal" className="ci-heading">
-          {VERSE_PROMPT}
-        </label>
-        <textarea
-          id="checkin-journal"
-          value={journalBody}
-          onChange={(e) => {
-            setJournalBody(e.target.value);
-            writeDraft(e.target.value);
-            if (saved) setSaved(false);
-          }}
-          placeholder="Write as much or as little as you like…"
-          rows={6}
-          className="ci-textarea"
-        />
-        <div className="ci-actions">
-          <button
-            type="button"
-            className="btn ci-save"
-            onClick={saveJournal}
-            disabled={!journalBody.trim()}
-          >
-            Save
-          </button>
-          {saved && (
-            <span className="soft" role="status">
-              Kept in your journal. A new verse arrives tomorrow.
-            </span>
-          )}
-        </div>
-      </section>
-
-      <DyeRule className="ci-rule" />
-
-      {/* Emotion picker — kept in the app's quiet indigo voice; kola stays
-          reserved for small accents, never a whole section. */}
-      <section className="ci-section" aria-labelledby="ci-heart-title">
-        <h2 className="ci-heading" id="ci-heart-title">How is your heart today?</h2>
-
-        {emotionsError ? (
-          <p className="muted">
-            The reminders are still being gathered. Come back in a little while
-            and they will be here.
-          </p>
-        ) : emotions.length === 0 ? (
-          <p className="muted">Gathering a few words for you&hellip;</p>
-        ) : (
-          <div className="ci-chips">
-            {emotions.map((entry) => {
-              const isActive = entry.id === selectedId;
-              return (
-                <button
-                  key={entry.id}
-                  type="button"
-                  className="ci-chip"
-                  aria-pressed={isActive}
-                  onClick={() => selectEmotion(entry)}
-                >
-                  {entry.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {selected && (
-          <div className="ci-framed">
-            <h3 className="ci-framing">{selected.framing}</h3>
-            {emotionAyahsError ? (
-              <p className="muted">
-                These verses are still being gathered. Come back in a little
-                while and they will be here for you.
-              </p>
-            ) : emotionLoading ? (
-              <p className="muted">Gathering a few verses&hellip;</p>
-            ) : (
-              emotionAyahs.map((ayah, i) => (
-                <div
-                  key={ayah.verseKey}
-                  className="card stack"
-                  style={revealStyle(i, emotionMounted, reduced)}
-                >
-                  <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} />
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
