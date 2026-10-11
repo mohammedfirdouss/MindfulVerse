@@ -120,3 +120,97 @@ export function commentaryToggleLabel(open: boolean, ayah: number, covering: num
   return covering === ayah ? "Read the commentary" : `Read the commentary (with verse ${covering})`;
 }
 
+
+/** The three questions, asked one at a time. */
+export const QUESTIONS: readonly { key: keyof Draft; label: string }[] = Object.freeze([
+  { key: "lessons", label: "What does it teach?" },
+  { key: "stirs", label: "What stays with you?" },
+  { key: "action", label: "What will you do?" },
+]);
+
+/** Accessible label for the step diamonds. */
+export function questionStepLabel(step: number): string {
+  return `Question ${step + 1} of ${QUESTIONS.length}`;
+}
+
+// Drafts persist per surah, so nothing typed is ever lost (reload, app kill,
+// leaving the screen). Same key on web and mobile; on native localStorage is
+// the MMKV shim. Stored as { [verseKey]: Draft }, empty drafts dropped.
+
+export const TADABBUR_DRAFTS_PREFIX = "mindfulverse.tadabburDrafts.v1:";
+
+export function tadabburDraftKey(surah: number): string {
+  return `${TADABBUR_DRAFTS_PREFIX}${surah}`;
+}
+
+export interface DraftStore {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+function defaultStore(): DraftStore | null {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** Parse a stored drafts map, keeping only well-formed drafts with text. */
+export function parseTadabburDrafts(raw: string | null | undefined): Record<string, Draft> {
+  if (!raw) return {};
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) return {};
+  const out: Record<string, Draft> = {};
+  for (const [verseKey, v] of Object.entries(data as Record<string, unknown>)) {
+    if (!v || typeof v !== "object") continue;
+    const o = v as Record<string, unknown>;
+    const d: Draft = {
+      lessons: typeof o.lessons === "string" ? o.lessons : "",
+      stirs: typeof o.stirs === "string" ? o.stirs : "",
+      action: typeof o.action === "string" ? o.action : "",
+    };
+    if (hasText(d)) out[verseKey] = d;
+  }
+  return out;
+}
+
+/** Every kept draft for a surah. Never throws. */
+export function loadTadabburDrafts(
+  surah: number,
+  store: DraftStore | null = defaultStore(),
+): Record<string, Draft> {
+  if (!store) return {};
+  try {
+    return parseTadabburDrafts(store.getItem(tadabburDraftKey(surah)));
+  } catch {
+    return {};
+  }
+}
+
+/** Set (or, when empty, clear) one verse's draft. Never throws: a full or
+ *  blocked store just means the draft lives in memory for now. */
+export function saveTadabburDraft(
+  surah: number,
+  verseKey: string,
+  draft: Draft,
+  store: DraftStore | null = defaultStore(),
+): void {
+  if (!store) return;
+  try {
+    const all = loadTadabburDrafts(surah, store);
+    if (hasText(draft)) all[verseKey] = { lessons: draft.lessons, stirs: draft.stirs, action: draft.action };
+    else delete all[verseKey];
+    const key = tadabburDraftKey(surah);
+    if (Object.keys(all).length === 0) store.removeItem(key);
+    else store.setItem(key, JSON.stringify(all));
+  } catch {
+    /* storage full or blocked */
+  }
+}

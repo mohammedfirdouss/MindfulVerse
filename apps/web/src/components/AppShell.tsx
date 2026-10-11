@@ -98,13 +98,15 @@ function PersonIcon({ active }: NavIconProps) {
   );
 }
 
+// The desktop sidebar lists every section. The phone tab bar keeps four, as
+// the mobile app does: check-in and tadabbur both start from Home.
 const tabs = [
-  { to: "/", label: "Home", end: true, Icon: HomeIcon },
-  { to: "/checkin", label: "Check-in", Icon: HeartIcon },
-  { to: "/sessions", label: "Tadabbur", Icon: TadabburNavIcon },
-  { to: "/read", label: "Read", Icon: MushafIcon },
-  { to: "/journal", label: "Journal", Icon: PenIcon },
-  { to: "/account", label: "Account", Icon: PersonIcon },
+  { to: "/", label: "Home", end: true, Icon: HomeIcon, phone: true },
+  { to: "/checkin", label: "Check-in", Icon: HeartIcon, phone: false },
+  { to: "/sessions", label: "Tadabbur", Icon: TadabburNavIcon, phone: false },
+  { to: "/read", label: "Read", Icon: MushafIcon, phone: true },
+  { to: "/journal", label: "Journal", Icon: PenIcon, phone: true },
+  { to: "/account", label: "Account", Icon: PersonIcon, phone: true },
 ];
 
 const COLLAPSE_KEY = "mindfulverse.sidebarCollapsed.v1";
@@ -216,7 +218,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <InstallPrompt />
 
       <nav className="tabbar" aria-label="Primary">
-        {tabs.map((t) => (
+        {tabs.filter((t) => t.phone).map((t) => (
           <NavLink
             key={t.to}
             to={t.to}
