@@ -370,7 +370,7 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 }
 .reading-text {
   font-family: var(--font-arabic);
-  font-size: calc(1.9rem * var(--read-scale, 1)); line-height: 2.5;
+  font-size: calc(1.9rem * var(--read-scale, 1)); line-height: 2.15;
   text-align: justify; text-align-last: start; margin: 0;
 }
 .rv {
