@@ -99,7 +99,6 @@
 .ci-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .ci-save { min-width: 112px; }
 .ci-draft { font-size: .9rem; }
-.ci-kept:empty { display: none; }
 
 /* The heart chips: tactile, outlined; the chosen one solid indigo. */
 .ci-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -112,7 +111,7 @@
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease, color .15s ease, transform .14s var(--ease-out);
 }
-.ci-chip:hover { background: var(--indigo-wash); }
+@media (hover: hover) { .ci-chip:hover { background: var(--indigo-wash); } }
 .ci-chip:active { transform: scale(.97); }
 .ci-chip[aria-pressed="true"] {
   background: var(--indigo); border-color: var(--indigo);

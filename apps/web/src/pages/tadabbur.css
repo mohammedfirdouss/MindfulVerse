@@ -12,3 +12,19 @@
 }
 .tad-input:focus { outline: none; border-color: var(--indigo); }
 .verse-head .diamond { width: 34px; height: 34px; font-size: .82rem; }
+
+/* One question at a time: step diamonds, the prompt, quiet question nav. */
+.tad-question { display: flex; flex-direction: column; gap: 8px; }
+.tad-steps { display: flex; gap: 10px; align-items: center; padding: 4px 2px; }
+.tad-step {
+  width: 9px; height: 9px; transform: rotate(45deg);
+  border: 1.5px solid var(--line-strong); background: transparent;
+  transition: background-color .2s var(--ease-out), border-color .2s var(--ease-out);
+}
+.tad-step.is-current { background: var(--kola); border-color: var(--kola); }
+.tad-question-nav { display: flex; align-items: center; gap: 16px; min-height: 44px; }
+.tad-question-nav .commentary-open { margin-top: 0; min-height: 44px; padding: 0 2px; color: var(--indigo); }
+.tad-question-nav .tad-skip { color: var(--ink-soft); }
+.tad-keep { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.tad-keep-note { font-size: .9rem; }
+@media (prefers-reduced-motion: reduce) { .tad-step { transition: none; } }
