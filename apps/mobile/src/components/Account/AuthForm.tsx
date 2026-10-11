@@ -8,7 +8,7 @@ import { track } from "@mindfulverse/core/analytics";
 import { insforge } from "@mindfulverse/core/sync/insforge";
 import { signIn, signUp, verifyEmail } from "../../session";
 import { space } from "../../theme";
-import { Button, Card, Text } from "../../ui";
+import { Button, Text } from "../../ui";
 import { NETWORK_ERROR, normalizeOtp, validateCredentials, validateOtp } from "./logic";
 import { Field, FormError, LinkButton, Small } from "./parts";
 
@@ -117,7 +117,7 @@ export function AuthForm({
 
   if (pendingVerification) {
     return (
-      <Card>
+      <View style={{ gap: space.md }}>
         <Text variant="soft">Enter the 6-digit code we emailed to {email}.</Text>
         <Field
           label="Verification code"
@@ -154,13 +154,13 @@ export function AuthForm({
             }}
           />
         </View>
-      </Card>
+      </View>
     );
   }
 
   const signup = mode === "signup";
   return (
-    <Card>
+    <View style={{ gap: space.md }}>
       <Field
         label="Email"
         value={email}
@@ -211,6 +211,6 @@ export function AuthForm({
           Google sign-in is on the website only for now. In the app, use your email and password.
         </Small>
       ) : null}
-    </Card>
+    </View>
   );
 }

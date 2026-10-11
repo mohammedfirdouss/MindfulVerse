@@ -8,7 +8,7 @@ export default function FeedbackLink({
   // Per-surface subject: identifies which moment prompted the message
   // without having to ask.
   subject = "Feedback on MindfulVerse",
-  label = "Tell me what you think and it goes straight to my inbox",
+  label = "Send feedback",
 }: {
   subject?: string;
   label?: string;

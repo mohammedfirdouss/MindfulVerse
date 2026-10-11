@@ -237,7 +237,7 @@ export default function CheckIn() {
                       alignItems: "center",
                       justifyContent: "center",
                       borderWidth: 1,
-                      borderRadius: radius.sm,
+                      borderRadius: 999,
                       borderColor: isActive ? colors.indigo : colors.lineStrong,
                       backgroundColor: isActive
                         ? colors.indigo
