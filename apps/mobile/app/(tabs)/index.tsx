@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Linking, View } from "react-native";
 import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { useAccount } from "@mindfulverse/core/sync/auth";
 import { checkedInToday } from "@mindfulverse/core/journal";
 import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
@@ -52,6 +53,8 @@ function readLocal(): Local {
 export default function Home() {
   const { colors } = useTheme();
   const cloth = useOnCloth();
+  const { user, loading: accountLoading } = useAccount();
+  const accountId = user?.id ?? null;
   const reduce = useReducedMotion();
   const [local, setLocal] = useState<Local>(readLocal);
   const [verseKey, setVerseKey] = useState<string | null>(null);
@@ -62,9 +65,10 @@ export default function Home() {
   useFocusEffect(
     useCallback(() => {
       setLocal(readLocal());
-      // The day can turn while the app sits in the background.
-      void todayVerseKey().then(setVerseKey);
-    }, []),
+      // The day can turn while the app sits in the background. Each person
+      // has their own verse; wait for the account so it doesn't flip.
+      if (!accountLoading) void todayVerseKey(accountId).then(setVerseKey);
+    }, [accountId, accountLoading]),
   );
 
   useEffect(() => {

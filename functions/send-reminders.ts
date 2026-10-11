@@ -63,9 +63,21 @@ export function localDayIndexInZone(utcMs: number, timeZone: string): number {
   return Math.floor(localMidnightUtc / 86_400_000);
 }
 
-export function verseKeyForDayIndex(dayIndex: number): string {
+/** Where a person's walk through the pool starts: FNV-1a of their user id.
+ *  Same as verseOffset in packages/core/dailyVerse.ts. */
+export function verseOffset(seed: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h % DAILY_VERSES.length;
+}
+
+/** The person's verse for a day: the app's verseKeyFor, seeded by user_id. */
+export function verseKeyForDayIndex(dayIndex: number, userId: string): string {
   const n = DAILY_VERSES.length;
-  return DAILY_VERSES[((dayIndex * 53) % n + n) % n];
+  return DAILY_VERSES[(((dayIndex * 53 + verseOffset(userId)) % n) + n) % n];
 }
 
 /** Due when reminderTime ('HH:MM') falls in [now, now+15min), wrapping midnight. */
@@ -305,8 +317,8 @@ export default async function handler(req: Request): Promise<Response> {
     return surahCache.get(surah)![String(ayah)]?.translation ?? "";
   }
 
-  async function todaysPayload(timeZone: string): Promise<string> {
-    const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, timeZone));
+  async function todaysPayload(timeZone: string, userId: string): Promise<string> {
+    const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, timeZone), userId);
     const body = await verseText(verseKey);
     return JSON.stringify({
       title: `Today's verse — Qur'an ${verseKey}`,
@@ -329,6 +341,7 @@ export default async function handler(req: Request): Promise<Response> {
    *  otherwise today's verse. Any lookup failure degrades to the verse. */
   async function reminderPayload(
     timeZone: string,
+    userId: string,
     tadabbur: Record<string, TadabburEntry> | null | undefined,
   ): Promise<string> {
     try {
@@ -346,7 +359,7 @@ export default async function handler(req: Request): Promise<Response> {
     } catch (err) {
       console.error("send-reminders: continue-target lookup failed, falling back to verse", err);
     }
-    return todaysPayload(timeZone);
+    return todaysPayload(timeZone, userId);
   }
 
   // --- Welcome path: a signed-in user just subscribed on a device and asks
@@ -388,7 +401,7 @@ export default async function handler(req: Request): Promise<Response> {
           platform: "expo",
           keys: null,
           today: localDateInZone(now, sub.timezone),
-          payload: await todaysPayload(sub.timezone),
+          payload: await todaysPayload(sub.timezone, userData.user.id),
         }], sendDeps(userClient)));
       } catch (err) {
         console.error("send-reminders: welcome expo push failed", err);
@@ -400,7 +413,7 @@ export default async function handler(req: Request): Promise<Response> {
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: sub.keys },
-        await todaysPayload(sub.timezone),
+        await todaysPayload(sub.timezone, userData.user.id),
       );
       await userClient.database
         .from("push_subscriptions")
@@ -456,7 +469,7 @@ export default async function handler(req: Request): Promise<Response> {
       const nowMin = minutesOfDayInZone(now, sub.timezone);
       const today = localDateInZone(now, sub.timezone);
       if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) { skipped++; continue; }
-      const payload = await reminderPayload(sub.timezone, await tadabburFor(sub.user_id));
+      const payload = await reminderPayload(sub.timezone, sub.user_id, await tadabburFor(sub.user_id));
       due.push({ endpoint: sub.endpoint, platform: sub.platform, keys: sub.keys, today, payload });
     } catch (err) {
       prepFailed++;
