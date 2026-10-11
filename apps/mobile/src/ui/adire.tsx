@@ -109,8 +109,8 @@ export function DyeRule({ style }: { style?: ViewStyle }) {
       importantForAccessibility="no-hide-descendants"
     >
       <View style={{ flex: 1, height: 1, backgroundColor: colors.lineStrong }} />
-      <Svg width={10} height={10}>
-        <Path d="M5 0 L10 5 L5 10 L0 5Z" fill={colors.kola} />
+      <Svg width={8} height={8}>
+        <Path d="M4 0 L8 4 L4 8 L0 4Z" fill={colors.indigo} />
       </Svg>
       <View style={{ flex: 1, height: 1, backgroundColor: colors.lineStrong }} />
     </View>
@@ -188,6 +188,6 @@ export function AdireCloth({
 export function useOnCloth() {
   const { scheme, colors } = useTheme();
   return scheme === "dark"
-    ? { strong: colors.ink, soft: colors.inkSoft, accent: colors.kola }
-    : { strong: colors.cottonRaised, soft: "#d6d9ea", accent: "#e9a174" };
+    ? { strong: colors.ink, soft: colors.inkSoft, accent: "#c5cff2" }
+    : { strong: colors.cottonRaised, soft: "#d6d9ea", accent: "#b9c4ec" };
 }

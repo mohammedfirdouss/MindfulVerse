@@ -28,11 +28,11 @@ export const ReadingParagraph = memo(function ReadingParagraph({
       scale={scale}
       accessibilityHint="Tap a verse to see its translation and commentary"
       style={{
-        // web .reading-text: line-height 2.5, justified, last line at start.
+        // web .reading-text: line-height 2.15, justified, last line at start.
         // iOS justifies nested-span RTL paragraphs badly: the last line is laid
         // out left-to-right and long lines spill past the edges, so iOS aligns
         // right (the start edge for Arabic). Android justifies correctly.
-        lineHeight: typeScale.arabic.fontSize * 2.5 * scale,
+        lineHeight: typeScale.arabic.fontSize * 2.15 * scale,
         textAlign: Platform.OS === "ios" ? "right" : "justify",
         // Room for Hafs glyphs that overhang their advance at line ends.
         paddingHorizontal: 4,

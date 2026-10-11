@@ -34,8 +34,11 @@ export const unstable_settings = { initialRouteName: "(tabs)" };
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     [fonts.arabic]: require("../assets/fonts/uthmanic-hafs.ttf"),
-    [fonts.read]: require("../assets/fonts/fraunces-regular.ttf"),
-    [fonts.readSemiBold]: require("../assets/fonts/fraunces-semibold.ttf"),
+    [fonts.read]: require("../assets/fonts/outfit-regular.ttf"),
+    [fonts.readMedium]: require("../assets/fonts/outfit-medium.ttf"),
+    [fonts.readSemiBold]: require("../assets/fonts/outfit-semibold.ttf"),
+    [fonts.text]: require("../assets/fonts/literata-regular.ttf"),
+    [fonts.textItalic]: require("../assets/fonts/literata-italic.ttf"),
   });
   const [sessionReady, setSessionReady] = useState(false);
 

@@ -6,7 +6,7 @@ export type TextVariant = "body" | "soft" | "muted" | "eyebrow" | "h1" | "h2" | 
 function variantStyle(v: TextVariant, c: Colors): TextStyle {
   switch (v) {
     case "h1":
-      return { ...scale.h1, fontFamily: fonts.readSemiBold, color: c.indigoDeep, letterSpacing: -0.5 };
+      return { ...scale.h1, fontFamily: fonts.readSemiBold, color: c.indigoDeep, letterSpacing: -0.8 };
     case "h2":
       return { ...scale.h2, fontFamily: fonts.readSemiBold, color: c.indigoDeep, letterSpacing: -0.3 };
     case "eyebrow":
@@ -16,7 +16,7 @@ function variantStyle(v: TextVariant, c: Colors): TextStyle {
     case "muted":
       return { ...scale.body, fontFamily: fonts.read, color: c.inkFaint };
     case "translation":
-      return { ...scale.translation, fontFamily: fonts.read, color: c.inkSoft };
+      return { ...scale.translation, fontFamily: fonts.text, color: c.inkSoft };
     default:
       return { ...scale.body, fontFamily: fonts.read, color: c.ink };
   }

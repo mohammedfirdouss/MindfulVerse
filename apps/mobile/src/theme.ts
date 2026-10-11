@@ -1,5 +1,6 @@
 // Visual tokens mirrored from apps/web/src/index.css (West African indigo:
-// adire blues on raw cotton, kola-nut accent). Keep the two in step.
+// adire blues on cool undyed cotton, one accent; kola only for errors and
+// destructive actions). Keep the two in step.
 //
 // Theme choice mirrors web's lib/theme.ts: user-controlled, stored under the
 // same localStorage key, default LIGHT ("the identity is light; night mode is
@@ -16,32 +17,32 @@ const KEY = "mindfulverse.theme.v1";
 
 export const palettes = {
   light: {
-    cotton: "#f5efe2", // ground
-    cottonRaised: "#fbf7ec", // lifted surface
-    shea: "#e8dcc3", // secondary surface (cards)
+    cotton: "#f4f5f8", // ground
+    cottonRaised: "#fcfcfd", // lifted surface
+    shea: "#e9ebf2", // secondary surface (cards)
     indigo: "#2a3a8c", // the voice of the app: buttons, links, eyebrows
     indigoDeep: "#1b2559", // headings, Arabic
-    indigoWash: "#dfe3f2", // pale wash, selected states
-    kola: "#c4622d", // rare accent, focus
-    ink: "#221d15",
-    inkSoft: "#57503f",
-    inkFaint: "#8a8168",
-    line: "#ddd3bc",
-    lineStrong: "#c9bd9f",
+    indigoWash: "#e3e7f4", // pale wash, selected states
+    kola: "#b4472a", // errors and destructive actions only
+    ink: "#161a2e",
+    inkSoft: "#474d66",
+    inkFaint: "#666c85",
+    line: "#e0e3eb",
+    lineStrong: "#c9cedc",
   },
   dark: {
-    cotton: "#14161f",
-    cottonRaised: "#1b1e2a",
-    shea: "#232739",
+    cotton: "#12141d",
+    cottonRaised: "#191c28",
+    shea: "#222636",
     indigo: "#93a5e4",
     indigoDeep: "#b5c2ef",
     indigoWash: "#262e4d",
-    kola: "#dd9059",
-    ink: "#e9e4d8",
-    inkSoft: "#b3ab99",
-    inkFaint: "#7f7869",
-    line: "#2b2f42",
-    lineStrong: "#3a3f58",
+    kola: "#e08a6e",
+    ink: "#e8eaf2",
+    inkSoft: "#b3b8ca",
+    inkFaint: "#8b91a8",
+    line: "#2a2e40",
+    lineStrong: "#3d4259",
   },
 } as const;
 
@@ -50,8 +51,11 @@ export type Colors = { [K in keyof (typeof palettes)["light"]]: string };
 /** Font family names registered in app/_layout.tsx (useFonts). Android
  *  can't pick weights inside one custom family, so each weight is a family. */
 export const fonts = {
-  read: "Fraunces", // 400, Latin UI + translation (web: --font-read)
-  readSemiBold: "Fraunces-SemiBold", // 600, headings / buttons
+  read: "Outfit", // 400, interface (web: --font-read)
+  readMedium: "Outfit-Medium", // 500, labels / buttons
+  readSemiBold: "Outfit-SemiBold", // 600, headings
+  text: "Literata", // 400, long reading: translation, journal (web: --font-text)
+  textItalic: "Literata-Italic",
   arabic: "UthmanicHafs", // KFGQPC Uthmanic Hafs (web: --font-arabic)
 } as const;
 
