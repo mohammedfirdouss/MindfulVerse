@@ -120,7 +120,7 @@ export function exportedLabel(input: ExportInput): string | null {
 /** Plain prose: headings on their own line, blank lines between, no markup. */
 export function buildJournalText(input: ExportInput): string {
   const exported = exportedLabel(input);
-  const out: string[] = ["MindfulVerse — Your reflections", spanLabel(input)];
+  const out: string[] = ["MindfulVerse | Your reflections", spanLabel(input)];
   if (exported) out.push(exported);
   for (const section of input.sections) {
     out.push("", "", section.title);

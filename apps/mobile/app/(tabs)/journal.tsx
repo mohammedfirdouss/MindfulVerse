@@ -140,9 +140,9 @@ export default function Journal() {
         sections: toSections(groups, titleFor, surahNames, new Map(ayahs.map((a) => [a.verseKey, a]))),
         exportedAt: new Date(),
       });
-      await Share.share({ message: text, title: "MindfulVerse — Your reflections" });
+      await Share.share({ message: text, title: "MindfulVerse | Your reflections" });
     } catch {
-      setExportError("Couldn’t share your journal — please try again.");
+      setExportError("Couldn’t share your journal. Please try again.");
     } finally {
       setExporting(false);
     }
@@ -156,7 +156,6 @@ export default function Journal() {
   const header = (
     <View style={{ gap: space.md, marginBottom: space.md }}>
       <View>
-        <Text variant="eyebrow">Journal</Text>
         <Text variant="h1">Your reflections</Text>
         {user ? <Text variant="muted">Backed up to your account.</Text> : null}
       </View>

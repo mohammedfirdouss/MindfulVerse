@@ -82,7 +82,7 @@ export function ReminderSection() {
       setSavedTime(reminderTime);
       setNotice(welcomed ? "Today’s verse was just sent here, so you can see how it looks." : null);
     } catch {
-      setError("Couldn't set the reminder — please try again.");
+      setError("Couldn't set the reminder. Please try again.");
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -94,14 +94,14 @@ export function ReminderSection() {
     try {
       const { error: offError } = await disableReminder();
       if (offError) {
-        setError("Couldn't turn off the reminder — please try again.");
+        setError("Couldn't turn off the reminder. Please try again.");
         return;
       }
       track({ type: "reminder_set", enabled: false });
       setReminderOn(false);
       setNotice(null);
     } catch {
-      setError("Couldn't turn off the reminder — please try again.");
+      setError("Couldn't turn off the reminder. Please try again.");
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -120,7 +120,7 @@ export function ReminderSection() {
       setSavedTime(reminderTime);
       setNotice("New time saved.");
     } catch {
-      setError("Couldn't update the reminder time — please try again.");
+      setError("Couldn't update the reminder time. Please try again.");
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -135,7 +135,7 @@ export function ReminderSection() {
       <Section title="Daily verse reminder">
         {intro}
         <Small>
-          Reminders aren’t available in this version of the app yet. They’ll arrive in an update — until then,
+          Reminders aren’t available in this version of the app yet. They’ll arrive in an update. Until then,
           your journal and progress back up as usual.
         </Small>
       </Section>
@@ -168,7 +168,7 @@ export function ReminderSection() {
           <View style={{ flexDirection: "row" }}>
             <Button title={busy ? "Turning on…" : "Turn on reminder"} busy={busy} onPress={() => void turnOn()} />
           </View>
-          <Small>Your phone will ask to allow notifications — choose Allow.</Small>
+          <Small>Your phone will ask to allow notifications. Choose Allow.</Small>
         </>
       ) : null}
 

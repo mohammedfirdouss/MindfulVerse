@@ -76,10 +76,39 @@
 
 /* --- Surah reader --- */
 .surah-plate { margin-top: 14px; }
+/* One quiet row under the title plate: just two small buttons, right-aligned. */
 .surah-toolbar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; flex-wrap: wrap; padding: 14px 0 12px; margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 6px 0 2px; margin-bottom: 0;
 }
+.reader-tools { display: flex; align-items: center; gap: 4px; }
+.reader-tool {
+  position: relative; width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; border-radius: 50%; cursor: pointer;
+  color: var(--indigo); font-family: var(--font-read);
+  transition: background .15s ease, transform .15s var(--ease-out, ease);
+}
+.reader-tool:hover { background: var(--indigo-wash); }
+.reader-tool:active { transform: scale(.94); }
+.reader-tool svg { position: absolute; }
+.reader-tool-hash { position: relative; font-size: .9rem; font-weight: 600; line-height: 1; }
+.reader-tool-aa > span { font-size: 1.12rem; font-weight: 600; letter-spacing: .01em; line-height: 1; }
+@media (prefers-reduced-motion: reduce) { .reader-tool:active { transform: none; } }
+
+/* Display sheet ("Reading settings") and the go-to-verse sheet. */
+.display-choices { display: flex; flex-direction: column; gap: 22px; }
+.display-choice-label {
+  margin: 0 0 8px; font-size: .82rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.display-choice .reading-controls { gap: 0; }
+.display-choice .size-btn { min-height: 44px; min-width: 52px; padding: 8px 16px; }
+.display-choice-hint { margin: 8px 0 0; font-size: .9rem; color: var(--ink-faint); min-height: 1.3em; }
+.display-done { margin-top: 26px; }
+.jump-row { display: flex; gap: 10px; align-items: stretch; }
+.jump-row .field-input { width: 120px; flex: none; font-size: 1.05rem; }
+.jump-row .btn { padding: 10px 22px; }
 .surah-opening .dye-rule, .dye-rule.reading-rule { margin: 10px 0 0; }
 .surah-opening .arabic { text-align: center; padding: 10px 0 4px; margin: 0; }
 
@@ -88,3 +117,6 @@
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+.jump-row .field-input { -moz-appearance: textfield; appearance: textfield; }
+.jump-row .field-input::-webkit-outer-spin-button,
+.jump-row .field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

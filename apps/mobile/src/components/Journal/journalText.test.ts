@@ -83,7 +83,7 @@ describe("journalText", () => {
   it("builds the plain-text export", () => {
     const text = buildJournalText(input(new Date(2026, 9, 9)));
     const lines = text.split("\n");
-    expect(lines[0]).toBe("MindfulVerse — Your reflections");
+    expect(lines[0]).toBe("MindfulVerse | Your reflections");
     expect(lines[1]).toMatch(/^5 reflections · .+ – .+$/);
     expect(lines[2]).toMatch(/^Exported /);
     expect(text).toContain(

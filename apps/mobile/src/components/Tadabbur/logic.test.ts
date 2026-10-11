@@ -13,6 +13,12 @@ import {
   resumeAyahFor,
   splitParagraphs,
   verseCount,
+  loadTadabburDrafts,
+  parseTadabburDrafts,
+  QUESTIONS,
+  questionStepLabel,
+  saveTadabburDraft,
+  tadabburDraftKey,
 } from "./logic";
 
 describe("coveringFromIndex", () => {
@@ -127,5 +133,75 @@ describe("aboutExcerpt", () => {
   it("offers nothing more when the whole text fits", () => {
     expect(aboutExcerpt([p("Only.")])).toEqual({ count: 1, clamp: false, more: false });
     expect(aboutExcerpt([])).toEqual({ count: 0, clamp: false, more: false });
+  });
+});
+
+describe("tadabbur drafts", () => {
+  function memStore() {
+    const m = new Map<string, string>();
+    return {
+      m,
+      getItem: (k: string) => m.get(k) ?? null,
+      setItem: (k: string, v: string) => void m.set(k, v),
+      removeItem: (k: string) => void m.delete(k),
+    };
+  }
+  const d = { lessons: "patience", stirs: "", action: "call mum" };
+
+  it("keys drafts per surah", () => {
+    expect(tadabburDraftKey(1)).toBe("mindfulverse.tadabburDrafts.v1:1");
+  });
+
+  it("round-trips a verse's draft", () => {
+    const s = memStore();
+    saveTadabburDraft(1, "1:2", d, s);
+    expect(loadTadabburDrafts(1, s)).toEqual({ "1:2": d });
+    expect(loadTadabburDrafts(2, s)).toEqual({});
+  });
+
+  it("keeps other verses when one changes", () => {
+    const s = memStore();
+    saveTadabburDraft(1, "1:1", d, s);
+    saveTadabburDraft(1, "1:2", { ...EMPTY_DRAFT, stirs: "mercy" }, s);
+    expect(Object.keys(loadTadabburDrafts(1, s))).toEqual(["1:1", "1:2"]);
+  });
+
+  it("clears an emptied draft, and the key when none remain", () => {
+    const s = memStore();
+    saveTadabburDraft(1, "1:1", d, s);
+    saveTadabburDraft(1, "1:1", EMPTY_DRAFT, s);
+    expect(s.m.has(tadabburDraftKey(1))).toBe(false);
+  });
+
+  it("ignores corrupt or malformed storage", () => {
+    expect(parseTadabburDrafts("{nope")).toEqual({});
+    expect(parseTadabburDrafts("[1]")).toEqual({});
+    expect(parseTadabburDrafts(null)).toEqual({});
+    expect(parseTadabburDrafts(JSON.stringify({ "1:1": { lessons: 3, stirs: "x" }, "1:2": "s", "1:3": {} }))).toEqual({
+      "1:1": { lessons: "", stirs: "x", action: "" },
+    });
+  });
+
+  it("never throws when storage does", () => {
+    const bad = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("full");
+      },
+      removeItem: () => {},
+    };
+    expect(loadTadabburDrafts(1, bad)).toEqual({});
+    expect(() => saveTadabburDraft(1, "1:1", d, bad)).not.toThrow();
+    expect(loadTadabburDrafts(1, null)).toEqual({});
+  });
+});
+
+describe("questionStepLabel", () => {
+  it("names the step for screen readers", () => {
+    expect(QUESTIONS).toHaveLength(3);
+    expect(questionStepLabel(0)).toBe("Question 1 of 3");
+    expect(questionStepLabel(2)).toBe("Question 3 of 3");
   });
 });

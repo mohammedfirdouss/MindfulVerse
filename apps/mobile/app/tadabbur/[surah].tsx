@@ -19,12 +19,11 @@ import {
 import { getSurahTadabbur, recordSurahTadabbur } from "@mindfulverse/core/progress";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "@mindfulverse/core/types";
-import { router, Stack, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
-import { useHeaderHeight, usePreventRemove } from "expo-router/react-navigation";
+import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
@@ -38,9 +37,10 @@ import {
   coveringFromIndex,
   deepLinkPhase,
   EMPTY_DRAFT,
-  hasText,
+  loadTadabburDrafts,
   parseSurahParam,
   resumeAyahFor,
+  saveTadabburDraft,
   verseCount,
   type Draft,
 } from "../../src/components/Tadabbur/logic";
@@ -79,7 +79,6 @@ function TadabburPage() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
-  const navigation = useNavigation();
   const reduce = useReducedMotion();
 
   const [status, setStatus] = useState<LoadStatus>("loading");
@@ -98,14 +97,17 @@ function TadabburPage() {
   const [arabicScale, setArabicScale] = useState(() => scaleFor(getSizeKey()));
 
   // Drafts live in a ref (the inputs own their state; see ReflectionArea), so
-  // typing never re-renders the verse. Only the "anything unsaved?" bit is state.
-  const drafts = useRef<Record<string, Draft>>({});
-  const [hasUnsaved, setHasUnsaved] = useState(false);
-  const onDraft = useCallback((verseKey: string, d: Draft) => {
-    drafts.current[verseKey] = d;
-    const any = Object.values(drafts.current).some(hasText);
-    setHasUnsaved((prev) => (prev === any ? prev : any));
-  }, []);
+  // typing never re-renders the verse. Every change is also persisted per
+  // surah, so nothing typed is lost: no "leave without saving?" needed.
+  const drafts = useRef<Record<string, Draft> | null>(null);
+  if (drafts.current === null) drafts.current = validSurah ? loadTadabburDrafts(n) : {};
+  const onDraft = useCallback(
+    (verseKey: string, d: Draft) => {
+      drafts.current![verseKey] = d;
+      saveTadabburDraft(n, verseKey, d);
+    },
+    [n],
+  );
 
   // Re-read on every phase change so returning to the about screen offers the
   // latest resume point, not the one from when the screen opened.
@@ -217,20 +219,6 @@ function TadabburPage() {
     [revealFocused],
   );
 
-  // Leaving with an unsaved reflection asks first (web: a second tap on
-  // "All tadabbur"). Covers the header back, Android back and router calls.
-  usePreventRemove(hasUnsaved, ({ data }) => {
-    Alert.alert(
-      "Leave without saving?",
-      "You have an unsaved reflection on this surah.",
-      [
-        { text: "Stay", style: "cancel" },
-        { text: "Leave", style: "destructive", onPress: () => navigation.dispatch(data.action) },
-      ],
-      { cancelable: true },
-    );
-  });
-
   /** Fetch the surah's tafsir once, on first request. */
   const ensureTafsir = useCallback(() => {
     if (tafsirPromise.current) return;
@@ -291,7 +279,7 @@ function TadabburPage() {
       <Card>
         <Text variant="h2">That surah isn’t here</Text>
         <Text variant="muted">
-          Surahs run from 1 to 114 — we couldn’t find the one this link points to.
+          Surahs run from 1 to 114. We couldn’t find the one this link points to.
         </Text>
         <View style={{ alignItems: "flex-start" }}>
           <Button kind="secondary" title="Go back" onPress={leave} />
@@ -335,7 +323,6 @@ function TadabburPage() {
     return page(
       <>
         <FadeRise reduce={reduce} style={{ gap: space.sm }}>
-          <Text variant="eyebrow">Tadabbur</Text>
           <TitlePlate surah={n} name={meta?.name} />
           <Text variant="muted" style={{ textAlign: "center" }}>
             {verseCount(count)}, one at a time.
@@ -365,7 +352,6 @@ function TadabburPage() {
     return page(
       <>
         <FadeRise reduce={reduce} style={{ gap: space.sm }}>
-          <Text variant="eyebrow">Tadabbur</Text>
           <Text variant="h1">You’ve sat with all of {name}.</Text>
           <Text variant="soft">
             {verseCount(count)}, pondered at your own pace. May what you wrote stay with you.
@@ -446,7 +432,7 @@ function TadabburPage() {
           key={`r-${a.verseKey}`}
           verseKey={a.verseKey}
           name={name}
-          initial={drafts.current[a.verseKey] ?? EMPTY_DRAFT}
+          initial={drafts.current?.[a.verseKey] ?? EMPTY_DRAFT}
           onDraft={onDraft}
           onFocusInput={onFocusInput}
         />

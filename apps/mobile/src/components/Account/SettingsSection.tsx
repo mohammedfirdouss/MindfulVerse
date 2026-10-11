@@ -61,7 +61,7 @@ export function SettingsSection({ feedbackSubject }: { feedbackSubject: string }
       <Section>
         <View style={{ alignItems: "flex-start" }}>
           <LinkButton
-            title="Tell me what you think and it goes straight to my inbox"
+            title="Send feedback"
             hint="Opens your email app"
             onPress={() =>
               void Linking.openURL(feedbackMailto(feedbackSubject)).catch(() => setMailFailed(true))

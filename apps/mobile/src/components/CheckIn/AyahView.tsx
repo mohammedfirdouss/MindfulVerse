@@ -52,7 +52,7 @@ export function AyahView({
               : { fontSize: 13.6, lineHeight: 20 }
           }
         >
-          {surahName ? `${surahName} · ` : ""}
+          {surahName ? `${surahName} ` : ""}
           {ayah.verseKey}
         </Text>
         {trailing}

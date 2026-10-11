@@ -248,8 +248,8 @@ export default function Journal() {
     } catch {
       setExportError(
         kind === "pdf"
-          ? "Couldn’t make the PDF — check your connection and try again, or use plain text."
-          : "Couldn’t save the file — please try again."
+          ? "Couldn’t make the PDF. Check your connection and try again, or use plain text."
+          : "Couldn’t save the file. Please try again."
       );
     } finally {
       setExporting(null);
@@ -259,7 +259,6 @@ export default function Journal() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Journal</p>
         <h1>Your reflections</h1>
         {user && (
           <p className="muted" style={{ marginTop: 0 }}>Backed up to your account.</p>

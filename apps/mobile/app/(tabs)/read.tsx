@@ -79,7 +79,6 @@ export default function Read() {
   const header = (
     <View style={{ gap: space.md, paddingBottom: space.md }}>
       <View>
-        <Text variant="eyebrow">Read</Text>
         <Text variant="h1">The Qur’an</Text>
         <Text variant="muted">Browse by surah or by juz.</Text>
       </View>
@@ -92,13 +91,10 @@ export default function Read() {
         >
           <AdireCloth style={{ padding: space.lg, flexDirection: "row", alignItems: "center", gap: space.md }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 12.5, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
-                CONTINUE READING
-              </Text>
-              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 20, lineHeight: 27, color: cloth.strong, marginTop: 2 }}>
+              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 20, lineHeight: 27, color: cloth.strong }}>
                 {nameOf(lastRead.surah)}
               </Text>
-              <Text style={{ fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>Verse {lastRead.ayah}</Text>
+              <Text style={{ fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>Continue from verse {lastRead.ayah}</Text>
             </View>
             <ChevronIcon color={cloth.strong} size={22} />
           </AdireCloth>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { CommentarySheet, useTafsir, type TafsirIndex } from "../components/Commentary";
-import ReadingControls from "../components/ReadingControls";
+import ReaderTools from "../components/ReaderTools";
 import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
@@ -45,7 +45,7 @@ function JuzReader() {
   const tafsir = useTafsir();
 
   useEffect(() => {
-    document.title = `Juz ${juz} — MindfulVerse`;
+    document.title = `Juz ${juz} | MindfulVerse`;
   }, [juz]);
 
   useEffect(() => {
@@ -163,8 +163,8 @@ function JuzReader() {
       </header>
 
       {status === "ready" && (
-        <div style={{ padding: "10px 0 16px", borderBottom: "1px solid var(--line)", marginBottom: 4 }}>
-          <ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
+        <div className="surah-toolbar" style={{ borderBottom: "1px solid var(--line)" }}>
+          <ReaderTools sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
         </div>
       )}
 

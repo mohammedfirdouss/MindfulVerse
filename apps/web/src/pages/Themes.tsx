@@ -44,7 +44,7 @@ export default function Themes() {
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    document.title = "Verses by topic — MindfulVerse";
+    document.title = "Verses by topic | MindfulVerse";
     let alive = true;
     loadThemes()
       .then((rows) => {
@@ -95,10 +95,9 @@ export default function Themes() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Read</p>
         <h1>Verses by topic</h1>
         <p className="soft">
-          An index of topics across the Qur’an — each links to the passages
+          An index of topics across the Qur’an. Each links to the passages
           that speak to it.
         </p>
         <p className="muted" style={{ margin: 0 }}>
@@ -116,14 +115,14 @@ export default function Themes() {
           setParams(q ? { q } : {}, { replace: true });
           setVisible(PAGE_SIZE);
         }}
-        placeholder="Filter topics — e.g. patience, mercy"
+        placeholder="Filter topics. E.g. patience, mercy"
         aria-label="Filter topics"
         className="field-input"
       />
 
       {filtered.length === 0 ? (
         <p className="muted">
-          Nothing here speaks to “{filter.trim()}” — try a broader word, like
+          Nothing here speaks to “{filter.trim()}”. Try a broader word, like
           patience or mercy.
         </p>
       ) : (

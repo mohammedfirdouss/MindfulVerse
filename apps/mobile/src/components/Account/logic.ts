@@ -3,7 +3,7 @@
 
 /** Shown when a call throws instead of returning an error (offline, DNS…).
  *  Same wording as web's Account.tsx. */
-export const NETWORK_ERROR = "Couldn't reach the server — check your connection and try again.";
+export const NETWORK_ERROR = "Couldn't reach the server. Check your connection and try again.";
 
 /** Web's <input type="time" step={900}>: the reminder moves in 15-minute steps. */
 export const TIME_STEP_MINUTES = 15;
@@ -18,7 +18,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function validateCredentials(email: string, password: string): string | null {
   const e = email.trim();
   if (!e) return "Enter your email.";
-  if (!EMAIL_RE.test(e)) return "That email doesn't look right — check it and try again.";
+  if (!EMAIL_RE.test(e)) return "That email doesn't look right. Check it and try again.";
   if (!password) return "Enter your password.";
   return null;
 }

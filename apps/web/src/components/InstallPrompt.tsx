@@ -110,10 +110,10 @@ export default function InstallPrompt() {
     >
       <div style={{ flex: 1, fontSize: ".95rem", lineHeight: 1.45 }}>
         {installEvent ? (
-          <>Come back to this tomorrow — keep MindfulVerse on your home screen. It works offline.</>
+          <>Come back to this tomorrow. Keep MindfulVerse on your home screen. It works offline.</>
         ) : (
           <>
-            Come back to this tomorrow — tap <strong>Share</strong>, then{" "}
+            Come back to this tomorrow. Tap <strong>Share</strong>, then{" "}
             <strong>Add to Home Screen</strong>. It works offline.
           </>
         )}

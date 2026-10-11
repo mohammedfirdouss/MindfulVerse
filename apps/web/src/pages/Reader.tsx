@@ -21,7 +21,7 @@ export default function Reader() {
   const [juzFailed, setJuzFailed] = useState(false);
 
   useEffect(() => {
-    document.title = "Read — MindfulVerse";
+    document.title = "Read | MindfulVerse";
   }, []);
 
   useEffect(() => {
@@ -68,7 +68,6 @@ export default function Reader() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Read</p>
         <h1>The Qur'an</h1>
         <p className="muted">Browse by surah or by juz.</p>
         <p style={{ margin: "10px 0 0", display: "flex", gap: 18 }}>
@@ -83,12 +82,11 @@ export default function Reader() {
           className="cloth continue-cloth"
         >
           <span className="continue-text">
-            <span className="cloth-eyebrow">Continue reading</span>
             <span className="continue-name">
               {surahs.find((s) => s.number === lastRead.surah)?.name ??
                 `Surah ${lastRead.surah}`}
             </span>
-            <span className="cloth-soft">Verse {lastRead.ayah}</span>
+            <span className="cloth-soft">Continue from verse {lastRead.ayah}</span>
           </span>
           <ChevronIcon />
         </Link>

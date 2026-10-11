@@ -82,7 +82,7 @@ export default function SessionPlayer() {
 
   // SessionFlow names the tab once the session is known.
   useEffect(() => {
-    if (status.kind !== "ready") document.title = "Tadabbur — MindfulVerse";
+    if (status.kind !== "ready") document.title = "Tadabbur | MindfulVerse";
   }, [status.kind]);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function SessionPlayer() {
         <div className="card stack">
           <h2>This session isn’t here</h2>
           <p className="muted">
-            We couldn’t find the session you were looking for — it may have been
+            We couldn’t find the session you were looking for. It may have been
             moved or renamed.
           </p>
           <Link to="/sessions" className="btn secondary">
@@ -167,7 +167,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
   const mounted = useMounted(phase);
 
   useEffect(() => {
-    document.title = `${session.title} — MindfulVerse`;
+    document.title = `${session.title} | MindfulVerse`;
   }, [session.title]);
 
   // Each step starts at the top — Next sits below the step's content.
@@ -350,7 +350,7 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
                 <div className="verse-head">
                   <span className="roundel">{ayah}</span>
                   <span className="eyebrow">
-                    {surahName ? `${surahName} · ` : ""}
+                    {surahName ? `${surahName} ` : ""}
                     {a.verseKey}
                   </span>
                   <span className="rule" />
@@ -489,7 +489,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
                   <div className="verse-head" style={{ marginBottom: 4 }}>
                     <span className="roundel">{ayah}</span>
                     <span className="eyebrow">
-                      {surahName ? `${surahName} · ` : ""}
+                      {surahName ? `${surahName} ` : ""}
                       {e.verseKey}
                     </span>
                     <span className="rule" />
@@ -568,7 +568,7 @@ function FinalScreen({
           {saved ? (
             <div className="stack">
               <p className="soft" style={{ margin: 0 }}>
-                Kept in your journal — return to it whenever you like.
+                Kept in your journal. Return to it whenever you like.
               </p>
               <div>
                 <Link to="/journal" className="btn secondary">
@@ -635,7 +635,7 @@ function FinalScreen({
       </FadeRise>
 
       {/* Feedback lands best right after an experience, while the opinion
-          is fresh — the subject tells us this one came from a session end. */}
+          is fresh. The subject tells us this one came from a session end. */}
       <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 180}>
         <FeedbackLink
           subject="Feedback on a MindfulVerse session"

@@ -3,7 +3,7 @@
 import type { Href } from "expo-router";
 import type { ComponentType } from "react";
 import { View } from "react-native";
-import { space, useTheme } from "../../theme";
+import { useTheme } from "../../theme";
 import { LinkPressable, Text } from "../../ui";
 import { ChevronIcon } from "../../ui/icons";
 
@@ -22,16 +22,7 @@ export function HomeEntry({
   const live = !!href;
   const body = (
     <>
-      <View
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 22,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: live ? colors.indigoWash : colors.shea,
-        }}
-      >
+      <View style={{ width: 28, alignItems: "center" }}>
         <Icon color={live ? colors.indigo : colors.inkFaint} size={22} />
       </View>
       <View style={{ flex: 1 }}>
@@ -74,5 +65,5 @@ export function HomeEntry({
 /** Spacing between rows: a hairline that starts after the icon column. */
 export function HomeEntryDivider() {
   const { colors } = useTheme();
-  return <View style={{ height: 1, backgroundColor: colors.line, marginLeft: 44 + 14 + space.xs }} />;
+  return <View style={{ height: 1, backgroundColor: colors.line, marginLeft: 28 + 14 }} />;
 }

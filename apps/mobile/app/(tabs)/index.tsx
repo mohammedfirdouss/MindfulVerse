@@ -20,13 +20,10 @@ import {
   type VersePos,
 } from "../../src/components/Home/homeModel";
 import Svg, { Path } from "react-native-svg";
-import { fonts, space, useTheme } from "../../src/theme";
+import { space, useTheme } from "../../src/theme";
 import { AdireCloth, ArabicText, Button, DyeRule, Screen, Text, useOnCloth } from "../../src/ui";
 import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
-import { DhikrIcon, ReadIcon, TadabburIcon } from "../../src/ui/icons";
-
-// Web's hero Arabic is 2.4rem against .arabic's 1.9rem, times the reader size.
-const HERO_ARABIC = 2.4 / 1.9;
+import { ReadIcon, TadabburIcon } from "../../src/ui/icons";
 
 interface Local {
   hour: number;
@@ -118,13 +115,10 @@ export default function Home() {
 
       <FadeRise reduce={reduce} style={{ marginTop: 6 }}>
         <AdireCloth style={{ padding: space.lg, paddingTop: 20 }}>
-          <View accessibilityLabel="A verse to begin with">
-            <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 13, lineHeight: 18, color: cloth.accent, letterSpacing: 1.2 }}>
-              TODAY’S VERSE
-            </Text>
+          <View accessibilityLabel="Today’s verse">
             {hero ? (
               <View>
-                <ArabicText scale={HERO_ARABIC * scale} style={{ color: cloth.strong, marginTop: 6 }}>
+                <ArabicText scale={scale} style={{ color: cloth.strong }}>
                   {hero.arabic}
                 </ArabicText>
                 <Text
@@ -134,7 +128,7 @@ export default function Home() {
                   {hero.translation}
                 </Text>
                 <Text style={{ marginTop: 10, fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>
-                  {surahName ? `${surahName} · ` : ""}
+                  {surahName ? `${surahName} ` : ""}
                   {hero.surah}:{hero.ayah}
                 </Text>
               </View>
@@ -176,8 +170,6 @@ export default function Home() {
               : "/read"
           }
         />
-        <HomeEntryDivider />
-        <HomeEntry Icon={DhikrIcon} title="Dhikr & breath" desc="Remembrance, paced to your breath." />
       </View>
 
       <DyeRule style={{ marginTop: space.lg }} />

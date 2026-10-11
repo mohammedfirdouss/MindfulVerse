@@ -61,7 +61,7 @@ export default function Account() {
     await syncNow();
     // Only promise a backup once the first sync actually landed.
     setNotice(
-      getSyncStatus() === "synced" ? "Signed in — your journal is now backed up to your account." : "Signed in.",
+      getSyncStatus() === "synced" ? "Signed in. Your journal is now backed up to your account." : "Signed in.",
     );
   }
 
@@ -112,7 +112,7 @@ export default function Account() {
       ]);
       if (results.some((r) => r.error)) {
         setNotice(null);
-        setError("Couldn't delete everything — please try again.");
+        setError("Couldn't delete everything. Please try again.");
         setBusy(false);
         return;
       }
@@ -127,7 +127,6 @@ export default function Account() {
 
   const header = (
     <View>
-      <Text variant="eyebrow">Account</Text>
       <Text variant="h1">{loading || user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}</Text>
     </View>
   );

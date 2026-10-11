@@ -54,7 +54,7 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
       />
       {visible.length === 0 ? (
         <p className="muted" style={{ margin: 0 }}>
-          No surah matches that — try a different name or a number from 1 to
+          No surah matches that. Try a different name or a number from 1 to
           114.
         </p>
       ) : (
@@ -104,7 +104,7 @@ export default function Sessions() {
   const latest = useMemo(() => latestSurahTadabbur(), []);
 
   useEffect(() => {
-    document.title = "Tadabbur — MindfulVerse";
+    document.title = "Tadabbur | MindfulVerse";
   }, []);
 
   useEffect(() => {
@@ -135,7 +135,6 @@ export default function Sessions() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Tadabbur</p>
         <h1>Ponder the Qur’an</h1>
         <p className="soft">Slow down and sit with a few verses at a time.</p>
       </header>
@@ -174,7 +173,7 @@ export default function Sessions() {
       <section className="stack">
         <h2 style={{ margin: 0, fontWeight: 500 }}>By theme</h2>
         <p className="soft" style={{ margin: 0 }}>
-          Short guided reflections — a few verses gathered around one theme.
+          Short guided reflections. A few verses gathered around one theme.
         </p>
 
         {status.kind === "loading" && (
@@ -198,7 +197,7 @@ export default function Sessions() {
         {status.kind === "ready" &&
           (status.sessions.length === 0 ? (
             <p className="muted" style={{ margin: 0 }}>
-              There are no sessions here yet. Please come back soon — more are
+              There are no sessions here yet. More are
               on the way.
             </p>
           ) : (

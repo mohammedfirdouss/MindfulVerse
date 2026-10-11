@@ -30,16 +30,16 @@ describe("tadabbur entry", () => {
 
   it("labels the go-deeper button with the surah name when known", () => {
     const names = new Map([[18, "Al-Kahf"]]);
-    expect(deeperLabel({ surah: 18, ayah: 10 }, names)).toBe("Go deeper — continue Al-Kahf");
-    expect(deeperLabel({ surah: 2, ayah: 1 }, names)).toBe("Go deeper — continue Surah 2");
-    expect(deeperLabel(null, names)).toBe("Go deeper — begin tadabbur");
+    expect(deeperLabel({ surah: 18, ayah: 10 }, names)).toBe("Continue Al-Kahf");
+    expect(deeperLabel({ surah: 2, ayah: 1 }, names)).toBe("Continue Surah 2");
+    expect(deeperLabel(null, names)).toBe("Begin tadabbur");
   });
 });
 
 describe("readDesc", () => {
   it("offers to continue the last read verse", () => {
     expect(readDesc({ surah: 2, ayah: 255 })).toBe(
-      "Continue where you stopped — Surah 2, verse 255",
+      "Pick up at Surah 2, verse 255",
     );
     expect(readDesc(null)).toBe("The Qur’an, with translation and commentary.");
   });

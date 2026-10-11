@@ -382,7 +382,7 @@ export default function Dhikr() {
   );
 
   useEffect(() => {
-    document.title = "Dhikr — MindfulVerse";
+    document.title = "Dhikr | MindfulVerse";
   }, []);
 
   function open(s: DhikrSet) {
@@ -402,7 +402,6 @@ export default function Dhikr() {
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Dhikr &amp; breath</p>
         <h1>Remembrance, paced to your breath</h1>
         <p className="soft" style={{ marginTop: 0 }}>
           Choose a remembrance. The circle breathes with you; count at your own pace.

@@ -1,5 +1,42 @@
-/* Daily check-in (mobile: apps/mobile/app/checkin.tsx + CheckIn/AyahView.tsx).
-   Verse of the day on dyed cloth; reflection and the heart picker on cotton. */
+/* Daily check-in (mobile: apps/mobile/app/checkin.tsx + components/CheckIn/*).
+   One thing at a time: the heart picker first, then the verse of the day on
+   dyed cloth, then an optional reflection on cotton. */
+
+/* Each step arrives softly: opacity and a 6px rise, 220ms. */
+.ci-reveal { animation: ci-in 220ms var(--ease-out) both; }
+.ci-reveal > * + * { margin-top: 20px; }
+@keyframes ci-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .ci-reveal { animation-name: ci-fade; }
+  @keyframes ci-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+
+.ci-lede { margin: 10px 0 0; font-size: 1.05rem; }
+
+/* The heart. On arrival it is the page; once the verse is open it folds into
+   a compact row at the top so the feeling can still be changed. */
+.ci-feel > * + * { margin-top: 14px; }
+.ci-page:not(.at-verse) .ci-feel { margin-top: 28px; }
+.ci-feel-label {
+  margin: 0;
+  font-family: var(--font-read); font-size: .95rem; line-height: 1.4; font-weight: 600;
+  color: var(--ink-soft); letter-spacing: 0;
+}
+.ci-page.at-verse .ci-feel > * + * { margin-top: 8px; }
+.ci-page.at-verse .ci-chips { gap: 6px; }
+.ci-page.at-verse .ci-chip { padding: 0 12px; font-size: .92rem; }
+
+/* "Just show me today's verse": quiet, but a full 44px target. */
+.ci-skip {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px;
+  margin-top: 18px !important;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-read); font-size: 1rem; color: var(--indigo);
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.ci-skip:hover { text-decoration-thickness: 2px; }
+.ci-verse:focus { outline: none; }
+.ci-verse:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; }
 
 .ci-page .ci-verse { padding: 22px 22px 14px; }
 .ci-note { margin: 10px 0 8px; }
@@ -36,10 +73,11 @@
 .ci-share-btn:hover { text-decoration-thickness: 2px; }
 .ci-share-btn:active { opacity: .6; }
 
-.ci-page > .dye-rule.ci-rule { margin: 30px 0; }
+.ci-reveal > .dye-rule.ci-rule { margin: 30px 0; }
 
 /* Open sections on the cotton ground. */
 .ci-section > * + * { margin-top: 16px; }
+.ci-section > .ci-hint { margin-top: 6px; font-size: .95rem; }
 .ci-heading {
   display: block; margin: 0;
   font-family: var(--font-read); font-size: 1.25rem; line-height: 1.35; font-weight: 600;
@@ -60,6 +98,7 @@
 
 .ci-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .ci-save { min-width: 112px; }
+.ci-draft { font-size: .9rem; }
 
 /* The heart chips: tactile, outlined; the chosen one solid indigo. */
 .ci-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -68,11 +107,11 @@
   display: inline-flex; align-items: center; justify-content: center;
   font-family: var(--font-read); font-size: 1rem; line-height: 1.3;
   color: var(--ink-soft); background: var(--cotton-raised);
-  border: 1px solid var(--line-strong); border-radius: 3px;
+  border: 1px solid var(--line-strong); border-radius: 999px;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease, color .15s ease, transform .14s var(--ease-out);
 }
-.ci-chip:hover { background: var(--indigo-wash); }
+@media (hover: hover) { .ci-chip:hover { background: var(--indigo-wash); } }
 .ci-chip:active { transform: scale(.97); }
 .ci-chip[aria-pressed="true"] {
   background: var(--indigo); border-color: var(--indigo);
@@ -80,6 +119,7 @@
 }
 @media (prefers-reduced-motion: reduce) { .ci-chip:active { transform: none; } }
 
-.ci-framed { margin-top: 24px; }
+.ci-framed { margin-top: 28px; animation: ci-in 220ms var(--ease-out) both; }
 .ci-framed > * + * { margin-top: 16px; }
+@media (prefers-reduced-motion: reduce) { .ci-framed { animation-name: ci-fade; } }
 .ci-framing { margin: 0; font-size: 1.15rem; line-height: 1.45; font-weight: 600; color: var(--ink); }

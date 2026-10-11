@@ -3,16 +3,15 @@ import { Link } from "react-router-dom";
 
 export default function NotFound() {
   useEffect(() => {
-    document.title = "Not found — MindfulVerse";
+    document.title = "Not found | MindfulVerse";
   }, []);
 
   return (
     <div className="stack">
       <header>
-        <p className="eyebrow">Not found</p>
         <h1>This page isn’t here</h1>
         <p className="soft">
-          The path you followed doesn’t lead anywhere — but the Qur’an is
+          The path you followed doesn’t lead anywhere. But the Qur’an is
           always open.
         </p>
       </header>

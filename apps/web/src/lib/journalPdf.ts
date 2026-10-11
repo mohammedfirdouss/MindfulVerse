@@ -185,7 +185,7 @@ function timeLabel(ms: number): string {
 export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  doc.setTitle("MindfulVerse — Your reflections");
+  doc.setTitle("MindfulVerse | Your reflections");
   doc.setCreator("MindfulVerse");
   doc.setProducer("MindfulVerse");
 
