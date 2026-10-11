@@ -34,11 +34,13 @@ export default function ReaderTools({
     const run = () => {
       if (done) return;
       done = true;
-      window.removeEventListener("popstate", run);
+      window.removeEventListener("popstate", soon);
       onJump?.(n);
     };
-    window.addEventListener("popstate", run);
-    window.setTimeout(run, 200);
+    // A beat after popstate: the browser restores scroll right after it.
+    const soon = () => window.setTimeout(run, 30);
+    window.addEventListener("popstate", soon);
+    window.setTimeout(run, 250);
   }
 
   return (
@@ -112,7 +114,7 @@ function JumpForm({ max, onGo }: { max: number; onGo: (n: number) => void }) {
   }
 
   return (
-    <form className="jump-form" onSubmit={submit}>
+    <form className="jump-form" onSubmit={submit} noValidate>
       <label className="display-choice-label" htmlFor="jump-n">
         Verse number
       </label>
