@@ -15,17 +15,17 @@ import {
 const hex = (h: string) =>
   rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
 const C = {
-  cotton: hex("#f5efe2"),
-  raised: hex("#fbf7ec"),
-  shea: hex("#e8dcc3"),
+  // The app's light palette (apps/web/src/index.css :root). Keep in step.
+  cotton: hex("#f4f5f8"),
+  raised: hex("#fcfcfd"),
+  shea: hex("#e9ebf2"),
   indigo: hex("#2a3a8c"),
   indigoDeep: hex("#1b2559"),
-  indigoWash: hex("#dfe3f2"),
-  ink: hex("#221d15"),
-  inkSoft: hex("#57503f"),
-  inkFaint: hex("#8a8168"),
-  line: hex("#ddd3bc"),
-  ochre: hex("#c4622d"),
+  indigoWash: hex("#e3e7f4"),
+  ink: hex("#161a2e"),
+  inkSoft: hex("#474d66"),
+  inkFaint: hex("#666c85"),
+  line: hex("#e0e3eb"),
 };
 
 const PAGE_W = 595.28; // A4
@@ -90,7 +90,7 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
     `M ${32 * s} ${10 * s} L ${52 * s} ${32 * s} L ${32 * s} ${54 * s} L ${12 * s} ${32 * s} Z`,
     { x, y: top, borderColor: C.cotton, borderWidth: 4 * s }
   );
-  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.ochre });
+  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.indigo });
 }
 
 // PDF text can't shape Arabic (joining, marks, right-to-left) or draw colour
@@ -98,14 +98,14 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
 // lines are rendered crisply at 3x and placed as images.
 const RASTER = 3;
 const ARABIC_STACK = `"Uthmanic Hafs", "Scheherazade New", "Noto Naskh Arabic", serif`;
-// Canvas can't pick a weight from a variable font (it draws the default, the
-// Black), so mixed lines use the same static regular cut as the vector text.
-const LATIN_FACE = "MindfulVerse PDF Serif";
+// Mixed-script lines are reflections and translations, so they are set in
+// Literata, the app's reading face, from the same static file as the vector text.
+const LATIN_FACE = "MindfulVerse PDF Text";
 const MIXED_STACK = `"${LATIN_FACE}", ${ARABIC_STACK}, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"`;
 
 let latinFace: Promise<void> | null = null;
 function loadLatinFace(): Promise<void> {
-  latinFace ??= new FontFace(LATIN_FACE, "url(/fonts/pdf/fraunces-regular.ttf)")
+  latinFace ??= new FontFace(LATIN_FACE, "url(/fonts/pdf/literata-regular.ttf)")
     .load()
     .then((f) => {
       document.fonts.add(f);
@@ -154,7 +154,7 @@ async function rasterLines(
     ctx.scale(RASTER, RASTER);
     // An opaque cotton ground: glyphs on a transparent canvas get stem-darkened
     // and print noticeably heavier than the vector text around them.
-    ctx.fillStyle = "#f5efe2";
+    ctx.fillStyle = "#f4f5f8";
     ctx.fillRect(0, 0, w, opts.leading);
     ctx.font = fontSpec;
     ctx.fillStyle = opts.color;
@@ -354,7 +354,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     borderColor: C.indigo,
     borderWidth: 1,
   });
-  page.drawCircle({ x: cx, y, size: 1.6, color: C.ochre });
+  page.drawCircle({ x: cx, y, size: 1.6, color: C.indigo });
   y -= 22;
 
   if (hasTranslations(input)) {
