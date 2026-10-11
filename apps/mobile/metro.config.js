@@ -17,7 +17,7 @@ const config = getDefaultConfig(projectRoot);
 //    resolution, on by default) already dedupes react and react-native; this
 //    rule is the explicit guarantee, and also covers scheduler and the SDK.
 //    `npm run check:bundle` verifies the result on an export.
-const SINGLETONS = ["react", "react-native", "scheduler", "@insforge/sdk"];
+const SINGLETONS = ["react", "react-dom", "react-native", "scheduler", "@insforge/sdk"];
 const appOrigin = path.join(projectRoot, "package.json");
 
 function isSingleton(name) {
