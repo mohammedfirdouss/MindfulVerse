@@ -107,7 +107,7 @@ export default function Search() {
   const reqId = useRef(0);
 
   useEffect(() => {
-    document.title = "Search — MindfulVerse";
+    document.title = "Search | MindfulVerse";
   }, []);
 
   async function search(term: string) {
@@ -163,13 +163,13 @@ export default function Search() {
       {loadingIndex && <p className="muted">Loading the search index…</p>}
 
       {error && !loadingIndex && (
-        <p className="soft">Something went wrong loading the search index — please try again.</p>
+        <p className="soft">Something went wrong loading the search index. Please try again.</p>
       )}
 
       {outcome && !loadingIndex && !error && (
         outcome.results.length === 0 ? (
           <p className="soft">
-            Nothing found for “{outcome.term}” — try a simpler word.
+            Nothing found for “{outcome.term}”. Try a simpler word.
           </p>
         ) : (
           <section aria-label="Search results">

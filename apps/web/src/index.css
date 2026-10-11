@@ -259,13 +259,8 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 .tafsir h2, .tafsir h3 { font-size: 1.05rem; font-weight: 600; color: var(--indigo); margin: 1.4em 0 0.5em; }
 
 /* --- Account: one quiet card, plain boxed inputs, nothing else --- */
-.auth-card {
-  background: var(--cotton-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 28px 24px;
-  max-width: 420px;
-}
+/* The sign-in form sits on the page itself: no card around it. */
+.auth-card { max-width: 420px; }
 .field { display: block; }
 .field-label {
   display: block;
@@ -332,6 +327,15 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 }
 .delete-quiet:hover { text-decoration: underline; }
 .auth-section { border-top: 1px solid var(--line); padding-top: 18px; }
+.appearance-choices { display: flex; gap: 8px; }
+.appearance-choice {
+  min-height: 44px; padding: 0 20px; font: inherit; font-size: .95rem; cursor: pointer;
+  border-radius: var(--radius); border: 1px solid var(--line-strong);
+  background: var(--cotton-raised); color: var(--ink-soft);
+  transition: transform 140ms var(--ease-out), background-color 140ms ease;
+}
+.appearance-choice:active { transform: scale(0.97); }
+.appearance-choice.on { background: var(--indigo); border-color: var(--indigo); color: var(--cotton-raised); font-weight: 500; }
 .notice-wash {
   background: var(--indigo-wash);
   border-radius: var(--radius);

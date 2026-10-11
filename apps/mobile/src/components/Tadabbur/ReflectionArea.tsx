@@ -117,7 +117,7 @@ export const ReflectionArea = memo(function ReflectionArea({
           Your tadabbur
         </Text>
         <Text variant="muted">
-          Sit with {name} {verseKey} — write as little or as much as you like.
+          Sit with {name} {verseKey}. Write as little or as much as you like.
         </Text>
       </View>
 
@@ -199,7 +199,7 @@ export const ReflectionArea = memo(function ReflectionArea({
       </View>
       {status === "failed" ? (
         <Text variant="soft" accessibilityLiveRegion="assertive">
-          That reflection couldn’t be kept on this device. Your words are still here — try again.
+          That reflection couldn’t be kept on this device. Your words are still here. Try again.
         </Text>
       ) : null}
     </View>

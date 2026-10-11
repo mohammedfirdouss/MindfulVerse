@@ -45,7 +45,7 @@ function JuzReader() {
   const tafsir = useTafsir();
 
   useEffect(() => {
-    document.title = `Juz ${juz} — MindfulVerse`;
+    document.title = `Juz ${juz} | MindfulVerse`;
   }, [juz]);
 
   useEffect(() => {

@@ -145,7 +145,7 @@ function summaryText(s: StatsSnapshot): string {
       ? `${new Date(s.firstSeen).toLocaleDateString()} (${s.daysSinceFirstSeen}d ago)`
       : "unknown";
   return [
-    "MindfulVerse — my stats",
+    "MindfulVerse. My stats",
     `First seen: ${firstSeen}`,
     `Days visited: ${s.daysVisited} (streak ${s.streak})`,
     `Days opened: ${s.appOpenDays}`,
@@ -196,7 +196,7 @@ function AccountRow() {
         </>
       ) : (
         <Link to="/account" style={{ display: "block", marginTop: 4 }}>
-          Not signed in — journal is device-only
+          Not signed in. Journal is device-only
         </Link>
       )}
     </div>
@@ -209,7 +209,7 @@ export default function Stats() {
   const resetTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    document.title = "Your progress — MindfulVerse";
+    document.title = "Your progress | MindfulVerse";
   }, []);
 
   async function copyStats() {
@@ -240,7 +240,7 @@ export default function Stats() {
         <div className="card stack">
           <p style={{ margin: 0, fontSize: "1.1rem" }}>Nothing to count yet.</p>
           <p className="soft" style={{ margin: 0 }}>
-            Spend a little time with the app — a check-in, a session, a verse —
+            Spend a little time with the app. A check-in, a session, a verse.
             and your numbers will gather here.
           </p>
           <Link to="/" className="btn" style={{ alignSelf: "flex-start", marginTop: 4 }}>

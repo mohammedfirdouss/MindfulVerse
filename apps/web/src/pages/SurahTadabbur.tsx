@@ -363,7 +363,7 @@ function ReflectionArea({
         Your tadabbur
       </p>
       <p className="muted" style={{ margin: 0, fontSize: ".9rem" }}>
-        Sit with {name} {ayah.verseKey} — write as little or as much as you
+        Sit with {name} {ayah.verseKey}. Write as little or as much as you
         like.
       </p>
       <div className="tad-question">
@@ -513,8 +513,8 @@ function SurahTadabburPage() {
 
   useEffect(() => {
     document.title = validSurah
-      ? `${name} · Tadabbur — MindfulVerse`
-      : "Tadabbur — MindfulVerse";
+      ? `${name} · Tadabbur | MindfulVerse`
+      : "Tadabbur | MindfulVerse";
   }, [validSurah, name]);
 
   // Deep link (?v=n): start straight at that verse once the surah loads.
@@ -576,7 +576,7 @@ function SurahTadabburPage() {
         <div className="card stack">
           <h2>That surah isn’t here</h2>
           <p className="muted">
-            Surahs run from 1 to 114 — we couldn’t find the one this link
+            Surahs run from 1 to 114. We couldn’t find the one this link
             points to.
           </p>
           <div>

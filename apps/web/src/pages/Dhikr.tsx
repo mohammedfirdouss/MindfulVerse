@@ -382,7 +382,7 @@ export default function Dhikr() {
   );
 
   useEffect(() => {
-    document.title = "Dhikr — MindfulVerse";
+    document.title = "Dhikr | MindfulVerse";
   }, []);
 
   function open(s: DhikrSet) {

@@ -85,7 +85,7 @@ function AyahView({
       <div className="translation">{ayah.translation}</div>
       <div className="ci-ref-row">
         <span className={onCloth ? "ci-ref cloth-soft" : "ci-ref muted"}>
-          {surahName ? `${surahName} · ` : ""}
+          {surahName ? `${surahName} ` : ""}
           {ayah.verseKey}
         </span>
         {trailing}
@@ -120,7 +120,7 @@ export default function CheckIn() {
   }, [accountId, accountLoading]);
 
   useEffect(() => {
-    document.title = "Daily check-in — MindfulVerse";
+    document.title = "Daily check-in | MindfulVerse";
   }, []);
 
   const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());

@@ -1,7 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import InstallPrompt from "./InstallPrompt";
-import { getTheme, setTheme, type Theme } from "../lib/theme";
 import "./shell.css";
 
 /* --- Nav icons, drawn like the mobile tab icons (apps/mobile/src/ui/icons.tsx):
@@ -119,23 +118,6 @@ function readCollapsed(): boolean {
   }
 }
 
-function MoonIcon() {
-  return (
-    <IconBase>
-      <path d="M20 13.5A8 8 0 0 1 10.5 4 8 8 0 1 0 20 13.5Z" />
-    </IconBase>
-  );
-}
-
-function SunIcon() {
-  return (
-    <IconBase>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8" />
-    </IconBase>
-  );
-}
-
 export default function AppShell({ children }: { children: ReactNode }) {
   // A new page starts at the top. Keyed on the path only, so in-page query
   // changes (?v= deep links, ?set=, ?q=) keep their scroll position.
@@ -145,13 +127,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   const [collapsed, setCollapsed] = useState<boolean>(readCollapsed);
-  const [theme, setThemeState] = useState<Theme>(getTheme);
-
-  function toggleTheme() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    setThemeState(next);
-  }
 
   function toggleCollapsed() {
     setCollapsed((c) => {
@@ -205,14 +180,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </button>
       </nav>
 
-      <button
-        type="button"
-        className="theme-toggle"
-        onClick={toggleTheme}
-        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to night mode"}
-      >
-        {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-      </button>
 
       <main className="container">{children}</main>
       <InstallPrompt />

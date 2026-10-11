@@ -40,7 +40,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("push", (event) => {
   let payload: { title?: string; body?: string; url?: string } = {};
-  try { payload = event.data?.json() ?? {}; } catch { /* non-JSON push — show default */ }
+  try { payload = event.data?.json() ?? {}; } catch { /* non-JSON push. Show default */ }
   event.waitUntil(
     self.registration.showNotification(payload.title ?? "MindfulVerse", {
       // `||` not `??`: an empty body (verse text lookup missed) must still

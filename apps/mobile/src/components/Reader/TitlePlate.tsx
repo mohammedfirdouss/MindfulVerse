@@ -9,7 +9,7 @@ export function TitlePlate({ surah, name, ayahCount }: { surah: number; name?: s
   const cloth = useOnCloth();
   const arabic = arabicSurahName(surah);
   const place = revelationPlace(surah);
-  const details = [place, ayahCount ? `${ayahCount} verses` : null].filter(Boolean).join(" · ");
+  const details = [place, ayahCount ? `${ayahCount} verses` : null].filter(Boolean).join(", ");
   return (
     <AdireCloth style={{ paddingVertical: 22, paddingHorizontal: space.lg, alignItems: "center" }}>
       <View accessible accessibilityRole="header" accessibilityLabel={[name, details].filter(Boolean).join(", ")} style={{ alignItems: "center" }}>
@@ -20,7 +20,7 @@ export function TitlePlate({ surah, name, ayahCount }: { surah: number; name?: s
           <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 21, lineHeight: 27, color: cloth.strong }}>{name}</Text>
         ) : null}
         <Text style={{ fontSize: 14.5, lineHeight: 21, color: cloth.soft, marginTop: 2 }}>
-          {`Surah ${surah}${details ? ` · ${details}` : ""}`}
+          {`Surah ${surah}${details ? `, ${details}` : ""}`}
         </Text>
       </View>
     </AdireCloth>

@@ -21,7 +21,7 @@ export default function Reader() {
   const [juzFailed, setJuzFailed] = useState(false);
 
   useEffect(() => {
-    document.title = "Read — MindfulVerse";
+    document.title = "Read | MindfulVerse";
   }, []);
 
   useEffect(() => {

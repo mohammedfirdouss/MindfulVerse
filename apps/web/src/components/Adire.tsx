@@ -50,7 +50,7 @@ export function TitlePlate({
   const arabic = arabicSurahName(surah);
   const details = [`Surah ${surah}`, revelationPlace(surah), ayahCount ? `${ayahCount} verses` : null]
     .filter(Boolean)
-    .join(" · ");
+    .join(", ");
   return (
     <header className="cloth title-plate fade-rise">
       {arabic ? (

@@ -20,10 +20,10 @@ import {
   type VersePos,
 } from "../../src/components/Home/homeModel";
 import Svg, { Path } from "react-native-svg";
-import { fonts, space, useTheme } from "../../src/theme";
+import { space, useTheme } from "../../src/theme";
 import { AdireCloth, ArabicText, Button, DyeRule, Screen, Text, useOnCloth } from "../../src/ui";
 import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
-import { DhikrIcon, ReadIcon, TadabburIcon } from "../../src/ui/icons";
+import { ReadIcon, TadabburIcon } from "../../src/ui/icons";
 
 interface Local {
   hour: number;
@@ -170,8 +170,6 @@ export default function Home() {
               : "/read"
           }
         />
-        <HomeEntryDivider />
-        <HomeEntry Icon={DhikrIcon} title="Dhikr & breath" desc="Remembrance, paced to your breath." />
       </View>
 
       <DyeRule style={{ marginTop: space.lg }} />

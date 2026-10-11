@@ -248,8 +248,8 @@ export default function Journal() {
     } catch {
       setExportError(
         kind === "pdf"
-          ? "Couldn’t make the PDF — check your connection and try again, or use plain text."
-          : "Couldn’t save the file — please try again."
+          ? "Couldn’t make the PDF. Check your connection and try again, or use plain text."
+          : "Couldn’t save the file. Please try again."
       );
     } finally {
       setExporting(null);

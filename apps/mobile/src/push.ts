@@ -131,7 +131,7 @@ export async function enableReminder(time: string): Promise<EnableResult> {
     return {
       error: pkConflict
         ? "This phone still has a reminder from another account. Sign in to that account and turn it off, then try again."
-        : "Couldn’t turn on the reminder — please try again.",
+        : "Couldn’t turn on the reminder. Please try again.",
       welcomed: false,
     };
   }

@@ -10,8 +10,9 @@ import {
 import { track } from "@mindfulverse/core/analytics";
 import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/push";
 import FeedbackLink from "../components/FeedbackLink";
+import { getTheme, setTheme, type Theme } from "../lib/theme";
 
-const NETWORK_ERROR = "Couldn't reach the server — check your connection and try again.";
+const NETWORK_ERROR = "Couldn't reach the server. Check your connection and try again.";
 
 function notificationsBlocked(): boolean {
   return "Notification" in window && Notification.permission === "denied";
@@ -52,7 +53,7 @@ export default function Account() {
   const savedTime = useRef("07:00");
 
   useEffect(() => {
-    document.title = "Account — MindfulVerse";
+    document.title = "Account | MindfulVerse";
   }, []);
 
   // Fire sync_done only when the status actually transitions to a terminal
@@ -122,7 +123,7 @@ export default function Account() {
         setReminderNotice(null);
       }
     } catch {
-      setReminderError("Couldn't set the reminder — please try again.");
+      setReminderError("Couldn't set the reminder. Please try again.");
     } finally {
       setReminderBusy(false);
     }
@@ -145,7 +146,7 @@ export default function Account() {
       savedTime.current = time;
       setReminderNotice("New time saved.");
     } catch {
-      setReminderError("Couldn't update the reminder time — please try again.");
+      setReminderError("Couldn't update the reminder time. Please try again.");
     } finally {
       setReminderBusy(false);
     }
@@ -154,7 +155,7 @@ export default function Account() {
   // Only promise a backup once the first sync actually landed.
   function signedInNotice(): string {
     return getSyncStatus() === "synced"
-      ? "Signed in — your journal is now backed up to your account."
+      ? "Signed in. Your journal is now backed up to your account."
       : "Signed in.";
   }
 
@@ -277,7 +278,7 @@ export default function Account() {
       ]);
       if (results.some((r) => r.error)) {
         setNotice(null);
-        setError("Couldn't delete everything — please try again.");
+        setError("Couldn't delete everything. Please try again.");
         return;
       }
       setError(null);
@@ -495,8 +496,8 @@ export default function Account() {
               </div>
               {!reminderOn && (
                 <p className="soft" style={{ margin: "4px 0 0" }}>
-                  Get today&rsquo;s verse as a notification at a time you choose — on this
-                  phone or computer. Tap it to open your check-in.
+                  Get today&rsquo;s verse as a notification on this phone or computer, at a
+                  time you choose. Tap it to open your check-in.
                 </p>
               )}
             </div>
@@ -513,7 +514,7 @@ export default function Account() {
             {pushSupport() === "unsupported" && (
               <p className="soft" style={{ margin: 0 }}>
                 This browser can&rsquo;t show notifications. Try Chrome, Edge, Firefox or
-                Safari — on a computer or phone.
+                Safari, on a computer or phone.
               </p>
             )}
             {pushSupport() === "ok" && reminderBlocked && !reminderOn && (
@@ -548,7 +549,7 @@ export default function Account() {
                   </button>
                 </div>
                 <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
-                  Your browser will ask to allow notifications — choose Allow.
+                  Your browser will ask to allow notifications. Choose Allow.
                 </p>
               </>
             )}
@@ -615,6 +616,36 @@ export default function Account() {
           </div>
         </div>
       )}
+
+      <Appearance />
     </div>
+  );
+}
+
+/** Light or night. Lives here rather than as a floating button on every page. */
+function Appearance() {
+  const [theme, setThemeState] = useState<Theme>(getTheme);
+  const choose = (t: Theme) => {
+    setTheme(t);
+    setThemeState(t);
+  };
+  return (
+    <section className="auth-section stack" aria-labelledby="appearance-title">
+      <h2 id="appearance-title" style={{ fontSize: "1.1rem" }}>Appearance</h2>
+      <div className="appearance-choices" role="radiogroup" aria-labelledby="appearance-title">
+        {(["light", "dark"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="radio"
+            aria-checked={theme === t}
+            className={theme === t ? "appearance-choice on" : "appearance-choice"}
+            onClick={() => choose(t)}
+          >
+            {t === "light" ? "Light" : "Night"}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

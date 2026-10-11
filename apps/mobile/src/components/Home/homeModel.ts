@@ -24,16 +24,16 @@ export function tadabburTarget(deeper: VersePos | null): VersePos {
   return deeper ?? { surah: 1, ayah: 1 };
 }
 
-/** The "Go deeper" button label once today's check-in is saved. */
+/** The tadabbur button label once today's check-in is saved. */
 export function deeperLabel(deeper: VersePos | null, surahNames: Map<number, string>): string {
   return deeper
-    ? `Go deeper — continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
-    : "Go deeper — begin tadabbur";
+    ? `Continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
+    : "Begin tadabbur";
 }
 
 /** The Read entry's description: continue where the reader stopped. */
 export function readDesc(lastRead: VersePos | null): string {
   return lastRead
-    ? `Continue where you stopped — Surah ${lastRead.surah}, verse ${lastRead.ayah}`
+    ? `Pick up at Surah ${lastRead.surah}, verse ${lastRead.ayah}`
     : "The Qur’an, with translation and commentary.";
 }

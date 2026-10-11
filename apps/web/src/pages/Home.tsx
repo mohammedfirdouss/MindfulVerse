@@ -95,7 +95,7 @@ export default function Home() {
           ? {
               ...e,
               to: `/read/${lastRead.surah}?v=${lastRead.ayah}`,
-              desc: `Continue where you stopped — Surah ${lastRead.surah}, verse ${lastRead.ayah}`,
+              desc: `Pick up at Surah ${lastRead.surah}, verse ${lastRead.ayah}`,
             }
           : e
       )
@@ -146,8 +146,8 @@ export default function Home() {
                 className="btn cloth-btn"
               >
                 {deeper
-                  ? `Go deeper — continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
-                  : "Go deeper — begin tadabbur"}
+                  ? `Continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
+                  : "Begin tadabbur"}
               </Link>
             </>
           ) : (

@@ -27,18 +27,17 @@
 }
 /* Hairline divider that starts after the icon column. */
 .home-entry + .home-entry::before {
-  content: ""; position: absolute; top: 0; right: 0; left: 62px;
+  content: ""; position: absolute; top: 0; right: 0; left: 44px;
   height: 1px; background: var(--line);
 }
 a.home-entry:hover .home-entry-title { color: var(--indigo); }
 a.home-entry:hover .home-entry-chevron { transform: translateX(3px); }
 a.home-entry:active { transform: scale(.985); opacity: .7; }
+/* The section's motif, drawn inline in indigo: no circle well. */
 .home-entry-well {
-  flex: none; width: 44px; height: 44px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--indigo-wash); color: var(--indigo);
+  flex: none; width: 28px; display: inline-flex; justify-content: center; color: var(--indigo);
 }
-.home-entry.inert .home-entry-well { background: var(--shea); color: var(--ink-faint); }
+.home-entry.inert .home-entry-well { color: var(--ink-faint); }
 .home-entry-text { flex: 1; min-width: 0; }
 .home-entry-title { display: block; font-size: 1.1rem; font-weight: 500; transition: color .15s ease; }
 .home-entry.inert .home-entry-title { color: var(--ink-faint); }
