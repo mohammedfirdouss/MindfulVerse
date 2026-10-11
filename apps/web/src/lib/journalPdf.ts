@@ -81,7 +81,7 @@ function drawBand(page: PDFPage) {
   }
 }
 
-/** The app mark: indigo tile, cotton diamond, ochre centre (favicon.svg). */
+/** The app mark: indigo tile, cotton diamond, cotton centre (favicon.svg). */
 function drawMark(page: PDFPage, x: number, y: number, size: number) {
   const s = size / 64;
   page.drawRectangle({ x, y, width: size, height: size, color: C.indigo });
@@ -90,7 +90,7 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
     `M ${32 * s} ${10 * s} L ${52 * s} ${32 * s} L ${32 * s} ${54 * s} L ${12 * s} ${32 * s} Z`,
     { x, y: top, borderColor: C.cotton, borderWidth: 4 * s }
   );
-  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.indigo });
+  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.cotton });
 }
 
 // PDF text can't shape Arabic (joining, marks, right-to-left) or draw colour
