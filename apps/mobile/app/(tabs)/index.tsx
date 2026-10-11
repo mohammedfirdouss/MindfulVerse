@@ -25,9 +25,6 @@ import { AdireCloth, ArabicText, Button, DyeRule, Screen, Text, useOnCloth } fro
 import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
 import { DhikrIcon, ReadIcon, TadabburIcon } from "../../src/ui/icons";
 
-// Web's hero Arabic is 2.4rem against .arabic's 1.9rem, times the reader size.
-const HERO_ARABIC = 2.4 / 1.9;
-
 interface Local {
   hour: number;
   streak: number;
@@ -131,7 +128,7 @@ export default function Home() {
                   {hero.translation}
                 </Text>
                 <Text style={{ marginTop: 10, fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>
-                  {surahName ? `${surahName} · ` : ""}
+                  {surahName ? `${surahName} ` : ""}
                   {hero.surah}:{hero.ayah}
                 </Text>
               </View>
