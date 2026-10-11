@@ -1,5 +1,5 @@
 // The designed journal PDF: the app's indigo-on-cotton identity, its mark and
-// its Fraunces type. Imported lazily by the Journal page, so pdf-lib never
+// its Outfit and Literata type. Imported lazily by the Journal page, so pdf-lib never
 // weighs on app start.
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
@@ -15,17 +15,17 @@ import {
 const hex = (h: string) =>
   rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
 const C = {
-  cotton: hex("#f5efe2"),
-  raised: hex("#fbf7ec"),
-  shea: hex("#e8dcc3"),
+  // The app's light palette (apps/web/src/index.css :root). Keep in step.
+  cotton: hex("#f4f5f8"),
+  raised: hex("#fcfcfd"),
+  shea: hex("#e9ebf2"),
   indigo: hex("#2a3a8c"),
   indigoDeep: hex("#1b2559"),
-  indigoWash: hex("#dfe3f2"),
-  ink: hex("#221d15"),
-  inkSoft: hex("#57503f"),
-  inkFaint: hex("#8a8168"),
-  line: hex("#ddd3bc"),
-  ochre: hex("#c4622d"),
+  indigoWash: hex("#e3e7f4"),
+  ink: hex("#161a2e"),
+  inkSoft: hex("#474d66"),
+  inkFaint: hex("#666c85"),
+  line: hex("#e0e3eb"),
 };
 
 const PAGE_W = 595.28; // A4
@@ -81,7 +81,7 @@ function drawBand(page: PDFPage) {
   }
 }
 
-/** The app mark: indigo tile, cotton diamond, ochre centre (favicon.svg). */
+/** The app mark: indigo tile, cotton diamond, cotton centre (favicon.svg). */
 function drawMark(page: PDFPage, x: number, y: number, size: number) {
   const s = size / 64;
   page.drawRectangle({ x, y, width: size, height: size, color: C.indigo });
@@ -90,7 +90,7 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
     `M ${32 * s} ${10 * s} L ${52 * s} ${32 * s} L ${32 * s} ${54 * s} L ${12 * s} ${32 * s} Z`,
     { x, y: top, borderColor: C.cotton, borderWidth: 4 * s }
   );
-  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.ochre });
+  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.cotton });
 }
 
 // PDF text can't shape Arabic (joining, marks, right-to-left) or draw colour
@@ -98,14 +98,14 @@ function drawMark(page: PDFPage, x: number, y: number, size: number) {
 // lines are rendered crisply at 3x and placed as images.
 const RASTER = 3;
 const ARABIC_STACK = `"Uthmanic Hafs", "Scheherazade New", "Noto Naskh Arabic", serif`;
-// Canvas can't pick a weight from a variable font (it draws the default, the
-// Black), so mixed lines use the same static regular cut as the vector text.
-const LATIN_FACE = "MindfulVerse PDF Serif";
+// Mixed-script lines are reflections and translations, so they are set in
+// Literata, the app's reading face, from the same static file as the vector text.
+const LATIN_FACE = "MindfulVerse PDF Text";
 const MIXED_STACK = `"${LATIN_FACE}", ${ARABIC_STACK}, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"`;
 
 let latinFace: Promise<void> | null = null;
 function loadLatinFace(): Promise<void> {
-  latinFace ??= new FontFace(LATIN_FACE, "url(/fonts/pdf/fraunces-regular.ttf)")
+  latinFace ??= new FontFace(LATIN_FACE, "url(/fonts/pdf/literata-regular.ttf)")
     .load()
     .then((f) => {
       document.fonts.add(f);
@@ -154,7 +154,7 @@ async function rasterLines(
     ctx.scale(RASTER, RASTER);
     // An opaque cotton ground: glyphs on a transparent canvas get stem-darkened
     // and print noticeably heavier than the vector text around them.
-    ctx.fillStyle = "#f5efe2";
+    ctx.fillStyle = "#f4f5f8";
     ctx.fillRect(0, 0, w, opts.leading);
     ctx.font = fontSpec;
     ctx.fillStyle = opts.color;
@@ -189,11 +189,10 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   doc.setCreator("MindfulVerse");
   doc.setProducer("MindfulVerse");
 
-  // Static Fraunces instances cut from the app's own variable font
-  // (public/fonts/fraunces-2.woff2 → fonttools varLib.instancer, wght 400 /
-  // opsz 14 and wght 600 / opsz 36). PDF viewers need TrueType, not WOFF2.
-  const [regularBytes, semiboldBytes] = await Promise.all(
-    ["/fonts/pdf/fraunces-regular.ttf", "/fonts/pdf/fraunces-semibold.ttf"].map((u) =>
+  // The app's own faces as static TrueType (PDF viewers need TrueType, not
+  // WOFF2): Outfit for labels and headings, Literata for reading text.
+  const [regularBytes, semiboldBytes, textBytes] = await Promise.all(
+    ["/fonts/pdf/outfit-regular.ttf", "/fonts/pdf/outfit-semibold.ttf", "/fonts/pdf/literata-regular.ttf"].map((u) =>
       fetch(u).then((r) => {
         if (!r.ok) throw new Error(`font ${u}`);
         return r.arrayBuffer();
@@ -202,10 +201,14 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   );
   const font = await doc.embedFont(regularBytes, { subset: true });
   const bold = await doc.embedFont(semiboldBytes, { subset: true });
+  const reading = await doc.embedFont(textBytes, { subset: true });
 
-  const drawable = new Set(font.getCharacterSet());
-  const settable = (s: string) =>
-    Array.from(s).every((ch) => /\s/.test(ch) || drawable.has(ch.codePointAt(0)!));
+  const drawable = new Map<PDFFont, Set<number>>();
+  const settable = (s: string, face: PDFFont) => {
+    let set = drawable.get(face);
+    if (!set) drawable.set(face, (set = new Set(face.getCharacterSet())));
+    return Array.from(s).every((ch) => /\s/.test(ch) || set.has(ch.codePointAt(0)!));
+  };
 
   let page!: PDFPage;
   let y = 0;
@@ -242,7 +245,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     const width = opts.quoted ? TEXT_W - INSET : TEXT_W;
     const face = opts.face ?? font;
 
-    if (settable(str)) {
+    if (settable(str, face)) {
       for (const line of wrap(str, face, opts.size, width)) {
         room(opts.leading);
         y -= opts.leading;
@@ -328,7 +331,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
           for (const l of lines) await image(l, 34, 0, true, true);
         }
         if (translation) {
-          await text(`“${translation}”`, { size: 11, color: C.inkSoft, leading: 16.5, quoted: true });
+          await text(`“${translation}”`, { size: 11, color: C.inkSoft, leading: 16.5, quoted: true, face: reading });
         }
         await text(verseLabel, { size: 9, color: C.inkFaint, leading: 15, quoted: true });
         y -= 8;
@@ -340,7 +343,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
         y -= 2;
       }
       // The reflection is the point of the page — it gets the largest type.
-      await text(entry.body, { size: 13, color: C.ink, leading: 20 });
+      await text(entry.body, { size: 13, color: C.ink, leading: 20, face: reading });
       y -= 18;
     }
     y -= 10;
@@ -354,7 +357,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     borderColor: C.indigo,
     borderWidth: 1,
   });
-  page.drawCircle({ x: cx, y, size: 1.6, color: C.ochre });
+  page.drawCircle({ x: cx, y, size: 1.6, color: C.indigo });
   y -= 22;
 
   if (hasTranslations(input)) {
