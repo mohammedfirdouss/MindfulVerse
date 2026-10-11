@@ -1,9 +1,9 @@
 /* ============================================================================
    MindfulVerse — visual identity: West African indigo.
    Built in Nigeria and proud of it: adire indigo-dye blues on raw cotton,
-   kola-nut warmth, bold Sahelian geometry. Arabic set in Harmattan (SIL's
-   typeface for West African Arabic traditions); Latin in Fraunces.
-   One ornament: the adire band. Flat confident color, no parchment preciousness.
+   one accent (the indigo), cool undyed-cotton grounds, bold Sahelian geometry.
+   Arabic in KFGQPC Uthmanic Hafs; interface in Outfit, long reading in Literata.
+   Kola appears only for errors and destructive actions.
    ============================================================================ */
 :root {
   color-scheme: light; /* light-only: native controls stay light in dark-mode OSes */
@@ -76,7 +76,7 @@
   --cloth-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%2393a5e4' stroke-width='1.3' opacity='0.13'%3E%3Cpath d='M22 10.56 L33.44 22 L22 33.44 L10.56 22Z'/%3E%3Cpath d='M22 16.85 L27.15 22 L22 27.15 L16.85 22Z' fill='%2393a5e4' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='44' cy='0' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='0' cy='44' r='3.96' stroke-width='1.2'/%3E%3Ccircle cx='44' cy='44' r='3.96' stroke-width='1.2'/%3E%3Cpath d='M19 0H25M19 44H25M0 19V25M44 19V25' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E");
   --on-cloth: #e9e4d8;
   --on-cloth-soft: #b3ab99;
-  --on-cloth-accent: #dd9059;
+  --on-cloth-accent: #c5cff2;
   --adire-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='12' viewBox='0 0 36 12'%3E%3Crect width='36' height='12' fill='%231b2559'/%3E%3Cpath d='M9 1 14 6 9 11 4 6Z' fill='none' stroke='%2393a5e4' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='2.4' fill='none' stroke='%2393a5e4' stroke-width='1.2'/%3E%3Ccircle cx='27' cy='6' r='0.9' fill='%2393a5e4'/%3E%3C/svg%3E");
 }
 
@@ -105,16 +105,19 @@ a { color: var(--indigo); text-decoration: none; }
 
 h1, h2, h3 {
   font-family: var(--font-read);
-  line-height: 1.15;
+  line-height: 1.12;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
   margin: 0;
   color: var(--indigo-deep);
 }
 h1 { font-size: 2.1rem; }
 h2 { font-size: 1.4rem; }
 
-p { margin: 0 0 0.9em; }
+p { margin: 0 0 0.9em; text-wrap: pretty; }
+::selection { background: var(--indigo-wash); color: var(--indigo-deep); }
+html { caret-color: var(--indigo); accent-color: var(--indigo); }
 
 .container {
   max-width: var(--maxw);
@@ -139,7 +142,7 @@ p { margin: 0 0 0.9em; }
 p.eyebrow { margin: 0 0 6px; }
 p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 
-.translation { color: var(--ink-soft); font-size: calc(1.04rem * var(--read-scale, 1)); line-height: 1.65; }
+.translation { color: var(--ink-soft); font-family: var(--font-text); font-size: calc(1.04rem * var(--read-scale, 1)); line-height: 1.7; }
 
 /* --- Arabic: KFGQPC Uthmanic Hafs — the Madinah mushaf script --- */
 .arabic {
@@ -211,8 +214,8 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
   margin-top: 12px;
   display: inline-flex; align-items: center; gap: 8px;
   background: none; border: none; padding: 0;
-  color: var(--kola); font-family: var(--font-read); font-size: 0.95rem;
-  font-weight: 500; cursor: pointer;
+  color: var(--indigo); font-family: var(--font-read); font-size: 0.95rem;
+  font-weight: 500; cursor: pointer; text-underline-offset: 3px;
 }
 .commentary-open:hover { text-decoration: underline; }
 .commentary-open[disabled] { color: var(--ink-faint); cursor: default; text-decoration: none; }
@@ -250,7 +253,7 @@ p.eyebrow + h1 { margin: 6px 0; } /* wins over .stack's 16px gap */
 .sheet-body { overflow-y: auto; padding: 18px 22px 40px; -webkit-overflow-scrolling: touch; }
 
 /* --- Commentary prose --- */
-.tafsir { font-size: 1rem; line-height: 1.75; color: var(--ink); max-width: 62ch; }
+.tafsir { font-family: var(--font-text); font-size: 1rem; line-height: 1.75; color: var(--ink); max-width: 62ch; }
 .tafsir p { margin: 0 0 1em; }
 .tafsir h2, .tafsir h3 { font-size: 1.05rem; font-weight: 600; color: var(--indigo); margin: 1.4em 0 0.5em; }
 
