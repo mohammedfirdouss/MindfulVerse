@@ -1,5 +1,5 @@
 // The designed journal PDF: the app's indigo-on-cotton identity, its mark and
-// its Fraunces type. Imported lazily by the Journal page, so pdf-lib never
+// its Outfit and Literata type. Imported lazily by the Journal page, so pdf-lib never
 // weighs on app start.
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
@@ -189,11 +189,10 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   doc.setCreator("MindfulVerse");
   doc.setProducer("MindfulVerse");
 
-  // Static Fraunces instances cut from the app's own variable font
-  // (public/fonts/fraunces-2.woff2 → fonttools varLib.instancer, wght 400 /
-  // opsz 14 and wght 600 / opsz 36). PDF viewers need TrueType, not WOFF2.
-  const [regularBytes, semiboldBytes] = await Promise.all(
-    ["/fonts/pdf/fraunces-regular.ttf", "/fonts/pdf/fraunces-semibold.ttf"].map((u) =>
+  // The app's own faces as static TrueType (PDF viewers need TrueType, not
+  // WOFF2): Outfit for labels and headings, Literata for reading text.
+  const [regularBytes, semiboldBytes, textBytes] = await Promise.all(
+    ["/fonts/pdf/outfit-regular.ttf", "/fonts/pdf/outfit-semibold.ttf", "/fonts/pdf/literata-regular.ttf"].map((u) =>
       fetch(u).then((r) => {
         if (!r.ok) throw new Error(`font ${u}`);
         return r.arrayBuffer();
@@ -202,10 +201,14 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   );
   const font = await doc.embedFont(regularBytes, { subset: true });
   const bold = await doc.embedFont(semiboldBytes, { subset: true });
+  const reading = await doc.embedFont(textBytes, { subset: true });
 
-  const drawable = new Set(font.getCharacterSet());
-  const settable = (s: string) =>
-    Array.from(s).every((ch) => /\s/.test(ch) || drawable.has(ch.codePointAt(0)!));
+  const drawable = new Map<PDFFont, Set<number>>();
+  const settable = (s: string, face: PDFFont) => {
+    let set = drawable.get(face);
+    if (!set) drawable.set(face, (set = new Set(face.getCharacterSet())));
+    return Array.from(s).every((ch) => /\s/.test(ch) || set.has(ch.codePointAt(0)!));
+  };
 
   let page!: PDFPage;
   let y = 0;
@@ -242,7 +245,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     const width = opts.quoted ? TEXT_W - INSET : TEXT_W;
     const face = opts.face ?? font;
 
-    if (settable(str)) {
+    if (settable(str, face)) {
       for (const line of wrap(str, face, opts.size, width)) {
         room(opts.leading);
         y -= opts.leading;
@@ -328,7 +331,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
           for (const l of lines) await image(l, 34, 0, true, true);
         }
         if (translation) {
-          await text(`“${translation}”`, { size: 11, color: C.inkSoft, leading: 16.5, quoted: true });
+          await text(`“${translation}”`, { size: 11, color: C.inkSoft, leading: 16.5, quoted: true, face: reading });
         }
         await text(verseLabel, { size: 9, color: C.inkFaint, leading: 15, quoted: true });
         y -= 8;
@@ -340,7 +343,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
         y -= 2;
       }
       // The reflection is the point of the page — it gets the largest type.
-      await text(entry.body, { size: 13, color: C.ink, leading: 20 });
+      await text(entry.body, { size: 13, color: C.ink, leading: 20, face: reading });
       y -= 18;
     }
     y -= 10;
