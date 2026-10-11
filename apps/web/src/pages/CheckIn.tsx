@@ -270,3 +270,181 @@ export default function CheckIn() {
     setSaved(true);
   }
 
+
+  const atVerse = stage === "verse";
+  const hasDraft = journalBody.trim().length > 0;
+
+  return (
+    <div className={`stack ci-page${atVerse ? " at-verse" : ""}`}>
+      <header>
+        <p className="eyebrow">Daily check-in</p>
+        {atVerse ? (
+          <h1>A quiet moment</h1>
+        ) : (
+          <>
+            <h1 id="ci-heart-title">How is your heart today?</h1>
+            <p className="soft ci-lede">Tap a word if one fits. There&rsquo;s no wrong answer.</p>
+          </>
+        )}
+      </header>
+
+      {/* The heart: one tap, no typing, and optional. Once the verse is open
+          the chips stay here, compact, so a feeling can always be changed.
+          Kept in the app's quiet indigo voice. */}
+      <section className="ci-feel" aria-labelledby="ci-heart-title">
+        {atVerse && (
+          <h2 className="ci-feel-label" id="ci-heart-title">How is your heart today?</h2>
+        )}
+        {emotionsError ? (
+          <p className="muted">
+            The reminders are still being gathered. Come back in a little while
+            and they will be here.
+          </p>
+        ) : emotions.length === 0 ? (
+          <p className="muted">Gathering a few words for you&hellip;</p>
+        ) : (
+          <div className="ci-chips">
+            {emotions.map((entry) => {
+              const isActive = entry.id === selectedId;
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  className="ci-chip"
+                  aria-pressed={isActive}
+                  onClick={() => selectEmotion(entry)}
+                >
+                  {entry.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {!atVerse && (
+          <button type="button" className="ci-skip" onClick={skipToVerse}>
+            Just show me today&rsquo;s verse
+          </button>
+        )}
+      </section>
+
+      {atVerse && (
+        <div className="ci-reveal">
+          {/* Verse of the day: the anchor, laid on the dyed cloth. */}
+          <section
+            className="cloth ci-verse"
+            aria-labelledby="ci-verse-title"
+            ref={verseRef}
+            tabIndex={-1}
+          >
+            <p className="cloth-eyebrow" id="ci-verse-title">Verse of the day</p>
+            {dailyError ? (
+              <p className="cloth-soft ci-note">
+                Today&rsquo;s verse is still being gathered. Come back in a little
+                while and it will be waiting for you.
+              </p>
+            ) : dailyAyah ? (
+              <div style={revealStyle(0, dailyMounted, reduced)}>
+                <AyahView
+                  ayah={dailyAyah}
+                  surahName={surahNames.get(dailyAyah.surah)}
+                  onCloth
+                  trailing={
+                    <span className="ci-share">
+                      {shareResult && (
+                        <span className="cloth-soft ci-share-status" role="status">
+                          {shareResult === "shared"
+                            ? "Shared"
+                            : shareResult === "copied"
+                              ? "Copied to clipboard"
+                              : "Couldn’t share"}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="ci-share-btn"
+                        onClick={() => {
+                          void shareVerse(dailyAyah, "checkin").then((r: string) => {
+                            // Closing the share sheet is not an outcome worth confirming.
+                            if (r !== "cancelled") setShareResult(r as "shared" | "copied" | "failed");
+                          });
+                        }}
+                      >
+                        Share this verse
+                      </button>
+                    </span>
+                  }
+                />
+              </div>
+            ) : (
+              <p className="cloth-soft ci-note">Bringing today&rsquo;s verse to you&hellip;</p>
+            )}
+          </section>
+
+          {/* The feeling's verses: a gentle follow-on beneath the anchor. */}
+          {selected && (
+            <section className="ci-framed" aria-labelledby="ci-framing" key={selected.id}>
+              <h2 className="ci-framing" id="ci-framing">{selected.framing}</h2>
+              {emotionAyahsError ? (
+                <p className="muted">
+                  These verses are still being gathered. Come back in a little
+                  while and they will be here for you.
+                </p>
+              ) : emotionLoading ? (
+                <p className="muted">Gathering a few verses&hellip;</p>
+              ) : (
+                emotionAyahs.map((ayah, i) => (
+                  <div
+                    key={ayah.verseKey}
+                    className="card stack"
+                    style={revealStyle(i, emotionMounted, reduced)}
+                  >
+                    <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} />
+                  </div>
+                ))
+              )}
+            </section>
+          )}
+
+          <DyeRule className="ci-rule" />
+
+          {/* An optional reflection, last, on the open cotton. */}
+          <section className="ci-section">
+            <label htmlFor="checkin-journal" className="ci-heading">
+              {VERSE_PROMPT}
+            </label>
+            <p className="muted ci-hint" id="checkin-journal-hint">
+              Only if you&rsquo;d like. A line is plenty.
+            </p>
+            <textarea
+              id="checkin-journal"
+              aria-describedby="checkin-journal-hint"
+              value={journalBody}
+              onChange={(e) => {
+                setJournalBody(e.target.value);
+                writeDraft(e.target.value);
+                if (saved) setSaved(false);
+              }}
+              placeholder="Write as much or as little as you like…"
+              rows={5}
+              className="ci-textarea"
+            />
+            <div className="ci-actions">
+              <button
+                type="button"
+                className="btn ci-save"
+                onClick={saveJournal}
+                disabled={!hasDraft}
+              >
+                Keep in journal
+              </button>
+              {hasDraft && <span className="muted ci-draft">Draft kept</span>}
+              <span className="soft ci-kept" role="status">
+                {saved && !hasDraft ? "Kept in your journal ✓" : ""}
+              </span>
+            </div>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
