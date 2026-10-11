@@ -1,3 +1,4 @@
+import { verseKeyFor as appVerseKeyFor } from "../packages/core/dailyVerse";
 import { describe, it, expect } from "vitest";
 import {
   minutesOfDayInZone, localDayIndexInZone, verseKeyForDayIndex, isDue, localDateInZone,
@@ -37,9 +38,11 @@ describe("timezone math", () => {
 
 describe("verse rotation", () => {
   it("stride-53 walk over a 139-verse pool, matching packages/core/dailyVerse.ts", () => {
-    expect(verseKeyForDayIndex(0)).toBe("94:5");    // index 0
-    expect(verseKeyForDayIndex(1)).toBe("3:31");    // (1*53)%139 = 53
-    expect(verseKeyForDayIndex(139)).toBe(verseKeyForDayIndex(0)); // full cycle
+    const id = "4b0c2f4e-0000-4000-8000-000000000001";
+    expect(verseKeyForDayIndex(0, id)).toBe(appVerseKeyFor(0, id)); // same verse as the app
+    expect(verseKeyForDayIndex(20_000, id)).toBe(appVerseKeyFor(20_000, id));
+    expect(verseKeyForDayIndex(139, id)).toBe(verseKeyForDayIndex(0, id)); // full cycle
+    expect(verseKeyForDayIndex(5, "someone-else")).not.toBe(verseKeyForDayIndex(5, id));
   });
 });
 

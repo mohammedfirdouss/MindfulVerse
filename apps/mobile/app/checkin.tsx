@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, KeyboardAvoidingView, Pressable, TextInput, View } from "react-native";
 import { track } from "@mindfulverse/core/analytics";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { useAccount } from "@mindfulverse/core/sync/auth";
 import { loadAyahsByKeys, loadEmotions, loadSurahs } from "@mindfulverse/core/data";
 import { addEntry } from "@mindfulverse/core/journal";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
@@ -29,9 +30,12 @@ export default function CheckIn() {
 
   // Shared with the Home hero — one verse of the day across the app.
   const [dailyKey, setDailyKey] = useState<string | null>(null);
+  const { user, loading: accountLoading } = useAccount();
+  const accountId = user?.id ?? null;
+  // Each person has their own verse; wait for the account so it doesn't flip.
   const refreshKey = useCallback(() => {
-    void todayVerseKey().then(setDailyKey);
-  }, []);
+    if (!accountLoading) void todayVerseKey(accountId).then(setDailyKey);
+  }, [accountId, accountLoading]);
   useFocusEffect(
     useCallback(() => {
       refreshKey();

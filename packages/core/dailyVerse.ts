@@ -1,6 +1,8 @@
 // The verse of the day — shared by Home and the daily check-in so the whole
-// app agrees on one verse per day. Deterministic: stable across reloads and
-// identical for every visitor on the same date; rotates at local midnight.
+// app agrees on one verse per day. Deterministic per person: stable across
+// reloads, rotates at local midnight, and offset by the person's account id
+// (or, signed out, a random id kept on this device) so two people rarely get
+// the same verse on the same day.
 //
 // CURATION RULE (theological safety): every verse here is individually vetted
 // against the bundled translation to be self-evidently comforting or uplifting
@@ -39,14 +41,48 @@ function localDayIndex(): number {
   return Math.floor(startOfDay.getTime() / 86_400_000);
 }
 
-/** Today's verse key ("surah:ayah"). Async to keep a stable API for callers
- *  (and room to grow the source of verses later without touching pages).
+/** Where this person's walk through the pool starts: FNV-1a of their seed. */
+export function verseOffset(seed: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h % DAILY_VERSES.length;
+}
+
+/** The verse for a day index and a person.
  *
  *  Stride walk: the pool length (139) is prime, so stepping by 53 each day
  *  visits every verse exactly once per 139-day cycle — zero repeats, and
  *  consecutive days land ~53 positions apart (different categories), unlike
- *  a raw hash which can serve the same verse twice in one week. */
-export async function todayVerseKey(): Promise<string> {
+ *  a raw hash which can serve the same verse twice in one week. The person's
+ *  offset shifts where that walk starts. */
+export function verseKeyFor(dayIndex: number, seed: string): string {
   const n = DAILY_VERSES.length;
-  return DAILY_VERSES[(localDayIndex() * 53) % n];
+  return DAILY_VERSES[(((dayIndex * 53 + verseOffset(seed)) % n) + n) % n];
+}
+
+const DEVICE_SEED_KEY = "mindfulverse.verseSeed.v1";
+
+/** A random id for this device, so signed-out visitors differ too. */
+function deviceSeed(): string {
+  try {
+    let seed = localStorage.getItem(DEVICE_SEED_KEY);
+    if (!seed) {
+      seed = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem(DEVICE_SEED_KEY, seed);
+    }
+    return seed;
+  } catch {
+    return "device";
+  }
+}
+
+/** Today's verse key ("surah:ayah") for the signed-in account, or for this
+ *  device when signed out. Pass the account id so the push reminder
+ *  (functions/send-reminders.ts, seeded by user_id) names the same verse.
+ *  Async to keep a stable API for callers. */
+export async function todayVerseKey(accountId?: string | null): Promise<string> {
+  return verseKeyFor(localDayIndex(), accountId || deviceSeed());
 }

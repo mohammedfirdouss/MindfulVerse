@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { useAccount } from "@mindfulverse/core/sync/auth";
 import { checkedInToday } from "@mindfulverse/core/journal";
 import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
 import type { Ayah } from "@mindfulverse/core/types";
@@ -33,6 +34,8 @@ const entries: Entry[] = [
 ];
 
 export default function Home() {
+  const { user, loading: accountLoading } = useAccount();
+  const accountId = user?.id ?? null;
   const [hero, setHero] = useState<Ayah | null>(null);
   const [surahName, setSurahName] = useState<string>("");
   const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
@@ -48,7 +51,9 @@ export default function Home() {
   useEffect(() => {
     let active = true;
     // Today's verse — from anywhere in the Qur'an, same as the check-in page.
-    todayVerseKey()
+    // Each person has their own; wait for the account so it doesn't flip.
+    if (accountLoading) return;
+    todayVerseKey(accountId)
       .then((key) => loadAyahsByKeys([key]))
       .then(async (a) => {
         if (!active) return;
@@ -67,7 +72,7 @@ export default function Home() {
       active = false;
       cancelAnimationFrame(id);
     };
-  }, []);
+  }, [accountId, accountLoading]);
 
   const reveal = (delay: number): React.CSSProperties =>
     reduced

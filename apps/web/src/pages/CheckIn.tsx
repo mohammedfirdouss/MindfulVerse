@@ -4,6 +4,7 @@ import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
 import { loadAyahsByKeys, loadEmotions, loadSurahs } from "@mindfulverse/core/data";
 import { addEntry } from "@mindfulverse/core/journal";
 import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { useAccount } from "@mindfulverse/core/sync/auth";
 import { shareVerse } from "../lib/share";
 import { track } from "@mindfulverse/core/analytics";
 import { DyeRule } from "../components/Adire";
@@ -91,10 +92,14 @@ function AyahView({
 export default function CheckIn() {
   // Shared with the Home hero — one verse of the day across the app.
   const [dailyKey, setDailyKey] = useState<string | null>(null);
+  const { user, loading: accountLoading } = useAccount();
+  const accountId = user?.id ?? null;
   useEffect(() => {
+    // Each person has their own verse; wait for the account so it doesn't flip.
+    if (accountLoading) return;
     let alive = true;
     const refresh = () => {
-      todayVerseKey().then((k) => alive && setDailyKey(k));
+      todayVerseKey(accountId).then((k) => alive && setDailyKey(k));
     };
     refresh();
     // A tab left open past midnight should greet the new day's verse, not
@@ -107,7 +112,7 @@ export default function CheckIn() {
       alive = false;
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [accountId, accountLoading]);
 
   useEffect(() => {
     document.title = "Daily check-in — MindfulVerse";
