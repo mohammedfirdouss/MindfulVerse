@@ -55,8 +55,10 @@ const tile = (pad) => markSvg({ ink: C.cotton, ground: C.indigo, pad });
 const bare = (ink, pad) => markSvg({ ink, pad });
 
 // Web install icons. Full-bleed tiles so maskable crops keep the word inside.
-await png(tile(0.24), 192, "apps/web/public/icon-192.png");
-await png(tile(0.24), 512, "apps/web/public/icon-512.png");
+// The file names carry the mark's version: browsers only refresh an installed
+// app's icon when the manifest points at a new URL, so bump it when the mark changes.
+await png(tile(0.24), 192, "apps/web/public/mark-v2-192.png");
+await png(tile(0.24), 512, "apps/web/public/mark-v2-512.png");
 // Phone: iOS rounds the corners itself; Android's adaptive icon draws the
 // cotton word on the indigo background from app.json, inside its 66% safe zone.
 await png(tile(0.24), 1024, "apps/mobile/assets/images/icon.png");
