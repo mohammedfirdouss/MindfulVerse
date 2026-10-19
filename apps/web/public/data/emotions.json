@@ -94,5 +94,53 @@
       "2:152",
       "2:186"
     ]
+  },
+  {
+    "id": "regretful",
+    "label": "Regretful",
+    "framing": "Verses on forgiveness",
+    "verseKeys": [
+      "39:53",
+      "4:110",
+      "6:54",
+      "3:135",
+      "11:114"
+    ]
+  },
+  {
+    "id": "afraid",
+    "label": "Afraid",
+    "framing": "Verses on safety in God",
+    "verseKeys": [
+      "20:46",
+      "9:51",
+      "10:62",
+      "41:30",
+      "65:3"
+    ]
+  },
+  {
+    "id": "angry",
+    "label": "Angry",
+    "framing": "Verses on patience and pardon",
+    "verseKeys": [
+      "3:134",
+      "41:34",
+      "42:37",
+      "42:43",
+      "7:199"
+    ]
+  },
+  {
+    "id": "weary",
+    "label": "Weary",
+    "framing": "Verses on rest for the heart",
+    "verseKeys": [
+      "93:3",
+      "2:286",
+      "13:28",
+      "94:8",
+      "2:153"
+    ]
   }
 ]
