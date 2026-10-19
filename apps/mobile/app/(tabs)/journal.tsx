@@ -18,8 +18,7 @@ import {
   toSections,
 } from "../../src/components/Journal/journalText";
 import { space, useTheme } from "../../src/theme";
-import { AdireCloth, Button, Screen, Text, useOnCloth } from "../../src/ui";
-import { JournalIcon } from "../../src/ui/icons";
+import { BrandMark, Button, Screen, Text } from "../../src/ui";
 
 /** Empty state: quiet and minimal — one line of intent, one way to begin. */
 function EmptyJournal() {
@@ -38,22 +37,9 @@ function EmptyJournal() {
 }
 
 /** A diamond of indigo cloth with the reed pen at its centre. */
+/** The MindfulVerse mark above the invitation to begin. */
 function ClothSwatch() {
-  const cloth = useOnCloth();
-  const size = 96;
-  return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={{ width: size * 1.42, height: size * 1.42, alignItems: "center", justifyContent: "center" }}
-    >
-      <AdireCloth tile={30} motifOpacity={0.16} style={{ width: size, height: size, transform: [{ rotate: "45deg" }] }}>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-45deg" }] }}>
-          <JournalIcon color={cloth.strong} focused={false} size={36} />
-        </View>
-      </AdireCloth>
-    </View>
-  );
+  return <BrandMark size={88} />;
 }
 
 interface Section {
