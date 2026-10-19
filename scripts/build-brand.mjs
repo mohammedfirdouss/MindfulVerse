@@ -1,7 +1,7 @@
 // Renders every logo asset from the one mark in packages/core/brand.ts.
 // Run after changing the mark: `npm run build:brand` (needs Playwright's
 // Chromium, already installed for the web e2e tests).
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -56,12 +56,13 @@ await png(bare(C.indigoDeep, 0.04), 512, "apps/mobile/assets/images/splash-icon.
 await png(bare(C.nightInk, 0.04), 512, "apps/mobile/assets/images/splash-icon-dark.png");
 
 // Social preview (og:image): the mark, the name and one line, on cotton.
-const fonts = resolve(root, "apps/web/public/fonts");
+// Fonts are inlined: a page set from a string cannot read files from disk.
+const font = (f) => `url(data:font/woff2;base64,${readFileSync(resolve(root, "apps/web/public/fonts", f)).toString("base64")})`;
 await page.setViewportSize({ width: 1200, height: 630 });
 await page.setContent(`
 <style>
-  @font-face { font-family: Outfit; font-weight: 600; src: url(file://${fonts}/outfit-semibold.woff2); }
-  @font-face { font-family: Literata; src: url(file://${fonts}/literata-regular.woff2); }
+  @font-face { font-family: Outfit; font-weight: 600; src: ${font("outfit-semibold.woff2")}; }
+  @font-face { font-family: Literata; src: ${font("literata-regular.woff2")}; }
   html, body { margin: 0; width: 1200px; height: 630px; background: ${C.cotton}; }
   .band { height: 22px; background: ${C.indigo}; }
   main { display: flex; align-items: center; gap: 64px; padding: 0 96px; height: 608px; }
@@ -75,7 +76,7 @@ await page.setContent(`
   <div class="mark">${tile(0.2).replace("<svg ", '<svg style="border-radius:22%" ')}</div>
   <div><h1>MindfulVerse</h1><p>Sit with the Qur’an. A verse for today, guided reflection and a private journal.</p></div>
 </main>`);
-await page.waitForTimeout(300);
+await page.evaluate(() => document.fonts.ready);
 await page.screenshot({ path: out("apps/web/public/og.png") });
 
 await browser.close();
