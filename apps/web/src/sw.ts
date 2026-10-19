@@ -46,8 +46,8 @@ self.addEventListener("push", (event) => {
       // `||` not `??`: an empty body (verse text lookup missed) must still
       // fall back to copy, otherwise the notification shows a blank line.
       body: payload.body || "Today's verse is waiting for you.",
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
+      icon: "/mark-v2-192.png",
+      badge: "/mark-v2-192.png",
       data: { url: payload.url ?? "/checkin" },
     })
   );

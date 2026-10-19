@@ -15,14 +15,15 @@ export default defineConfig({
       manifest: {
         name: "MindfulVerse",
         short_name: "MindfulVerse",
-        description: "Quranic contemplation — tadabbur, daily check-in, journaling.",
+        description: "Quranic contemplation: tadabbur, daily check-in, journaling.",
         theme_color: "#2a3a8c",
         background_color: "#f4f5f8",
         display: "standalone",
         start_url: "/",
         icons: [
-          { src: "icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "mark-v2-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "mark-v2-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "mark-v2-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       // Custom SW (src/sw.ts) handles precache + /data runtime caching (parity
