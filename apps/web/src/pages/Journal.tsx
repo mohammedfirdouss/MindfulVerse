@@ -13,6 +13,7 @@ import {
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
 import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
+import { BrandMark } from "../components/Adire";
 import "./journal-empty.css";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
@@ -21,22 +22,7 @@ const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
 function ClothSwatch() {
   return (
     <div className="journal-swatch" aria-hidden="true">
-      <div className="cloth">
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          focusable="false"
-        >
-          <path d="M6 17.2 7 13.4l8.9-8.9a1.9 1.9 0 0 1 2.7 2.7l-8.9 8.9Z" />
-          <path d="M3.5 20.5h17" />
-        </svg>
-      </div>
+      <BrandMark size={88} />
     </div>
   );
 }

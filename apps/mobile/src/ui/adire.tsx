@@ -7,6 +7,7 @@ import { useId, type ReactNode } from "react";
 import { View, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, Path, Pattern, Rect } from "react-native-svg";
+import { markBounds, markPath } from "@mindfulverse/core/brand";
 import { fonts, useTheme } from "../theme";
 import { Text } from "./Text";
 
@@ -190,4 +191,23 @@ export function useOnCloth() {
   return scheme === "dark"
     ? { strong: colors.ink, soft: colors.inkSoft, accent: "#c5cff2" }
     : { strong: colors.cottonRaised, soft: "#d6d9ea", accent: "#b9c4ec" };
+}
+
+/** The MindfulVerse mark: تدبر in square Kufic, left pale inside an indigo tile
+ *  (packages/core/brand.ts, the same construction as the app icon). */
+export function BrandMark({ size = 28 }: { size?: number }) {
+  const { colors } = useTheme();
+  const b = markBounds();
+  const span = Math.max(b.width, b.height);
+  const box = span / (1 - 2 * 0.16);
+  const ox = b.minX - (box - b.width) / 2;
+  const oy = b.minY - (box - b.height) / 2;
+  return (
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} viewBox={`${ox} ${oy} ${box} ${box}`}>
+        <Rect x={ox} y={oy} width={box} height={box} rx={box * 0.22} fill={colors.indigo} />
+        <Path d={markPath()} fill={colors.cotton} />
+      </Svg>
+    </View>
+  );
 }
