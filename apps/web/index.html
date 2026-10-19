@@ -10,14 +10,14 @@
     <meta name="description" content="Sit with the Qur’an — a verse for today, guided tadabbur reflection, dhikr paced to your breath, and a private journal. Free, works offline." />
     <!-- Social previews (WhatsApp, X, etc.) -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="MindfulVerse — Sit with the Qur’an" />
+    <meta property="og:title" content="MindfulVerse: Sit with the Qur’an" />
     <meta property="og:description" content="A verse for today, guided reflection, dhikr & a private journal. Free, no sign-up, works offline." />
     <meta property="og:url" content="https://mindfulverse.vercel.app/" />
     <meta property="og:image" content="https://mindfulverse.vercel.app/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="MindfulVerse — Sit with the Qur’an" />
+    <meta name="twitter:title" content="MindfulVerse: Sit with the Qur’an" />
     <meta name="twitter:description" content="A verse for today, guided reflection, dhikr & a private journal. Free, no sign-up, works offline." />
     <meta name="twitter:image" content="https://mindfulverse.vercel.app/og.png" />
     <style>
@@ -25,14 +25,14 @@
       #splash {
         position: fixed; inset: 0; z-index: 100;
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-        background: #2a3a8c; color: #f5efe2;
+        background: #2a3a8c; color: #f4f5f8;
         transition: opacity 0.4s ease;
       }
-      [data-theme="dark"] #splash { background: #14161f; color: #93a5e4; }
+      [data-theme="dark"] #splash { background: #12141d; color: #b5c2ef; }
       #splash.done { opacity: 0; pointer-events: none; }
       #splash svg { width: 108px; height: 108px; }
       #splash .word {
-        font-family: Georgia, serif; font-size: 1.35rem; letter-spacing: 0.02em;
+        font-family: "Outfit", system-ui, sans-serif; font-weight: 500; font-size: 1.35rem; letter-spacing: -0.01em;
       }
       #splash .mark { animation: splash-breathe 1.8s ease-in-out infinite; }
       @keyframes splash-breathe {
@@ -52,11 +52,7 @@
       } catch (e) {}
     </script>
     <div id="splash" aria-hidden="true">
-      <div class="mark">
-        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-          <path d="M32 10 52 32 32 54 12 32Z" fill="none" stroke="currentColor" stroke-width="4"/>
-          <circle cx="32" cy="32" r="5" fill="#c4622d"/>
-        </svg>
+      <div class="mark"><!-- brand:splash --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0.391 1.891 15.217 15.217"><path fill="currentColor" d="M13 7h1v4h-1zM12 5h1v1h-1zM14 5h1v1h-1zM9 10h5v1h-5zM9 5h1v6h-1zM7 5h2v1h-2zM5 8h1v3h-1zM5 12h1v1h-1zM2 10h4v1h-4zM2 10h1v4h-1zM1 13h1v1h-1z"/></svg><!-- /brand:splash -->
       </div>
       <div class="word">MindfulVerse</div>
     </div>

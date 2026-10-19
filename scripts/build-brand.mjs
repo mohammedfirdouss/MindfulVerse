@@ -26,6 +26,16 @@ const out = (p) => {
   return f;
 };
 
+// Web loading splash (index.html): the word in currentColor between the markers.
+const html = resolve(root, "apps/web/index.html");
+writeFileSync(
+  html,
+  readFileSync(html, "utf8").replace(
+    /<!-- brand:splash -->(?:[\s\S]*?<!-- \/brand:splash -->)?/,
+    `<!-- brand:splash -->${markSvg({ ink: "currentColor", pad: 0.04 })}<!-- /brand:splash -->`,
+  ),
+);
+
 // Browser tab: the tile (concept B), padded tighter so it holds at 16 px.
 writeFileSync(out("apps/web/public/favicon.svg"), markSvg({ ink: C.cotton, ground: C.indigo, pad: 0.12, radius: 0.18 }) + "\n");
 
