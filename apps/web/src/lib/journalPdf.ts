@@ -3,6 +3,7 @@
 // weighs on app start.
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import { MARK_RECTS, markBounds } from "@mindfulverse/core/brand";
 import {
   exportedLabel,
   spanLabel,
@@ -81,16 +82,25 @@ function drawBand(page: PDFPage) {
   }
 }
 
-/** The app mark: indigo tile, cotton diamond, cotton centre (favicon.svg). */
+/** The app mark (packages/core/brand.ts): تدبر in square Kufic, cotton on an
+ *  indigo tile, the same construction as the favicon and app icon. */
 function drawMark(page: PDFPage, x: number, y: number, size: number) {
-  const s = size / 64;
   page.drawRectangle({ x, y, width: size, height: size, color: C.indigo });
-  const top = y + size;
-  page.drawSvgPath(
-    `M ${32 * s} ${10 * s} L ${52 * s} ${32 * s} L ${32 * s} ${54 * s} L ${12 * s} ${32 * s} Z`,
-    { x, y: top, borderColor: C.cotton, borderWidth: 4 * s }
-  );
-  page.drawCircle({ x: x + 32 * s, y: top - 32 * s, size: 5 * s, color: C.cotton });
+  const b = markBounds();
+  const span = Math.max(b.width, b.height);
+  const unit = (size * (1 - 2 * 0.18)) / span; // grid unit in points, 18% padding
+  const ox = x + (size - b.width * unit) / 2;
+  const top = y + size - (size - b.height * unit) / 2;
+  for (const [gx, gy, w, h] of MARK_RECTS) {
+    // Grid y runs down; PDF y runs up.
+    page.drawRectangle({
+      x: ox + (gx - b.minX) * unit,
+      y: top - (gy - b.minY + h) * unit,
+      width: w * unit,
+      height: h * unit,
+      color: C.cotton,
+    });
+  }
 }
 
 // PDF text can't shape Arabic (joining, marks, right-to-left) or draw colour

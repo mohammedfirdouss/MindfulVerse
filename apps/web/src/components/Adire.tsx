@@ -2,6 +2,7 @@
 // diamond numerals, the dye-rule, the surah title plate, and the section icons.
 // Styles live in index.css under "Adire language".
 import type { ReactNode } from "react";
+import { markBounds, markPath } from "@mindfulverse/core/brand";
 import { arabicSurahName, revelationPlace } from "@mindfulverse/core/surahNames";
 
 /** A numeral in the adire diamond: solid indigo, or an indigo outline. */
@@ -127,5 +128,28 @@ export function ChevronIcon() {
     <Icon size={18}>
       <path d="M9 5l7 7-7 7" strokeWidth="2" />
     </Icon>
+  );
+}
+
+/** The MindfulVerse mark: تدبر in square Kufic, left pale inside an indigo tile
+ *  (packages/core/brand.ts). Decorative; pair it with the visible name. */
+export function BrandMark({ size = 28 }: { size?: number }) {
+  const b = markBounds();
+  const span = Math.max(b.width, b.height);
+  const box = span / (1 - 2 * 0.16);
+  const ox = b.minX - (box - b.width) / 2;
+  const oy = b.minY - (box - b.height) / 2;
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width={size}
+      height={size}
+      viewBox={`${ox} ${oy} ${box} ${box}`}
+      style={{ flex: "none", display: "block" }}
+    >
+      <rect x={ox} y={oy} width={box} height={box} rx={box * 0.22} fill="var(--indigo)" />
+      <path d={markPath()} fill="var(--cotton)" />
+    </svg>
   );
 }

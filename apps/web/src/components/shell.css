@@ -49,9 +49,10 @@
     padding: 0 10px 22px;
     white-space: nowrap;
   }
+  .wordmark-full { display: inline-flex; align-items: center; gap: 10px; }
   .wordmark-mini { display: none; }
   .shell-collapsed .wordmark-full { display: none; }
-  .shell-collapsed .wordmark-mini { display: inline; }
+  .shell-collapsed .wordmark-mini { display: inline-flex; justify-content: center; }
   .shell-collapsed .side-wordmark { text-align: center; padding-left: 0; padding-right: 0; }
 
   .side-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }

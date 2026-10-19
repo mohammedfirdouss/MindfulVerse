@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
+import { BrandMark } from "./Adire";
 import InstallPrompt from "./InstallPrompt";
 import "./shell.css";
 
@@ -144,8 +145,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className={collapsed ? "shell shell-collapsed" : "shell"}>
       <nav className="sidebar" aria-label="Primary">
         <div className="side-wordmark" aria-hidden={collapsed}>
-          <span className="wordmark-full">MindfulVerse</span>
-          <span className="wordmark-mini" aria-hidden="true">M</span>
+          <span className="wordmark-full">
+            <BrandMark size={30} />
+            MindfulVerse
+          </span>
+          <span className="wordmark-mini" aria-hidden="true">
+            <BrandMark size={30} />
+          </span>
         </div>
         <div className="side-links">
           {tabs.map((t) => (
