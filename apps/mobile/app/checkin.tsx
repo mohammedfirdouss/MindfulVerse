@@ -24,6 +24,9 @@ import { useReducedMotion } from "../src/ui/FadeRise";
 
 const VERSE_PROMPT = "What stays with you from this verse?";
 
+/** Verses shown for a feeling before "Show more". */
+const FIRST_VERSES = 3;
+
 export default function CheckIn() {
   const { colors } = useTheme();
   const cloth = useOnCloth();
@@ -90,6 +93,8 @@ export default function CheckIn() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [emotionAyahs, setEmotionAyahs] = useState<Ayah[]>([]);
   const [emotionAyahsError, setEmotionAyahsError] = useState(false);
+  // Three verses keep the screen calm; the rest wait behind "Show more".
+  const [showAllVerses, setShowAllVerses] = useState(false);
   const [emotionLoading, setEmotionLoading] = useState(false);
   // Only the latest emotion tap may fill the list — a slow earlier fetch must
   // not land under a newer framing.
@@ -138,6 +143,7 @@ export default function CheckIn() {
     setSelectedId(entry.id);
     setEmotionAyahs([]);
     setEmotionAyahsError(false);
+    setShowAllVerses(false);
     setEmotionLoading(true);
     track({ type: "checkin_view", emotion: entry.id });
     const req = ++emotionReq.current;
@@ -352,13 +358,31 @@ export default function CheckIn() {
                 ) : emotionLoading ? (
                   <Text variant="muted">Gathering a few verses…</Text>
                 ) : (
-                  emotionAyahs.map((ayah, i) => (
-                    <Reveal key={ayah.verseKey} reduce={reduce} delay={Math.min(i * 40, 120)}>
-                      <Card>
-                        <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} scale={scale} />
-                      </Card>
-                    </Reveal>
-                  ))
+                  <>
+                    {emotionAyahs.slice(0, showAllVerses ? undefined : FIRST_VERSES).map((ayah, i) => (
+                      <Reveal
+                        key={ayah.verseKey}
+                        reduce={reduce}
+                        delay={Math.min((i < FIRST_VERSES ? i : i - FIRST_VERSES) * 40, 120)}
+                      >
+                        <Card>
+                          <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} scale={scale} />
+                        </Card>
+                      </Reveal>
+                    ))}
+                    {!showAllVerses && emotionAyahs.length > FIRST_VERSES ? (
+                      <View style={{ alignItems: "flex-start" }}>
+                        <Button
+                          kind="ghost"
+                          title={`Show ${emotionAyahs.length - FIRST_VERSES} more ${
+                            emotionAyahs.length - FIRST_VERSES === 1 ? "verse" : "verses"
+                          }`}
+                          accessibilityState={{ expanded: false }}
+                          onPress={() => setShowAllVerses(true)}
+                        />
+                      </View>
+                    ) : null}
+                  </>
                 )}
               </Reveal>
             ) : null}
