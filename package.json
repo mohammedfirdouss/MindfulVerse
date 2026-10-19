@@ -14,7 +14,8 @@
     "typecheck": "npm run typecheck -w @mindfulverse/core",
     "build:data": "node scripts/build-data.mjs",
     "test": "vitest run",
-    "test:e2e": "npm run test:e2e -w @mindfulverse/web"
+    "test:e2e": "npm run test:e2e -w @mindfulverse/web",
+    "build:brand": "node scripts/build-brand.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.49",
