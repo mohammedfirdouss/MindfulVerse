@@ -69,7 +69,7 @@ await page.setContent(`
   .mark { width: 300px; height: 300px; flex: none; }
   .mark svg { width: 100%; height: 100%; }
   h1 { font: 600 88px/1 Outfit, sans-serif; letter-spacing: -0.03em; color: ${C.indigoDeep}; margin: 0 0 22px; }
-  p { font: 400 30px/1.45 Literata, serif; color: ${C.inkSoft}; margin: 0; max-width: 18em; }
+  p { font: 400 30px/1.45 Literata, serif; color: ${C.inkSoft}; margin: 0; max-width: 20em; text-wrap: balance; }
 </style>
 <div class="band"></div>
 <main>
