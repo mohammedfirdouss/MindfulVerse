@@ -123,3 +123,6 @@
 .ci-framed > * + * { margin-top: 16px; }
 @media (prefers-reduced-motion: reduce) { .ci-framed { animation-name: ci-fade; } }
 .ci-framing { margin: 0; font-size: 1.15rem; line-height: 1.45; font-weight: 600; color: var(--ink); }
+
+/* "Show 2 more verses": sits right under the third verse. */
+.ci-more { margin-top: 2px !important; }

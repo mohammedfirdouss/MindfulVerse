@@ -94,6 +94,9 @@ function AyahView({
   );
 }
 
+/** Verses shown for a feeling before "Show more". */
+const FIRST_VERSES = 3;
+
 export default function CheckIn() {
   // Shared with the Home hero — one verse of the day across the app.
   const [dailyKey, setDailyKey] = useState<string | null>(null);
@@ -160,6 +163,8 @@ export default function CheckIn() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [emotionAyahs, setEmotionAyahs] = useState<Ayah[]>([]);
   const [emotionAyahsError, setEmotionAyahsError] = useState(false);
+  // Three verses keep the screen calm; the rest wait behind "Show more".
+  const [showAllVerses, setShowAllVerses] = useState(false);
   const [emotionLoading, setEmotionLoading] = useState(false);
   const [emotionMounted, setEmotionMounted] = useState(false);
   // Only the latest emotion tap may fill the list — a slow earlier fetch must
@@ -230,6 +235,7 @@ export default function CheckIn() {
     setSelectedId(entry.id);
     setEmotionAyahs([]);
     setEmotionAyahsError(false);
+    setShowAllVerses(false);
     setEmotionLoading(true);
     setEmotionMounted(false);
     track({ type: "checkin_view", emotion: entry.id });
@@ -391,15 +397,28 @@ export default function CheckIn() {
               ) : emotionLoading ? (
                 <p className="muted">Gathering a few verses&hellip;</p>
               ) : (
-                emotionAyahs.map((ayah, i) => (
-                  <div
-                    key={ayah.verseKey}
-                    className="card stack"
-                    style={revealStyle(i, emotionMounted, reduced)}
-                  >
-                    <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} />
-                  </div>
-                ))
+                <>
+                  {emotionAyahs.slice(0, showAllVerses ? undefined : FIRST_VERSES).map((ayah, i) => (
+                    <div
+                      key={ayah.verseKey}
+                      className="card stack"
+                      style={revealStyle(i < FIRST_VERSES ? i : i - FIRST_VERSES, emotionMounted, reduced)}
+                    >
+                      <AyahView ayah={ayah} surahName={surahNames.get(ayah.surah)} />
+                    </div>
+                  ))}
+                  {!showAllVerses && emotionAyahs.length > FIRST_VERSES ? (
+                    <button
+                      type="button"
+                      className="ci-skip ci-more"
+                      aria-expanded={false}
+                      onClick={() => setShowAllVerses(true)}
+                    >
+                      Show {emotionAyahs.length - FIRST_VERSES} more{" "}
+                      {emotionAyahs.length - FIRST_VERSES === 1 ? "verse" : "verses"}
+                    </button>
+                  ) : null}
+                </>
               )}
             </section>
           )}
