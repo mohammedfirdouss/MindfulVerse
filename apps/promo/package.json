@@ -6,7 +6,8 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts HeartPromo out/heart-promo.mp4",
-    "still": "remotion still src/index.ts HeartPromo out/still.png"
+    "still": "remotion still src/index.ts HeartPromo out/still.png",
+    "render:silent": "remotion render src/index.ts HeartPromoSilent out/heart-promo-silent.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.534",

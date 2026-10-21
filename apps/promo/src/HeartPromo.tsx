@@ -355,7 +355,7 @@ function Mark({ frame, size }: { frame: number; size: number }) {
   );
 }
 
-function Cta() {
+function Cta({ credit }: { credit: boolean }) {
   const f = useCurrentFrame();
   return (
     <Daylight>
@@ -368,26 +368,28 @@ function Cta() {
         </div>
         <div style={{ ...rise(f, 70, 16), fontFamily: F.ui, fontWeight: 500, fontSize: 44, color: C.indigo, marginTop: 24 }}>mindfulverse.vercel.app</div>
       </div>
-      <div style={{ position: "absolute", left: 96, right: 96, bottom: 110, ...rise(f, 90, 16, 0), fontFamily: F.ui, fontWeight: 500, fontSize: 28, color: C.inkFaint }}>
+      {credit ? <div style={{ position: "absolute", left: 96, right: 96, bottom: 110, ...rise(f, 90, 16, 0), fontFamily: F.ui, fontWeight: 500, fontSize: 28, color: C.inkFaint }}>
         Nasheed: “Alhamdulillah” by Jawad Syed, CC BY 3.0
-      </div>
+      </div> : null}
     </Daylight>
   );
 }
 
-export function HeartPromo() {
+export function HeartPromo({ withNasheed = true }: { withNasheed?: boolean }) {
   const { width, height } = useVideoConfig();
   return (
     <AbsoluteFill style={{ width, height, background: C.night }}>
       <style>{fontCss}</style>
       {/* Vocals-only nasheed, CC BY 3.0 (public/audio/CREDITS.md): fade in, settle under the
           story, and fade out over the last two seconds. */}
+      {withNasheed ? (
       <Audio
         src={staticFile("audio/alhamdulillah-jawad-syed.m4a")}
         volume={(f) =>
           interpolate(f, [0, 24, DURATION - 60, DURATION], [0, 0.85, 0.85, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
         }
       />
+      ) : null}
       <Series>
         <Series.Sequence durationInFrames={SCENES.hook}><Hook /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.meant}><Meant /></Series.Sequence>
@@ -402,7 +404,7 @@ export function HeartPromo() {
         <Series.Sequence durationInFrames={SCENES.verse2}><Verse verse="anxious" /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.oneMinute}><OneMinute /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.inside}><Inside /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.cta}><Cta /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.cta}><Cta credit={withNasheed} /></Series.Sequence>
       </Series>
     </AbsoluteFill>
   );
