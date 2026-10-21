@@ -3,7 +3,7 @@
 // restless feed; the question turns the screen to cool cotton daylight.
 // Scene lengths vary on purpose (1.5 to 5 s) so the pace never settles.
 import type { CSSProperties, ReactNode } from "react";
-import { AbsoluteFill, Easing, Series, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Easing, Series, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { MARK_RECTS, markBounds } from "../../../packages/core/brand";
 import { C, F, bandTile, clothTile, fontCss } from "./brand";
 
@@ -20,8 +20,12 @@ export const SCENES = {
   question: s(3.6),
   tap: s(1.6),
   verse: s(5),
+  orToday: s(1.8),
+  tap2: s(1.6),
+  verse2: s(4.4),
   oneMinute: s(2.7),
-  cta: s(4.6),
+  inside: s(5.6),
+  cta: s(6),
 };
 export const DURATION = Object.values(SCENES).reduce((a, b) => a + b, 0);
 
@@ -199,22 +203,26 @@ function Question() {
   );
 }
 
-function Tap() {
+/** Where each chip's centre sits in the 1080x1920 frame (measured from renders). */
+const CHIP_AT: Record<string, [number, number]> = { Weary: [204, 1272], Anxious: [216, 1004] };
+
+function Tap({ feeling }: { feeling: string }) {
   const f = useCurrentFrame();
   const press = prog(f, 10, 28, Easing.linear);
-  // A soft touch mark arrives over "Weary".
+  // A soft touch mark arrives over the chosen feeling.
   const touch = prog(f, 0, 14);
+  const [cx, cy] = CHIP_AT[feeling];
   return (
     <Daylight>
       <Big color={C.indigoDeep} size={108}>How is your heart today?</Big>
       <div style={{ position: "relative" }}>
-        <Chips frame={f + 100} start={0} picked="Weary" pickProgress={press} />
+        <Chips frame={f + 100} start={0} picked={feeling} pickProgress={press} />
       </div>
       <div
         style={{
           position: "absolute",
-          left: 144,
-          top: 1176,
+          left: cx - 60,
+          top: cy - 60 - 30,
           width: 120,
           height: 120,
           borderRadius: 60,
@@ -227,9 +235,15 @@ function Tap() {
   );
 }
 
-// 8. The verse for "Weary" on indigo cloth (Ad-Duha 93:3, the app's own text)
-function Verse() {
+// 8. A verse on indigo cloth (the app's own text for that feeling)
+const VERSES = {
+  weary: { ar: "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ", en: "Your Lord did not abandon you, nor did He forget.", ref: "Ad-Duha 93:3" },
+  anxious: { ar: "إِنَّ مَعَ ٱلۡعُسۡرِ يُسۡرٗا", en: "With hardship comes ease.", ref: "Ash-Sharh 94:6" },
+};
+
+function Verse({ verse }: { verse: keyof typeof VERSES }) {
   const f = useCurrentFrame();
+  const v = VERSES[verse];
   const up = prog(f, 0, 22);
   return (
     <Daylight>
@@ -245,13 +259,21 @@ function Verse() {
         }}
       >
         <div lang="ar" dir="rtl" style={{ ...rise(f, 16, 22, 30), fontFamily: F.arabic, fontSize: 92, lineHeight: 1.9, whiteSpace: "nowrap", color: C.cotton, textAlign: "right" }}>
-          مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ
+          {v.ar}
         </div>
-        <div style={{ ...rise(f, 40, 20), fontFamily: F.text, fontSize: 62, lineHeight: 1.4, color: C.cotton }}>
-          Your Lord did not abandon you, nor did He forget.
-        </div>
-        <div style={{ ...rise(f, 58, 16), fontFamily: F.ui, fontWeight: 500, fontSize: 38, color: "#d6d9ea" }}>Ad-Duha 93:3</div>
+        <div style={{ ...rise(f, 40, 20), fontFamily: F.text, fontSize: 62, lineHeight: 1.4, color: C.cotton, textWrap: "balance" }}>{v.en}</div>
+        <div style={{ ...rise(f, 58, 16), fontFamily: F.ui, fontWeight: 500, fontSize: 38, color: "#d6d9ea" }}>{v.ref}</div>
       </div>
+    </Daylight>
+  );
+}
+
+/** A beat between the two feelings. */
+function OrToday() {
+  const f = useCurrentFrame();
+  return (
+    <Daylight>
+      <Big color={C.indigoDeep} size={104} style={rise(f, 2)}>Or maybe today feels different.</Big>
     </Daylight>
   );
 }
@@ -277,7 +299,31 @@ function OneMinute() {
   );
 }
 
-// 10. CTA: the تدبر mark builds square by square, then the name.
+// 10. What else is inside, three short lines with the app's own icons.
+function Inside() {
+  const f = useCurrentFrame();
+  const rows = [
+    { t: "Read the whole Qur’an, with commentary.", at: 4, icon: "M5.6 11.2C12 9.2 18.4 10 24 13.6c5.6-3.6 12-4.4 18.4-2.4v26c-6.4-2-12.8-1.2-18.4 2.4-5.6-3.6-12-4.4-18.4-2.4ZM24 13.6v26" },
+    { t: "Ponder one verse, one question at a time.", at: 46, icon: "M24 17l7 7-7 7-7-7ZM24 8.5a15.5 15.5 0 1 1 0 31a15.5 15.5 0 1 1 0-31" },
+    { t: "Keep what stays with you, privately.", at: 92, icon: "M12 34.4l2-7.6 17.8-17.8a3.8 3.8 0 0 1 5.4 5.4L19.4 32.2ZM7 41h34" },
+  ];
+  return (
+    <Daylight>
+      <div style={{ display: "grid", gap: 72 }}>
+        {rows.map((r) => (
+          <div key={r.t} style={{ display: "flex", gap: 40, alignItems: "center", ...rise(f, r.at, 16) }}>
+            <svg width="96" height="96" viewBox="0 0 48 48" style={{ flex: "none" }}>
+              <path d={r.icon} fill="none" stroke={C.indigo} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ fontFamily: F.ui, fontWeight: 600, fontSize: 64, lineHeight: 1.15, letterSpacing: "-0.02em", color: C.indigoDeep }}>{r.t}</div>
+          </div>
+        ))}
+      </div>
+    </Daylight>
+  );
+}
+
+// 11. CTA: the تدبر mark builds square by square, then the name.
 function Mark({ frame, size }: { frame: number; size: number }) {
   const b = markBounds();
   const span = Math.max(b.width, b.height);
@@ -322,6 +368,9 @@ function Cta() {
         </div>
         <div style={{ ...rise(f, 70, 16), fontFamily: F.ui, fontWeight: 500, fontSize: 44, color: C.indigo, marginTop: 24 }}>mindfulverse.vercel.app</div>
       </div>
+      <div style={{ position: "absolute", left: 96, right: 96, bottom: 110, ...rise(f, 90, 16, 0), fontFamily: F.ui, fontWeight: 500, fontSize: 28, color: C.inkFaint }}>
+        Nasheed: “Alhamdulillah” by Jawad Syed, CC BY 3.0
+      </div>
     </Daylight>
   );
 }
@@ -331,6 +380,14 @@ export function HeartPromo() {
   return (
     <AbsoluteFill style={{ width, height, background: C.night }}>
       <style>{fontCss}</style>
+      {/* Vocals-only nasheed, CC BY 3.0 (public/audio/CREDITS.md): fade in, settle under the
+          story, and fade out over the last two seconds. */}
+      <Audio
+        src={staticFile("audio/alhamdulillah-jawad-syed.m4a")}
+        volume={(f) =>
+          interpolate(f, [0, 24, DURATION - 60, DURATION], [0, 0.85, 0.85, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+        }
+      />
       <Series>
         <Series.Sequence durationInFrames={SCENES.hook}><Hook /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.meant}><Meant /></Series.Sequence>
@@ -338,9 +395,13 @@ export function HeartPromo() {
         <Series.Sequence durationInFrames={SCENES.scrolled}><Scrolled /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.further}><Further /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.question}><Question /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.tap}><Tap /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.verse}><Verse /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.tap}><Tap feeling="Weary" /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.verse}><Verse verse="weary" /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.orToday}><OrToday /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.tap2}><Tap feeling="Anxious" /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.verse2}><Verse verse="anxious" /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.oneMinute}><OneMinute /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.inside}><Inside /></Series.Sequence>
         <Series.Sequence durationInFrames={SCENES.cta}><Cta /></Series.Sequence>
       </Series>
     </AbsoluteFill>
