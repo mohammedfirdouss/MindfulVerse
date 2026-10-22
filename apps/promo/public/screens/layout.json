@@ -1,0 +1,126 @@
+{
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "grateful": {
+    "x": 119.703125,
+    "y": 208.65625,
+    "w": 94.03125,
+    "h": 44,
+    "radius": "999px",
+    "padding": [
+      0,
+      16,
+      0,
+      16
+    ],
+    "border": 1,
+    "font": "Outfit, system-ui, sans-serif",
+    "size": 16,
+    "weight": "400",
+    "lineHeight": "20.8px",
+    "color": "rgb(71, 77, 102)",
+    "background": "rgb(252, 252, 253)"
+  },
+  "gratefulCard": {
+    "x": 22,
+    "y": 153.015625,
+    "w": 346,
+    "h": 315.71875,
+    "radius": "4px",
+    "padding": [
+      22,
+      22,
+      22,
+      22
+    ],
+    "border": 0,
+    "font": "Outfit, system-ui, sans-serif",
+    "size": 17,
+    "weight": "400",
+    "lineHeight": "28.05px",
+    "color": "rgb(22, 26, 46)",
+    "background": "rgb(233, 235, 242)"
+  },
+  "checkinBox": {
+    "x": 22,
+    "y": 491.703125,
+    "w": 346,
+    "h": 184,
+    "radius": "2px",
+    "padding": [
+      14,
+      16,
+      14,
+      16
+    ],
+    "border": 1,
+    "font": "Outfit, system-ui, sans-serif",
+    "size": 16,
+    "weight": "400",
+    "lineHeight": "25.6px",
+    "color": "rgb(22, 26, 46)",
+    "background": "rgb(252, 252, 253)"
+  },
+  "checkinSave": {
+    "x": 22,
+    "y": 691.703125,
+    "w": 152.796875,
+    "h": 48,
+    "radius": "3px",
+    "padding": [
+      12,
+      22,
+      12,
+      22
+    ],
+    "border": 2,
+    "font": "Outfit, system-ui, sans-serif",
+    "size": 16,
+    "weight": "500",
+    "lineHeight": "normal",
+    "color": "rgb(102, 108, 133)",
+    "background": "rgba(0, 0, 0, 0)"
+  },
+  "tadabburBox": {
+    "x": 22,
+    "y": 508.546875,
+    "w": 346,
+    "h": 112,
+    "radius": "2px",
+    "padding": [
+      12,
+      14,
+      12,
+      14
+    ],
+    "border": 1,
+    "font": "Outfit, system-ui, sans-serif",
+    "size": 16,
+    "weight": "400",
+    "lineHeight": "25.6px",
+    "color": "rgb(232, 234, 242)",
+    "background": "rgb(25, 28, 40)"
+  },
+  "tadabburSave": {
+    "x": 22,
+    "y": 688.546875,
+    "w": 152.796875,
+    "h": 48,
+    "radius": "3px",
+    "padding": [
+      12,
+      22,
+      12,
+      22
+    ],
+    "border": 2,
+    "font": "Outfit, system-ui, sans-serif",
+    "size": 16,
+    "weight": "500",
+    "lineHeight": "normal",
+    "color": "rgb(139, 145, 168)",
+    "background": "rgba(0, 0, 0, 0)"
+  }
+}
