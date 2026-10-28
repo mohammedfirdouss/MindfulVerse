@@ -62,6 +62,27 @@ BEGIN
 END;
 $$;
 
+-- Saves a pending proof and prunes expired ones so the table cannot grow unbounded.
+CREATE FUNCTION public.save_api_key_verification(
+  p_domain TEXT,
+  p_token TEXT,
+  p_site_name TEXT,
+  p_contact_email TEXT,
+  p_terms_version TEXT,
+  p_expires_at TIMESTAMPTZ
+) RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  DELETE FROM public.api_key_verifications WHERE expires_at < now();
+
+  INSERT INTO public.api_key_verifications
+    (domain, token, site_name, contact_email, terms_version, expires_at)
+  VALUES
+    (p_domain, p_token, p_site_name, p_contact_email, p_terms_version, p_expires_at);
+END;
+$$;
+
 -- Increments and returns the new count; callers compare it to their limit.
 CREATE FUNCTION public.api_hit(p_bucket TEXT, p_day DATE) RETURNS INT
 LANGUAGE sql
@@ -84,3 +105,6 @@ REVOKE ALL ON FUNCTION public.issue_api_key(TEXT, TEXT, TEXT, TEXT, TEXT)
   FROM anon, authenticated, PUBLIC;
 REVOKE ALL ON FUNCTION public.api_hit(TEXT, DATE)
   FROM anon, authenticated, PUBLIC;
+REVOKE ALL ON FUNCTION public.save_api_key_verification(
+  TEXT, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ
+) FROM anon, authenticated, PUBLIC;

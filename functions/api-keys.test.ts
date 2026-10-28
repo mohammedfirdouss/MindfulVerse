@@ -88,6 +88,23 @@ describe("handleApiKeys start", () => {
     );
   });
 
+  it("rate limits start per IP before saving", async () => {
+    const allowed = makeDeps();
+    await call(allowed, startBody);
+    expect(allowed.attempt).toHaveBeenCalledWith(
+      "start-ip:203.0.113.9",
+      "2026-10-28",
+      20
+    );
+    const denied = makeDeps({
+      attempt: vi.fn<KeyDeps["attempt"]>(() => Promise.resolve(false)),
+    });
+    const { json, status } = await call(denied, startBody);
+    expect(status).toBe(429);
+    expect(json.error).toBe("too_many_attempts");
+    expect(denied.savePending).not.toHaveBeenCalled();
+  });
+
   it("requires accepted terms", async () => {
     const { json, status } = await call(makeDeps(), {
       ...startBody,

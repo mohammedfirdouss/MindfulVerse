@@ -72,6 +72,7 @@ const text = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
 
 const handleStart = async (
+  req: Request,
   body: Record<string, unknown>,
   deps: KeyDeps
 ): Promise<Response> => {
@@ -101,6 +102,20 @@ const handleStart = async (
   const email = text(body.contactEmail);
   if (email && !EMAIL_PATTERN.test(email)) {
     return fail(HTTP_BAD_REQUEST, "invalid_email", "contactEmail is invalid.");
+  }
+
+  const day = new Date(deps.now()).toISOString().slice(0, DAY_LENGTH);
+  const allowed = await deps.attempt(
+    `start-ip:${deps.ip(req)}`,
+    day,
+    IP_ATTEMPT_LIMIT
+  );
+  if (!allowed) {
+    return fail(
+      HTTP_TOO_MANY_REQUESTS,
+      "too_many_attempts",
+      "Too many attempts today. Try again tomorrow."
+    );
   }
 
   const token = newToken();
@@ -209,7 +224,7 @@ export const handleApiKeys = async (
   }
 
   if (body.action === "start") {
-    return handleStart(body, deps);
+    return handleStart(req, body, deps);
   }
   if (body.action === "verify") {
     return handleVerify(req, body, deps);
