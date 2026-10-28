@@ -60,7 +60,10 @@ function stripHtml(html) {
   }
   let s = String(html);
   // Convert closing block tags to paragraph separators.
-  s = s.replaceAll(/<\/(p|div|h[1-6]|li|ul|ol|blockquote|tr|table)>/giu, "\n\n");
+  s = s.replaceAll(
+    /<\/(p|div|h[1-6]|li|ul|ol|blockquote|tr|table)>/giu,
+    "\n\n"
+  );
   // <br> and opening list items -> newline.
   s = s.replaceAll(/<br\s*\/?>/giu, "\n");
   s = s.replaceAll(/<li[^>]*>/giu, "\n- ");
