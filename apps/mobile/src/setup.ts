@@ -3,11 +3,11 @@
 // Order inside this file matters too: imports evaluate top to bottom.
 import "./platform/shims"; // localStorage (MMKV) + crypto.randomUUID: before any core module
 import "react-native-url-polyfill/auto"; // @insforge/sdk uses URL + searchParams.append
-
 import { configureAnalytics } from "@mindfulverse/core/analytics";
 import { configureData } from "@mindfulverse/core/data";
 import { configureSyncTriggers } from "@mindfulverse/core/sync/engine";
 import { configureInsforge } from "@mindfulverse/core/sync/insforge";
+
 import { INSFORGE_ANON_KEY, INSFORGE_URL } from "./env";
 import { readBundledJson } from "./platform/data";
 import { nativeSyncTriggers } from "./platform/syncTriggers";
@@ -35,13 +35,13 @@ const afterFreshSession = (cb: () => void) => () => {
   void ensureFreshSession().then(() => {
     try {
       cb();
-    } catch (e) {
-      console.warn("[sync] trigger failed:", e);
+    } catch (error) {
+      console.warn("[sync] trigger failed:", error);
     }
   });
 };
 configureSyncTriggers({
   isOnline: nativeSyncTriggers.isOnline,
-  onOnline: (cb) => nativeSyncTriggers.onOnline(afterFreshSession(cb)),
   onForeground: (cb) => nativeSyncTriggers.onForeground(afterFreshSession(cb)),
+  onOnline: (cb) => nativeSyncTriggers.onOnline(afterFreshSession(cb)),
 });

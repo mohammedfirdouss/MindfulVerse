@@ -1,15 +1,22 @@
+import { track } from "@mindfulverse/core/analytics";
+import { insforge } from "@mindfulverse/core/sync/insforge";
 // Signed-out state of /account: email + password sign-in / sign-up, then the
 // 6-digit email verification step. Ported from web's Account.tsx (same copy,
 // errors and analytics). OAuth is web-only for now (PKCE needs crypto.subtle,
 // absent on Hermes), so no provider buttons here.
 import { useEffect, useRef, useState } from "react";
-import { Platform, TextInput, View } from "react-native";
-import { track } from "@mindfulverse/core/analytics";
-import { insforge } from "@mindfulverse/core/sync/insforge";
+import type { TextInput } from "react-native";
+import { Platform, View } from "react-native";
+
 import { signIn, signUp, verifyEmail } from "../../session";
 import { space } from "../../theme";
 import { Button, Text } from "../../ui";
-import { NETWORK_ERROR, normalizeOtp, validateCredentials, validateOtp } from "./logic";
+import {
+  NETWORK_ERROR,
+  normalizeOtp,
+  validateCredentials,
+  validateOtp,
+} from "./logic";
 import { Field, FormError, LinkButton, Small } from "./parts";
 
 export type AuthMode = "signin" | "signup";
@@ -42,14 +49,22 @@ export function AuthForm({
     // The app can't yet, so explain that instead of showing a dead button.
     insforge.auth
       .getPublicAuthConfig()
-      .then(({ data }) => mounted.current && setGoogleOnWeb(!!data?.oAuthProviders?.includes("google")))
+      .then(
+        ({ data }) =>
+          mounted.current &&
+          setGoogleOnWeb(!!data?.oAuthProviders?.includes("google"))
+      )
       .catch(() => {});
   }, []);
 
   async function submit() {
-    if (busy) return;
+    if (busy) {
+      return;
+    }
     const invalid = validateCredentials(email, password);
-    if (invalid) return setError(invalid);
+    if (invalid) {
+      return setError(invalid);
+    }
     const addr = email.trim();
     setEmail(addr);
     setError(null);
@@ -63,17 +78,19 @@ export function AuthForm({
         }
         if (needsVerification) {
           setPendingVerification(true);
-          setNotice("Check your email for a 6-digit code, then enter it below.");
+          setNotice(
+            "Check your email for a 6-digit code, then enter it below."
+          );
           return;
         }
-        track({ type: "account_signup", method: "password" });
+        track({ method: "password", type: "account_signup" });
       } else {
         const { error } = await signIn(addr, password);
         if (error) {
           setNotice(null);
           return setError(error);
         }
-        track({ type: "account_signin", method: "password" });
+        track({ method: "password", type: "account_signin" });
       }
       setPassword("");
       await onSignedIn();
@@ -81,14 +98,20 @@ export function AuthForm({
       setNotice(null);
       setError(NETWORK_ERROR);
     } finally {
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        setBusy(false);
+      }
     }
   }
 
   async function submitCode() {
-    if (busy) return;
+    if (busy) {
+      return;
+    }
     const invalid = validateOtp(otp);
-    if (invalid) return setError(invalid);
+    if (invalid) {
+      return setError(invalid);
+    }
     setError(null);
     setBusy(true);
     try {
@@ -97,7 +120,7 @@ export function AuthForm({
         setNotice(null);
         return setError(error);
       }
-      track({ type: "account_signup", method: "password" });
+      track({ method: "password", type: "account_signup" });
       setPendingVerification(false);
       setOtp("");
       setPassword("");
@@ -106,7 +129,9 @@ export function AuthForm({
       setNotice(null);
       setError(NETWORK_ERROR);
     } finally {
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        setBusy(false);
+      }
     }
   }
 
@@ -118,7 +143,9 @@ export function AuthForm({
   if (pendingVerification) {
     return (
       <View style={{ gap: space.md }}>
-        <Text variant="soft">Enter the 6-digit code we emailed to {email}.</Text>
+        <Text variant="soft">
+          Enter the 6-digit code we emailed to {email}.
+        </Text>
         <Field
           label="Verification code"
           value={otp}
@@ -198,8 +225,18 @@ export function AuthForm({
         busy={busy}
         onPress={() => void submit()}
       />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: space.xs }}>
-        <Text variant="soft">{signup ? "Already have an account?" : "New here?"}</Text>
+      <View
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: space.xs,
+          justifyContent: "center",
+        }}
+      >
+        <Text variant="soft">
+          {signup ? "Already have an account?" : "New here?"}
+        </Text>
         <LinkButton
           title={signup ? "Sign in" : "Create an account"}
           disabled={busy}
@@ -208,7 +245,8 @@ export function AuthForm({
       </View>
       {googleOnWeb ? (
         <Small>
-          Google sign-in is on the website only for now. In the app, use your email and password.
+          Google sign-in is on the website only for now. In the app, use your
+          email and password.
         </Small>
       ) : null}
     </View>

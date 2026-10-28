@@ -1,3 +1,5 @@
+import { AuthChangeEvent } from "@insforge/sdk";
+import { insforge } from "@mindfulverse/core/sync/insforge";
 // Account session persistence for native.
 //
 // @insforge/sdk keeps tokens in memory only. On web an httpOnly refresh cookie
@@ -24,9 +26,9 @@
 // Screens call these, then `await refresh()` from useAccount() and
 // `await syncNow()` — the same sequence web's Account page uses.
 import * as SecureStore from "expo-secure-store";
-import { AuthChangeEvent } from "@insforge/sdk";
-import { insforge } from "@mindfulverse/core/sync/insforge";
-import { jwtClaims, nextRefreshDelay, tokenDeadline, type TokenDeadline } from "./sessionClock";
+
+import { jwtClaims, nextRefreshDelay, tokenDeadline } from "./sessionClock";
+import type { TokenDeadline } from "./sessionClock";
 
 const REFRESH_KEY = "mindfulverse.refreshToken.v1";
 const RESTORE_TIMEOUT_MS = 4000;
@@ -73,35 +75,50 @@ function currentAccessToken(): string | null {
 }
 
 function expiresSoon(): boolean {
-  return accessToken !== null && deadline !== null && Date.now() >= deadline.refreshAtMs;
+  return (
+    accessToken !== null &&
+    deadline !== null &&
+    Date.now() >= deadline.refreshAtMs
+  );
 }
 
 function scheduleRefresh(token: string): void {
-  if (refreshTimer) clearTimeout(refreshTimer);
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+  }
   refreshTimer = undefined;
   deadline = tokenDeadline(jwtClaims(token), Date.now());
-  if (!deadline) return;
+  if (!deadline) {
+    return;
+  }
   const next = nextRefreshDelay(deadline, Date.now(), quickStreak);
   quickStreak = next.quickStreak;
-  refreshTimer = setTimeout(() => void refreshNow().catch(() => false), next.delayMs);
+  refreshTimer = setTimeout(
+    () => void refreshNow().catch(() => false),
+    next.delayMs
+  );
 }
 
 /** Applies a successful auth response: fills the SDK's token manager,
  *  persists the refresh token, schedules the next refresh. */
 async function adopt(
   res: TokenResponse | null | undefined,
-  event: typeof AuthChangeEvent.SIGNED_IN | typeof AuthChangeEvent.TOKEN_REFRESHED,
-  gen: number,
+  event:
+    | typeof AuthChangeEvent.SIGNED_IN
+    | typeof AuthChangeEvent.TOKEN_REFRESHED,
+  gen: number
 ): Promise<boolean> {
-  if (!res?.accessToken || gen !== generation) return false;
+  if (!res?.accessToken || gen !== generation) {
+    return false;
+  }
   accessToken = res.accessToken;
   insforge.setAccessToken(res.accessToken, event);
   if (res.refreshToken) {
     try {
       await SecureStore.setItemAsync(REFRESH_KEY, res.refreshToken);
-    } catch (e) {
+    } catch (error) {
       // Signed in for this run; just won't survive a restart.
-      console.warn("[session] could not persist refresh token:", e);
+      console.warn("[session] could not persist refresh token:", error);
     }
     // Signed out while the token was being written: clearLocal() has already
     // reset memory, but its delete may have run before this write landed.
@@ -116,7 +133,9 @@ async function adopt(
 
 async function clearLocal(): Promise<void> {
   generation++;
-  if (refreshTimer) clearTimeout(refreshTimer);
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+  }
   refreshTimer = undefined;
   accessToken = null;
   deadline = null;
@@ -142,18 +161,28 @@ function refreshNow(): Promise<boolean> {
     } catch {
       stored = null;
     }
-    if (!stored) return false;
+    if (!stored) {
+      return false;
+    }
     const wasSignedIn = currentAccessToken() !== null;
-    const { data, error } = await insforge.auth.refreshSession({ refreshToken: stored });
+    const { data, error } = await insforge.auth.refreshSession({
+      refreshToken: stored,
+    });
     if (!error && (await adopt(data, AuthChangeEvent.TOKEN_REFRESHED, gen))) {
-      if (!wasSignedIn) emit();
+      if (!wasSignedIn) {
+        emit();
+      }
       return true;
     }
     // Signed out meanwhile: whatever the server said is about the old session.
-    if (gen !== generation) return false;
+    if (gen !== generation) {
+      return false;
+    }
     if (error && (error.statusCode === 401 || error.statusCode === 403)) {
       await clearLocal();
-      if (wasSignedIn) emit();
+      if (wasSignedIn) {
+        emit();
+      }
     }
     return false;
   })().finally(() => {
@@ -167,13 +196,24 @@ function refreshNow(): Promise<boolean> {
  *  completes later, onSessionChange listeners fire. Never throws. */
 export async function restore(): Promise<void> {
   const attempt = refreshNow().catch(() => false);
-  await Promise.race([attempt, new Promise((r) => setTimeout(r, RESTORE_TIMEOUT_MS))]);
+  await Promise.race([
+    attempt,
+    new Promise((r) => setTimeout(r, RESTORE_TIMEOUT_MS)),
+  ]);
 }
 
-export async function signIn(email: string, password: string): Promise<AuthResult> {
+export async function signIn(
+  email: string,
+  password: string
+): Promise<AuthResult> {
   const gen = generation;
-  const { data, error } = await insforge.auth.signInWithPassword({ email, password });
-  if (error) return { error: error.message };
+  const { data, error } = await insforge.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) {
+    return { error: error.message };
+  }
   return (await adopt(data, AuthChangeEvent.SIGNED_IN, gen))
     ? { error: null }
     : { error: "Sign-in did not return a session." };
@@ -183,21 +223,30 @@ export async function signIn(email: string, password: string): Promise<AuthResul
  *  emailed a 6-digit code: collect it and call verifyEmail(). */
 export async function signUp(
   email: string,
-  password: string,
+  password: string
 ): Promise<AuthResult & { needsVerification: boolean }> {
   const gen = generation;
   const { data, error } = await insforge.auth.signUp({ email, password });
-  if (error) return { error: error.message, needsVerification: false };
-  if (data?.requireEmailVerification) return { error: null, needsVerification: true };
+  if (error) {
+    return { error: error.message, needsVerification: false };
+  }
+  if (data?.requireEmailVerification) {
+    return { error: null, needsVerification: true };
+  }
   return (await adopt(data, AuthChangeEvent.SIGNED_IN, gen))
     ? { error: null, needsVerification: false }
     : { error: null, needsVerification: true };
 }
 
-export async function verifyEmail(email: string, otp: string): Promise<AuthResult> {
+export async function verifyEmail(
+  email: string,
+  otp: string
+): Promise<AuthResult> {
   const gen = generation;
   const { data, error } = await insforge.auth.verifyEmail({ email, otp });
-  if (error) return { error: error.message };
+  if (error) {
+    return { error: error.message };
+  }
   return (await adopt(data, AuthChangeEvent.SIGNED_IN, gen))
     ? { error: null }
     : { error: "Verification did not return a session." };
@@ -232,8 +281,11 @@ export function hasSession(): boolean {
  *  expired token, read as signed-out, and stop passive syncs. Never throws. */
 export async function ensureFreshSession(): Promise<void> {
   try {
-    if (inflight) await inflight;
-    else if (expiresSoon() || !hasSession()) await refreshNow(); // no stored token: returns at once
+    if (inflight) {
+      await inflight;
+    } else if (expiresSoon() || !hasSession()) {
+      await refreshNow();
+    } // no stored token: returns at once
   } catch {
     /* offline or server error: the stored token is kept for the next attempt */
   }

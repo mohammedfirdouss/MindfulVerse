@@ -1,9 +1,15 @@
+import {
+  resolveOwnerMismatch,
+  statusLabel,
+  syncNow,
+} from "@mindfulverse/core/sync/engine";
+import type { SyncStatus } from "@mindfulverse/core/sync/engine";
 // Backup status, "Sync now", and the switched-account standoff (this
 // device's data was written under another account). Same flow and copy as
 // web's Account.tsx; window.confirm becomes Alert.alert.
 import { useState } from "react";
 import { Alert, View } from "react-native";
-import { resolveOwnerMismatch, statusLabel, syncNow, type SyncStatus } from "@mindfulverse/core/sync/engine";
+
 import { space } from "../../theme";
 import { Button, Text } from "../../ui";
 import { NETWORK_ERROR } from "./logic";
@@ -16,11 +22,15 @@ function confirmFresh(): Promise<boolean> {
       "This removes the journal entries and progress stored on this device. " +
         "Anything already backed up to the other account stays safe there.",
       [
-        { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-        { text: "Start fresh", style: "destructive", onPress: () => resolve(true) },
+        { onPress: () => resolve(false), style: "cancel", text: "Cancel" },
+        {
+          onPress: () => resolve(true),
+          style: "destructive",
+          text: "Start fresh",
+        },
       ],
-      { cancelable: true, onDismiss: () => resolve(false) },
-    ),
+      { cancelable: true, onDismiss: () => resolve(false) }
+    )
   );
 }
 
@@ -36,7 +46,9 @@ export function SyncSection({
   const label = statusLabel(status);
 
   async function resolveSwitch(choice: "merge" | "fresh") {
-    if (choice === "fresh" && !(await confirmFresh())) return;
+    if (choice === "fresh" && !(await confirmFresh())) {
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -44,7 +56,7 @@ export function SyncSection({
       setNotice(
         choice === "merge"
           ? "This device's entries have been merged into your account."
-          : "This device was reset and now shows only this account's backup.",
+          : "This device was reset and now shows only this account's backup."
       );
     } catch {
       // resolveOwnerMismatch's own sync swallows errors; this covers the
@@ -66,11 +78,19 @@ export function SyncSection({
       {status === "switched-account" ? (
         <Notice>
           <Text variant="soft">
-            The journal entries and progress saved on this device were written while a different account
-            was signed in. Nothing is being backed up until you choose what should happen to them.
+            The journal entries and progress saved on this device were written
+            while a different account was signed in. Nothing is being backed up
+            until you choose what should happen to them.
           </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
-            <Button title="Merge into this account" disabled={busy} busy={busy} onPress={() => void resolveSwitch("merge")} />
+          <View
+            style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}
+          >
+            <Button
+              title="Merge into this account"
+              disabled={busy}
+              busy={busy}
+              onPress={() => void resolveSwitch("merge")}
+            />
             <Button
               title="Start fresh on this device"
               kind="secondary"

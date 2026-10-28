@@ -3,36 +3,46 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const store = new Map<string, string>();
-vi.mock("expo-secure-store", () => ({
+vi.mock(import("expo-secure-store"), () => ({
+  deleteItemAsync: async (k: string) => void store.delete(k),
   getItemAsync: async (k: string) => store.get(k) ?? null,
   setItemAsync: async (k: string, v: string) => void store.set(k, v),
-  deleteItemAsync: async (k: string) => void store.delete(k),
 }));
-vi.mock("@insforge/sdk", () => ({
-  AuthChangeEvent: { SIGNED_IN: "SIGNED_IN", TOKEN_REFRESHED: "TOKEN_REFRESHED" },
+// Partial fakes: `as never` lets the typed vi.mock accept them.
+vi.mock(import("@insforge/sdk"), () => ({
+  AuthChangeEvent: {
+    SIGNED_IN: "SIGNED_IN",
+    TOKEN_REFRESHED: "TOKEN_REFRESHED",
+  } as never,
 }));
 
-type Refresh = () => Promise<{ data: unknown; error: { statusCode: number } | null }>;
+type Refresh = () => Promise<{
+  data: unknown;
+  error: { statusCode: number } | null;
+}>;
 const fake = vi.hoisted(() => ({
   refresh: null as null | Refresh,
   tokens: [] as (string | null)[],
 }));
-vi.mock("@mindfulverse/core/sync/insforge", () => ({
+vi.mock(import("@mindfulverse/core/sync/insforge"), () => ({
   insforge: {
-    setAccessToken: (t: string | null) => fake.tokens.push(t),
-    getHttpClient: () => ({ setRefreshToken: () => {} }),
     auth: {
       refreshSession: () => fake.refresh!(),
+      signInWithPassword: async () => ({
+        data: { accessToken: jwt(0, 900), refreshToken: "r1" },
+        error: null,
+      }),
       signOut: async () => ({ error: null }),
-      signInWithPassword: async () => ({ data: { accessToken: jwt(0, 900), refreshToken: "r1" }, error: null }),
     },
+    getHttpClient: () => ({ setRefreshToken: () => {} }),
+    setAccessToken: (t: string | null) => fake.tokens.push(t),
   },
 }));
 
 /** An unsigned JWT with the given iat/exp (seconds). */
 function jwt(iat: number, exp: number): string {
-  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, "");
-  return `${b64({ alg: "none" })}.${b64({ iat, exp })}.sig`;
+  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/[=]+$/, "");
+  return `${b64({ alg: "none" })}.${b64({ exp, iat })}.sig`;
 }
 
 const REFRESH_KEY = "mindfulverse.refreshToken.v1";
@@ -61,7 +71,10 @@ describe("sign-out vs an in-flight refresh", () => {
     await new Promise((r) => setTimeout(r, 0)); // reach refreshSession()
 
     await s.signOut();
-    resolve({ data: { accessToken: jwt(0, 900), refreshToken: "r2" }, error: null });
+    resolve({
+      data: { accessToken: jwt(0, 900), refreshToken: "r2" },
+      error: null,
+    });
     await pending;
 
     expect(s.hasSession()).toBe(false);
@@ -80,12 +93,15 @@ describe("ensureFreshSession", () => {
   it("restores a session when signed out but a refresh token is stored", async () => {
     const s = await load();
     store.set(REFRESH_KEY, "r1");
-    fake.refresh = async () => ({ data: { accessToken: jwt(0, 900), refreshToken: "r2" }, error: null });
+    fake.refresh = async () => ({
+      data: { accessToken: jwt(0, 900), refreshToken: "r2" },
+      error: null,
+    });
     const changed = vi.fn();
     s.onSessionChange(changed);
     await s.ensureFreshSession();
     expect(s.hasSession()).toBe(true);
-    expect(changed).toHaveBeenCalledTimes(1);
+    expect(changed).toHaveBeenCalledOnce();
     expect(store.get(REFRESH_KEY)).toBe("r2");
   });
 
@@ -102,11 +118,14 @@ describe("ensureFreshSession", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     const s = await load();
     await s.signIn("a@b.co", "pw"); // 900 s lifetime
-    const refresh = vi.fn(async () => ({ data: { accessToken: jwt(0, 900) }, error: null }));
+    const refresh = vi.fn(async () => ({
+      data: { accessToken: jwt(0, 900) },
+      error: null,
+    }));
     fake.refresh = refresh;
     vi.setSystemTime(Date.now() + 800_000); // within the 120 s leeway
     await s.ensureFreshSession();
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(refresh).toHaveBeenCalledOnce();
   });
 
   it("swallows a network failure and keeps the stored token", async () => {

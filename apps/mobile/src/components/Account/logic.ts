@@ -3,7 +3,8 @@
 
 /** Shown when a call throws instead of returning an error (offline, DNS…).
  *  Same wording as web's Account.tsx. */
-export const NETWORK_ERROR = "Couldn't reach the server. Check your connection and try again.";
+export const NETWORK_ERROR =
+  "Couldn't reach the server. Check your connection and try again.";
 
 /** Web's <input type="time" step={900}>: the reminder moves in 15-minute steps. */
 export const TIME_STEP_MINUTES = 15;
@@ -15,17 +16,26 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Returns a user-facing message for an obviously incomplete form, or null.
  *  Mirrors web's `required` / `type="email"` attributes. */
-export function validateCredentials(email: string, password: string): string | null {
+export function validateCredentials(
+  email: string,
+  password: string
+): string | null {
   const e = email.trim();
-  if (!e) return "Enter your email.";
-  if (!EMAIL_RE.test(e)) return "That email doesn't look right. Check it and try again.";
-  if (!password) return "Enter your password.";
+  if (!e) {
+    return "Enter your email.";
+  }
+  if (!EMAIL_RE.test(e)) {
+    return "That email doesn't look right. Check it and try again.";
+  }
+  if (!password) {
+    return "Enter your password.";
+  }
   return null;
 }
 
 /** Keeps digits only, at most 6 (pasted codes often carry spaces). */
 export function normalizeOtp(raw: string): string {
-  return raw.replace(/\D/g, "").slice(0, 6);
+  return raw.replaceAll(/\D/g, "").slice(0, 6);
 }
 
 /** Mirrors web's pattern="[0-9]{6}". */
@@ -36,10 +46,14 @@ export function validateOtp(otp: string): string | null {
 /** "HH:MM" (24h) → minutes after midnight, or null when malformed. */
 export function parseTime(time: string): number | null {
   const m = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
-  if (!m) return null;
+  if (!m) {
+    return null;
+  }
   const h = Number(m[1]);
   const min = Number(m[2]);
-  if (h > 23 || min > 59) return null;
+  if (h > 23 || min > 59) {
+    return null;
+  }
   return h * 60 + min;
 }
 
@@ -56,7 +70,9 @@ export function toTime(minutes: number): string {
  *  moves (±60) keep the minutes. Malformed input falls back to the default. */
 export function shiftTime(time: string, delta: number): string {
   const base = parseTime(time);
-  if (base === null) return DEFAULT_REMINDER_TIME;
+  if (base === null) {
+    return DEFAULT_REMINDER_TIME;
+  }
   const step = TIME_STEP_MINUTES;
   const off = base % step;
   if (off !== 0 && Math.abs(delta) === step) {
@@ -68,7 +84,9 @@ export function shiftTime(time: string, delta: number): string {
 /** "HH:MM" → "7:00 AM" for display (the stored value stays 24h). */
 export function formatTime(time: string): string {
   const m = parseTime(time);
-  if (m === null) return time;
+  if (m === null) {
+    return time;
+  }
   const h = Math.floor(m / 60);
   const min = String(m % 60).padStart(2, "0");
   const suffix = h < 12 ? "AM" : "PM";
@@ -80,8 +98,12 @@ export function formatTime(time: string): string {
  *  "12:00 PM" is clearer as "noon" and "12:00 AM" as "midnight". */
 export function spokenTime(time: string): string {
   const m = parseTime(time);
-  if (m === 0) return "midnight";
-  if (m === 12 * 60) return "noon";
+  if (m === 0) {
+    return "midnight";
+  }
+  if (m === 12 * 60) {
+    return "noon";
+  }
   return formatTime(time);
 }
 

@@ -1,15 +1,26 @@
+import {
+  loadAyahsByKeys,
+  loadSessions,
+  loadSurahs,
+} from "@mindfulverse/core/data";
+import { deleteEntry, getEntries } from "@mindfulverse/core/journal";
+import { groupEntries } from "@mindfulverse/core/journalGroups";
+import type { JournalGroup } from "@mindfulverse/core/journalGroups";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import {
+  getSyncStatus,
+  onSyncStatus,
+  statusLabel,
+} from "@mindfulverse/core/sync/engine";
+import type { SyncStatus } from "@mindfulverse/core/sync/engine";
+import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
 // Journal (web: apps/web/src/pages/Journal.tsx): reflections grouped by what
 // they were written about, newest group first; delete; share as plain text.
 // PDF export is deferred on native.
 import { Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SectionList, Share, View } from "react-native";
-import { loadAyahsByKeys, loadSessions, loadSurahs } from "@mindfulverse/core/data";
-import { deleteEntry, getEntries } from "@mindfulverse/core/journal";
-import { groupEntries, type JournalGroup } from "@mindfulverse/core/journalGroups";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
-import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
+
 import { EntryCard } from "../../src/components/Journal/EntryCard";
 import {
   buildJournalText,
@@ -23,15 +34,29 @@ import { BrandMark, Button, Screen, Text } from "../../src/ui";
 /** Empty state: quiet and minimal — one line of intent, one way to begin. */
 function EmptyJournal() {
   return (
-    <View style={{ alignItems: "center", paddingVertical: space.xxl, paddingHorizontal: 20, gap: 6 }}>
+    <View
+      style={{
+        alignItems: "center",
+        gap: 6,
+        paddingHorizontal: 20,
+        paddingVertical: space.xxl,
+      }}
+    >
       <ClothSwatch />
-      <Text style={{ textAlign: "center", fontSize: 19, marginTop: space.lg }} variant="body">
+      <Text
+        style={{ fontSize: 19, marginTop: space.lg, textAlign: "center" }}
+        variant="body"
+      >
         Nothing here yet, and that’s fine.
       </Text>
       <Text variant="soft" style={{ textAlign: "center" }}>
         When a verse stops you, write what it said to you.
       </Text>
-      <Button title="Begin with today’s verse" style={{ marginTop: 14 }} onPress={() => router.push("/checkin")} />
+      <Button
+        title="Begin with today’s verse"
+        style={{ marginTop: 14 }}
+        onPress={() => router.push("/checkin")}
+      />
     </View>
   );
 }
@@ -52,7 +77,9 @@ export default function Journal() {
   const { colors } = useTheme();
   const { user, loading } = useAccount();
   const [entries, setEntries] = useState<JournalEntry[]>(getEntries);
-  const [sessionTitles, setSessionTitles] = useState<Map<string, string>>(new Map());
+  const [sessionTitles, setSessionTitles] = useState<Map<string, string>>(
+    new Map()
+  );
   const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
   const [verses, setVerses] = useState<Map<string, Ayah>>(new Map());
   const [status, setStatus] = useState<SyncStatus>(getSyncStatus());
@@ -64,15 +91,19 @@ export default function Journal() {
   useFocusEffect(
     useCallback(() => {
       setEntries(getEntries());
-    }, []),
+    }, [])
   );
 
   useEffect(() => {
     loadSessions()
-      .then((list) => setSessionTitles(new Map(list.map((s) => [s.id, s.title]))))
+      .then((list) =>
+        setSessionTitles(new Map(list.map((s) => [s.id, s.title])))
+      )
       .catch(() => {});
     loadSurahs()
-      .then((list) => setSurahNames(new Map(list.map((s) => [s.number, s.name]))))
+      .then((list) =>
+        setSurahNames(new Map(list.map((s) => [s.number, s.name])))
+      )
       .catch(() => {});
   }, []);
 
@@ -82,19 +113,28 @@ export default function Journal() {
     () =>
       onSyncStatus((s) => {
         setStatus(s);
-        if (s === "synced") setEntries(getEntries());
+        if (s === "synced") {
+          setEntries(getEntries());
+        }
       }),
-    [],
+    []
   );
 
   // The verses entries were written about, loaded once per set of keys (core
   // caches each surah file). A missing verse just isn't shown, as on web.
-  const verseKeys = useMemo(() => exportVerseKeys(entries).sort().join(","), [entries]);
+  const verseKeys = useMemo(
+    () => exportVerseKeys(entries).sort().join(","),
+    [entries]
+  );
   useEffect(() => {
-    if (!verseKeys) return;
+    if (!verseKeys) {
+      return;
+    }
     let alive = true;
     loadAyahsByKeys(verseKeys.split(","))
-      .then((list) => alive && setVerses(new Map(list.map((a) => [a.verseKey, a]))))
+      .then(
+        (list) => alive && setVerses(new Map(list.map((a) => [a.verseKey, a])))
+      )
       .catch(() => {});
     return () => {
       alive = false;
@@ -104,11 +144,12 @@ export default function Journal() {
   const groups = useMemo(() => groupEntries(entries), [entries]);
   const titleFor = useCallback(
     (g: JournalGroup) => groupTitle(g, surahNames, sessionTitles),
-    [surahNames, sessionTitles],
+    [surahNames, sessionTitles]
   );
   const sections: Section[] = useMemo(
-    () => groups.map((g) => ({ group: g, title: titleFor(g), data: g.entries })),
-    [groups, titleFor],
+    () =>
+      groups.map((g) => ({ data: g.entries, group: g, title: titleFor(g) })),
+    [groups, titleFor]
   );
 
   const remove = useCallback((id: string) => {
@@ -117,16 +158,28 @@ export default function Journal() {
   }, []);
 
   async function shareText() {
-    if (exporting) return;
+    if (exporting) {
+      return;
+    }
     setExporting(true);
     setExportError(null);
     try {
-      const ayahs = await loadAyahsByKeys(exportVerseKeys(entries)).catch(() => [] as Ayah[]);
+      const ayahs = await loadAyahsByKeys(exportVerseKeys(entries)).catch(
+        () => [] as Ayah[]
+      );
       const text = buildJournalText({
-        sections: toSections(groups, titleFor, surahNames, new Map(ayahs.map((a) => [a.verseKey, a]))),
         exportedAt: new Date(),
+        sections: toSections(
+          groups,
+          titleFor,
+          surahNames,
+          new Map(ayahs.map((a) => [a.verseKey, a]))
+        ),
       });
-      await Share.share({ message: text, title: "MindfulVerse | Your reflections" });
+      await Share.share({
+        message: text,
+        title: "MindfulVerse | Your reflections",
+      });
     } catch {
       setExportError("Couldn’t share your journal. Please try again.");
     } finally {
@@ -137,7 +190,9 @@ export default function Journal() {
   // Signed in, the line only exists to carry the sync status — skip it
   // entirely when there is no wording for the current status.
   const showStatus =
-    !loading && (entries.length >= 3 || !!user) && (!user || statusLabel(status) !== "");
+    !loading &&
+    (entries.length >= 3 || !!user) &&
+    (!user || statusLabel(status) !== "");
 
   const header = (
     <View style={{ gap: space.md, marginBottom: space.md }}>
@@ -148,7 +203,11 @@ export default function Journal() {
       {entries.length > 0 ? (
         <View style={{ gap: space.md }}>
           {showStatus ? (
-            <Text variant="soft" style={{ fontSize: 15.6, lineHeight: 24 }} accessibilityLiveRegion="polite">
+            <Text
+              variant="soft"
+              style={{ fontSize: 15.6, lineHeight: 24 }}
+              accessibilityLiveRegion="polite"
+            >
               {user ? (
                 statusLabel(status)
               ) : (
@@ -172,7 +231,10 @@ export default function Journal() {
             />
           </View>
           {exportError ? (
-            <Text style={{ color: colors.kola }} accessibilityLiveRegion="assertive">
+            <Text
+              style={{ color: colors.kola }}
+              accessibilityLiveRegion="assertive"
+            >
               {exportError}
             </Text>
           ) : null}
@@ -182,12 +244,18 @@ export default function Journal() {
   );
 
   return (
-    <Screen scroll={false} contentStyle={{ paddingBottom: 0, paddingHorizontal: 0 }}>
+    <Screen
+      scroll={false}
+      contentStyle={{ paddingBottom: 0, paddingHorizontal: 0 }}
+    >
       <SectionList
         sections={sections}
         keyExtractor={(e) => e.id}
         stickySectionHeadersEnabled={false}
-        contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: space.xxl }}
+        contentContainerStyle={{
+          paddingBottom: space.xxl,
+          paddingHorizontal: space.lg,
+        }}
         ListHeaderComponent={header}
         ListEmptyComponent={<EmptyJournal />}
         renderSectionHeader={({ section }) => {
@@ -197,23 +265,29 @@ export default function Journal() {
             <View
               accessibilityRole="header"
               style={{
-                borderBottomWidth: 2,
                 borderBottomColor: colors.indigoWash,
-                paddingBottom: space.sm,
-                marginTop: space.lg,
+                borderBottomWidth: 2,
                 marginBottom: space.md,
+                marginTop: space.lg,
+                paddingBottom: space.sm,
               }}
             >
               <Text variant="h2" style={{ fontSize: 19.5, lineHeight: 26 }}>
                 {title}
               </Text>
-              <Text variant="muted" style={{ fontSize: 14.5, lineHeight: 22, marginTop: 2 }}>
+              <Text
+                variant="muted"
+                style={{ fontSize: 14.5, lineHeight: 22, marginTop: 2 }}
+              >
                 {n === 1 ? "1 reflection" : `${n} reflections`}
                 {g.surah ? (
                   <>
                     {" · "}
                     <Link
-                      href={{ pathname: "/tadabbur/[surah]", params: { surah: String(g.surah) } }}
+                      href={{
+                        params: { surah: String(g.surah) },
+                        pathname: "/tadabbur/[surah]",
+                      }}
                       style={{ color: colors.indigo }}
                     >
                       Continue this surah’s tadabbur
@@ -226,7 +300,12 @@ export default function Journal() {
         }}
         ItemSeparatorComponent={() => <View style={{ height: space.md }} />}
         renderItem={({ item }) => (
-          <EntryCard entry={item} verses={verses} sessionTitles={sessionTitles} onDelete={remove} />
+          <EntryCard
+            entry={item}
+            verses={verses}
+            sessionTitles={sessionTitles}
+            onDelete={remove}
+          />
         )}
       />
     </Screen>

@@ -1,27 +1,43 @@
+import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
+import { checkedInToday } from "@mindfulverse/core/journal";
+import {
+  currentStreak,
+  getLastRead,
+  latestSurahTadabbur,
+} from "@mindfulverse/core/progress";
+import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import type { Ayah } from "@mindfulverse/core/types";
 // Home (web: apps/web/src/pages/Home.tsx): greeting, streak, the verse of the
 // day, the check-in / go-deeper action, and the places to go with more time.
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Linking, View } from "react-native";
-import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
-import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { checkedInToday } from "@mindfulverse/core/journal";
-import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
-import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
-import type { Ayah } from "@mindfulverse/core/types";
-import { HomeEntry, HomeEntryDivider } from "../../src/components/Home/HomeEntry";
+import Svg, { Path } from "react-native-svg";
+
+import {
+  HomeEntry,
+  HomeEntryDivider,
+} from "../../src/components/Home/HomeEntry";
 import {
   deeperLabel,
   greeting,
   readDesc,
   streakLine,
   tadabburTarget,
-  type VersePos,
 } from "../../src/components/Home/homeModel";
-import Svg, { Path } from "react-native-svg";
+import type { VersePos } from "../../src/components/Home/homeModel";
 import { space, useTheme } from "../../src/theme";
-import { AdireCloth, ArabicText, Button, DyeRule, Screen, Text, useOnCloth } from "../../src/ui";
+import {
+  AdireCloth,
+  ArabicText,
+  Button,
+  DyeRule,
+  Screen,
+  Text,
+  useOnCloth,
+} from "../../src/ui";
 import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
 import { ReadIcon, TadabburIcon } from "../../src/ui/icons";
 
@@ -38,12 +54,12 @@ interface Local {
 // (back from the check-in, the reader, a tadabbur, or a sync).
 function readLocal(): Local {
   return {
-    hour: new Date().getHours(),
-    streak: currentStreak(),
-    lastRead: getLastRead(),
-    doneToday: checkedInToday(),
     deeper: latestSurahTadabbur(),
+    doneToday: checkedInToday(),
+    hour: new Date().getHours(),
+    lastRead: getLastRead(),
     scale: scaleFor(getSizeKey()),
+    streak: currentStreak(),
   };
 }
 
@@ -64,14 +80,19 @@ export default function Home() {
       setLocal(readLocal());
       // The day can turn while the app sits in the background. Each person
       // has their own verse; wait for the account so it doesn't flip.
-      if (!accountLoading) void todayVerseKey(accountId).then(setVerseKey);
-    }, [accountId, accountLoading]),
+      if (!accountLoading) {
+        void todayVerseKey(accountId).then(setVerseKey);
+      }
+    }, [accountId, accountLoading])
   );
 
   useEffect(() => {
     let alive = true;
     loadSurahs()
-      .then((list) => alive && setSurahNames(new Map(list.map((s) => [s.number, s.name]))))
+      .then(
+        (list) =>
+          alive && setSurahNames(new Map(list.map((s) => [s.number, s.name])))
+      )
       .catch(() => {});
     return () => {
       alive = false;
@@ -79,14 +100,20 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!verseKey) return;
+    if (!verseKey) {
+      return;
+    }
     let alive = true;
     setHeroError(false);
     loadAyahsByKeys([verseKey])
       .then((a) => {
-        if (!alive) return;
+        if (!alive) {
+          return;
+        }
         setHero(a[0] ?? null);
-        if (!a[0]) setHeroError(true);
+        if (!a[0]) {
+          setHeroError(true);
+        }
       })
       .catch(() => alive && setHeroError(true));
     return () => {
@@ -98,14 +125,14 @@ export default function Home() {
   const returning = streakLine(streak);
   const tadabbur = tadabburTarget(deeper);
   const tadabburHref = {
-    pathname: "/tadabbur/[surah]",
     params: { surah: String(tadabbur.surah), v: String(tadabbur.ayah) },
+    pathname: "/tadabbur/[surah]",
   } as const;
   const surahName = hero ? surahNames.get(hero.surah) : undefined;
 
   return (
     <Screen>
-      <View style={{ marginTop: space.xs, gap: 4 }}>
+      <View style={{ gap: 4, marginTop: space.xs }}>
         <Text variant="muted" style={{ fontSize: 14.5, lineHeight: 20 }}>
           {todayLabel()}
         </Text>
@@ -123,11 +150,23 @@ export default function Home() {
                 </ArabicText>
                 <Text
                   variant="translation"
-                  style={{ fontSize: 20.4, lineHeight: 31, marginTop: 6, color: cloth.strong }}
+                  style={{
+                    color: cloth.strong,
+                    fontSize: 20.4,
+                    lineHeight: 31,
+                    marginTop: 6,
+                  }}
                 >
                   {hero.translation}
                 </Text>
-                <Text style={{ marginTop: 10, fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>
+                <Text
+                  style={{
+                    color: cloth.soft,
+                    fontSize: 14.5,
+                    lineHeight: 20,
+                    marginTop: 10,
+                  }}
+                >
                   {surahName ? `${surahName} ` : ""}
                   {hero.surah}:{hero.ayah}
                 </Text>
@@ -140,14 +179,30 @@ export default function Home() {
               </Text>
             )}
 
-            <View style={{ marginTop: 22, alignItems: "flex-start", gap: 10 }}>
+            <View style={{ alignItems: "flex-start", gap: 10, marginTop: 22 }}>
               {doneToday ? (
                 <>
-                  <Text style={{ color: cloth.soft, fontSize: 15.5, lineHeight: 22 }}>Today’s reflection is saved.</Text>
-                  <Button kind="cloth" title={deeperLabel(deeper, surahNames)} onPress={() => router.push(tadabburHref)} />
+                  <Text
+                    style={{
+                      color: cloth.soft,
+                      fontSize: 15.5,
+                      lineHeight: 22,
+                    }}
+                  >
+                    Today’s reflection is saved.
+                  </Text>
+                  <Button
+                    kind="cloth"
+                    title={deeperLabel(deeper, surahNames)}
+                    onPress={() => router.push(tadabburHref)}
+                  />
                 </>
               ) : (
-                <Button kind="cloth" title="Reflect on today’s verse" onPress={() => router.push("/checkin")} />
+                <Button
+                  kind="cloth"
+                  title="Reflect on today’s verse"
+                  onPress={() => router.push("/checkin")}
+                />
               )}
             </View>
           </View>
@@ -155,7 +210,12 @@ export default function Home() {
       </FadeRise>
 
       <View accessibilityLabel="Sections" style={{ marginTop: space.sm }}>
-        <HomeEntry Icon={TadabburIcon} title="Tadabbur" desc="Ponder the Qur’an, surah by surah." href={tadabburHref} />
+        <HomeEntry
+          Icon={TadabburIcon}
+          title="Tadabbur"
+          desc="Ponder the Qur’an, surah by surah."
+          href={tadabburHref}
+        />
         <HomeEntryDivider />
         <HomeEntry
           Icon={ReadIconFlat}
@@ -164,8 +224,11 @@ export default function Home() {
           href={
             lastRead
               ? {
+                  params: {
+                    surah: String(lastRead.surah),
+                    v: String(lastRead.ayah),
+                  },
                   pathname: "/read/[surah]",
-                  params: { surah: String(lastRead.surah), v: String(lastRead.ayah) },
                 }
               : "/read"
           }
@@ -175,7 +238,10 @@ export default function Home() {
       <DyeRule style={{ marginTop: space.lg }} />
 
       {/* Required attribution — the translation is CC BY-NC-ND. */}
-      <Text variant="muted" style={{ fontSize: 13.6, lineHeight: 20, textAlign: "center" }}>
+      <Text
+        variant="muted"
+        style={{ fontSize: 13.6, lineHeight: 20, textAlign: "center" }}
+      >
         English translation by{" "}
         <Text
           accessibilityRole="link"
@@ -192,7 +258,11 @@ export default function Home() {
 /** "Wednesday, 7 October" in the phone's language. */
 function todayLabel(): string {
   try {
-    return new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+    return new Date().toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "long",
+      weekday: "long",
+    });
   } catch {
     return new Date().toDateString();
   }
@@ -203,11 +273,23 @@ function StreakBeads({ streak, label }: { streak: number; label: string }) {
   const { colors } = useTheme();
   const filled = Math.min(streak, 7);
   return (
-    <View accessible accessibilityLabel={label} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 }}>
+    <View
+      accessible
+      accessibilityLabel={label}
+      style={{
+        alignItems: "center",
+        flexDirection: "row",
+        gap: 10,
+        marginTop: 4,
+      }}
+    >
       <View style={{ flexDirection: "row", gap: 4 }}>
         {Array.from({ length: 7 }, (_, i) => (
           <Svg key={i} width={9} height={9}>
-            <Path d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z" fill={i < filled ? colors.kola : colors.lineStrong} />
+            <Path
+              d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z"
+              fill={i < filled ? colors.kola : colors.lineStrong}
+            />
           </Svg>
         ))}
       </View>

@@ -6,7 +6,14 @@
 // same localStorage key, default LIGHT ("the identity is light; night mode is
 // an explicit choice"). Native adds a third value, "system", which follows the
 // OS; it is opt-in so the default matches web.
-import { createContext, createElement, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 import { useColorScheme } from "react-native";
 
@@ -16,33 +23,33 @@ export type ThemePref = Scheme | "system";
 const KEY = "mindfulverse.theme.v1";
 
 export const palettes = {
-  light: {
-    cotton: "#f4f5f8", // ground
-    cottonRaised: "#fcfcfd", // lifted surface
-    shea: "#e9ebf2", // secondary surface (cards)
-    indigo: "#2a3a8c", // the voice of the app: buttons, links, eyebrows
-    indigoDeep: "#1b2559", // headings, Arabic
-    indigoWash: "#e3e7f4", // pale wash, selected states
-    kola: "#b4472a", // errors and destructive actions only
-    ink: "#161a2e",
-    inkSoft: "#474d66",
-    inkFaint: "#666c85",
-    line: "#e0e3eb",
-    lineStrong: "#c9cedc",
-  },
   dark: {
     cotton: "#12141d",
     cottonRaised: "#191c28",
-    shea: "#222636",
     indigo: "#93a5e4",
     indigoDeep: "#b5c2ef",
     indigoWash: "#262e4d",
-    kola: "#e08a6e",
     ink: "#e8eaf2",
-    inkSoft: "#b3b8ca",
     inkFaint: "#8b91a8",
+    inkSoft: "#b3b8ca",
+    kola: "#e08a6e",
     line: "#2a2e40",
     lineStrong: "#3d4259",
+    shea: "#222636",
+  },
+  light: {
+    cotton: "#f4f5f8", // ground
+    cottonRaised: "#fcfcfd", // lifted surface
+    indigo: "#2a3a8c", // the voice of the app: buttons, links, eyebrows
+    indigoDeep: "#1b2559", // headings, Arabic
+    indigoWash: "#e3e7f4", // pale wash, selected states
+    ink: "#161a2e",
+    inkFaint: "#666c85",
+    inkSoft: "#474d66",
+    kola: "#b4472a", // errors and destructive actions only
+    line: "#e0e3eb",
+    lineStrong: "#c9cedc",
+    shea: "#e9ebf2", // secondary surface (cards),
   },
 } as const;
 
@@ -51,17 +58,17 @@ export type Colors = { [K in keyof (typeof palettes)["light"]]: string };
 /** Font family names registered in app/_layout.tsx (useFonts). Android
  *  can't pick weights inside one custom family, so each weight is a family. */
 export const fonts = {
+  arabic: "UthmanicHafs", // KFGQPC Uthmanic Hafs (web: --font-arabic)
   read: "Outfit", // 400, interface (web: --font-read)
   readMedium: "Outfit-Medium", // 500, labels / buttons
   readSemiBold: "Outfit-SemiBold", // 600, headings
   text: "Literata", // 400, long reading: translation, journal (web: --font-text)
   textItalic: "Literata-Italic",
-  arabic: "UthmanicHafs", // KFGQPC Uthmanic Hafs (web: --font-arabic)
 } as const;
 
 /** Spacing scale in dp, from the web's recurring paddings/gaps. */
-export const space = { xs: 4, sm: 8, md: 16, lg: 22, xl: 32, xxl: 40 } as const;
-export const radius = { sm: 3, md: 4 } as const;
+export const space = { lg: 22, md: 16, sm: 8, xl: 32, xs: 4, xxl: 40 } as const;
+export const radius = { md: 4, sm: 3 } as const;
 
 /** Type scale in dp; web's base is 17px with rem multiples. */
 export const type = {
@@ -91,16 +98,17 @@ interface ThemeValue {
 }
 
 const ThemeContext = createContext<ThemeValue>({
-  scheme: "light",
-  pref: "light",
   colors: palettes.light,
+  pref: "light",
+  scheme: "light",
   setPref: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const os = useColorScheme();
   const [pref, setPrefState] = useState<ThemePref>(readThemePref);
-  const scheme: Scheme = pref === "system" ? (os === "dark" ? "dark" : "light") : pref;
+  const scheme: Scheme =
+    pref === "system" ? (os === "dark" ? "dark" : "light") : pref;
 
   const setPref = useCallback((p: ThemePref) => {
     try {
@@ -112,8 +120,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ scheme, pref, colors: palettes[scheme], setPref }),
-    [scheme, pref, setPref],
+    () => ({ colors: palettes[scheme], pref, scheme, setPref }),
+    [scheme, pref, setPref]
   );
   return createElement(ThemeContext.Provider, { value }, children);
 }

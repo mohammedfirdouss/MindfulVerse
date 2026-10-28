@@ -1,3 +1,5 @@
+import { track } from "@mindfulverse/core/analytics";
+import * as Notifications from "expo-notifications";
 // Daily verse reminder: enable at a chosen time, change the time, turn off.
 // Ported from web's Account.tsx over src/push.ts (same results). Native
 // differences: no "install to Home Screen" / unsupported-browser branches;
@@ -6,9 +8,14 @@
 // permission the OS will no longer prompt for (only Settings can fix it).
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, Linking, View } from "react-native";
-import * as Notifications from "expo-notifications";
-import { track } from "@mindfulverse/core/analytics";
-import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../../push";
+
+import {
+  disableReminder,
+  enableReminder,
+  getReminder,
+  pushSupport,
+  updateReminderTime,
+} from "../../push";
 import { space } from "../../theme";
 import { Button } from "../../ui";
 import { DEFAULT_REMINDER_TIME, notificationsBlocked } from "./logic";
@@ -44,7 +51,9 @@ export function ReminderSection() {
   }, []);
 
   useEffect(() => {
-    if (support !== "ok") return;
+    if (support !== "ok") {
+      return;
+    }
     recheckPermission();
     getReminder()
       .then((r) => {
@@ -59,7 +68,9 @@ export function ReminderSection() {
       });
     // Coming back from Settings may have unblocked notifications.
     const sub = AppState.addEventListener("change", (s) => {
-      if (s === "active") recheckPermission();
+      if (s === "active") {
+        recheckPermission();
+      }
     });
     return () => sub.remove();
   }, [support, recheckPermission]);
@@ -70,21 +81,33 @@ export function ReminderSection() {
     try {
       const { error, welcomed } = await enableReminder(reminderTime);
       if (error) {
-        if (await permissionBlocked()) setBlocked(true);
-        else if (error === NOT_ALLOWED)
-          // Prompt dismissed or refused once: the OS can still ask again.
-          setError("Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow.");
-        else setError(error);
+        if (await permissionBlocked()) {
+          setBlocked(true);
+        } else if (error === NOT_ALLOWED)
+        // Prompt dismissed or refused once: the OS can still ask again.
+        {
+          setError(
+            "Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow."
+          );
+        } else {
+          setError(error);
+        }
         return;
       }
-      track({ type: "reminder_set", enabled: true });
+      track({ enabled: true, type: "reminder_set" });
       setReminderOn(true);
       setSavedTime(reminderTime);
-      setNotice(welcomed ? "Today’s verse was just sent here, so you can see how it looks." : null);
+      setNotice(
+        welcomed
+          ? "Today’s verse was just sent here, so you can see how it looks."
+          : null
+      );
     } catch {
       setError("Couldn't set the reminder. Please try again.");
     } finally {
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        setBusy(false);
+      }
     }
   }
 
@@ -97,13 +120,15 @@ export function ReminderSection() {
         setError("Couldn't turn off the reminder. Please try again.");
         return;
       }
-      track({ type: "reminder_set", enabled: false });
+      track({ enabled: false, type: "reminder_set" });
       setReminderOn(false);
       setNotice(null);
     } catch {
       setError("Couldn't turn off the reminder. Please try again.");
     } finally {
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        setBusy(false);
+      }
     }
   }
 
@@ -111,23 +136,32 @@ export function ReminderSection() {
   // otherwise pushes keep firing at the old time. Committed by an explicit
   // Save (web commits on blur) so stepper taps don't race network writes.
   async function saveTime() {
-    if (!reminderOn || reminderTime === savedTime) return;
+    if (!reminderOn || reminderTime === savedTime) {
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const { error } = await updateReminderTime(reminderTime);
-      if (error) return setError(error);
+      if (error) {
+        return setError(error);
+      }
       setSavedTime(reminderTime);
       setNotice("New time saved.");
     } catch {
       setError("Couldn't update the reminder time. Please try again.");
     } finally {
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        setBusy(false);
+      }
     }
   }
 
   const intro = (
-    <Small>Get today’s verse as a notification at a time you choose. Tap it to open your check-in.</Small>
+    <Small>
+      Get today’s verse as a notification at a time you choose. Tap it to open
+      your check-in.
+    </Small>
   );
 
   if (support !== "ok") {
@@ -135,8 +169,9 @@ export function ReminderSection() {
       <Section title="Daily verse reminder">
         {intro}
         <Small>
-          Reminders aren’t available in this version of the app yet. They’ll arrive in an update. Until then,
-          your journal and progress back up as usual.
+          Reminders aren’t available in this version of the app yet. They’ll
+          arrive in an update. Until then, your journal and progress back up as
+          usual.
         </Small>
       </Section>
     );
@@ -145,13 +180,13 @@ export function ReminderSection() {
   const dirty = reminderOn && reminderTime !== savedTime;
   return (
     <Section title="Daily verse reminder" aside={reminderOn ? "On" : undefined}>
-      {!reminderOn ? intro : null}
+      {reminderOn ? null : intro}
 
       {blocked && !reminderOn ? (
-        <View style={{ gap: space.sm, alignItems: "flex-start" }}>
+        <View style={{ alignItems: "flex-start", gap: space.sm }}>
           <Small>
-            Notifications are turned off for MindfulVerse on this phone. To get the reminder, allow notifications
-            in Settings, then come back here.
+            Notifications are turned off for MindfulVerse on this phone. To get
+            the reminder, allow notifications in Settings, then come back here.
           </Small>
           <Button
             title="Open settings"
@@ -164,11 +199,22 @@ export function ReminderSection() {
 
       {!blocked && !reminderOn ? (
         <>
-          <TimeStepper label="Remind me at" value={reminderTime} onChange={setReminderTime} disabled={busy} />
+          <TimeStepper
+            label="Remind me at"
+            value={reminderTime}
+            onChange={setReminderTime}
+            disabled={busy}
+          />
           <View style={{ flexDirection: "row" }}>
-            <Button title={busy ? "Turning on…" : "Turn on reminder"} busy={busy} onPress={() => void turnOn()} />
+            <Button
+              title={busy ? "Turning on…" : "Turn on reminder"}
+              busy={busy}
+              onPress={() => void turnOn()}
+            />
           </View>
-          <Small>Your phone will ask to allow notifications. Choose Allow.</Small>
+          <Small>
+            Your phone will ask to allow notifications. Choose Allow.
+          </Small>
         </>
       ) : null}
 
@@ -183,11 +229,26 @@ export function ReminderSection() {
             }}
             disabled={busy}
           />
-          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.md }}>
+          <View
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: space.md,
+            }}
+          >
             {dirty ? (
               <>
-                <Button title="Save new time" busy={busy} onPress={() => void saveTime()} />
-                <LinkButton title="Keep old time" disabled={busy} onPress={() => setReminderTime(savedTime)} />
+                <Button
+                  title="Save new time"
+                  busy={busy}
+                  onPress={() => void saveTime()}
+                />
+                <LinkButton
+                  title="Keep old time"
+                  disabled={busy}
+                  onPress={() => setReminderTime(savedTime)}
+                />
               </>
             ) : (
               <LinkButton

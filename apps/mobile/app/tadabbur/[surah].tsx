@@ -16,22 +16,38 @@ import {
   loadSurahTafsir,
   loadTafsirIndex,
 } from "@mindfulverse/core/data";
-import { getSurahTadabbur, recordSurahTadabbur } from "@mindfulverse/core/progress";
+import {
+  getSurahTadabbur,
+  recordSurahTadabbur,
+} from "@mindfulverse/core/progress";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
-import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "@mindfulverse/core/types";
-import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import type {
+  Ayah,
+  SurahInfo,
+  SurahMeta,
+  SurahTafsir,
+} from "@mindfulverse/core/types";
+import {
+  router,
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import {
   ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
   View,
-  type TextInput,
 } from "react-native";
+import type { TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
+
+import { ActionLink } from "../../src/components/Reader/ActionLink";
+import { TitlePlate } from "../../src/components/Reader/TitlePlate";
 import { InfoText } from "../../src/components/Tadabbur/InfoText";
 import {
   coveringFromIndex,
@@ -42,17 +58,16 @@ import {
   resumeAyahFor,
   saveTadabburDraft,
   verseCount,
-  type Draft,
 } from "../../src/components/Tadabbur/logic";
+import type { Draft } from "../../src/components/Tadabbur/logic";
 import { ReflectionArea } from "../../src/components/Tadabbur/ReflectionArea";
-import { useShareVerse } from "../../src/share";
 import { VerseCommentary } from "../../src/components/Tadabbur/VerseCommentary";
 import { VersePicker } from "../../src/components/Tadabbur/VersePicker";
-import { ActionLink } from "../../src/components/Reader/ActionLink";
-import { TitlePlate } from "../../src/components/Reader/TitlePlate";
 import { tickSelection } from "../../src/platform/haptics";
+import { useShareVerse } from "../../src/share";
 import { space, useTheme } from "../../src/theme";
 import { ArabicText, Button, Card, Diamond, Text } from "../../src/ui";
+import { FadeRise, useReducedMotion } from "../../src/ui/FadeRise";
 
 type LoadStatus = "loading" | "ready" | "error";
 
@@ -66,8 +81,11 @@ export default function Tadabbur() {
 /** Leave the flow: back to wherever it was opened from, or Home when the
  *  screen is the stack root (opened straight from a notification). */
 function leave() {
-  if (router.canGoBack()) router.back();
-  else router.replace("/");
+  if (router.canGoBack()) {
+    router.back();
+  } else {
+    router.replace("/");
+  }
 }
 
 function TadabburPage() {
@@ -100,13 +118,15 @@ function TadabburPage() {
   // typing never re-renders the verse. Every change is also persisted per
   // surah, so nothing typed is lost: no "leave without saving?" needed.
   const drafts = useRef<Record<string, Draft> | null>(null);
-  if (drafts.current === null) drafts.current = validSurah ? loadTadabburDrafts(n) : {};
+  if (drafts.current === null) {
+    drafts.current = validSurah ? loadTadabburDrafts(n) : {};
+  }
   const onDraft = useCallback(
     (verseKey: string, d: Draft) => {
       drafts.current![verseKey] = d;
       saveTadabburDraft(n, verseKey, d);
     },
-    [n],
+    [n]
   );
 
   // Re-read on every phase change so returning to the about screen offers the
@@ -114,18 +134,20 @@ function TadabburPage() {
   const saved = useMemo(
     () => (validSurah ? getSurahTadabbur(n) : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [validSurah, n, phase],
+    [validSurah, n, phase]
   );
 
   // The reader's A/A/A size may change while this screen is underneath.
   useFocusEffect(
     useCallback(() => {
       setArabicScale(scaleFor(getSizeKey()));
-    }, []),
+    }, [])
   );
 
   useEffect(() => {
-    if (!validSurah) return;
+    if (!validSurah) {
+      return;
+    }
     let active = true;
     setStatus("loading");
     Promise.all([
@@ -134,7 +156,9 @@ function TadabburPage() {
       loadSurahs().catch<SurahMeta[]>(() => []),
     ])
       .then(([ayahData, indexData, surahList]) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setAyahs(ayahData);
         setIndexed(indexData?.[String(n)] ?? []);
         setIndexFailed(indexData === null);
@@ -142,11 +166,15 @@ function TadabburPage() {
         setStatus("ready");
       })
       .catch(() => {
-        if (active) setStatus("error");
+        if (active) {
+          setStatus("error");
+        }
       });
     loadSurahInfo(n)
       .then((d) => {
-        if (active && d) setInfo(d);
+        if (active && d) {
+          setInfo(d);
+        }
       })
       .catch(() => {});
     return () => {
@@ -160,31 +188,41 @@ function TadabburPage() {
   const begin = useCallback(
     (at: number) => {
       if (!started.current) {
-        track({ type: "session_start", sessionId: `surah-${n}` });
+        track({ sessionId: `surah-${n}`, type: "session_start" });
         started.current = true;
       }
       setPhase(at);
     },
-    [n],
+    [n]
   );
 
   // Deep link (?v=n): start straight at that verse once the surah loads.
   // Keyed on the param's value, so each new `v` is honoured once.
   const handledV = useRef<string | null>(null);
   useEffect(() => {
-    if (status !== "ready") return;
+    if (status !== "ready") {
+      return;
+    }
     const key = String(params.v ?? "");
-    if (handledV.current === key) return;
+    if (handledV.current === key) {
+      return;
+    }
     handledV.current = key;
     const at = deepLinkPhase(params.v, count);
-    if (at !== null) begin(at);
+    if (at !== null) {
+      begin(at);
+    }
   }, [status, params.v, count, begin]);
 
   // Remember the furthest verse pondered (recordSurahTadabbur never regresses).
   useEffect(() => {
-    if (status !== "ready" || phase < 0 || count === 0) return;
+    if (status !== "ready" || phase < 0 || count === 0) {
+      return;
+    }
     const a = ayahs[Math.min(phase, count - 1)];
-    if (a.surah !== n) return;
+    if (a.surah !== n) {
+      return;
+    }
     recordSurahTadabbur(n, a.ayah);
   }, [phase, status, ayahs, count, n]);
 
@@ -192,7 +230,7 @@ function TadabburPage() {
   const scrollRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ y: 0, animated: false });
+    scrollRef.current?.scrollTo({ animated: false, y: 0 });
   }, [phase]);
 
   // Keep the focused reflection input above the keyboard.
@@ -200,11 +238,17 @@ function TadabburPage() {
   const revealFocused = useCallback(() => {
     const input = focused.current;
     const content = contentRef.current;
-    if (!input || !content) return;
+    if (!input || !content) {
+      return;
+    }
     input.measureLayout(
       content,
-      (_x, y) => scrollRef.current?.scrollTo({ y: Math.max(0, y - space.xxl * 2), animated: true }),
-      () => {},
+      (_x, y) =>
+        scrollRef.current?.scrollTo({
+          animated: true,
+          y: Math.max(0, y - space.xxl * 2),
+        }),
+      () => {}
     );
   }, []);
   useEffect(() => {
@@ -214,14 +258,18 @@ function TadabburPage() {
   const onFocusInput = useCallback(
     (input: TextInput) => {
       focused.current = input;
-      if (Keyboard.isVisible()) revealFocused();
+      if (Keyboard.isVisible()) {
+        revealFocused();
+      }
     },
-    [revealFocused],
+    [revealFocused]
   );
 
   /** Fetch the surah's tafsir once, on first request. */
   const ensureTafsir = useCallback(() => {
-    if (tafsirPromise.current) return;
+    if (tafsirPromise.current) {
+      return;
+    }
     tafsirPromise.current = loadSurahTafsir(n)
       .then((t) => {
         setTafsir(t);
@@ -241,17 +289,21 @@ function TadabburPage() {
       tickSelection();
       begin(ayah - 1);
     },
-    [begin],
+    [begin]
   );
   const closePicker = useCallback(() => setPickerOpen(false), []);
 
   const share = useShareVerse("tadabbur");
 
-  const title = <Stack.Screen options={{ title: validSurah && status === "ready" ? name : "Tadabbur" }} />;
+  const title = (
+    <Stack.Screen
+      options={{ title: validSurah && status === "ready" ? name : "Tadabbur" }}
+    />
+  );
 
   const page = (children: ReactNode) => (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.cotton }}
+      style={{ backgroundColor: colors.cotton, flex: 1 }}
       behavior="padding"
       keyboardVerticalOffset={headerHeight}
     >
@@ -262,9 +314,9 @@ function TadabburPage() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="none"
         contentContainerStyle={{
+          paddingBottom: insets.bottom + space.xxl,
           paddingHorizontal: space.lg,
           paddingTop: space.lg,
-          paddingBottom: insets.bottom + space.xxl,
         }}
       >
         <View ref={contentRef} collapsable={false} style={{ gap: space.md }}>
@@ -279,26 +331,27 @@ function TadabburPage() {
       <Card>
         <Text variant="h2">That surah isn’t here</Text>
         <Text variant="muted">
-          Surahs run from 1 to 114. We couldn’t find the one this link points to.
+          Surahs run from 1 to 114. We couldn’t find the one this link points
+          to.
         </Text>
         <View style={{ alignItems: "flex-start" }}>
           <Button kind="secondary" title="Go back" onPress={leave} />
         </View>
-      </Card>,
+      </Card>
     );
   }
 
   if (status === "loading") {
     return page(
       <View
-        style={{ flexDirection: "row", gap: space.sm, alignItems: "center" }}
+        style={{ alignItems: "center", flexDirection: "row", gap: space.sm }}
         accessible
         accessibilityLabel="Opening the surah"
         accessibilityLiveRegion="polite"
       >
         <ActivityIndicator color={colors.indigo} />
         <Text variant="muted">Opening the surah…</Text>
-      </View>,
+      </View>
     );
   }
 
@@ -309,11 +362,11 @@ function TadabburPage() {
         <Text variant="muted">
           Something interrupted it opening. Try again in a moment.
         </Text>
-        <View style={{ flexDirection: "row", gap: space.md, flexWrap: "wrap" }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}>
           <Button title="Try again" onPress={() => setAttempt((x) => x + 1)} />
           <Button kind="secondary" title="Go back" onPress={leave} />
         </View>
-      </Card>,
+      </Card>
     );
   }
 
@@ -333,17 +386,28 @@ function TadabburPage() {
             <InfoText text={info.text} />
           </FadeRise>
         ) : null}
-        <FadeRise reduce={reduce} delay={120} style={{ flexDirection: "row", gap: space.md, flexWrap: "wrap" }}>
-          {resumeAyah != null ? (
-            <>
-              <Button title={`Continue from verse ${resumeAyah}`} onPress={() => begin(resumeAyah - 1)} />
-              <Button kind="ghost" title="Start from verse 1" onPress={() => begin(0)} />
-            </>
-          ) : (
+        <FadeRise
+          reduce={reduce}
+          delay={120}
+          style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}
+        >
+          {resumeAyah == null ? (
             <Button title="Begin pondering" onPress={() => begin(0)} />
+          ) : (
+            <>
+              <Button
+                title={`Continue from verse ${resumeAyah}`}
+                onPress={() => begin(resumeAyah - 1)}
+              />
+              <Button
+                kind="ghost"
+                title="Start from verse 1"
+                onPress={() => begin(0)}
+              />
+            </>
           )}
         </FadeRise>
-      </>,
+      </>
     );
   }
 
@@ -354,19 +418,29 @@ function TadabburPage() {
         <FadeRise reduce={reduce} style={{ gap: space.sm }}>
           <Text variant="h1">You’ve sat with all of {name}.</Text>
           <Text variant="soft">
-            {verseCount(count)}, pondered at your own pace. May what you wrote stay with you.
+            {verseCount(count)}, pondered at your own pace. May what you wrote
+            stay with you.
           </Text>
         </FadeRise>
-        <FadeRise reduce={reduce} delay={60} style={{ flexDirection: "row", gap: space.md, flexWrap: "wrap" }}>
+        <FadeRise
+          reduce={reduce}
+          delay={60}
+          style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}
+        >
           {n < 114 ? (
             <Button
               title="Next surah"
-              onPress={() => router.replace({ pathname: "/tadabbur/[surah]", params: { surah: String(n + 1) } })}
+              onPress={() =>
+                router.replace({
+                  params: { surah: String(n + 1) },
+                  pathname: "/tadabbur/[surah]",
+                })
+              }
             />
           ) : null}
           <Button kind="secondary" title="Done" onPress={leave} />
         </FadeRise>
-      </>,
+      </>
     );
   }
 
@@ -376,7 +450,14 @@ function TadabburPage() {
 
   return page(
     <>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }}>
+      <View
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          gap: space.sm,
+          justifyContent: "space-between",
+        }}
+      >
         <Text variant="eyebrow" accessibilityLiveRegion="polite">
           Verse {phase + 1} of {count}
         </Text>
@@ -390,20 +471,31 @@ function TadabburPage() {
 
       <FadeRise key={phase} reduce={reduce} style={{ gap: space.md }}>
         <View style={{ gap: space.sm }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm + 4 }}>
-            <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <View
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              gap: space.sm + 4,
+            }}
+          >
+            <View
+              importantForAccessibility="no-hide-descendants"
+              accessibilityElementsHidden
+            >
               <Diamond label={a.ayah} />
             </View>
             <Text variant="eyebrow">
               {name} · {a.verseKey}
             </Text>
-            <View style={{ flex: 1, height: 2, backgroundColor: colors.indigoWash }} />
+            <View
+              style={{ backgroundColor: colors.indigoWash, flex: 1, height: 2 }}
+            />
           </View>
           <ArabicText
             scale={arabicScale}
             selectable
             accessibilityLanguage="ar"
-            style={{ marginTop: space.sm, marginBottom: space.sm }}
+            style={{ marginBottom: space.sm, marginTop: space.sm }}
           >
             {a.arabic}
           </ArabicText>
@@ -438,9 +530,18 @@ function TadabburPage() {
         />
       </FadeRise>
 
-      <View style={{ flexDirection: "row", gap: space.md, marginTop: space.md }}>
-        <Button kind="secondary" title="Back" onPress={() => setPhase((p) => Math.max(-1, p - 1))} />
-        <Button title={phase + 1 === count ? "Finish" : "Next verse"} onPress={() => setPhase((p) => p + 1)} />
+      <View
+        style={{ flexDirection: "row", gap: space.md, marginTop: space.md }}
+      >
+        <Button
+          kind="secondary"
+          title="Back"
+          onPress={() => setPhase((p) => Math.max(-1, p - 1))}
+        />
+        <Button
+          title={phase + 1 === count ? "Finish" : "Next verse"}
+          onPress={() => setPhase((p) => p + 1)}
+        />
       </View>
 
       <VersePicker
@@ -450,6 +551,6 @@ function TadabburPage() {
         onPick={pickVerse}
         onClose={closePicker}
       />
-    </>,
+    </>
   );
 }

@@ -1,34 +1,55 @@
+import { track } from "@mindfulverse/core/analytics";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import {
+  getSyncStatus,
+  onSyncStatus,
+  syncNow,
+} from "@mindfulverse/core/sync/engine";
+import type { SyncStatus } from "@mindfulverse/core/sync/engine";
+import { insforge } from "@mindfulverse/core/sync/insforge";
 // /account — optional identity (web: apps/web/src/pages/Account.tsx). The
 // whole app works signed-out; an account only backs up the journal and
 // progress across devices, and enables the daily verse reminder.
 import { useEffect, useRef, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
-import { track } from "@mindfulverse/core/analytics";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { getSyncStatus, onSyncStatus, syncNow, type SyncStatus } from "@mindfulverse/core/sync/engine";
-import { insforge } from "@mindfulverse/core/sync/insforge";
-import { AuthForm, type AuthMode } from "../../src/components/Account/AuthForm";
+
+import { AuthForm } from "../../src/components/Account/AuthForm";
+import type { AuthMode } from "../../src/components/Account/AuthForm";
 import { NETWORK_ERROR } from "../../src/components/Account/logic";
-import { FormError, LinkButton, Notice, Section, Small } from "../../src/components/Account/parts";
+import {
+  FormError,
+  LinkButton,
+  Notice,
+  Section,
+  Small,
+} from "../../src/components/Account/parts";
 import { ReminderSection } from "../../src/components/Account/ReminderSection";
 import { SettingsSection } from "../../src/components/Account/SettingsSection";
 import { SyncSection } from "../../src/components/Account/SyncSection";
-import { disableReminder, forgetPushToken, unregisterPush } from "../../src/push";
+import {
+  disableReminder,
+  forgetPushToken,
+  unregisterPush,
+} from "../../src/push";
 import { signOut as endSession } from "../../src/session";
 import { fonts } from "../../src/theme";
 import { Button, Card, Screen, Text } from "../../src/ui";
 
-function confirm(title: string, message: string, action: string): Promise<boolean> {
+function confirm(
+  title: string,
+  message: string,
+  action: string
+): Promise<boolean> {
   return new Promise((resolve) =>
     Alert.alert(
       title,
       message,
       [
-        { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-        { text: action, style: "destructive", onPress: () => resolve(true) },
+        { onPress: () => resolve(false), style: "cancel", text: "Cancel" },
+        { onPress: () => resolve(true), style: "destructive", text: action },
       ],
-      { cancelable: true, onDismiss: () => resolve(false) },
-    ),
+      { cancelable: true, onDismiss: () => resolve(false) }
+    )
   );
 }
 
@@ -47,12 +68,12 @@ export default function Account() {
     () =>
       onSyncStatus((s) => {
         if (s !== prevStatus.current && (s === "synced" || s === "error")) {
-          track({ type: "sync_done", ok: s === "synced" });
+          track({ ok: s === "synced", type: "sync_done" });
         }
         prevStatus.current = s;
         setStatus(s);
       }),
-    [],
+    []
   );
 
   // After a successful sign-in / verification: same sequence as web.
@@ -61,7 +82,9 @@ export default function Account() {
     await syncNow();
     // Only promise a backup once the first sync actually landed.
     setNotice(
-      getSyncStatus() === "synced" ? "Signed in. Your journal is now backed up to your account." : "Signed in.",
+      getSyncStatus() === "synced"
+        ? "Signed in. Your journal is now backed up to your account."
+        : "Signed in."
     );
   }
 
@@ -73,7 +96,9 @@ export default function Account() {
     // Only this device's row: the account's other phones keep theirs.
     try {
       const { error: pushError } = await disableReminder();
-      if (pushError) console.warn("disableReminder failed before sign-out:", pushError);
+      if (pushError) {
+        console.warn("disableReminder failed before sign-out:", pushError);
+      }
     } catch {
       /* best effort — sign-out must proceed regardless */
     }
@@ -90,23 +115,30 @@ export default function Account() {
       /* AccountProvider keeps its last state; the next refresh corrects it */
     }
     setBusy(false);
-    setNotice("Signed out. Your entries stay on this device but are no longer backed up.");
+    setNotice(
+      "Signed out. Your entries stay on this device but are no longer backed up."
+    );
   }
 
   async function deleteMyData(userId: string) {
     const sure = await confirm(
       "Delete synced data?",
       "Delete all synced data from your account? Entries on this device are kept.",
-      "Delete",
+      "Delete"
     );
-    if (!sure) return;
+    if (!sure) {
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       // Only sign out once every delete succeeded — signing out on a partial
       // failure would strand data the user believes is gone.
       const results = await Promise.all([
-        insforge.database.from("journal_entries").delete().eq("user_id", userId),
+        insforge.database
+          .from("journal_entries")
+          .delete()
+          .eq("user_id", userId),
         insforge.database.from("progress").delete().eq("user_id", userId),
         unregisterPush(userId), // every device's reminder for this account
       ]);
@@ -127,12 +159,21 @@ export default function Account() {
 
   const header = (
     <View>
-      <Text variant="h1">{loading || user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}</Text>
+      <Text variant="h1">
+        {loading || user
+          ? "Your account"
+          : mode === "signup"
+            ? "Create account"
+            : "Sign in"}
+      </Text>
     </View>
   );
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <Screen>
         {header}
 
@@ -144,12 +185,12 @@ export default function Account() {
               Loading…
             </Text>
           </Card>
-        ) : !user ? (
-          <AuthForm mode={mode} onModeChange={setMode} onSignedIn={onSignedIn} setNotice={setNotice} />
-        ) : (
+        ) : user ? (
           <Card>
             <View accessible>
-              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 19 }}>{user.name ?? user.email}</Text>
+              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 19 }}>
+                {user.name ?? user.email}
+              </Text>
               {user.name ? <Small>{user.email}</Small> : null}
             </View>
 
@@ -160,14 +201,20 @@ export default function Account() {
 
             <Section>
               <View style={{ alignItems: "flex-start" }}>
-                <Button title="Sign out" kind="secondary" disabled={busy} busy={busy} onPress={() => void signOut()} />
+                <Button
+                  title="Sign out"
+                  kind="secondary"
+                  disabled={busy}
+                  busy={busy}
+                  onPress={() => void signOut()}
+                />
               </View>
             </Section>
 
             <Section>
               <Small>
-                Deleting removes your journal and progress from your account. Entries already on this device are
-                kept.
+                Deleting removes your journal and progress from your account.
+                Entries already on this device are kept.
               </Small>
               <View style={{ alignItems: "flex-start" }}>
                 <LinkButton
@@ -180,10 +227,19 @@ export default function Account() {
               </View>
             </Section>
           </Card>
+        ) : (
+          <AuthForm
+            mode={mode}
+            onModeChange={setMode}
+            onSignedIn={onSignedIn}
+            setNotice={setNotice}
+          />
         )}
 
         <SettingsSection
-          feedbackSubject={user ? "About my MindfulVerse account" : "Feedback on MindfulVerse"}
+          feedbackSubject={
+            user ? "About my MindfulVerse account" : "Feedback on MindfulVerse"
+          }
         />
       </Screen>
     </KeyboardAvoidingView>
