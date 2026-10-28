@@ -1,16 +1,16 @@
 import "../src/setup"; // MUST stay first: installs shims + configures core (F4)
-
+import { trackAppOpen } from "@mindfulverse/core/analytics";
+import { recordVisit } from "@mindfulverse/core/progress";
+import { AccountProvider, useAccount } from "@mindfulverse/core/sync/auth";
+import { initSync, syncNow } from "@mindfulverse/core/sync/engine";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { trackAppOpen } from "@mindfulverse/core/analytics";
-import { recordVisit } from "@mindfulverse/core/progress";
-import { AccountProvider, useAccount } from "@mindfulverse/core/sync/auth";
-import { initSync, syncNow } from "@mindfulverse/core/sync/engine";
 import { AppState } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
 import { useNotificationRouting } from "../src/notifications";
 import { hasSession, onSessionChange, restore } from "../src/session";
 import { fonts, ThemeProvider, useTheme } from "../src/theme";
@@ -21,7 +21,9 @@ void SplashScreen.preventAutoHideAsync();
 trackAppOpen();
 recordVisit();
 AppState.addEventListener("change", (s) => {
-  if (s === "active") recordVisit(); // idempotent per day
+  if (s === "active") {
+    recordVisit();
+  } // idempotent per day
 });
 
 // Session restore starts immediately, in parallel with font loading.
@@ -48,10 +50,14 @@ export default function RootLayout() {
 
   const ready = (fontsLoaded || !!fontError) && sessionReady;
   useEffect(() => {
-    if (ready) void SplashScreen.hideAsync();
+    if (ready) {
+      void SplashScreen.hideAsync();
+    }
   }, [ready]);
 
-  if (!ready) return null; // native splash stays up
+  if (!ready) {
+    return null;
+  } // native splash stays up
 
   // AccountProvider mounts only after restore(), so its first
   // getCurrentUser() already carries the restored access token.
@@ -81,9 +87,11 @@ function SessionBridge() {
     () =>
       onSessionChange(() => {
         void refresh();
-        if (hasSession()) void syncNow();
+        if (hasSession()) {
+          void syncNow();
+        }
       }),
-    [refresh],
+    [refresh]
   );
   return null;
 }
@@ -98,7 +106,10 @@ function RootNavigator() {
         screenOptions={{
           headerStyle: { backgroundColor: colors.cotton },
           headerTintColor: colors.indigo,
-          headerTitleStyle: { fontFamily: fonts.readSemiBold, color: colors.indigoDeep },
+          headerTitleStyle: {
+            color: colors.indigoDeep,
+            fontFamily: fonts.readSemiBold,
+          },
           headerShadowVisible: false,
           // iOS otherwise labels the back button with the route group, "(tabs)".
           headerBackButtonDisplayMode: "minimal",

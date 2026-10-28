@@ -4,7 +4,7 @@ A **prioritized menu, not a to-do list.** Having the data is not a reason to bui
 
 ## The gate — cleared (2026-09-15)
 
-| | |
+|  |  |
 | --- | --- |
 | **Bar** | Day-7 return ≥ 25–30% on 50+ non-friend users within ~4 weeks |
 | **Outcome** | Cleared — v1 (accounts, sync, reminders) built and shipped 2026-09-15 |

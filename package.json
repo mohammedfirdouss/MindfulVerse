@@ -1,12 +1,12 @@
 {
   "name": "mindfulverse",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
+  "type": "module",
   "scripts": {
     "dev": "npm run dev -w @mindfulverse/web",
     "build": "npm run typecheck -w @mindfulverse/core && npm run build -w @mindfulverse/web",

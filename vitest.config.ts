@@ -5,11 +5,11 @@ import { defineConfig } from "vitest/config";
 // `npm run test:e2e`, not vitest — the include globs keep the runners apart.
 export default defineConfig({
   test: {
+    exclude: ["**/node_modules/**", "**/dist/**"],
     include: [
       "packages/*/**/*.test.{ts,tsx}",
       "apps/*/src/**/*.test.{ts,tsx}",
       "functions/**/*.test.ts",
     ],
-    exclude: ["**/node_modules/**", "**/dist/**"],
   },
 });
