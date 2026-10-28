@@ -10,6 +10,11 @@ import { functionsBase, startVerification, verifyDomain } from "../lib/apiKeys";
 import type { StartResult } from "../lib/apiKeys";
 
 import "./developers.css";
+import {
+  SAMPLE_ARABIC,
+  SAMPLE_REFERENCE,
+  SAMPLE_TRANSLATION,
+} from "./sampleVerse";
 
 const COPIED_MS = 2000;
 const SITE_URL_HINT = "https://example.com";
@@ -297,10 +302,10 @@ export default function Developers() {
         </p>
         <article className="cloth dev-example" aria-label="Example verse card">
           <p className="arabic" lang="ar">
-            إِنَّ مَعَ الْعُسْرِ يُسْرًا
+            {SAMPLE_ARABIC}
           </p>
-          <p className="translation">With hardship comes ease.</p>
-          <p className="cloth-soft dev-example-ref">Ash-Sharh 94:6</p>
+          <p className="translation">{SAMPLE_TRANSLATION}</p>
+          <p className="cloth-soft dev-example-ref">{SAMPLE_REFERENCE}</p>
           <p className="cloth-soft dev-example-credit">
             {TRANSLATION_CREDIT}{" "}
             <a
@@ -313,7 +318,8 @@ export default function Developers() {
           </p>
         </article>
         <p className="soft dev-note">
-          The text above is an example of the shape, not a live response.
+          The verse text is real. The date and other fields in an actual
+          response will differ from day to day.
         </p>
       </section>
 
