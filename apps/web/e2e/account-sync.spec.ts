@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { expect, test } from "vitest";
 
 // Env-gated smoke test: sign in, write a journal entry, confirm it syncs to
 // a second signed-in device. Skips cleanly when no credentials are supplied
