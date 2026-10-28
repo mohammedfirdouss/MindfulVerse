@@ -31,6 +31,8 @@ const HTTP_UNAUTHORIZED = 401;
 const HTTP_FORBIDDEN = 403;
 const HTTP_METHOD_NOT_ALLOWED = 405;
 const HTTP_TOO_MANY_REQUESTS = 429;
+const HTTP_SERVER_ERROR = 500;
+const HTTP_BAD_GATEWAY = 502;
 const MS_PER_SECOND = 1000;
 const MAX_DAY_MS = 26 * 60 * 60 * 1000;
 const UTC_DATE_LENGTH = 10;
@@ -168,7 +170,19 @@ export const handleDailyVerse = async (
   const seed = req.headers.get("X-Seed") ?? "";
   const verseKey = verseKeyFor(localDayIndexInZone(nowMs, tz), seed);
   const [surah, ayah] = verseKey.split(":").map(Number);
-  const text = await deps.verse(verseKey);
+  let text: Awaited<ReturnType<VerseDeps["verse"]>>;
+  try {
+    text = await deps.verse(verseKey);
+  } catch {
+    return withCors(
+      jsonError(
+        HTTP_BAD_GATEWAY,
+        "upstream_error",
+        "Could not load the verse text. Try again shortly."
+      ),
+      origin
+    );
+  }
   const validUntilMs = nextLocalMidnight(nowMs, tz);
   const maxAge = Math.max(0, Math.ceil((validUntilMs - nowMs) / MS_PER_SECOND));
 
@@ -194,3 +208,104 @@ export const handleDailyVerse = async (
     origin
   );
 };
+
+interface SurahMeta {
+  number: number;
+  name: string;
+}
+
+interface AyahRow {
+  ayah: number;
+  arabic: string;
+  translation: string;
+}
+
+const SITE_URL = "https://mindfulverse.vercel.app";
+
+/** Pick one verse's text out of a surah file and the surah list. */
+export const pickVerse = (
+  verseKey: string,
+  ayahs: AyahRow[],
+  surahs: SurahMeta[]
+): { arabic: string; translation: string; surahName: string } => {
+  const [surah, ayah] = verseKey.split(":").map(Number);
+  const row = ayahs.find((a) => a.ayah === ayah);
+  if (!row) {
+    throw new Error(`verse ${verseKey} not found`);
+  }
+  return {
+    arabic: row.arabic,
+    surahName: surahs.find((s) => s.number === surah)?.name ?? "",
+    translation: row.translation,
+  };
+};
+
+declare const Deno: { env: { get: (k: string) => string | undefined } };
+
+export default async function handler(req: Request): Promise<Response> {
+  try {
+    const { createAdminClient } = await import("npm:@insforge/sdk");
+    const db = createAdminClient({
+      apiKey: Deno.env.get("API_KEY") ?? "",
+      baseUrl: Deno.env.get("INSFORGE_BASE_URL") ?? "",
+    }).database;
+
+    const surahCache = new Map<number, Promise<AyahRow[]>>();
+    let surahList: Promise<SurahMeta[]> | null = null;
+    const getJson = async <T>(path: string): Promise<T> => {
+      const res = await fetch(`${SITE_URL}${path}`);
+      if (!res.ok) {
+        throw new Error(`fetch ${path} failed: ${res.status}`);
+      }
+      return (await res.json()) as T;
+    };
+
+    return await handleDailyVerse(req, {
+      findKey: async (hash) => {
+        const { data, error } = await db
+          .from("api_keys")
+          .select("id, domain, revoked_at")
+          .eq("key_hash", hash);
+        if (error) {
+          throw new Error("findKey failed");
+        }
+        const [row] = data ?? [];
+        return row
+          ? { domain: row.domain, id: row.id, revokedAt: row.revoked_at }
+          : null;
+      },
+      hit: async (keyId, day) => {
+        const { data, error } = await db.rpc("api_hit", {
+          p_bucket: `key:${keyId}`,
+          p_day: day,
+        });
+        if (error) {
+          throw new Error("hit failed");
+        }
+        return Number(data);
+      },
+      now: () => Date.now(),
+      verse: async (verseKey) => {
+        const [surah] = verseKey.split(":").map(Number);
+        const ayahs =
+          surahCache.get(surah) ??
+          getJson<AyahRow[]>(`/data/quran/${surah}.json`);
+        surahCache.set(surah, ayahs);
+        surahList ??= getJson<SurahMeta[]>("/data/surahs.json");
+        try {
+          return pickVerse(verseKey, await ayahs, await surahList);
+        } catch (error) {
+          surahCache.delete(surah);
+          surahList = null;
+          throw error;
+        }
+      },
+    });
+  } catch {
+    return jsonError(
+      HTTP_SERVER_ERROR,
+      "server_error",
+      "Something went wrong. Try again shortly."
+    );
+  }
+}

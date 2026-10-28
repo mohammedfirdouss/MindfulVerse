@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { TERMS_VERSION, handleApiKeys } from "./api-keys";
+import {
+  TERMS_VERSION,
+  clientIp,
+  handleApiKeys,
+  resolveHost,
+} from "./api-keys";
 import type { KeyDeps } from "./api-keys";
 import { sha256Hex } from "./daily-verse";
 
@@ -244,6 +249,76 @@ describe("handleApiKeys transport", () => {
     expect(options.status).toBe(204);
     expect(options.headers.get("Access-Control-Allow-Methods")).toBe(
       "POST, OPTIONS"
+    );
+  });
+});
+
+describe("handleApiKeys conflicts", () => {
+  it("maps a unique violation from issueKey to 409 conflict", async () => {
+    const issueKey = vi.fn<KeyDeps["issueKey"]>(() =>
+      Promise.reject(
+        new Error(
+          'duplicate key value violates unique constraint "api_keys_domain_key"'
+        )
+      )
+    );
+    const deps = makeDeps({ issueKey });
+    const token = await started(deps);
+    const { json, status } = await call(deps, verifyBody(token));
+    expect(status).toBe(409);
+    expect(json.error).toBe("conflict");
+  });
+});
+
+const withHeader = (value?: string) =>
+  new Request("https://x.test/", {
+    headers: value === undefined ? {} : { "x-forwarded-for": value },
+  });
+
+const okDns = (_host: string, type: "A" | "AAAA") =>
+  Promise.resolve(type === "A" ? ["93.184.216.34"] : ["2606:2800::1"]);
+
+const halfDns = (_host: string, type: "A" | "AAAA") =>
+  type === "A"
+    ? Promise.resolve(["93.184.216.34"])
+    : Promise.reject(new Error("no AAAA"));
+
+const deadDns = () => Promise.reject(new Error("nxdomain"));
+
+describe(clientIp, () => {
+  it("returns a single entry", () => {
+    expect(clientIp(withHeader("203.0.113.9"))).toBe("203.0.113.9");
+  });
+
+  it("returns the last entry, trimmed", () => {
+    expect(clientIp(withHeader("1.1.1.1, 2.2.2.2 ,  203.0.113.9 "))).toBe(
+      "203.0.113.9"
+    );
+  });
+
+  it("falls back to unknown", () => {
+    expect(clientIp(withHeader())).toBe("unknown");
+    expect(clientIp(withHeader(" "))).toBe("unknown");
+  });
+});
+
+describe(resolveHost, () => {
+  it("concatenates A and AAAA records", async () => {
+    await expect(resolveHost("example.com", okDns)).resolves.toStrictEqual([
+      "93.184.216.34",
+      "2606:2800::1",
+    ]);
+  });
+
+  it("treats one failing record type as no records", async () => {
+    await expect(resolveHost("example.com", halfDns)).resolves.toStrictEqual([
+      "93.184.216.34",
+    ]);
+  });
+
+  it("throws when both lookups fail", async () => {
+    await expect(resolveHost("example.com", deadDns)).rejects.toThrow(
+      "dns lookup failed"
     );
   });
 });

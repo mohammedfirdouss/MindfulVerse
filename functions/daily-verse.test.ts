@@ -11,6 +11,7 @@ import {
   DAILY_LIMIT,
   handleDailyVerse,
   isValidTimeZone,
+  pickVerse,
   sha256Hex,
 } from "./daily-verse";
 import { localDayIndexInZone } from "./send-reminders";
@@ -331,5 +332,37 @@ describe("privacy and helpers", () => {
     expect(isValidTimeZone(LAGOS)).toBeTruthy();
     expect(isValidTimeZone("Mars/Base")).toBeFalsy();
     expect(isValidTimeZone("")).toBeFalsy();
+  });
+});
+
+describe("handleDailyVerse upstream failure", () => {
+  it("returns 502 upstream_error when the verse lookup throws", async () => {
+    const { body, res } = await callJson(
+      NOON,
+      {},
+      { verse: () => Promise.reject(new Error("boom")) }
+    );
+    expect(res.status).toBe(502);
+    expect(body.error).toBe("upstream_error");
+  });
+});
+
+describe(pickVerse, () => {
+  const ayahs = [
+    { arabic: "a1", ayah: 1, translation: "t1" },
+    { arabic: "a2", ayah: 2, translation: "t2" },
+  ];
+  const surahs = [{ name: "Al-Fatihah", number: 1 }];
+
+  it("returns the ayah text and the surah name", () => {
+    expect(pickVerse("1:2", ayahs, surahs)).toStrictEqual({
+      arabic: "a2",
+      surahName: "Al-Fatihah",
+      translation: "t2",
+    });
+  });
+
+  it("throws when the ayah is missing", () => {
+    expect(() => pickVerse("1:9", ayahs, surahs)).toThrow("not found");
   });
 });

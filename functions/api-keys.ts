@@ -1,5 +1,10 @@
 import { jsonError, sha256Hex } from "./daily-verse";
-import { newApiKey, newToken, normalizeDomain } from "./verify-domain";
+import {
+  checkDomain,
+  newApiKey,
+  newToken,
+  normalizeDomain,
+} from "./verify-domain";
 
 export const TERMS_VERSION = "2026-10-28";
 
@@ -38,6 +43,8 @@ const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_BAD_REQUEST = 400;
 const HTTP_NOT_FOUND = 404;
+const HTTP_CONFLICT = 409;
+const HTTP_SERVER_ERROR = 500;
 const HTTP_METHOD_NOT_ALLOWED = 405;
 const HTTP_UNPROCESSABLE = 422;
 const HTTP_TOO_MANY_REQUESTS = 429;
@@ -184,13 +191,20 @@ const handleVerify = async (
   }
 
   const apiKey = newApiKey();
-  await deps.issueKey({
-    contactEmail: pending.contactEmail,
-    domain,
-    keyHash: await sha256Hex(apiKey),
-    siteName: pending.siteName,
-    termsVersion: pending.termsVersion,
-  });
+  try {
+    await deps.issueKey({
+      contactEmail: pending.contactEmail,
+      domain,
+      keyHash: await sha256Hex(apiKey),
+      siteName: pending.siteName,
+      termsVersion: pending.termsVersion,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      return fail(HTTP_CONFLICT, "conflict", "Try again.");
+    }
+    throw error;
+  }
   return ok({ apiKey, domain });
 };
 
@@ -231,3 +245,113 @@ export const handleApiKeys = async (
   }
   return fail(HTTP_BAD_REQUEST, "bad_request", "Unknown action.");
 };
+
+/** The proxy appends the real client address last; earlier entries are client-supplied. */
+export const clientIp = (req: Request): string => {
+  const parts = (req.headers.get("x-forwarded-for") ?? "").split(",");
+  return parts.at(-1)?.trim() || "unknown";
+};
+
+type DnsLookup = (host: string, type: "A" | "AAAA") => Promise<string[]>;
+
+/** A and AAAA records together; one failing type is "none", both failing throws. */
+export const resolveHost = async (
+  host: string,
+  lookup: DnsLookup
+): Promise<string[]> => {
+  const [a, aaaa] = await Promise.allSettled([
+    lookup(host, "A"),
+    lookup(host, "AAAA"),
+  ]);
+  if (a.status === "rejected" && aaaa.status === "rejected") {
+    throw new Error("dns lookup failed");
+  }
+  return [
+    ...(a.status === "fulfilled" ? a.value : []),
+    ...(aaaa.status === "fulfilled" ? aaaa.value : []),
+  ];
+};
+
+declare const Deno: {
+  env: { get: (k: string) => string | undefined };
+  resolveDns: (host: string, type: "A" | "AAAA") => Promise<string[]>;
+};
+
+export default async function handler(req: Request): Promise<Response> {
+  try {
+    const { createAdminClient } = await import("npm:@insforge/sdk");
+    const db = createAdminClient({
+      apiKey: Deno.env.get("API_KEY") ?? "",
+      baseUrl: Deno.env.get("INSFORGE_BASE_URL") ?? "",
+    }).database;
+
+    return await handleApiKeys(req, {
+      attempt: async (bucket, day, limit) => {
+        const { data, error } = await db.rpc("api_hit", {
+          p_bucket: bucket,
+          p_day: day,
+        });
+        if (error) {
+          throw new Error("attempt failed");
+        }
+        return Number(data) <= limit;
+      },
+      check: (domain, token) =>
+        checkDomain(domain, token, fetch, (host) =>
+          resolveHost(host, (h, type) => Deno.resolveDns(h, type))
+        ),
+      ip: clientIp,
+      issueKey: async (p) => {
+        const { error } = await db.rpc("issue_api_key", {
+          p_contact_email: p.contactEmail,
+          p_domain: p.domain,
+          p_key_hash: p.keyHash,
+          p_site_name: p.siteName,
+          p_terms_version: p.termsVersion,
+        });
+        if (error) {
+          throw new Error(error.message ?? "issueKey failed");
+        }
+      },
+      loadPending: async (domain, token) => {
+        const { data, error } = await db
+          .from("api_key_verifications")
+          .select("site_name, contact_email, terms_version, expires_at")
+          .eq("domain", domain)
+          .eq("token", token);
+        if (error) {
+          throw new Error("loadPending failed");
+        }
+        const [row] = data ?? [];
+        return row
+          ? {
+              contactEmail: row.contact_email,
+              expiresAt: row.expires_at,
+              siteName: row.site_name,
+              termsVersion: row.terms_version,
+            }
+          : null;
+      },
+      now: () => Date.now(),
+      savePending: async (p) => {
+        const { error } = await db.rpc("save_api_key_verification", {
+          p_contact_email: p.contactEmail,
+          p_domain: p.domain,
+          p_expires_at: p.expiresAt,
+          p_site_name: p.siteName,
+          p_terms_version: p.termsVersion,
+          p_token: p.token,
+        });
+        if (error) {
+          throw new Error("savePending failed");
+        }
+      },
+    });
+  } catch {
+    return jsonError(
+      HTTP_SERVER_ERROR,
+      "server_error",
+      "Something went wrong. Try again shortly."
+    );
+  }
+}
