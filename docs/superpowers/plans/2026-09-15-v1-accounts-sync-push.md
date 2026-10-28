@@ -64,11 +64,13 @@ functions/reminder-logic.test.ts        # vitest tests for the edge function's p
 ### Task 1: InsForge project bootstrap + schema migration + SDK client
 
 **Files:**
+
 - Create: `migrations/<version>_v1-accounts-sync-push.sql` (version assigned by CLI)
 - Create: `src/lib/insforge.ts`, `.env`, `.env.example`
 - Modify: `.gitignore`, `package.json` (adds `@insforge/sdk`)
 
 **Interfaces:**
+
 - Produces: `insforge` — the shared SDK client, imported by every later task as `import { insforge } from "./insforge"` (from `src/lib`).
 - Produces: DB tables `journal_entries`, `progress`, `push_subscriptions` with owner-only RLS.
 
@@ -161,8 +163,7 @@ CREATE TRIGGER progress_updated_at BEFORE UPDATE ON progress
 
 - [ ] **Step 4: Apply and verify**
 
-Run: `npx -y @insforge/cli db migrations up --all`
-Then: `npx -y @insforge/cli db tables` — expect the three tables listed.
+Run: `npx -y @insforge/cli db migrations up --all` Then: `npx -y @insforge/cli db tables` — expect the three tables listed.
 
 - [ ] **Step 5: Install SDK and create the client**
 
@@ -184,8 +185,7 @@ export const insforge = createClient({
 
 - [ ] **Step 6: Verify build**
 
-Run: `npm run build`
-Expected: PASS (tsc + vite build clean).
+Run: `npm run build` Expected: PASS (tsc + vite build clean).
 
 - [ ] **Step 7: Commit**
 
@@ -201,28 +201,39 @@ git commit -m "feat: InsForge backend bootstrap — schema, RLS, SDK client"
 ### Task 2: Test infrastructure + merge functions (TDD)
 
 **Files:**
+
 - Create: `src/lib/merge.ts`, `src/lib/merge.test.ts`
 - Modify: `package.json` (vitest + `"test": "vitest run"`)
 
 **Interfaces:**
+
 - Produces (consumed by Task 5's sync engine):
 
 ```typescript
-export interface JournalTombstone { id: string; deletedAt: number }
+export interface JournalTombstone {
+  id: string;
+  deletedAt: number;
+}
 export interface RemoteJournalRow {
-  id: string; prompt: string; body: string;
-  context_kind: string | null; context_ref: string | null;
-  created_at: number; deleted_at: number | null;
+  id: string;
+  prompt: string;
+  body: string;
+  context_kind: string | null;
+  context_ref: string | null;
+  created_at: number;
+  deleted_at: number | null;
 }
 export interface JournalMergeResult {
-  entries: JournalEntry[];          // new local state (sorted newest first)
-  tombstones: JournalTombstone[];   // new local tombstone list
-  toInsert: JournalEntry[];         // local entries missing remotely → push
-  toDelete: string[];               // remote rows to soft-delete → push
+  entries: JournalEntry[]; // new local state (sorted newest first)
+  tombstones: JournalTombstone[]; // new local tombstone list
+  toInsert: JournalEntry[]; // local entries missing remotely → push
+  toDelete: string[]; // remote rows to soft-delete → push
 }
 export function mergeJournal(
-  local: JournalEntry[], tombstones: JournalTombstone[], remote: RemoteJournalRow[]
-): JournalMergeResult
+  local: JournalEntry[],
+  tombstones: JournalTombstone[],
+  remote: RemoteJournalRow[]
+): JournalMergeResult;
 
 export interface LocalProgress {
   visits: string[];
@@ -230,9 +241,14 @@ export interface LocalProgress {
   surahTadabbur: Record<string, { ayah: number; updatedAt: number }>;
   lastRead: { surah: number; ayah: number; at: number } | null;
 }
-export function mergeProgress(local: LocalProgress, remote: LocalProgress | null): LocalProgress
-export function rowToEntry(row: RemoteJournalRow): JournalEntry
-export function entryToRow(e: JournalEntry): Omit<RemoteJournalRow, "deleted_at">
+export function mergeProgress(
+  local: LocalProgress,
+  remote: LocalProgress | null
+): LocalProgress;
+export function rowToEntry(row: RemoteJournalRow): JournalEntry;
+export function entryToRow(
+  e: JournalEntry
+): Omit<RemoteJournalRow, "deleted_at">;
 ```
 
 - [ ] **Step 1: Install vitest, add script**
@@ -245,16 +261,37 @@ Run: `npm install -D vitest`. Add to `package.json` scripts: `"test": "vitest ru
 
 ```typescript
 import { describe, it, expect } from "vitest";
+
 import {
-  mergeJournal, mergeProgress, rowToEntry, entryToRow,
-  type RemoteJournalRow, type LocalProgress,
+  mergeJournal,
+  mergeProgress,
+  rowToEntry,
+  entryToRow,
+  type RemoteJournalRow,
+  type LocalProgress,
 } from "./merge";
 import type { JournalEntry } from "./types";
 
-const e = (id: string, createdAt: number): JournalEntry =>
-  ({ id, createdAt, prompt: "p", body: "b", context: { kind: "free" } });
-const r = (id: string, created_at: number, deleted_at: number | null = null): RemoteJournalRow =>
-  ({ id, prompt: "p", body: "b", context_kind: "free", context_ref: null, created_at, deleted_at });
+const e = (id: string, createdAt: number): JournalEntry => ({
+  id,
+  createdAt,
+  prompt: "p",
+  body: "b",
+  context: { kind: "free" },
+});
+const r = (
+  id: string,
+  created_at: number,
+  deleted_at: number | null = null
+): RemoteJournalRow => ({
+  id,
+  prompt: "p",
+  body: "b",
+  context_kind: "free",
+  context_ref: null,
+  created_at,
+  deleted_at,
+});
 
 describe("mergeJournal", () => {
   it("unions local-only and remote-only entries", () => {
@@ -298,20 +335,40 @@ describe("mergeProgress", () => {
   });
   it("unions visits, sorted, capped at 366", () => {
     const remote = { ...base, visits: ["2026-09-13", "2026-09-14"] };
-    expect(mergeProgress(base, remote).visits).toEqual(["2026-09-13", "2026-09-14"]);
+    expect(mergeProgress(base, remote).visits).toEqual([
+      "2026-09-13",
+      "2026-09-14",
+    ]);
     const many = Array.from({ length: 400 }, (_, i) =>
-      new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10));
-    expect(mergeProgress({ ...base, visits: many }, remote).visits).toHaveLength(366);
+      new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10)
+    );
+    expect(
+      mergeProgress({ ...base, visits: many }, remote).visits
+    ).toHaveLength(366);
   });
   it("takes max step per session; earliest completedAt wins", () => {
-    const remote = { ...base, sessionProgress: { s1: { step: 5, completedAt: 50 }, s2: { step: 1 } } };
-    const m = mergeProgress({ ...base, sessionProgress: { s1: { step: 2, completedAt: 80 } } }, remote);
-    expect(m.sessionProgress).toEqual({ s1: { step: 5, completedAt: 50 }, s2: { step: 1 } });
+    const remote = {
+      ...base,
+      sessionProgress: { s1: { step: 5, completedAt: 50 }, s2: { step: 1 } },
+    };
+    const m = mergeProgress(
+      { ...base, sessionProgress: { s1: { step: 2, completedAt: 80 } } },
+      remote
+    );
+    expect(m.sessionProgress).toEqual({
+      s1: { step: 5, completedAt: 50 },
+      s2: { step: 1 },
+    });
   });
   it("takes max ayah per surah and latest lastRead", () => {
-    const remote = { ...base,
-      surahTadabbur: { "2": { ayah: 20, updatedAt: 90 }, "3": { ayah: 1, updatedAt: 1 } },
-      lastRead: { surah: 4, ayah: 1, at: 200 } };
+    const remote = {
+      ...base,
+      surahTadabbur: {
+        "2": { ayah: 20, updatedAt: 90 },
+        "3": { ayah: 1, updatedAt: 1 },
+      },
+      lastRead: { surah: 4, ayah: 1, at: 200 },
+    };
     const m = mergeProgress(base, remote);
     expect(m.surahTadabbur["2"]).toEqual({ ayah: 20, updatedAt: 90 });
     expect(m.surahTadabbur["3"]).toEqual({ ayah: 1, updatedAt: 1 });
@@ -321,9 +378,16 @@ describe("mergeProgress", () => {
 
 describe("row mapping", () => {
   it("round-trips entry -> row -> entry", () => {
-    const entry: JournalEntry = { id: "x", createdAt: 7, prompt: "q", body: "t",
-      context: { kind: "session", ref: "patience" } };
-    expect(rowToEntry({ ...entryToRow(entry), deleted_at: null })).toEqual(entry);
+    const entry: JournalEntry = {
+      id: "x",
+      createdAt: 7,
+      prompt: "q",
+      body: "t",
+      context: { kind: "session", ref: "patience" },
+    };
+    expect(rowToEntry({ ...entryToRow(entry), deleted_at: null })).toEqual(
+      entry
+    );
   });
   it("omits context when kind is null", () => {
     expect(rowToEntry(r("a", 1)).context).toEqual({ kind: "free" });
@@ -335,8 +399,7 @@ describe("row mapping", () => {
 
 - [ ] **Step 3: Run tests, verify they fail**
 
-Run: `npx vitest run src/lib/merge.test.ts`
-Expected: FAIL — cannot resolve `./merge`.
+Run: `npx vitest run src/lib/merge.test.ts` Expected: FAIL — cannot resolve `./merge`.
 
 - [ ] **Step 4: Implement `src/lib/merge.ts`**
 
@@ -346,11 +409,18 @@ Expected: FAIL — cannot resolve `./merge`.
 // progress = per-key max / earliest-completion / latest-read / set-union.
 import type { JournalEntry } from "./types";
 
-export interface JournalTombstone { id: string; deletedAt: number }
+export interface JournalTombstone {
+  id: string;
+  deletedAt: number;
+}
 export interface RemoteJournalRow {
-  id: string; prompt: string; body: string;
-  context_kind: string | null; context_ref: string | null;
-  created_at: number; deleted_at: number | null;
+  id: string;
+  prompt: string;
+  body: string;
+  context_kind: string | null;
+  context_ref: string | null;
+  created_at: number;
+  deleted_at: number | null;
 }
 export interface JournalMergeResult {
   entries: JournalEntry[];
@@ -361,7 +431,10 @@ export interface JournalMergeResult {
 
 export function rowToEntry(row: RemoteJournalRow): JournalEntry {
   const entry: JournalEntry = {
-    id: row.id, createdAt: row.created_at, prompt: row.prompt, body: row.body,
+    id: row.id,
+    createdAt: row.created_at,
+    prompt: row.prompt,
+    body: row.body,
   };
   if (row.context_kind) {
     entry.context = {
@@ -372,34 +445,47 @@ export function rowToEntry(row: RemoteJournalRow): JournalEntry {
   return entry;
 }
 
-export function entryToRow(e: JournalEntry): Omit<RemoteJournalRow, "deleted_at"> {
+export function entryToRow(
+  e: JournalEntry
+): Omit<RemoteJournalRow, "deleted_at"> {
   return {
-    id: e.id, prompt: e.prompt, body: e.body,
-    context_kind: e.context?.kind ?? null, context_ref: e.context?.ref ?? null,
+    id: e.id,
+    prompt: e.prompt,
+    body: e.body,
+    context_kind: e.context?.kind ?? null,
+    context_ref: e.context?.ref ?? null,
     created_at: e.createdAt,
   };
 }
 
 export function mergeJournal(
-  local: JournalEntry[], tombstones: JournalTombstone[], remote: RemoteJournalRow[]
+  local: JournalEntry[],
+  tombstones: JournalTombstone[],
+  remote: RemoteJournalRow[]
 ): JournalMergeResult {
   const dead = new Map(tombstones.map((t) => [t.id, t.deletedAt]));
   for (const row of remote) {
-    if (row.deleted_at != null && !dead.has(row.id)) dead.set(row.id, row.deleted_at);
+    if (row.deleted_at != null && !dead.has(row.id))
+      dead.set(row.id, row.deleted_at);
   }
   const merged = new Map<string, JournalEntry>();
   for (const e of local) if (!dead.has(e.id)) merged.set(e.id, e);
   const remoteIds = new Set<string>();
   for (const row of remote) {
     remoteIds.add(row.id);
-    if (!dead.has(row.id) && !merged.has(row.id)) merged.set(row.id, rowToEntry(row));
+    if (!dead.has(row.id) && !merged.has(row.id))
+      merged.set(row.id, rowToEntry(row));
   }
-  const remoteDeleted = new Set(remote.filter((r) => r.deleted_at != null).map((r) => r.id));
+  const remoteDeleted = new Set(
+    remote.filter((r) => r.deleted_at != null).map((r) => r.id)
+  );
   return {
     entries: [...merged.values()].sort((a, b) => b.createdAt - a.createdAt),
     tombstones: [...dead].map(([id, deletedAt]) => ({ id, deletedAt })),
     toInsert: local.filter((e) => !dead.has(e.id) && !remoteIds.has(e.id)),
-    toDelete: [...dead.keys()].filter((id) => remoteIds.has(id) && !remoteDeleted.has(id)),
+    toDelete: [...dead.keys()].filter(
+      (id) => remoteIds.has(id) && !remoteDeleted.has(id)
+    ),
   };
 }
 
@@ -410,35 +496,52 @@ export interface LocalProgress {
   lastRead: { surah: number; ayah: number; at: number } | null;
 }
 
-export function mergeProgress(local: LocalProgress, remote: LocalProgress | null): LocalProgress {
+export function mergeProgress(
+  local: LocalProgress,
+  remote: LocalProgress | null
+): LocalProgress {
   if (!remote) return local;
-  const visits = [...new Set([...local.visits, ...remote.visits])].sort().slice(-366);
+  const visits = [...new Set([...local.visits, ...remote.visits])]
+    .sort()
+    .slice(-366);
   const sessionProgress: LocalProgress["sessionProgress"] = {};
-  for (const key of new Set([...Object.keys(local.sessionProgress), ...Object.keys(remote.sessionProgress)])) {
-    const a = local.sessionProgress[key], b = remote.sessionProgress[key];
-    const completions = [a?.completedAt, b?.completedAt].filter((x): x is number => x != null);
+  for (const key of new Set([
+    ...Object.keys(local.sessionProgress),
+    ...Object.keys(remote.sessionProgress),
+  ])) {
+    const a = local.sessionProgress[key],
+      b = remote.sessionProgress[key];
+    const completions = [a?.completedAt, b?.completedAt].filter(
+      (x): x is number => x != null
+    );
     sessionProgress[key] = {
       step: Math.max(a?.step ?? -1, b?.step ?? -1),
       ...(completions.length ? { completedAt: Math.min(...completions) } : {}),
     };
   }
   const surahTadabbur: LocalProgress["surahTadabbur"] = {};
-  for (const key of new Set([...Object.keys(local.surahTadabbur), ...Object.keys(remote.surahTadabbur)])) {
-    const a = local.surahTadabbur[key], b = remote.surahTadabbur[key];
+  for (const key of new Set([
+    ...Object.keys(local.surahTadabbur),
+    ...Object.keys(remote.surahTadabbur),
+  ])) {
+    const a = local.surahTadabbur[key],
+      b = remote.surahTadabbur[key];
     surahTadabbur[key] = !a ? b! : !b ? a : a.ayah >= b.ayah ? a : b;
   }
-  const lastRead =
-    !local.lastRead ? remote.lastRead :
-    !remote.lastRead ? local.lastRead :
-    local.lastRead.at >= remote.lastRead.at ? local.lastRead : remote.lastRead;
+  const lastRead = !local.lastRead
+    ? remote.lastRead
+    : !remote.lastRead
+      ? local.lastRead
+      : local.lastRead.at >= remote.lastRead.at
+        ? local.lastRead
+        : remote.lastRead;
   return { visits, sessionProgress, surahTadabbur, lastRead };
 }
 ```
 
 - [ ] **Step 5: Run tests, verify they pass**
 
-Run: `npx vitest run src/lib/merge.test.ts`
-Expected: PASS, all tests.
+Run: `npx vitest run src/lib/merge.test.ts` Expected: PASS, all tests.
 
 - [ ] **Step 6: Commit**
 
@@ -452,26 +555,31 @@ git commit -m "feat: pure merge functions for journal + progress sync (TDD)"
 ### Task 3: Dirty flags + journal tombstones
 
 **Files:**
+
 - Create: `src/lib/syncFlags.ts`
 - Modify: `src/lib/journal.ts`, `src/lib/progress.ts`
 - Test: extend `src/lib/merge.test.ts`? No — create `src/lib/syncFlags.test.ts`
 
 **Interfaces:**
+
 - Produces (consumed by Task 5):
 
 ```typescript
 // syncFlags.ts
-export function markJournalDirty(): void
-export function markProgressDirty(): void
-export function isDirty(): boolean           // either flag set
-export function clearDirty(): void           // clears both
-export function onDirty(cb: () => void): void  // sync engine registers its debounced trigger
+export function markJournalDirty(): void;
+export function markProgressDirty(): void;
+export function isDirty(): boolean; // either flag set
+export function clearDirty(): void; // clears both
+export function onDirty(cb: () => void): void; // sync engine registers its debounced trigger
 // journal.ts additions
-export function getTombstones(): JournalTombstone[]
-export function replaceAll(entries: JournalEntry[], tombstones: JournalTombstone[]): void // sync writes merged state back
+export function getTombstones(): JournalTombstone[];
+export function replaceAll(
+  entries: JournalEntry[],
+  tombstones: JournalTombstone[]
+): void; // sync writes merged state back
 // progress.ts additions
-export function getLocalProgress(): LocalProgress
-export function replaceLocalProgress(p: LocalProgress): void
+export function getLocalProgress(): LocalProgress;
+export function replaceLocalProgress(p: LocalProgress): void;
 ```
 
 - [ ] **Step 1: Write failing tests** — `src/lib/syncFlags.test.ts`:
@@ -487,10 +595,19 @@ vi.stubGlobal("localStorage", {
   removeItem: (k: string) => void store.delete(k),
 });
 
+import {
+  addEntry,
+  deleteEntry,
+  getEntries,
+  getTombstones,
+  replaceAll,
+} from "./journal";
 import { markJournalDirty, isDirty, clearDirty, onDirty } from "./syncFlags";
-import { addEntry, deleteEntry, getEntries, getTombstones, replaceAll } from "./journal";
 
-beforeEach(() => { store.clear(); clearDirty(); });
+beforeEach(() => {
+  store.clear();
+  clearDirty();
+});
 
 describe("syncFlags", () => {
   it("starts clean, marks dirty, clears", () => {
@@ -541,19 +658,37 @@ const DIRTY_KEY = "mindfulverse.sync.dirty.v1"; // "1" when a push is pending
 
 let listener: (() => void) | null = null;
 
-export function onDirty(cb: () => void): void { listener = cb; }
+export function onDirty(cb: () => void): void {
+  listener = cb;
+}
 
 function mark(): void {
-  try { localStorage.setItem(DIRTY_KEY, "1"); } catch { /* storage full — sync will full-diff anyway */ }
+  try {
+    localStorage.setItem(DIRTY_KEY, "1");
+  } catch {
+    /* storage full — sync will full-diff anyway */
+  }
   listener?.();
 }
-export function markJournalDirty(): void { mark(); }
-export function markProgressDirty(): void { mark(); }
+export function markJournalDirty(): void {
+  mark();
+}
+export function markProgressDirty(): void {
+  mark();
+}
 export function isDirty(): boolean {
-  try { return localStorage.getItem(DIRTY_KEY) === "1"; } catch { return false; }
+  try {
+    return localStorage.getItem(DIRTY_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 export function clearDirty(): void {
-  try { localStorage.removeItem(DIRTY_KEY); } catch { /* ignore */ }
+  try {
+    localStorage.removeItem(DIRTY_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 ```
 
@@ -569,11 +704,16 @@ export function getTombstones(): JournalTombstone[] {
   try {
     const raw = localStorage.getItem(TOMBSTONES_KEY);
     return raw ? (JSON.parse(raw) as JournalTombstone[]) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 /** Sync engine writes merged state back; never marks dirty. */
-export function replaceAll(entries: JournalEntry[], tombstones: JournalTombstone[]): void {
+export function replaceAll(
+  entries: JournalEntry[],
+  tombstones: JournalTombstone[]
+): void {
   writeAll(entries);
   localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(tombstones));
 }
@@ -610,7 +750,8 @@ export function replaceLocalProgress(p: LocalProgress): void {
   localStorage.setItem(VISITS_KEY, JSON.stringify(p.visits));
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(p.sessionProgress));
   localStorage.setItem(SURAH_TADABBUR_KEY, JSON.stringify(p.surahTadabbur));
-  if (p.lastRead) localStorage.setItem(LAST_READ_KEY, JSON.stringify(p.lastRead));
+  if (p.lastRead)
+    localStorage.setItem(LAST_READ_KEY, JSON.stringify(p.lastRead));
 }
 ```
 
@@ -632,10 +773,12 @@ git commit -m "feat: dirty flags and journal tombstones for sync"
 ### Task 4: Auth provider
 
 **Files:**
+
 - Create: `src/lib/auth.tsx`
 - Modify: `src/main.tsx` (wrap app in `AccountProvider`)
 
 **Interfaces:**
+
 - Consumes: `insforge` from Task 1.
 - Produces: `useAccount(): { user: AccountUser | null; loading: boolean; refresh: () => Promise<void> }` where `AccountUser = { id: string; email: string; name?: string }`. Consumed by Tasks 5, 6, 7, 9.
 
@@ -646,11 +789,22 @@ git commit -m "feat: dirty flags and journal tombstones for sync"
 // works in that state. The SDK stores the access token in memory and
 // rehydrates from an httpOnly refresh cookie, so getCurrentUser() must run
 // once on startup — during that round-trip `loading` is true.
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
+
 import { insforge } from "./insforge";
 
-export interface AccountUser { id: string; email: string; name?: string }
+export interface AccountUser {
+  id: string;
+  email: string;
+  name?: string;
+}
 
 interface AccountState {
   user: AccountUser | null;
@@ -659,7 +813,9 @@ interface AccountState {
 }
 
 const AccountContext = createContext<AccountState>({
-  user: null, loading: true, refresh: async () => {},
+  user: null,
+  loading: true,
+  refresh: async () => {},
 });
 
 export function AccountProvider({ children }: { children: ReactNode }) {
@@ -668,13 +824,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const { data, error } = await insforge.auth.getCurrentUser();
-    setUser(error || !data?.user ? null : {
-      id: data.user.id, email: data.user.email, name: data.user.name ?? undefined,
-    });
+    setUser(
+      error || !data?.user
+        ? null
+        : {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name ?? undefined,
+          }
+    );
     setLoading(false);
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   return (
     <AccountContext.Provider value={{ user, loading, refresh }}>
@@ -708,19 +872,27 @@ git commit -m "feat: account context with InsForge auth hydration"
 ### Task 5: Sync engine
 
 **Files:**
+
 - Create: `src/lib/sync.ts`, `src/lib/sync.test.ts`
 - Modify: `src/main.tsx` (call `initSync()` once)
 
 **Interfaces:**
+
 - Consumes: `insforge`, merge functions (Task 2), `journal.ts`/`progress.ts`/`syncFlags.ts` additions (Task 3).
 - Produces (consumed by Tasks 6–7 UI):
 
 ```typescript
-export type SyncStatus = "idle" | "syncing" | "synced" | "offline" | "error" | "signed-out";
-export function getSyncStatus(): SyncStatus
-export function onSyncStatus(cb: (s: SyncStatus) => void): () => void  // returns unsubscribe
-export function syncNow(): Promise<void>       // safe to call anytime; no-op when signed out
-export function initSync(): void               // registers visibility/online/dirty triggers
+export type SyncStatus =
+  | "idle"
+  | "syncing"
+  | "synced"
+  | "offline"
+  | "error"
+  | "signed-out";
+export function getSyncStatus(): SyncStatus;
+export function onSyncStatus(cb: (s: SyncStatus) => void): () => void; // returns unsubscribe
+export function syncNow(): Promise<void>; // safe to call anytime; no-op when signed out
+export function initSync(): void; // registers visibility/online/dirty triggers
 ```
 
 - [ ] **Step 1: Write failing tests for the pure scheduling helper**
@@ -729,6 +901,7 @@ The network parts are exercised by the e2e task; unit-test the one pure piece �
 
 ```typescript
 import { describe, it, expect, vi } from "vitest";
+
 import { makeDebounced } from "./sync";
 
 describe("makeDebounced", () => {
@@ -736,7 +909,9 @@ describe("makeDebounced", () => {
     vi.useFakeTimers();
     const fn = vi.fn();
     const run = makeDebounced(fn, 3000);
-    run(); run(); run();
+    run();
+    run();
+    run();
     expect(fn).not.toHaveBeenCalled();
     vi.advanceTimersByTime(3000);
     expect(fn).toHaveBeenCalledOnce();
@@ -755,15 +930,24 @@ describe("makeDebounced", () => {
 // and debounced after local writes. Failures set status and retry on the next
 // trigger — they never surface as exceptions to callers.
 import { insforge } from "./insforge";
-import {
-  mergeJournal, mergeProgress, entryToRow,
-  type RemoteJournalRow, type LocalProgress,
-} from "./merge";
 import { getEntries, getTombstones, replaceAll } from "./journal";
+import {
+  mergeJournal,
+  mergeProgress,
+  entryToRow,
+  type RemoteJournalRow,
+  type LocalProgress,
+} from "./merge";
 import { getLocalProgress, replaceLocalProgress } from "./progress";
 import { isDirty, clearDirty, onDirty } from "./syncFlags";
 
-export type SyncStatus = "idle" | "syncing" | "synced" | "offline" | "error" | "signed-out";
+export type SyncStatus =
+  | "idle"
+  | "syncing"
+  | "synced"
+  | "offline"
+  | "error"
+  | "signed-out";
 
 let status: SyncStatus = "idle";
 const listeners = new Set<(s: SyncStatus) => void>();
@@ -771,7 +955,9 @@ function setStatus(s: SyncStatus): void {
   status = s;
   listeners.forEach((cb) => cb(s));
 }
-export function getSyncStatus(): SyncStatus { return status; }
+export function getSyncStatus(): SyncStatus {
+  return status;
+}
 export function onSyncStatus(cb: (s: SyncStatus) => void): () => void {
   listeners.add(cb);
   return () => listeners.delete(cb);
@@ -793,24 +979,42 @@ export async function syncNow(): Promise<void> {
   try {
     const { data: userData } = await insforge.auth.getCurrentUser();
     const userId = userData?.user?.id;
-    if (!userId) { setStatus("signed-out"); return; }
-    if (!navigator.onLine) { setStatus("offline"); return; }
+    if (!userId) {
+      setStatus("signed-out");
+      return;
+    }
+    if (!navigator.onLine) {
+      setStatus("offline");
+      return;
+    }
     setStatus("syncing");
 
     // --- journal ---
     const { data: remoteRows, error: pullErr } = await insforge.database
       .from("journal_entries")
-      .select("id, prompt, body, context_kind, context_ref, created_at, deleted_at")
+      .select(
+        "id, prompt, body, context_kind, context_ref, created_at, deleted_at"
+      )
       .order("created_at", { ascending: false })
       .limit(2000);
-    if (pullErr) { setStatus("error"); return; }
-    const merged = mergeJournal(getEntries(), getTombstones(), (remoteRows ?? []) as RemoteJournalRow[]);
+    if (pullErr) {
+      setStatus("error");
+      return;
+    }
+    const merged = mergeJournal(
+      getEntries(),
+      getTombstones(),
+      (remoteRows ?? []) as RemoteJournalRow[]
+    );
     replaceAll(merged.entries, merged.tombstones);
     if (merged.toInsert.length > 0) {
       const { error } = await insforge.database
         .from("journal_entries")
         .insert(merged.toInsert.map(entryToRow));
-      if (error) { setStatus("error"); return; }
+      if (error) {
+        setStatus("error");
+        return;
+      }
     }
     for (const id of merged.toDelete) {
       const tomb = merged.tombstones.find((t) => t.id === id);
@@ -818,7 +1022,10 @@ export async function syncNow(): Promise<void> {
         .from("journal_entries")
         .update({ deleted_at: tomb?.deletedAt ?? Date.now() })
         .eq("id", id);
-      if (error) { setStatus("error"); return; }
+      if (error) {
+        setStatus("error");
+        return;
+      }
     }
 
     // --- progress ---
@@ -827,7 +1034,10 @@ export async function syncNow(): Promise<void> {
       .select("visits, session_progress, surah_tadabbur, last_read")
       .eq("user_id", userId)
       .maybeSingle();
-    if (progErr) { setStatus("error"); return; }
+    if (progErr) {
+      setStatus("error");
+      return;
+    }
     const remoteLp: LocalProgress | null = remoteProgress
       ? {
           visits: remoteProgress.visits ?? [],
@@ -845,11 +1055,20 @@ export async function syncNow(): Promise<void> {
       last_read: mergedProgress.lastRead,
     };
     if (remoteProgress) {
-      const { error } = await insforge.database.from("progress").update(row).eq("user_id", userId);
-      if (error) { setStatus("error"); return; }
+      const { error } = await insforge.database
+        .from("progress")
+        .update(row)
+        .eq("user_id", userId);
+      if (error) {
+        setStatus("error");
+        return;
+      }
     } else {
       const { error } = await insforge.database.from("progress").insert([row]);
-      if (error) { setStatus("error"); return; }
+      if (error) {
+        setStatus("error");
+        return;
+      }
     }
 
     clearDirty();
@@ -892,10 +1111,12 @@ git commit -m "feat: local-first sync engine (pull, merge, push)"
 ### Task 6: Account page, route, nav, analytics events
 
 **Files:**
+
 - Create: `src/pages/Account.tsx`
 - Modify: `src/App.tsx` (route), `src/components/AppShell.tsx` (nav item), `src/lib/analytics.ts` (events)
 
 **Interfaces:**
+
 - Consumes: `useAccount` (Task 4), `syncNow`/`onSyncStatus`/`getSyncStatus` (Task 5), `insforge` (Task 1), `track` (analytics).
 - Produces: `/account` route. Reminder UI is added by Task 9 — leave a clearly marked section placeholder element (`<section id="reminders" />` rendered empty) is NOT allowed; instead Task 9 adds its own section. Account.tsx here ships without any reminder UI.
 
@@ -917,10 +1138,16 @@ Follow the visual idiom of existing pages (read `Stats.tsx` first and mirror its
 
 ```tsx
 import { useEffect, useState } from "react";
+
+import { track } from "../lib/analytics";
 import { useAccount } from "../lib/auth";
 import { insforge } from "../lib/insforge";
-import { getSyncStatus, onSyncStatus, syncNow, type SyncStatus } from "../lib/sync";
-import { track } from "../lib/analytics";
+import {
+  getSyncStatus,
+  onSyncStatus,
+  syncNow,
+  type SyncStatus,
+} from "../lib/sync";
 
 export default function Account() {
   const { user, loading, refresh } = useAccount();
@@ -936,7 +1163,9 @@ export default function Account() {
   useEffect(() => {
     // Enabled providers come from backend metadata; render only what exists.
     fetch(`${import.meta.env.VITE_INSFORGE_URL}/api/metadata/auth`, {
-      headers: { Authorization: `Bearer ${import.meta.env.VITE_INSFORGE_ANON_KEY}` },
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_INSFORGE_ANON_KEY}`,
+      },
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((m) => setOauthProviders(m?.oAuthProviders ?? []))
@@ -956,7 +1185,10 @@ export default function Account() {
         return;
       }
     } else {
-      const { error } = await insforge.auth.signInWithPassword({ email, password });
+      const { error } = await insforge.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) return setError(error.message);
       track({ type: "account_signin", method: "password" });
     }
@@ -976,7 +1208,9 @@ export default function Account() {
     await insforge.auth.signOut();
     track({ type: "account_signout" });
     await refresh();
-    setNotice("Signed out. Your entries stay on this device but are no longer backed up.");
+    setNotice(
+      "Signed out. Your entries stay on this device but are no longer backed up."
+    );
   }
 
   async function deleteMyData() {
@@ -985,9 +1219,15 @@ export default function Account() {
       "Delete all synced data from your account? Entries on this device are kept."
     );
     if (!sure) return;
-    await insforge.database.from("journal_entries").delete().eq("user_id", user.id);
+    await insforge.database
+      .from("journal_entries")
+      .delete()
+      .eq("user_id", user.id);
     await insforge.database.from("progress").delete().eq("user_id", user.id);
-    await insforge.database.from("push_subscriptions").delete().eq("user_id", user.id);
+    await insforge.database
+      .from("push_subscriptions")
+      .delete()
+      .eq("user_id", user.id);
     await signOut();
   }
 
@@ -1024,9 +1264,11 @@ git commit -m "feat: account page — sign in/up, OAuth, sync status, delete-my-
 ### Task 7: Journal + Stats surface changes
 
 **Files:**
+
 - Modify: `src/pages/Journal.tsx`, `src/pages/Stats.tsx`
 
 **Interfaces:**
+
 - Consumes: `useAccount` (Task 4), `getSyncStatus`/`onSyncStatus` (Task 5).
 
 - [ ] **Step 1: Journal page** — read `src/pages/Journal.tsx` first. Locate the existing backup nudge (the "export/backup" prompt). Change behavior:
@@ -1049,10 +1291,12 @@ git commit -m "feat: sync status on journal and stats pages"
 ### Task 8: Service worker migration to injectManifest (custom SW with push handlers)
 
 **Files:**
+
 - Create: `src/sw.ts`
 - Modify: `vite.config.ts`, `package.json` (workbox devDependencies), `tsconfig.json` (only if `WebWorker` lib is needed for sw.ts — prefer a `/// <reference lib="webworker" />` pragma instead)
 
 **Interfaces:**
+
 - Produces: a service worker that (a) precaches the app shell, (b) runtime-caches `/data/` CacheFirst — byte-for-byte behavior parity with the current `generateSW` config — and (c) handles `push` + `notificationclick`. Consumed by Task 9 (push subscribe needs `navigator.serviceWorker.ready`).
 
 - [ ] **Step 1: Install workbox modules**
@@ -1062,13 +1306,13 @@ Run: `npm install -D workbox-precaching workbox-routing workbox-strategies workb
 - [ ] **Step 2: Write `src/sw.ts`**
 
 ```typescript
+import { ExpirationPlugin } from "workbox-expiration";
 /// <reference lib="webworker" />
 // Custom service worker (injectManifest). Precache + /data caching preserve
 // the exact behavior of the previous generateSW config; push handlers are new.
 import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { CacheFirst } from "workbox-strategies";
-import { ExpirationPlugin } from "workbox-expiration";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -1081,13 +1325,22 @@ registerRoute(
   ({ url }) => url.pathname.startsWith("/data/"),
   new CacheFirst({
     cacheName: "quran-data",
-    plugins: [new ExpirationPlugin({ maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 365 })],
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 500,
+        maxAgeSeconds: 60 * 60 * 24 * 365,
+      }),
+    ],
   })
 );
 
 self.addEventListener("push", (event) => {
   let payload: { title?: string; body?: string; url?: string } = {};
-  try { payload = event.data?.json() ?? {}; } catch { /* non-JSON push — show default */ }
+  try {
+    payload = event.data?.json() ?? {};
+  } catch {
+    /* non-JSON push — show default */
+  }
   event.waitUntil(
     self.registration.showNotification(payload.title ?? "MindfulVerse", {
       body: payload.body ?? "Today's verse is waiting for you.",
@@ -1102,14 +1355,16 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url: string = event.notification.data?.url ?? "/checkin";
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      const existing = clients.find((c) => "focus" in c);
-      if (existing) {
-        existing.navigate(url);
-        return existing.focus();
-      }
-      return self.clients.openWindow(url);
-    })
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        const existing = clients.find((c) => "focus" in c);
+        if (existing) {
+          existing.navigate(url);
+          return existing.focus();
+        }
+        return self.clients.openWindow(url);
+      })
   );
 });
 ```
@@ -1144,18 +1399,22 @@ git commit -m "feat: custom service worker with push handlers (injectManifest)"
 ### Task 9: Client push subscription + reminder UI
 
 **Files:**
+
 - Create: `src/lib/push.ts`
 - Modify: `src/pages/Account.tsx` (reminders section), `.env` / `.env.example` (`VITE_VAPID_PUBLIC_KEY` value)
 
 **Interfaces:**
+
 - Consumes: SW from Task 8, `insforge`, `useAccount`, `track`.
 - Produces (consumed by Account UI):
 
 ```typescript
-export function pushSupport(): "ok" | "needs-install" | "unsupported"
-export async function getReminder(): Promise<{ time: string } | null>   // this device's subscription
-export async function enableReminder(time: string): Promise<{ error: string | null }>
-export async function disableReminder(): Promise<void>
+export function pushSupport(): "ok" | "needs-install" | "unsupported";
+export async function getReminder(): Promise<{ time: string } | null>; // this device's subscription
+export async function enableReminder(
+  time: string
+): Promise<{ error: string | null }>;
+export async function disableReminder(): Promise<void>;
 ```
 
 - [ ] **Step 1: Generate VAPID keys and store them**
@@ -1184,7 +1443,12 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 }
 
 export function pushSupport(): "ok" | "needs-install" | "unsupported" {
-  if ("Notification" in window && "PushManager" in window && "serviceWorker" in navigator) return "ok";
+  if (
+    "Notification" in window &&
+    "PushManager" in window &&
+    "serviceWorker" in navigator
+  )
+    return "ok";
   // iOS Safari exposes push only to installed (home-screen) PWAs.
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   return isIOS ? "needs-install" : "unsupported";
@@ -1206,22 +1470,35 @@ export async function getReminder(): Promise<{ time: string } | null> {
   return data ? { time: data.reminder_time } : null;
 }
 
-export async function enableReminder(time: string): Promise<{ error: string | null }> {
+export async function enableReminder(
+  time: string
+): Promise<{ error: string | null }> {
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") return { error: "Notifications were not allowed." };
+  if (permission !== "granted")
+    return { error: "Notifications were not allowed." };
   const reg = await navigator.serviceWorker.ready;
   const sub =
     (await reg.pushManager.getSubscription()) ??
     (await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY),
+      applicationServerKey: urlBase64ToUint8Array(
+        import.meta.env.VITE_VAPID_PUBLIC_KEY
+      ),
     }));
   const json = sub.toJSON();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   // endpoint is the PK: delete-then-insert acts as an upsert under RLS.
-  await insforge.database.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+  await insforge.database
+    .from("push_subscriptions")
+    .delete()
+    .eq("endpoint", sub.endpoint);
   const { error } = await insforge.database.from("push_subscriptions").insert([
-    { endpoint: sub.endpoint, keys: json.keys, reminder_time: time, timezone },
+    {
+      endpoint: sub.endpoint,
+      keys: json.keys,
+      reminder_time: time,
+      timezone,
+    },
   ]);
   return { error: error ? error.message : null };
 }
@@ -1229,7 +1506,10 @@ export async function enableReminder(time: string): Promise<{ error: string | nu
 export async function disableReminder(): Promise<void> {
   const sub = await currentSubscription();
   if (!sub) return;
-  await insforge.database.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+  await insforge.database
+    .from("push_subscriptions")
+    .delete()
+    .eq("endpoint", sub.endpoint);
   await sub.unsubscribe();
 }
 ```
@@ -1237,6 +1517,7 @@ export async function disableReminder(): Promise<void> {
 - [ ] **Step 3: Reminders section in `Account.tsx`**
 
 Rendered only when signed in. States:
+
 - `pushSupport() === "needs-install"` → copy: "To get reminders on iPhone, first add MindfulVerse to your Home Screen (Share → Add to Home Screen), then return here." No toggle.
 - `"unsupported"` → "This browser doesn't support notifications."
 - `"ok"` → toggle + `<input type="time" defaultValue="07:00">`. Enable → `enableReminder(time)`; on success `track({ type: "reminder_set", enabled: true })` and show "Daily verse reminder set for {time}". Disable → `disableReminder()` + `track({ type: "reminder_set", enabled: false })`. Load current state on mount via `getReminder()`.
@@ -1257,9 +1538,11 @@ git commit -m "feat: web push subscription + reminder time UI"
 ### Task 10: `send-reminders` edge function + schedule (TDD on the pure logic)
 
 **Files:**
+
 - Create: `functions/send-reminders.ts`, `functions/reminder-logic.test.ts`
 
 **Interfaces:**
+
 - Consumes: `push_subscriptions` table, VAPID secrets (Task 9), the deployed site's `/data/quran/{surah}.json` for verse text.
 - Produces: deployed function `send-reminders` + an InsForge schedule firing it every 15 minutes.
 
@@ -1269,8 +1552,13 @@ git commit -m "feat: web push subscription + reminder time UI"
 
 ```typescript
 import { describe, it, expect } from "vitest";
+
 import {
-  minutesOfDayInZone, localDayIndexInZone, verseKeyForDayIndex, isDue, localDateInZone,
+  minutesOfDayInZone,
+  localDayIndexInZone,
+  verseKeyForDayIndex,
+  isDue,
+  localDateInZone,
 } from "./send-reminders";
 
 // 2026-09-15T12:00:00Z fixed instant
@@ -1279,28 +1567,36 @@ const T = Date.UTC(2026, 8, 15, 12, 0, 0);
 describe("timezone math", () => {
   it("minutes of day respects the zone", () => {
     expect(minutesOfDayInZone(T, "UTC")).toBe(12 * 60);
-    expect(minutesOfDayInZone(T, "Africa/Lagos")).toBe(13 * 60);        // UTC+1
-    expect(minutesOfDayInZone(T, "America/New_York")).toBe(8 * 60);    // EDT, UTC-4
+    expect(minutesOfDayInZone(T, "Africa/Lagos")).toBe(13 * 60); // UTC+1
+    expect(minutesOfDayInZone(T, "America/New_York")).toBe(8 * 60); // EDT, UTC-4
   });
   it("local date string respects the zone", () => {
-    expect(localDateInZone(Date.UTC(2026, 8, 15, 23, 30), "Africa/Lagos")).toBe("2026-09-16");
-    expect(localDateInZone(Date.UTC(2026, 8, 15, 23, 30), "UTC")).toBe("2026-09-15");
+    expect(localDateInZone(Date.UTC(2026, 8, 15, 23, 30), "Africa/Lagos")).toBe(
+      "2026-09-16"
+    );
+    expect(localDateInZone(Date.UTC(2026, 8, 15, 23, 30), "UTC")).toBe(
+      "2026-09-15"
+    );
   });
   it("day index matches the client formula (floor of local-midnight epoch / 86.4M)", () => {
     // Client: new Date(y,m,d).getTime()/86_400_000 floored, in the user's zone.
     // For Lagos (UTC+1), local midnight of 2026-09-15 is 2026-09-14T23:00Z.
     const lagosMidnightUtc = Date.UTC(2026, 8, 14, 23, 0, 0);
-    expect(localDayIndexInZone(T, "Africa/Lagos")).toBe(Math.floor(lagosMidnightUtc / 86_400_000));
+    expect(localDayIndexInZone(T, "Africa/Lagos")).toBe(
+      Math.floor(lagosMidnightUtc / 86_400_000)
+    );
     // For New York (UTC-4), local midnight is 2026-09-15T04:00Z.
     const nyMidnightUtc = Date.UTC(2026, 8, 15, 4, 0, 0);
-    expect(localDayIndexInZone(T, "America/New_York")).toBe(Math.floor(nyMidnightUtc / 86_400_000));
+    expect(localDayIndexInZone(T, "America/New_York")).toBe(
+      Math.floor(nyMidnightUtc / 86_400_000)
+    );
   });
 });
 
 describe("verse rotation", () => {
   it("stride-53 walk over a 139-verse pool, matching src/lib/dailyVerse.ts", () => {
-    expect(verseKeyForDayIndex(0)).toBe("94:5");    // index 0
-    expect(verseKeyForDayIndex(1)).toBe("3:31");    // (1*53)%139 = 53
+    expect(verseKeyForDayIndex(0)).toBe("94:5"); // index 0
+    expect(verseKeyForDayIndex(1)).toBe("3:31"); // (1*53)%139 = 53
     expect(verseKeyForDayIndex(139)).toBe(verseKeyForDayIndex(0)); // full cycle
   });
 });
@@ -1332,32 +1628,175 @@ describe("isDue", () => {
 
 // Same pool + stride as src/lib/dailyVerse.ts — keep the two in sync.
 const DAILY_VERSES: string[] = [
-  "94:5", "94:6", "94:1", "94:2", "94:3", "94:4", "94:7", "94:8", "93:1", "93:2",
-  "93:3", "93:4", "93:5", "93:7", "93:11", "3:139", "39:53", "12:87", "10:57", "10:58",
-  "10:62", "10:64", "16:96", "16:97", "2:25", "18:107", "19:96", "85:11", "39:17", "39:18",
-  "41:30", "41:31", "46:13", "2:268", "11:115", "25:75", "76:12", "13:28", "2:186", "50:16",
-  "20:46", "33:3", "9:51", "26:62", "3:174", "8:2", "2:255", "24:35", "2:286", "42:25",
-  "11:90", "85:14", "57:28", "3:31", "6:54", "4:110", "23:118", "21:83", "28:16", "110:3",
-  "3:159", "39:66", "29:69", "2:45", "2:153", "2:156", "2:157", "3:200", "103:3", "90:17",
-  "41:35", "32:24", "16:127", "16:128", "40:55", "50:39", "31:22", "73:8", "2:201", "3:8",
-  "25:74", "14:40", "17:80", "20:25", "20:26", "28:24", "112:1", "112:2", "112:3", "112:4",
-  "113:1", "114:1", "33:41", "33:42", "33:43", "7:205", "76:25", "3:191", "29:60", "11:6",
-  "17:30", "34:39", "42:19", "51:58", "67:15", "39:52", "28:73", "16:53", "55:13", "30:21",
-  "30:22", "16:65", "16:66", "16:68", "16:69", "36:33", "36:34", "36:36", "55:5", "55:6",
-  "55:10", "67:19", "88:17", "88:18", "88:19", "88:20", "51:47", "51:49", "78:6", "78:7",
-  "78:8", "78:9", "78:10", "78:11", "2:152", "16:18", "27:19", "108:1", "108:2",
+  "94:5",
+  "94:6",
+  "94:1",
+  "94:2",
+  "94:3",
+  "94:4",
+  "94:7",
+  "94:8",
+  "93:1",
+  "93:2",
+  "93:3",
+  "93:4",
+  "93:5",
+  "93:7",
+  "93:11",
+  "3:139",
+  "39:53",
+  "12:87",
+  "10:57",
+  "10:58",
+  "10:62",
+  "10:64",
+  "16:96",
+  "16:97",
+  "2:25",
+  "18:107",
+  "19:96",
+  "85:11",
+  "39:17",
+  "39:18",
+  "41:30",
+  "41:31",
+  "46:13",
+  "2:268",
+  "11:115",
+  "25:75",
+  "76:12",
+  "13:28",
+  "2:186",
+  "50:16",
+  "20:46",
+  "33:3",
+  "9:51",
+  "26:62",
+  "3:174",
+  "8:2",
+  "2:255",
+  "24:35",
+  "2:286",
+  "42:25",
+  "11:90",
+  "85:14",
+  "57:28",
+  "3:31",
+  "6:54",
+  "4:110",
+  "23:118",
+  "21:83",
+  "28:16",
+  "110:3",
+  "3:159",
+  "39:66",
+  "29:69",
+  "2:45",
+  "2:153",
+  "2:156",
+  "2:157",
+  "3:200",
+  "103:3",
+  "90:17",
+  "41:35",
+  "32:24",
+  "16:127",
+  "16:128",
+  "40:55",
+  "50:39",
+  "31:22",
+  "73:8",
+  "2:201",
+  "3:8",
+  "25:74",
+  "14:40",
+  "17:80",
+  "20:25",
+  "20:26",
+  "28:24",
+  "112:1",
+  "112:2",
+  "112:3",
+  "112:4",
+  "113:1",
+  "114:1",
+  "33:41",
+  "33:42",
+  "33:43",
+  "7:205",
+  "76:25",
+  "3:191",
+  "29:60",
+  "11:6",
+  "17:30",
+  "34:39",
+  "42:19",
+  "51:58",
+  "67:15",
+  "39:52",
+  "28:73",
+  "16:53",
+  "55:13",
+  "30:21",
+  "30:22",
+  "16:65",
+  "16:66",
+  "16:68",
+  "16:69",
+  "36:33",
+  "36:34",
+  "36:36",
+  "55:5",
+  "55:6",
+  "55:10",
+  "67:19",
+  "88:17",
+  "88:18",
+  "88:19",
+  "88:20",
+  "51:47",
+  "51:49",
+  "78:6",
+  "78:7",
+  "78:8",
+  "78:9",
+  "78:10",
+  "78:11",
+  "2:152",
+  "16:18",
+  "27:19",
+  "108:1",
+  "108:2",
 ];
 
-interface ZoneParts { year: number; month: number; day: number; hour: number; minute: number }
+interface ZoneParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+}
 
 function partsInZone(utcMs: number, timeZone: string): ZoneParts {
   const dtf = new Intl.DateTimeFormat("en-US", {
-    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
   });
   const p: Record<string, string> = {};
-  for (const part of dtf.formatToParts(new Date(utcMs))) p[part.type] = part.value;
-  return { year: +p.year, month: +p.month, day: +p.day, hour: +p.hour, minute: +p.minute };
+  for (const part of dtf.formatToParts(new Date(utcMs)))
+    p[part.type] = part.value;
+  return {
+    year: +p.year,
+    month: +p.month,
+    day: +p.day,
+    hour: +p.hour,
+    minute: +p.minute,
+  };
 }
 
 export function minutesOfDayInZone(utcMs: number, timeZone: string): number {
@@ -1384,14 +1823,18 @@ export function localDayIndexInZone(utcMs: number, timeZone: string): number {
 
 export function verseKeyForDayIndex(dayIndex: number): string {
   const n = DAILY_VERSES.length;
-  return DAILY_VERSES[((dayIndex * 53) % n + n) % n];
+  return DAILY_VERSES[(((dayIndex * 53) % n) + n) % n];
 }
 
 /** Due when reminderTime ('HH:MM') falls in [now, now+15min), wrapping midnight. */
-export function isDue(reminderTime: string, nowMinutes: number, windowMinutes = 15): boolean {
+export function isDue(
+  reminderTime: string,
+  nowMinutes: number,
+  windowMinutes = 15
+): boolean {
   const [h, m] = reminderTime.split(":").map(Number);
   const reminder = h * 60 + m;
-  return ((reminder - nowMinutes + 1440) % 1440) < windowMinutes;
+  return (reminder - nowMinutes + 1440) % 1440 < windowMinutes;
 }
 
 const SITE_URL = "https://mindfulverse.vercel.app";
@@ -1401,7 +1844,9 @@ export default async function handler(req: Request): Promise<Response> {
   const auth = req.headers.get("Authorization") ?? "";
   const cronSecret = Deno.env.get("CRON_SECRET");
   if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+    });
   }
 
   const { createClient } = await import("npm:@insforge/sdk");
@@ -1416,7 +1861,7 @@ export default async function handler(req: Request): Promise<Response> {
   webpush.setVapidDetails(
     Deno.env.get("VAPID_SUBJECT")!,
     Deno.env.get("VAPID_PUBLIC_KEY")!,
-    Deno.env.get("VAPID_PRIVATE_KEY")!,
+    Deno.env.get("VAPID_PRIVATE_KEY")!
   );
 
   const now = Date.now();
@@ -1424,25 +1869,39 @@ export default async function handler(req: Request): Promise<Response> {
     .from("push_subscriptions")
     .select("endpoint, keys, reminder_time, timezone, last_sent_date")
     .limit(1000);
-  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  if (error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+    });
 
   const surahCache = new Map<number, Record<string, { translation: string }>>();
   async function verseText(verseKey: string): Promise<string> {
     const [surah, ayah] = verseKey.split(":").map(Number);
     if (!surahCache.has(surah)) {
       const res = await fetch(`${SITE_URL}/data/quran/${surah}.json`);
-      const ayahs: Array<{ ayah: number; translation: string }> = await res.json();
-      surahCache.set(surah, Object.fromEntries(ayahs.map((a) => [String(a.ayah), a])));
+      const ayahs: Array<{ ayah: number; translation: string }> =
+        await res.json();
+      surahCache.set(
+        surah,
+        Object.fromEntries(ayahs.map((a) => [String(a.ayah), a]))
+      );
     }
     return surahCache.get(surah)![String(ayah)]?.translation ?? "";
   }
 
-  let sent = 0, pruned = 0, skipped = 0;
+  let sent = 0,
+    pruned = 0,
+    skipped = 0;
   for (const sub of subs ?? []) {
     const nowMin = minutesOfDayInZone(now, sub.timezone);
     const today = localDateInZone(now, sub.timezone);
-    if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) { skipped++; continue; }
-    const verseKey = verseKeyForDayIndex(localDayIndexInZone(now, sub.timezone));
+    if (!isDue(sub.reminder_time, nowMin) || sub.last_sent_date === today) {
+      skipped++;
+      continue;
+    }
+    const verseKey = verseKeyForDayIndex(
+      localDayIndexInZone(now, sub.timezone)
+    );
     const body = await verseText(verseKey);
     try {
       await webpush.sendNotification(
@@ -1451,21 +1910,27 @@ export default async function handler(req: Request): Promise<Response> {
           title: `Today's verse — Qur'an ${verseKey}`,
           body: body.length > 240 ? `${body.slice(0, 237)}…` : body,
           url: "/checkin",
-        }),
+        })
       );
-      await admin.database.from("push_subscriptions")
-        .update({ last_sent_date: today }).eq("endpoint", sub.endpoint);
+      await admin.database
+        .from("push_subscriptions")
+        .update({ last_sent_date: today })
+        .eq("endpoint", sub.endpoint);
       sent++;
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode;
       if (status === 404 || status === 410) {
-        await admin.database.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+        await admin.database
+          .from("push_subscriptions")
+          .delete()
+          .eq("endpoint", sub.endpoint);
         pruned++;
       }
     }
   }
   return new Response(JSON.stringify({ sent, pruned, skipped }), {
-    status: 200, headers: { "Content-Type": "application/json" },
+    status: 200,
+    headers: { "Content-Type": "application/json" },
   });
 }
 ```
@@ -1505,6 +1970,7 @@ git commit -m "feat: send-reminders edge function + 15-min schedule (TDD)"
 ### Task 11: E2E smoke, docs, deploy config
 
 **Files:**
+
 - Create: `e2e/account-sync.spec.ts`, `playwright.config.ts` (if absent)
 - Modify: `README.md`, spec doc (mark shipped), `ROADMAP.md`
 

@@ -11,11 +11,11 @@ export default function NotFound() {
       <header>
         <h1>This page isn’t here</h1>
         <p className="soft">
-          The path you followed doesn’t lead anywhere. But the Qur’an is
-          always open.
+          The path you followed doesn’t lead anywhere. But the Qur’an is always
+          open.
         </p>
       </header>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         <Link to="/" className="btn">
           Go home
         </Link>

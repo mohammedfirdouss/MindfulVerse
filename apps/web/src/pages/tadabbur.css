@@ -1,30 +1,97 @@
 /* Surah tadabbur: light About box, open reflection section (mobile parity). */
-.card.tad-about { background: var(--cotton-raised); border: 1px solid var(--line); }
+.card.tad-about {
+  background: var(--cotton-raised);
+  border: 1px solid var(--line);
+}
 .tad-about-clamp > p:last-child {
-  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.tad-reflect .dye-rule { margin: 6px 0 4px; }
-.tad-prompt { font-weight: 600; color: var(--indigo-deep); font-size: .98rem; }
+.tad-reflect .dye-rule {
+  margin: 6px 0 4px;
+}
+.tad-prompt {
+  font-weight: 600;
+  color: var(--indigo-deep);
+  font-size: 0.98rem;
+}
 .tad-input {
-  width: 100%; min-height: 112px; font: inherit; font-size: 1rem; line-height: 1.6;
-  padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--line-strong);
-  background: var(--cotton-raised); color: var(--ink); resize: vertical;
+  width: 100%;
+  min-height: 112px;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--cotton-raised);
+  color: var(--ink);
+  resize: vertical;
 }
-.tad-input:focus { outline: none; border-color: var(--indigo); }
-.verse-head .diamond { width: 34px; height: 34px; font-size: .82rem; }
+.tad-input:focus {
+  outline: none;
+  border-color: var(--indigo);
+}
+.verse-head .diamond {
+  width: 34px;
+  height: 34px;
+  font-size: 0.82rem;
+}
 
 /* One question at a time: step diamonds, the prompt, quiet question nav. */
-.tad-question { display: flex; flex-direction: column; gap: 8px; }
-.tad-steps { display: flex; gap: 10px; align-items: center; padding: 4px 2px; }
-.tad-step {
-  width: 9px; height: 9px; transform: rotate(45deg);
-  border: 1.5px solid var(--line-strong); background: transparent;
-  transition: background-color .2s var(--ease-out), border-color .2s var(--ease-out);
+.tad-question {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.tad-step.is-current { background: var(--kola); border-color: var(--kola); }
-.tad-question-nav { display: flex; align-items: center; gap: 16px; min-height: 44px; }
-.tad-question-nav .commentary-open { margin-top: 0; min-height: 44px; padding: 0 2px; color: var(--indigo); }
-.tad-question-nav .tad-skip { color: var(--ink-soft); }
-.tad-keep { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.tad-keep-note { font-size: .9rem; }
-@media (prefers-reduced-motion: reduce) { .tad-step { transition: none; } }
+.tad-steps {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 2px;
+}
+.tad-step {
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  border: 1.5px solid var(--line-strong);
+  background: transparent;
+  transition:
+    background-color 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out);
+}
+.tad-step.is-current {
+  background: var(--kola);
+  border-color: var(--kola);
+}
+.tad-question-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 44px;
+}
+.tad-question-nav .commentary-open {
+  margin-top: 0;
+  min-height: 44px;
+  padding: 0 2px;
+  color: var(--indigo);
+}
+.tad-question-nav .tad-skip {
+  color: var(--ink-soft);
+}
+.tad-keep {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tad-keep-note {
+  font-size: 0.9rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tad-step {
+    transition: none;
+  }
+}

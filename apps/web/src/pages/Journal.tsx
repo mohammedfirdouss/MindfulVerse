@@ -1,19 +1,32 @@
+import {
+  loadAyahsByKeys,
+  loadSessions,
+  loadSurahs,
+  parseVerseKey,
+} from "@mindfulverse/core/data";
+import { getEntries, deleteEntry } from "@mindfulverse/core/journal";
+import { groupEntries } from "@mindfulverse/core/journalGroups";
+import type { JournalGroup } from "@mindfulverse/core/journalGroups";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import {
+  getSyncStatus,
+  onSyncStatus,
+  statusLabel,
+} from "@mindfulverse/core/sync/engine";
+import type { SyncStatus } from "@mindfulverse/core/sync/engine";
+import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAyahsByKeys, loadSessions, loadSurahs, parseVerseKey } from "@mindfulverse/core/data";
-import { getEntries, deleteEntry } from "@mindfulverse/core/journal";
-import { groupEntries, type JournalGroup } from "@mindfulverse/core/journalGroups";
+
+import { BrandMark } from "../components/Adire";
 import {
   buildJournalText,
   formatDate,
   saveFile,
   toSections,
-  type ExportInput,
 } from "../lib/journalExport";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
-import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
-import { BrandMark } from "../components/Adire";
+import type { ExportInput } from "../lib/journalExport";
+
 import "./journal-empty.css";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
@@ -55,15 +68,17 @@ function EntryVerse({ verseKey }: { verseKey: string }) {
     };
   }, [verseKey]);
 
-  if (!ayah) return null;
+  if (!ayah) {
+    return null;
+  }
   const { surah, ayah: n } = parseVerseKey(verseKey);
   return (
     <Link
       to={`/read/${surah}?v=${n}`}
       style={{
-        display: "block",
-        color: "var(--ink)",
         borderInlineStart: "3px solid var(--indigo-wash)",
+        color: "var(--ink)",
+        display: "block",
         paddingInlineStart: 14,
       }}
     >
@@ -74,7 +89,10 @@ function EntryVerse({ verseKey }: { verseKey: string }) {
       >
         {ayah.arabic}
       </span>
-      <span className="soft" style={{ display: "block", fontSize: ".95rem", marginTop: 4 }}>
+      <span
+        className="soft"
+        style={{ display: "block", fontSize: ".95rem", marginTop: 4 }}
+      >
         {ayah.translation}
       </span>
       <span className="eyebrow" style={{ display: "block", marginTop: 4 }}>
@@ -101,7 +119,9 @@ function EntryCard({
       ? entry.context.ref
       : null;
   const sessionRef =
-    entry.context?.kind === "session" && entry.context.ref ? entry.context.ref : null;
+    entry.context?.kind === "session" && entry.context.ref
+      ? entry.context.ref
+      : null;
   return (
     <div className="card stack">
       <div className="muted" style={{ fontSize: ".8rem" }}>
@@ -113,14 +133,16 @@ function EntryCard({
           From the session “{sessionTitles.get(sessionRef) ?? sessionRef}”
         </Link>
       )}
-      <div style={{ fontStyle: "italic", color: "var(--ink-soft)" }}>{entry.prompt}</div>
+      <div style={{ color: "var(--ink-soft)", fontStyle: "italic" }}>
+        {entry.prompt}
+      </div>
       <div style={{ whiteSpace: "pre-wrap" }}>{entry.body}</div>
       <div
         style={{
-          display: "flex",
-          justifyContent: "flex-end",
           alignItems: "baseline",
+          display: "flex",
           gap: 14,
+          justifyContent: "flex-end",
         }}
       >
         {confirming ? (
@@ -154,25 +176,35 @@ function groupTitle(
   surahNames: Map<number, string>,
   sessionTitles: Map<string, string>
 ): string {
-  if (g.surah) return surahNames.get(g.surah) ?? `Surah ${g.surah}`;
-  if (g.sessionId) return sessionTitles.get(g.sessionId) ?? g.sessionId;
+  if (g.surah) {
+    return surahNames.get(g.surah) ?? `Surah ${g.surah}`;
+  }
+  if (g.sessionId) {
+    return sessionTitles.get(g.sessionId) ?? g.sessionId;
+  }
   return "Other reflections";
 }
 
 export default function Journal() {
   const { user, loading } = useAccount();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [sessionTitles, setSessionTitles] = useState<Map<string, string>>(new Map());
+  const [sessionTitles, setSessionTitles] = useState<Map<string, string>>(
+    new Map()
+  );
   const [surahNames, setSurahNames] = useState<Map<number, string>>(new Map());
   const [status, setStatus] = useState<SyncStatus>(getSyncStatus());
 
   useEffect(() => {
     setEntries(getEntries());
     loadSessions()
-      .then((list) => setSessionTitles(new Map(list.map((s) => [s.id, s.title]))))
+      .then((list) =>
+        setSessionTitles(new Map(list.map((s) => [s.id, s.title])))
+      )
       .catch(() => {});
     loadSurahs()
-      .then((list) => setSurahNames(new Map(list.map((s) => [s.number, s.name]))))
+      .then((list) =>
+        setSurahNames(new Map(list.map((s) => [s.number, s.name])))
+      )
       .catch(() => {});
   }, []);
 
@@ -182,7 +214,9 @@ export default function Journal() {
     () =>
       onSyncStatus((s) => {
         setStatus(s);
-        if (s === "synced") setEntries(getEntries());
+        if (s === "synced") {
+          setEntries(getEntries());
+        }
       }),
     []
   );
@@ -208,18 +242,20 @@ export default function Journal() {
     const ayahs = await loadAyahsByKeys(keys).catch(() => [] as Ayah[]);
     const verses = new Map(ayahs.map((a) => [a.verseKey, a]));
     return {
+      exportedAt: new Date(),
       sections: toSections(
         groups,
         (g) => groupTitle(g, surahNames, sessionTitles),
         surahNames,
         verses
       ),
-      exportedAt: new Date(),
     };
   }
 
   async function download(kind: "pdf" | "txt") {
-    if (exporting) return;
+    if (exporting) {
+      return;
+    }
     setExporting(kind);
     setExportError(null);
     try {
@@ -227,9 +263,17 @@ export default function Journal() {
       if (kind === "pdf") {
         const { buildJournalPdf } = await import("../lib/journalPdf");
         const bytes = await buildJournalPdf(input);
-        await saveFile(bytes as BlobPart, "mindfulverse-journal.pdf", "application/pdf");
+        await saveFile(
+          bytes as BlobPart,
+          "mindfulverse-journal.pdf",
+          "application/pdf"
+        );
       } else {
-        await saveFile(buildJournalText(input), "mindfulverse-journal.txt", "text/plain");
+        await saveFile(
+          buildJournalText(input),
+          "mindfulverse-journal.txt",
+          "text/plain"
+        );
       }
     } catch {
       setExportError(
@@ -247,7 +291,9 @@ export default function Journal() {
       <header>
         <h1>Your reflections</h1>
         {user && (
-          <p className="muted" style={{ marginTop: 0 }}>Backed up to your account.</p>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Backed up to your account.
+          </p>
         )}
       </header>
 
@@ -255,18 +301,20 @@ export default function Journal() {
         <div className="stack" style={{ marginTop: 4 }}>
           {/* Signed in, the line only exists to carry the sync status — skip
               it entirely when there is no wording for the current status. */}
-          {!loading && (entries.length >= 3 || user) && (!user || statusLabel(status) !== "") && (
-            <p className="soft" style={{ fontSize: ".92rem", margin: 0 }}>
-              {user ? (
-                statusLabel(status)
-              ) : (
-                <>
-                  Entries live only on this device. <Link to="/account">Sign in</Link> to
-                  back them up.
-                </>
-              )}
-            </p>
-          )}
+          {!loading &&
+            (entries.length >= 3 || user) &&
+            (!user || statusLabel(status) !== "") && (
+              <p className="soft" style={{ fontSize: ".92rem", margin: 0 }}>
+                {user ? (
+                  statusLabel(status)
+                ) : (
+                  <>
+                    Entries live only on this device.{" "}
+                    <Link to="/account">Sign in</Link> to back them up.
+                  </>
+                )}
+              </p>
+            )}
           <div className="journal-export">
             <button
               className="btn secondary"
@@ -290,23 +338,44 @@ export default function Journal() {
       {entries.length === 0 && <EmptyJournal />}
 
       {groups.map((g) => (
-        <section key={g.key} className="stack" aria-label={groupTitle(g, surahNames, sessionTitles)}>
-          <header style={{ borderBottom: "2px solid var(--indigo-wash)", paddingBottom: 8 }}>
+        <section
+          key={g.key}
+          className="stack"
+          aria-label={groupTitle(g, surahNames, sessionTitles)}
+        >
+          <header
+            style={{
+              borderBottom: "2px solid var(--indigo-wash)",
+              paddingBottom: 8,
+            }}
+          >
             <h2 style={{ fontSize: "1.15rem" }}>
               {groupTitle(g, surahNames, sessionTitles)}
             </h2>
-            <p className="muted" style={{ margin: "2px 0 0", fontSize: ".85rem" }}>
-              {g.entries.length === 1 ? "1 reflection" : `${g.entries.length} reflections`}
+            <p
+              className="muted"
+              style={{ fontSize: ".85rem", margin: "2px 0 0" }}
+            >
+              {g.entries.length === 1
+                ? "1 reflection"
+                : `${g.entries.length} reflections`}
               {g.surah && (
                 <>
                   {" · "}
-                  <Link to={`/tadabbur/${g.surah}`}>Continue this surah’s tadabbur</Link>
+                  <Link to={`/tadabbur/${g.surah}`}>
+                    Continue this surah’s tadabbur
+                  </Link>
                 </>
               )}
             </p>
           </header>
           {g.entries.map((e) => (
-            <EntryCard key={e.id} entry={e} sessionTitles={sessionTitles} onDelete={remove} />
+            <EntryCard
+              key={e.id}
+              entry={e}
+              sessionTitles={sessionTitles}
+              onDelete={remove}
+            />
           ))}
         </section>
       ))}

@@ -1,2 +1,6 @@
 /* Empty journal: the MindfulVerse mark above the invitation to begin. */
-.journal-swatch { display: flex; justify-content: center; margin-bottom: 24px; }
+.journal-swatch {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}

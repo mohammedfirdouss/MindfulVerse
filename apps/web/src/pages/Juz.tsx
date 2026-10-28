@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import { CommentarySheet, useTafsir, type TafsirIndex } from "../components/Commentary";
-import ReaderTools from "../components/ReaderTools";
-import ReadingText, { BASMALAH } from "../components/ReadingText";
-import VerseBlock from "../components/VerseBlock";
-import VerseSheet from "../components/VerseSheet";
-import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "@mindfulverse/core/data";
+import {
+  loadDivisions,
+  loadSurahAyahs,
+  loadSurahs,
+  loadTafsirIndex,
+} from "@mindfulverse/core/data";
 import { juzOf, spansInRange, verseId } from "@mindfulverse/core/divisions";
 import { recordLastRead } from "@mindfulverse/core/progress";
 import {
@@ -14,9 +12,18 @@ import {
   saveReadView,
   saveSizeKey,
   scaleFor,
-  type ReadView,
 } from "@mindfulverse/core/readingPrefs";
+import type { ReadView } from "@mindfulverse/core/readingPrefs";
 import type { Ayah, Division } from "@mindfulverse/core/types";
+import { useEffect, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+
+import { CommentarySheet, useTafsir } from "../components/Commentary";
+import type { TafsirIndex } from "../components/Commentary";
+import ReaderTools from "../components/ReaderTools";
+import ReadingText, { BASMALAH } from "../components/ReadingText";
+import VerseBlock from "../components/VerseBlock";
+import VerseSheet from "../components/VerseSheet";
 import { useLastReadTracker } from "../lib/useLastReadTracker";
 
 // Keyed on the juz so moving to the next one starts from clean state.
@@ -30,7 +37,9 @@ function JuzReader() {
   const juz = Number(n);
   const [params] = useSearchParams();
 
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [range, setRange] = useState<Division | null>(null);
   const [hizbs, setHizbs] = useState<Division[]>([]);
@@ -62,26 +71,36 @@ function JuzReader() {
           loadTafsirIndex().catch(() => null),
         ]);
         const r = divs.juz.find((j) => j.n === juz);
-        if (!r) throw new Error(`juz ${juz}`);
+        if (!r) {
+          throw new Error(`juz ${juz}`);
+        }
         const counts = new Map(surahs.map((s) => [s.number, s.ayahCount]));
         const spans = spansInRange(r.first, r.last, counts);
         const slices = await Promise.all(
           spans.map((sp) =>
             loadSurahAyahs(sp.surah)
-              .then((list) => list.filter((a) => a.ayah >= sp.from && a.ayah <= sp.to))
+              .then((list) =>
+                list.filter((a) => a.ayah >= sp.from && a.ayah <= sp.to)
+              )
               .catch(() => null)
           )
         );
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setRange(r);
         setHizbs(divs.hizb.filter((h) => juzOf(h.first, divs) === juz));
         setSurahNames(new Map(surahs.map((s) => [s.number, s.name])));
         setIndex(idx);
-        setMissing(spans.filter((_, i) => slices[i] === null).map((sp) => sp.surah));
+        setMissing(
+          spans.filter((_, i) => slices[i] === null).map((sp) => sp.surah)
+        );
         setAyahs(slices.flatMap((s) => s ?? []));
         setStatus("ready");
       } catch {
-        if (active) setStatus("error");
+        if (active) {
+          setStatus("error");
+        }
       }
     })();
     return () => {
@@ -91,12 +110,18 @@ function JuzReader() {
 
   // Deep link (?v=S:A): scroll there in either view and glow briefly.
   useEffect(() => {
-    if (status !== "ready") return;
+    if (status !== "ready") {
+      return;
+    }
     const key = params.get("v");
-    if (!key || !/^\d+:\d+$/.test(key)) return;
+    if (!key || !/^\d+:\d+$/.test(key)) {
+      return;
+    }
     const [s, a] = key.split(":").map(Number);
     const el = document.getElementById(verseId(s, a));
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     el.scrollIntoView({ block: "start" });
     recordLastRead(s, a);
     setFlashKey(key);
@@ -127,9 +152,12 @@ function JuzReader() {
   // Translation view: one heading per surah section.
   const sections: { surah: number; ayahs: Ayah[] }[] = [];
   for (const a of ayahs) {
-    const last = sections[sections.length - 1];
-    if (last && last.surah === a.surah) last.ayahs.push(a);
-    else sections.push({ surah: a.surah, ayahs: [a] });
+    const last = sections.at(-1);
+    if (last && last.surah === a.surah) {
+      last.ayahs.push(a);
+    } else {
+      sections.push({ ayahs: [a], surah: a.surah });
+    }
   }
 
   return (
@@ -148,11 +176,22 @@ function JuzReader() {
           </p>
         )}
         {hizbs.length > 0 && (
-          <p style={{ margin: "8px 0 0", display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <p
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 16,
+              margin: "8px 0 0",
+            }}
+          >
             {hizbs.map((h) => (
               <Link
                 key={h.n}
-                to={range && h.first === range.first ? `/read/juz/${juz}` : `/read/juz/${juz}?v=${h.first}`}
+                to={
+                  range && h.first === range.first
+                    ? `/read/juz/${juz}`
+                    : `/read/juz/${juz}?v=${h.first}`
+                }
                 replace
               >
                 Hizb {h.n}
@@ -163,8 +202,16 @@ function JuzReader() {
       </header>
 
       {status === "ready" && (
-        <div className="surah-toolbar" style={{ borderBottom: "1px solid var(--line)" }}>
-          <ReaderTools sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
+        <div
+          className="surah-toolbar"
+          style={{ borderBottom: "1px solid var(--line)" }}
+        >
+          <ReaderTools
+            sizeKey={sizeKey}
+            onSize={chooseSize}
+            view={view}
+            onView={chooseView}
+          />
         </div>
       )}
 
@@ -173,14 +220,16 @@ function JuzReader() {
       {status === "error" && (
         <div className="card">
           <p className="soft" style={{ margin: 0 }}>
-            This juz isn’t available right now. Please try again in a little while.
+            This juz isn’t available right now. Please try again in a little
+            while.
           </p>
         </div>
       )}
 
       {status === "ready" && missing.length > 0 && (
         <p className="soft" style={{ fontSize: ".9rem" }}>
-          Part of this juz ({missing.map(name).join(", ")}) couldn’t be loaded right now.
+          Part of this juz ({missing.map(name).join(", ")}) couldn’t be loaded
+          right now.
         </p>
       )}
 
@@ -196,17 +245,32 @@ function JuzReader() {
         ) : (
           sections.map((sec, i) => (
             <section key={sec.surah}>
-              <h2 className={i === 0 ? "reading-surah-name first" : "reading-surah-name"}>
+              <h2
+                className={
+                  i === 0 ? "reading-surah-name first" : "reading-surah-name"
+                }
+              >
                 <Link to={`/read/${sec.surah}`} style={{ color: "inherit" }}>
                   {name(sec.surah)}
                 </Link>
-                {sec.ayahs[0].ayah > 1 && <span className="muted"> · from verse {sec.ayahs[0].ayah}</span>}
+                {sec.ayahs[0].ayah > 1 && (
+                  <span className="muted">
+                    {" "}
+                    · from verse {sec.ayahs[0].ayah}
+                  </span>
+                )}
               </h2>
-              {sec.ayahs[0].ayah === 1 && sec.surah !== 1 && sec.surah !== 9 && (
-                <p className="arabic" lang="ar" style={{ textAlign: "center", padding: "10px 0 4px" }}>
-                  {BASMALAH}
-                </p>
-              )}
+              {sec.ayahs[0].ayah === 1 &&
+                sec.surah !== 1 &&
+                sec.surah !== 9 && (
+                  <p
+                    className="arabic"
+                    lang="ar"
+                    style={{ padding: "10px 0 4px", textAlign: "center" }}
+                  >
+                    {BASMALAH}
+                  </p>
+                )}
               {sec.ayahs.map((a) => (
                 <VerseBlock
                   key={a.verseKey}
@@ -230,10 +294,20 @@ function JuzReader() {
       )}
 
       {selected && (
-        <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
+        <VerseSheet
+          ayah={selected}
+          index={index}
+          tafsir={tafsir}
+          onClose={() => setSelected(null)}
+        />
       )}
       {openAyah && (
-        <CommentarySheet ayah={openAyah} index={index} tafsir={tafsir} onClose={() => setOpenAyah(null)} />
+        <CommentarySheet
+          ayah={openAyah}
+          index={index}
+          tafsir={tafsir}
+          onClose={() => setOpenAyah(null)}
+        />
       )}
     </div>
   );

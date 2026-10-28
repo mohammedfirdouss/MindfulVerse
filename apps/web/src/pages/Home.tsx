@@ -1,18 +1,36 @@
+import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
+import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
+import { checkedInToday } from "@mindfulverse/core/journal";
+import {
+  currentStreak,
+  getLastRead,
+  latestSurahTadabbur,
+} from "@mindfulverse/core/progress";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import type { Ayah } from "@mindfulverse/core/types";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
-import { todayVerseKey } from "@mindfulverse/core/dailyVerse";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { checkedInToday } from "@mindfulverse/core/journal";
-import { currentStreak, getLastRead, latestSurahTadabbur } from "@mindfulverse/core/progress";
-import type { Ayah } from "@mindfulverse/core/types";
-import { ChevronIcon, DhikrIcon, DyeRule, ReadIcon, TadabburIcon } from "../components/Adire";
+
+import {
+  ChevronIcon,
+  DhikrIcon,
+  DyeRule,
+  ReadIcon,
+  TadabburIcon,
+} from "../components/Adire";
+
 import "./home.css";
 
 function greeting(hour: number): string {
-  if (hour < 5) return "Peace be upon you tonight";
-  if (hour < 12) return "Peace be upon you this morning";
-  if (hour < 18) return "Peace be upon you today";
+  if (hour < 5) {
+    return "Peace be upon you tonight";
+  }
+  if (hour < 12) {
+    return "Peace be upon you this morning";
+  }
+  if (hour < 18) {
+    return "Peace be upon you today";
+  }
   return "Peace be upon you this evening";
 }
 
@@ -28,9 +46,24 @@ interface Entry {
 }
 
 const entries: Entry[] = [
-  { to: "/sessions", title: "Tadabbur", desc: "Ponder the Qur’an, surah by surah.", Icon: TadabburIcon },
-  { to: "/read", title: "Read", desc: "The Qur’an, with translation and commentary.", Icon: ReadIcon },
-  { to: "/dhikr", title: "Dhikr & breath", desc: "Remembrance, paced to your breath.", Icon: DhikrIcon },
+  {
+    Icon: TadabburIcon,
+    desc: "Ponder the Qur’an, surah by surah.",
+    title: "Tadabbur",
+    to: "/sessions",
+  },
+  {
+    Icon: ReadIcon,
+    desc: "The Qur’an, with translation and commentary.",
+    title: "Read",
+    to: "/read",
+  },
+  {
+    Icon: DhikrIcon,
+    desc: "Remembrance, paced to your breath.",
+    title: "Dhikr & breath",
+    to: "/dhikr",
+  },
 ];
 
 export default function Home() {
@@ -52,15 +85,21 @@ export default function Home() {
     let active = true;
     // Today's verse — from anywhere in the Qur'an, same as the check-in page.
     // Each person has their own; wait for the account so it doesn't flip.
-    if (accountLoading) return;
+    if (accountLoading) {
+      return;
+    }
     todayVerseKey(accountId)
       .then((key) => loadAyahsByKeys([key]))
       .then(async (a) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         const ayah = a[0] ?? null;
         setHero(ayah);
         const surahs = await loadSurahs().catch(() => []);
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setSurahNames(new Map(surahs.map((s) => [s.number, s.name])));
         if (ayah) {
           setSurahName(surahs.find((s) => s.number === ayah.surah)?.name ?? "");
@@ -80,7 +119,8 @@ export default function Home() {
       : {
           opacity: mounted ? 1 : 0,
           transform: mounted ? "none" : "translateY(10px)",
-          transition: "opacity .6s var(--ease-out), transform .6s var(--ease-out)",
+          transition:
+            "opacity .6s var(--ease-out), transform .6s var(--ease-out)",
           transitionDelay: `${delay}ms`,
         };
 
@@ -94,8 +134,8 @@ export default function Home() {
         e.to === "/read"
           ? {
               ...e,
-              to: `/read/${lastRead.surah}?v=${lastRead.ayah}`,
               desc: `Pick up at Surah ${lastRead.surah}, verse ${lastRead.ayah}`,
+              to: `/read/${lastRead.surah}?v=${lastRead.ayah}`,
             }
           : e
       )
@@ -112,20 +152,32 @@ export default function Home() {
         <p className="home-streak soft" style={reveal(60)}>
           <span className="home-beads" aria-hidden="true">
             {Array.from({ length: 7 }, (_, i) => (
-              <i key={i} className={i < Math.min(streak, 7) ? "on" : undefined} />
+              <i
+                key={i}
+                className={i < Math.min(streak, 7) ? "on" : undefined}
+              />
             ))}
           </span>
           Day {streak} of returning to the Qur’an
         </p>
       )}
 
-      <section aria-label="Today’s verse" className="cloth home-verse fade-rise">
+      <section
+        aria-label="Today’s verse"
+        className="cloth home-verse fade-rise"
+      >
         {hero ? (
           <>
-            <p className="arabic" lang="ar" style={{ fontSize: "calc(2rem * var(--read-scale,1))" }}>
+            <p
+              className="arabic"
+              lang="ar"
+              style={{ fontSize: "calc(2rem * var(--read-scale,1))" }}
+            >
               {hero.arabic}
             </p>
-            <p className="translation home-verse-translation">{hero.translation}</p>
+            <p className="translation home-verse-translation">
+              {hero.translation}
+            </p>
             <p className="cloth-soft home-verse-ref">
               {surahName ? `${surahName} ` : ""}
               {hero.surah}:{hero.ayah}
@@ -142,7 +194,11 @@ export default function Home() {
                 Today’s reflection is saved.
               </p>
               <Link
-                to={deeper ? `/tadabbur/${deeper.surah}?v=${deeper.ayah}` : "/sessions"}
+                to={
+                  deeper
+                    ? `/tadabbur/${deeper.surah}?v=${deeper.ayah}`
+                    : "/sessions"
+                }
                 className="btn cloth-btn"
               >
                 {deeper
@@ -195,7 +251,11 @@ export default function Home() {
         {/* Required attribution — the translation is CC BY-NC-ND. */}
         <p className="muted home-attribution">
           English translation by{" "}
-          <a href="https://www.clearquran.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://www.clearquran.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Talal Itani (ClearQuran)
           </a>
         </p>
@@ -207,7 +267,11 @@ export default function Home() {
 /** "Wednesday 7 October" in the browser's language. */
 function todayLabel(): string {
   try {
-    return new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+    return new Date().toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "long",
+      weekday: "long",
+    });
   } catch {
     return new Date().toDateString();
   }

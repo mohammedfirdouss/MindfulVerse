@@ -28,10 +28,12 @@ React Native cannot load `.woff2`. The repo ships only `public/fonts/uthmanic-ha
 **This conversion has been verified to work.** Expected output: 232K TTF, 1,412 glyphs, 256 Arabic codepoints, 8/8 tashkeel marks, name `KFGQPC HAFS Uthmanic Script`.
 
 **Files:**
+
 - Create: `~/Desktop/Git-projects/mv-spike/assets/fonts/uthmanic-hafs.ttf`
 - Read-only source: `~/Desktop/Git-projects/MindfulVerse/public/fonts/uthmanic-hafs.woff2`
 
 **Interfaces:**
+
 - Produces: `assets/fonts/uthmanic-hafs.ttf`, consumed by Task 4.
 
 - [ ] **Step 1: Create a venv and install fonttools**
@@ -73,19 +75,20 @@ print('OK')
 "
 ```
 
-Expected: `name: KFGQPC HAFS Uthmanic Script`, `glyphs: 1412`, `OK`.
-If `GSUB`/`GPOS` are absent, stop — the font cannot shape Arabic and Gate 1 fails before the device is involved.
+Expected: `name: KFGQPC HAFS Uthmanic Script`, `glyphs: 1412`, `OK`. If `GSUB`/`GPOS` are absent, stop — the font cannot shape Arabic and Gate 1 fails before the device is involved.
 
 ---
 
 ### Task 2: Scaffold the spike app
 
 **Files:**
+
 - Create: `~/Desktop/Git-projects/mv-spike/` (Expo app)
 - Create: `~/Desktop/Git-projects/mv-spike/assets/data/1.json` (Al-Fatiha, copied)
 - Create: `~/Desktop/Git-projects/mv-spike/assets/data/2.json` (Al-Baqarah, copied)
 
 **Interfaces:**
+
 - Produces: a runnable dev build; `app/_layout.tsx` with expo-router; verse JSON matching the `Ayah` shape (`{surah, ayah, verseKey, arabic, translation}`).
 
 - [ ] **Step 1: Create the Expo app**
@@ -135,8 +138,7 @@ cd ~/Desktop/Git-projects/mv-spike
 npx expo run:android
 ```
 
-Expected: the app installs and opens. This is a development build — Expo Go cannot host MMKV or push.
-If the Android SDK is not installed locally, use `eas build --profile development --platform android` instead and install the resulting APK.
+Expected: the app installs and opens. This is a development build — Expo Go cannot host MMKV or push. If the Android SDK is not installed locally, use `eas build --profile development --platform android` instead and install the resulting APK.
 
 ---
 
@@ -149,11 +151,13 @@ Gate 2 splits in two, because `react-native-mmkv` is a native module and **canno
 **Gate 2b (device):** prove MMKV satisfies that same interface, by running real assertions in-app.
 
 **Files:**
+
 - Create: `~/Desktop/Git-projects/mv-spike/src/storage.ts`
 - Create: `~/Desktop/Git-projects/mv-spike/src/core/` (copied, unmodified)
 - Create: `~/Desktop/Git-projects/mv-spike/app/storage.tsx`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: `installLocalStorage(): void` from `src/storage.ts`, called by Task 5's `_layout.tsx` before any core import.
 
@@ -190,8 +194,8 @@ npx expo install expo-crypto
 Create `src/storage.ts`:
 
 ```ts
-import { MMKV } from "react-native-mmkv";
 import * as Crypto from "expo-crypto";
+import { MMKV } from "react-native-mmkv";
 
 const mmkv = new MMKV({ id: "mv-spike" });
 
@@ -206,7 +210,8 @@ export function installLocalStorage(): void {
   };
 
   const c = ((globalThis as any).crypto ??= {});
-  if (typeof c.randomUUID !== "function") c.randomUUID = () => Crypto.randomUUID();
+  if (typeof c.randomUUID !== "function")
+    c.randomUUID = () => Crypto.randomUUID();
 }
 ```
 
@@ -219,7 +224,13 @@ Create `app/storage.tsx`:
 ```tsx
 import { useEffect, useState } from "react";
 import { ScrollView, Text } from "react-native";
-import { addEntry, deleteEntry, getEntries, getTombstones } from "../src/core/journal";
+
+import {
+  addEntry,
+  deleteEntry,
+  getEntries,
+  getTombstones,
+} from "../src/core/journal";
 import { isDirty, clearDirty } from "../src/core/syncFlags";
 
 type Result = { name: string; pass: boolean; detail: string };
@@ -227,8 +238,11 @@ type Result = { name: string; pass: boolean; detail: string };
 function run(): Result[] {
   const out: Result[] = [];
   const check = (name: string, fn: () => boolean) => {
-    try { out.push({ name, pass: fn(), detail: "" }); }
-    catch (e) { out.push({ name, pass: false, detail: String(e) }); }
+    try {
+      out.push({ name, pass: fn(), detail: "" });
+    } catch (e) {
+      out.push({ name, pass: false, detail: String(e) });
+    }
   };
 
   (globalThis as any).localStorage.clear();
@@ -247,7 +261,9 @@ function run(): Result[] {
   check("delete leaves a tombstone", () => {
     const id = getEntries()[0].id;
     deleteEntry(id);
-    return getEntries().length === 0 && getTombstones().some((t) => t.id === id);
+    return (
+      getEntries().length === 0 && getTombstones().some((t) => t.id === id)
+    );
   });
   check("survives a fresh read", () => getTombstones().length === 1);
 
@@ -256,7 +272,9 @@ function run(): Result[] {
 
 export default function Storage() {
   const [results, setResults] = useState<Result[]>([]);
-  useEffect(() => { setResults(run()); }, []);
+  useEffect(() => {
+    setResults(run());
+  }, []);
   const passed = results.filter((r) => r.pass).length;
   return (
     <ScrollView style={{ padding: 24, paddingTop: 64 }}>
@@ -264,7 +282,10 @@ export default function Storage() {
         Gate 2b — {passed}/{results.length} passed
       </Text>
       {results.map((r) => (
-        <Text key={r.name} style={{ marginBottom: 8, color: r.pass ? "green" : "red" }}>
+        <Text
+          key={r.name}
+          style={{ marginBottom: 8, color: r.pass ? "green" : "red" }}
+        >
           {r.pass ? "PASS" : "FAIL"} — {r.name} {r.detail}
         </Text>
       ))}
@@ -275,8 +296,7 @@ export default function Storage() {
 
 - [ ] **Step 5: Open `/storage` on the device and record the result** **[USER]**
 
-Expected: `Gate 2b — 6/6 passed`, with `getEntries` confirming a synchronous array.
-Any failure, or any edit needed to the copied files, fails Gate 2. Record which and why.
+Expected: `Gate 2b — 6/6 passed`, with `getEntries` confirming a synchronous array. Any failure, or any edit needed to the copied files, fails Gate 2. Record which and why.
 
 ---
 
@@ -285,9 +305,11 @@ Any failure, or any edit needed to the copied files, fails Gate 2. Record which 
 The highest-risk gate. If Hafs will not shape on Android, the port's premise fails and the decision reopens.
 
 **Files:**
+
 - Create: `~/Desktop/Git-projects/mv-spike/app/arabic.tsx`
 
 **Interfaces:**
+
 - Consumes: `assets/fonts/uthmanic-hafs.ttf` (Task 1), `assets/data/1.json` and `2.json` (Task 2).
 
 - [ ] **Step 1: Write the rendering screen**
@@ -297,10 +319,17 @@ Create `app/arabic.tsx`:
 ```tsx
 import { useFonts } from "expo-font";
 import { ScrollView, Text, View } from "react-native";
+
 import fatiha from "../assets/data/1.json";
 import baqarah from "../assets/data/2.json";
 
-type Ayah = { surah: number; ayah: number; verseKey: string; arabic: string; translation: string };
+type Ayah = {
+  surah: number;
+  ayah: number;
+  verseKey: string;
+  arabic: string;
+  translation: string;
+};
 
 export default function Arabic() {
   const [loaded] = useFonts({
@@ -351,19 +380,20 @@ Open `/arabic` in the spike app, and `https://mindfulverse.vercel.app/read/1` in
 
 - [ ] **Step 3: Photograph both screens and record the verdict** **[USER]**
 
-Keep the photos; they are the evidence for the go/no-go.
-**Any failure stops the port.** Do not proceed to Phase 1. Record precisely which property failed — it determines whether the fallback is `react-native-svg` text, bitmap Arabic, or abandoning the port.
+Keep the photos; they are the evidence for the go/no-go. **Any failure stops the port.** Do not proceed to Phase 1. Record precisely which property failed — it determines whether the fallback is `react-native-svg` text, bitmap Arabic, or abandoning the port.
 
 ---
 
 ### Task 5: Gate 3 — push delivery and deep link
 
 **Files:**
+
 - Create: `~/Desktop/Git-projects/mv-spike/app/_layout.tsx`
 - Create: `~/Desktop/Git-projects/mv-spike/app/index.tsx`
 - Create: `~/Desktop/Git-projects/mv-spike/app/tadabbur/[surah].tsx`
 
 **Interfaces:**
+
 - Consumes: `installLocalStorage()` from Task 3.
 - Produces: a printed Expo push token; a route matching the real payload's `url`.
 
@@ -375,12 +405,14 @@ Create `app/_layout.tsx`:
 import { installLocalStorage } from "../src/storage";
 installLocalStorage(); // MUST precede any core import
 
-import { Stack } from "expo-router";
 import * as Notifications from "expo-notifications";
+import { Stack } from "expo-router";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true, shouldPlaySound: false, shouldSetBadge: false,
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
   }),
 });
 
@@ -394,10 +426,10 @@ export default function Layout() {
 Create `app/index.tsx`:
 
 ```tsx
+import * as Notifications from "expo-notifications";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
-import { Link } from "expo-router";
-import * as Notifications from "expo-notifications";
 
 export default function Home() {
   const [token, setToken] = useState("requesting…");
@@ -412,7 +444,9 @@ export default function Home() {
   }, []);
   return (
     <View style={{ padding: 24, paddingTop: 64, gap: 16 }}>
-      <Text selectable style={{ fontSize: 12 }}>{token}</Text>
+      <Text selectable style={{ fontSize: 12 }}>
+        {token}
+      </Text>
       <Link href="/arabic">→ Gate 1: Arabic</Link>
       <Link href="/storage">→ Gate 2b: Storage</Link>
       <Link href="/tadabbur/8?v=12">→ Gate 3: deep link target</Link>
@@ -434,7 +468,9 @@ export default function Tadabbur() {
   return (
     <View style={{ padding: 24, paddingTop: 64 }}>
       <Text style={{ fontSize: 22 }}>Tadabbur — surah {surah}</Text>
-      <Text style={{ fontSize: 16, marginTop: 8 }}>resume at ayah {v ?? "(none)"}</Text>
+      <Text style={{ fontSize: 16, marginTop: 8 }}>
+        resume at ayah {v ?? "(none)"}
+      </Text>
     </View>
   );
 }
@@ -481,6 +517,7 @@ Record any failure. Note that the real `send-reminders` puts the path in a top-l
 ### Task 6: Measurements and the go/no-go document
 
 **Files:**
+
 - Create: `~/Desktop/Git-projects/MindfulVerse/docs/superpowers/specs/2026-09-22-rn-phase0-findings.md`
 
 This is the only file written inside the real repo, and it is the spike's actual deliverable.
