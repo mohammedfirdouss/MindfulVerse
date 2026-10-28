@@ -69,7 +69,7 @@ function makeSnippet(
 /** Case-insensitive substring search; exact whole-word matches rank first. */
 function runSearch(index: [string, string][], term: string): SearchOutcome {
   const q = normApostrophes(term).toLowerCase();
-  const wordRe = new RegExp(`\\b${escapeRegExp(q)}\\b`, "i");
+  const wordRe = new RegExp(`\\b${escapeRegExp(q)}\\b`, "iu");
   const exact: Result[] = [];
   const partial: Result[] = [];
   let total = 0;
@@ -101,7 +101,7 @@ function runSearch(index: [string, string][], term: string): SearchOutcome {
 /** Wrap every occurrence of the term in <mark>, case-insensitively. */
 function highlight(snippet: string, term: string): ReactNode[] {
   const pattern = escapeRegExp(normApostrophes(term)).replaceAll("'", "['’‘]");
-  const parts = snippet.split(new RegExp(`(${pattern})`, "gi"));
+  const parts = snippet.split(new RegExp(`(${pattern})`, "giu"));
   return parts.map((part, i) =>
     i % 2 === 1 ? (
       <mark
