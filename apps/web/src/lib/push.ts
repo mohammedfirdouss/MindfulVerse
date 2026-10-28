@@ -18,7 +18,7 @@ export function pushSupport(): "ok" | "needs-install" | "unsupported" {
     return "ok";
   }
   // iOS Safari exposes push only to installed (home-screen) PWAs.
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isIOS = /iPad|iPhone|iPod/u.test(navigator.userAgent);
   return isIOS ? "needs-install" : "unsupported";
 }
 

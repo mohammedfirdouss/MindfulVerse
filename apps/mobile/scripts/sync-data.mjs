@@ -56,7 +56,7 @@ await rm(dest, { force: true, recursive: true });
 let bytes = 0;
 const lines = [];
 for (const rel of files) {
-  const assetRel = rel.replace(/\.json$/, ".mvdata");
+  const assetRel = rel.replace(/\.json$/u, ".mvdata");
   const to = path.join(dest, assetRel);
   await mkdir(path.dirname(to), { recursive: true });
   await copyFile(path.join(src, rel), to);

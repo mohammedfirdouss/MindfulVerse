@@ -25,7 +25,7 @@ const fail = [];
 const roots = new Map();
 for (const src of JSON.parse(readFileSync(path.join(jsDir, map), "utf-8"))
   .sources) {
-  const m = src.match(/^(.*node_modules\/(react|react-native|scheduler))\//);
+  const m = src.match(/^(.*node_modules\/(react|react-native|scheduler))\//u);
   if (m) {
     roots.set(m[1], m[2]);
   }
@@ -52,7 +52,7 @@ const assets = Object.values(
 const data = assets.filter((a) => a.type === "mvdata");
 const manifest =
   readFileSync(path.join(root, "assets/data/manifest.js"), "utf-8").match(
-    /require\(/g
+    /require\(/gu
   ) ?? [];
 const mb = statSync(path.join(jsDir, hbc)).size / 1_048_576;
 console.log(

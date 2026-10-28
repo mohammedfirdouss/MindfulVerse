@@ -167,7 +167,11 @@ describe(aboutExcerpt, () => {
       count: 1,
       more: false,
     });
-    expect(aboutExcerpt([])).toStrictEqual({ clamp: false, count: 0, more: false });
+    expect(aboutExcerpt([])).toStrictEqual({
+      clamp: false,
+      count: 0,
+      more: false,
+    });
   });
 });
 

@@ -16,7 +16,7 @@ import { Text } from "./Text";
 
 /** Pattern ids must be unique per mounted Svg (web shares one DOM). */
 function usePatternId(prefix: string) {
-  return `${prefix}-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
+  return `${prefix}-${useId().replaceAll(/[^a-zA-Z0-9_-]/gu, "")}`;
 }
 
 /** The web's adire band: diamond and ringed dot, repeated. 12dp tall. */

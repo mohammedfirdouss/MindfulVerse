@@ -343,7 +343,7 @@ function webHost(endpoint: string): string {
 
 /** Keep push tokens out of logs (Expo error messages echo the token). */
 function redactTokens(s: string): string {
-  return s.replaceAll(/Expo(nent)?PushToken\[[^\]]*\]/g, "<expo-token>");
+  return s.replaceAll(/Expo(nent)?PushToken\[[^\]]*\]/gu, "<expo-token>");
 }
 
 interface ExpoTicket {

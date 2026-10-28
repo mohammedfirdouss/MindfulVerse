@@ -23,7 +23,7 @@ export interface ExportInput {
   exportedAt: Date;
 }
 
-const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
+const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/u;
 
 /** Shape grouped entries for export; verse text is looked up by the caller. */
 export function toSections(

@@ -11,7 +11,7 @@ import {
 function jwt(claims: object): string {
   const b64 = (o: object) =>
     btoa(JSON.stringify(o))
-      .replace(/[=]+$/, "")
+      .replace(/[=]+$/u, "")
       .replaceAll("+", "-")
       .replaceAll("/", "_");
   return `${b64({ alg: "none" })}.${b64(claims)}.sig`;
@@ -68,7 +68,12 @@ describe(nextRefreshDelay, () => {
       delays.push(next.delayMs);
       streak = next.quickStreak;
     }
-    expect(delays.slice(0, 4)).toStrictEqual([MIN_DELAY_MS, 10_000, 20_000, 40_000]);
+    expect(delays.slice(0, 4)).toStrictEqual([
+      MIN_DELAY_MS,
+      10_000,
+      20_000,
+      40_000,
+    ]);
     expect(delays.at(-1)).toBe(MAX_FLOOR_MS);
   });
 });

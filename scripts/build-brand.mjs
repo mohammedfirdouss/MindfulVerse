@@ -34,7 +34,7 @@ const html = resolve(root, "apps/web/index.html");
 writeFileSync(
   html,
   readFileSync(html, "utf-8").replace(
-    /<!-- brand:splash -->(?:[\s\S]*?<!-- \/brand:splash -->)?/,
+    /<!-- brand:splash -->(?:[\s\S]*?<!-- \/brand:splash -->)?/u,
     `<!-- brand:splash -->${markSvg({ ink: "currentColor", pad: 0.04 })}<!-- /brand:splash -->`
   )
 );

@@ -2,7 +2,7 @@
 // the stored data model and sync merge are untouched.
 import type { JournalEntry } from "./types";
 
-const VERSE_KEY_RE = /^(\d{1,3}):\d{1,3}$/;
+const VERSE_KEY_RE = /^(\d{1,3}):\d{1,3}$/u;
 
 export interface JournalGroup {
   /** "surah:<n>" | "session:<id>" | "other" */

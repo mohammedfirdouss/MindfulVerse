@@ -152,7 +152,9 @@ describe("deliverReminders — Expo request", () => {
       expoMessage("ExponentPushToken[tok-1]", continuePayload),
       expoMessage("ExponentPushToken[tok-2]", continuePayload),
     ]);
-    expect(JSON.parse(init.body)[0].data).toStrictEqual({ url: "/tadabbur/2?v=255" });
+    expect(JSON.parse(init.body)[0].data).toStrictEqual({
+      url: "/tadabbur/2?v=255",
+    });
   });
 
   it("sends Authorization: Bearer only when an access token is configured", async () => {

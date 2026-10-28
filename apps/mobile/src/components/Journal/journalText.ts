@@ -25,7 +25,7 @@ export interface ExportInput {
   exportedAt: Date;
 }
 
-export const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
+export const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/u;
 
 /** A group's heading (web Journal.tsx groupTitle). */
 export function groupTitle(

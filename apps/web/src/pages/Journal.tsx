@@ -29,7 +29,7 @@ import type { ExportInput } from "../lib/journalExport";
 
 import "./journal-empty.css";
 
-const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/;
+const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/u;
 
 /** A diamond of indigo cloth with the reed pen at its centre. */
 function ClothSwatch() {

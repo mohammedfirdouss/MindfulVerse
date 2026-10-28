@@ -18,7 +18,7 @@ import {
 
 describe(configureData, () => {
   it("rejects until a reader is configured", async () => {
-    await expect(loadSurahs()).rejects.toThrow(/configureData/);
+    await expect(loadSurahs()).rejects.toThrow(/configureData/u);
   });
 
   it("reads each dataset by its relative path, once", async () => {
@@ -67,7 +67,9 @@ describe(configureData, () => {
       "Failed to load /data/info/9.json: 404"
     );
     fail = false;
-    await expect(loadSurahInfo(9)).resolves.toStrictEqual({ ok: "info/9.json" });
+    await expect(loadSurahInfo(9)).resolves.toStrictEqual({
+      ok: "info/9.json",
+    });
   });
 
   it("shares one read between concurrent loads", async () => {
@@ -100,7 +102,10 @@ describe(configureData, () => {
       loadSurahInfo(10),
       loadSurahInfo(10),
     ]);
-    expect(results.map((r) => r.status)).toStrictEqual(["rejected", "rejected"]);
+    expect(results.map((r) => r.status)).toStrictEqual([
+      "rejected",
+      "rejected",
+    ]);
     expect(calls).toBe(1);
     await expect(loadSurahInfo(10)).resolves.toStrictEqual({ ok: true });
     expect(calls).toBe(2);

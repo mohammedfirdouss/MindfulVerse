@@ -12,7 +12,7 @@ export const DEFAULT_REMINDER_TIME = "07:00";
 
 // Deliberately loose: the server is the authority. This only catches the
 // mistakes the browser's type="email" would have caught on web.
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
 /** Returns a user-facing message for an obviously incomplete form, or null.
  *  Mirrors web's `required` / `type="email"` attributes. */
@@ -35,17 +35,17 @@ export function validateCredentials(
 
 /** Keeps digits only, at most 6 (pasted codes often carry spaces). */
 export function normalizeOtp(raw: string): string {
-  return raw.replaceAll(/\D/g, "").slice(0, 6);
+  return raw.replaceAll(/\D/gu, "").slice(0, 6);
 }
 
 /** Mirrors web's pattern="[0-9]{6}". */
 export function validateOtp(otp: string): string | null {
-  return /^\d{6}$/.test(otp) ? null : "Enter the 6-digit code from the email.";
+  return /^\d{6}$/u.test(otp) ? null : "Enter the 6-digit code from the email.";
 }
 
 /** "HH:MM" (24h) → minutes after midnight, or null when malformed. */
 export function parseTime(time: string): number | null {
-  const m = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
+  const m = /^(\d{1,2}):(\d{2})$/u.exec(time.trim());
   if (!m) {
     return null;
   }

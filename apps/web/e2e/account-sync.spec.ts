@@ -20,7 +20,7 @@ async function signIn(page: import("@playwright/test").Page) {
     .getByRole("button", { exact: true, name: "Sign in" })
     .last()
     .click();
-  await expect(page.getByText(/backed up to your account/i)).toBeVisible({
+  await expect(page.getByText(/backed up to your account/iu)).toBeVisible({
     timeout: 15_000,
   });
 }
@@ -36,13 +36,13 @@ test("sign in, write an entry, sync round-trip", async ({ page }) => {
   await expect(journalBox).toBeVisible({ timeout: 15_000 });
   await journalBox.fill(marker);
   await page.getByRole("button", { exact: true, name: "Save" }).click();
-  await expect(page.getByText(/kept in your journal/i)).toBeVisible();
+  await expect(page.getByText(/kept in your journal/iu)).toBeVisible();
 
   // Force the push instead of racing the 3s debounce — deterministic rather
   // than a fixed sleep. "Sync now" also covers the pull side on this device.
   await page.goto("/account");
   await page.getByRole("button", { name: "Sync now" }).click();
-  await expect(page.getByText(/backed up/i)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/backed up/iu)).toBeVisible({ timeout: 15_000 });
 
   // Second context = second device: entry must arrive via sync.
   const ctx2 = await page.context().browser()!.newContext();

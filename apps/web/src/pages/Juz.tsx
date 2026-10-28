@@ -114,7 +114,7 @@ function JuzReader() {
       return;
     }
     const key = params.get("v");
-    if (!key || !/^\d+:\d+$/.test(key)) {
+    if (!key || !/^\d+:\d+$/u.test(key)) {
       return;
     }
     const [s, a] = key.split(":").map(Number);

@@ -19,9 +19,9 @@ describe(validateCredentials, () => {
   });
 
   it("rejects an obviously malformed email", () => {
-    expect(validateCredentials("me@home", "pw")).toMatch(/doesn't look right/);
+    expect(validateCredentials("me@home", "pw")).toMatch(/doesn't look right/u);
     expect(validateCredentials("me home@x.io", "pw")).toMatch(
-      /doesn't look right/
+      /doesn't look right/u
     );
   });
 
@@ -45,8 +45,8 @@ describe("OTP", () => {
 
   it("needs exactly six digits", () => {
     expect(validateOtp("123456")).toBeNull();
-    expect(validateOtp("12345")).toMatch(/6-digit/);
-    expect(validateOtp("")).toMatch(/6-digit/);
+    expect(validateOtp("12345")).toMatch(/6-digit/u);
+    expect(validateOtp("")).toMatch(/6-digit/u);
   });
 });
 
@@ -102,8 +102,12 @@ describe("time arithmetic", () => {
 
 describe(notificationsBlocked, () => {
   it("is blocked only when denied and the OS won't ask again", () => {
-    expect(notificationsBlocked({ canAskAgain: false, status: "denied" })).toBeTruthy();
-    expect(notificationsBlocked({ canAskAgain: true, status: "denied" })).toBeFalsy();
+    expect(
+      notificationsBlocked({ canAskAgain: false, status: "denied" })
+    ).toBeTruthy();
+    expect(
+      notificationsBlocked({ canAskAgain: true, status: "denied" })
+    ).toBeFalsy();
     expect(
       notificationsBlocked({ canAskAgain: true, status: "undetermined" })
     ).toBeFalsy();

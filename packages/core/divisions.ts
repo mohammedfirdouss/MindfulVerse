@@ -55,7 +55,7 @@ export function spansInRange(
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 export function toArabicDigits(n: number): string {
-  return String(n).replaceAll(/\d/g, (c) => ARABIC_DIGITS[Number(c)]);
+  return String(n).replaceAll(/\d/gu, (c) => ARABIC_DIGITS[Number(c)]);
 }
 
 /** DOM id for a verse where two surahs can share a page (juz, reading text). */
@@ -67,7 +67,7 @@ export function verseId(surah: number, ayah: number): string {
 export function parseVerseId(
   id: string
 ): { surah: number | null; ayah: number } | null {
-  const m = /^v(?:(\d+)-)?(\d+)$/.exec(id);
+  const m = /^v(?:(\d+)-)?(\d+)$/u.exec(id);
   if (!m) {
     return null;
   }

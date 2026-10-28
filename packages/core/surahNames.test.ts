@@ -6,7 +6,7 @@ describe("surahNames", () => {
   it("names every surah and none beyond", () => {
     for (let n = 1; n <= 114; n++) {
       expect(arabicSurahName(n)).toBeTruthy();
-      expect(revelationPlace(n)).toMatch(/^(Meccan|Medinan)$/);
+      expect(revelationPlace(n)).toMatch(/^(Meccan|Medinan)$/u);
     }
     expect(arabicSurahName(0)).toBeUndefined();
     expect(arabicSurahName(115)).toBeUndefined();
@@ -20,7 +20,7 @@ describe("surahNames", () => {
 
   it("drops the سورة prefix", () => {
     for (let n = 1; n <= 114; n++) {
-      expect(arabicSurahName(n)).not.toMatch(/^سُورَةُ|^سورة/);
+      expect(arabicSurahName(n)).not.toMatch(/^سُورَةُ|^سورة/u);
     }
   });
 });

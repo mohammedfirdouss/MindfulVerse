@@ -131,9 +131,9 @@ describe("row mapping", () => {
       id: "x",
       prompt: "q",
     };
-    expect(rowToEntry({ ...entryToRow(entry), deleted_at: null })).toStrictEqual(
-      entry
-    );
+    expect(
+      rowToEntry({ ...entryToRow(entry), deleted_at: null })
+    ).toStrictEqual(entry);
   });
 
   it("omits context when kind is null", () => {

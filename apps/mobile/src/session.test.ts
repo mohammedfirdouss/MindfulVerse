@@ -41,7 +41,7 @@ vi.mock(import("@mindfulverse/core/sync/insforge"), () => ({
 
 /** An unsigned JWT with the given iat/exp (seconds). */
 function jwt(iat: number, exp: number): string {
-  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/[=]+$/, "");
+  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/[=]+$/u, "");
   return `${b64({ alg: "none" })}.${b64({ exp, iat })}.sig`;
 }
 

@@ -125,8 +125,8 @@ describe("journalText", () => {
     const text = buildJournalText(input(new Date(2026, 9, 9)));
     const lines = text.split("\n");
     expect(lines[0]).toBe("MindfulVerse | Your reflections");
-    expect(lines[1]).toMatch(/^5 reflections · .+ – .+$/);
-    expect(lines[2]).toMatch(/^Exported /);
+    expect(lines[1]).toMatch(/^5 reflections · .+ – .+$/u);
+    expect(lines[2]).toMatch(/^Exported /u);
     expect(text).toContain(
       [
         formatDate(day(1)),

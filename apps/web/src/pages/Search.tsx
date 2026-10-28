@@ -26,13 +26,13 @@ interface SearchOutcome {
 }
 
 function escapeRegExp(s: string): string {
-  return s.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return s.replaceAll(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
 /** Curly and straight apostrophes match each other. Same-length replacement,
  *  so match offsets stay valid against the original text. */
 function normApostrophes(s: string): string {
-  return s.replaceAll(/[’‘]/g, "'");
+  return s.replaceAll(/[’‘]/gu, "'");
 }
 
 /** Trim a long translation to a window around the first match. */

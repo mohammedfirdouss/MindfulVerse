@@ -149,7 +149,7 @@ function isDuplicateKey(err: unknown): boolean {
   if (code === "23505" || code === "409" || e?.statusCode === 409) {
     return true;
   }
-  return /duplicate key|already exists|unique constraint|conflict/i.test(
+  return /duplicate key|already exists|unique constraint|conflict/iu.test(
     e?.message ?? ""
   );
 }

@@ -25,7 +25,7 @@ function isStandalone(): boolean {
 }
 
 function isIos(): boolean {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  return /iphone|ipad|ipod/iu.test(navigator.userAgent);
 }
 
 export default function InstallPrompt() {

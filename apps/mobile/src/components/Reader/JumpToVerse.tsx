@@ -36,7 +36,7 @@ export function JumpToVerse({
         <TextInput
           value={value}
           onChangeText={(t) => {
-            setValue(t.replaceAll(/\D/g, ""));
+            setValue(t.replaceAll(/\D/gu, ""));
             setHint("");
           }}
           onSubmitEditing={go}

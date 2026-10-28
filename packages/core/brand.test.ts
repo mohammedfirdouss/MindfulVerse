@@ -21,9 +21,9 @@ describe("brand mark", () => {
 
   it("builds a square, centred SVG", () => {
     const s = markSvg({ ground: "#2a3a8c", ink: "#fff", size: 64 });
-    expect(s).toMatch(/^<svg [^>]*width="64" height="64"/);
+    expect(s).toMatch(/^<svg [^>]*width="64" height="64"/u);
     const [, , w, h] = s
-      .match(/viewBox="([^"]+)"/)![1]
+      .match(/viewBox="([^"]+)"/u)![1]
       .split(" ")
       .map(Number);
     expect(w).toBe(h);
@@ -31,6 +31,11 @@ describe("brand mark", () => {
   });
 
   it("bounds cover the whole construction", () => {
-    expect(markBounds()).toStrictEqual({ height: 9, minX: 1, minY: 5, width: 14 });
+    expect(markBounds()).toStrictEqual({
+      height: 9,
+      minX: 1,
+      minY: 5,
+      width: 14,
+    });
   });
 });

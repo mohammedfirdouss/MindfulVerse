@@ -50,13 +50,13 @@ function wrap(
   width: number
 ): string[] {
   const lines: string[] = [];
-  for (const para of text.split(/\r?\n/)) {
+  for (const para of text.split(/\r?\n/u)) {
     if (para.trim() === "") {
       lines.push("");
       continue;
     }
     let line = "";
-    for (const word of para.split(/\s+/).filter(Boolean)) {
+    for (const word of para.split(/\s+/u).filter(Boolean)) {
       const next = line ? `${line} ${word}` : word;
       if (font.widthOfTextAtSize(next, size) <= width) {
         line = next;
@@ -169,9 +169,9 @@ async function rasterLines(
   measure.direction = opts.rtl ? "rtl" : "ltr";
 
   const lines: string[] = [];
-  for (const para of str.split(/\r?\n/)) {
+  for (const para of str.split(/\r?\n/u)) {
     let line = "";
-    for (const word of para.split(/\s+/).filter(Boolean)) {
+    for (const word of para.split(/\s+/u).filter(Boolean)) {
       const next = line ? `${line} ${word}` : word;
       if (!line || measure.measureText(next).width <= opts.width) {
         line = next;
@@ -262,7 +262,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     if (!set) {
       drawable.set(face, (set = new Set(face.getCharacterSet())));
     }
-    return [...s].every((ch) => /\s/.test(ch) || set.has(ch.codePointAt(0)!));
+    return [...s].every((ch) => /\s/u.test(ch) || set.has(ch.codePointAt(0)!));
   };
 
   let page!: PDFPage;

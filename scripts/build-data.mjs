@@ -60,33 +60,33 @@ function stripHtml(html) {
   }
   let s = String(html);
   // Convert closing block tags to paragraph separators.
-  s = s.replaceAll(/<\/(p|div|h[1-6]|li|ul|ol|blockquote|tr|table)>/gi, "\n\n");
+  s = s.replaceAll(/<\/(p|div|h[1-6]|li|ul|ol|blockquote|tr|table)>/giu, "\n\n");
   // <br> and opening list items -> newline.
-  s = s.replaceAll(/<br\s*\/?>/gi, "\n");
-  s = s.replaceAll(/<li[^>]*>/gi, "\n- ");
+  s = s.replaceAll(/<br\s*\/?>/giu, "\n");
+  s = s.replaceAll(/<li[^>]*>/giu, "\n- ");
   // Remove all remaining tags.
-  s = s.replaceAll(/<[^>]+>/g, "");
+  s = s.replaceAll(/<[^>]+>/gu, "");
   // Decode common named + numeric entities.
   s = s
-    .replaceAll(/&nbsp;/gi, " ")
-    .replaceAll(/&amp;/gi, "&")
-    .replaceAll(/&quot;/gi, '"')
-    .replaceAll(/&#0*39;/gi, "'")
-    .replaceAll(/&apos;/gi, "'")
-    .replaceAll(/&lt;/gi, "<")
-    .replaceAll(/&gt;/gi, ">")
-    .replaceAll(/&#x2f;/gi, "/")
-    .replaceAll(/&#(\d+);/g, (_, d) => {
+    .replaceAll(/&nbsp;/giu, " ")
+    .replaceAll(/&amp;/giu, "&")
+    .replaceAll(/&quot;/giu, '"')
+    .replaceAll(/&#0*39;/giu, "'")
+    .replaceAll(/&apos;/giu, "'")
+    .replaceAll(/&lt;/giu, "<")
+    .replaceAll(/&gt;/giu, ">")
+    .replaceAll(/&#x2f;/giu, "/")
+    .replaceAll(/&#(\d+);/gu, (_, d) => {
       const cp = Number(d);
       return Number.isFinite(cp) ? String.fromCodePoint(cp) : _;
     });
   // Normalize newlines: collapse 3+ into exactly 2 (paragraph break).
   // First, trim spaces on each line and drop spaces around newlines.
-  s = s.replaceAll(/[ \t]*\n[ \t]*/g, "\n");
+  s = s.replaceAll(/[ \t]*\n[ \t]*/gu, "\n");
   // Collapse horizontal whitespace runs within lines.
-  s = s.replaceAll(/[ \t]{2,}/g, " ");
+  s = s.replaceAll(/[ \t]{2,}/gu, " ");
   // Collapse 3+ newlines to 2.
-  s = s.replaceAll(/\n{3,}/g, "\n\n");
+  s = s.replaceAll(/\n{3,}/gu, "\n\n");
   return s.trim();
 }
 
@@ -107,9 +107,9 @@ function swapEmbeddedTranslations(html, surah, trByKey) {
     return html;
   }
   return String(html).replaceAll(
-    /<p class="en translation"[^>]*>([\s\S]*?)<\/p>/gi,
+    /<p class="en translation"[^>]*>([\s\S]*?)<\/p>/giu,
     (match, inner) => {
-      const nums = [...inner.matchAll(/\((\d{1,3})\)/g)];
+      const nums = [...inner.matchAll(/\((\d{1,3})\)/gu)];
       const last = nums.length ? Number(nums.at(-1)[1]) : Number.NaN;
       const itani = trByKey.get(`${surah}:${last}`);
       if (!itani) {
@@ -315,7 +315,7 @@ function main() {
     if (!ayah) {
       throw new Error(`firstWords: no ayah found for key ${key}`);
     }
-    const words = ayah.arabic.split(/\s+/).filter((w) => !/^[۞۩]$/.test(w));
+    const words = ayah.arabic.split(/\s+/u).filter((w) => !/^[۞۩]$/u.test(w));
     return words.slice(0, n).join(" ");
   };
   const byNumber = (field) => (x, y) => x[field] - y[field];
