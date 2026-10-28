@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   checkDomain,
+  isPrivateAddress,
   newApiKey,
   newToken,
   normalizeDomain,
@@ -15,6 +16,11 @@ const FILE_URL = "https://example.com/.well-known/mindfulverse-verify.txt";
 const HOME_URL = "https://example.com/";
 const BASE64URL = /^[A-Za-z0-9_-]+$/u;
 const KB = 1024;
+
+const privateResolver = () => Promise.resolve(["10.0.0.5"]);
+const publicResolver = () => Promise.resolve(["93.184.216.34"]);
+const emptyResolver = () => Promise.resolve([]);
+const brokenResolver = () => Promise.reject(new Error("dns"));
 
 const respond = (body: string, status = 200): Response =>
   new Response(body, { status });
@@ -39,6 +45,12 @@ describe(normalizeDomain, () => {
     "svc.internal",
     "a.localhost",
     "foo.test",
+    "x://127.1",
+    "x://0177.0.0.1",
+    "x://%31%32%37.0.0.1",
+    "ftp://example.com",
+    "127.1",
+    "www.127.0.0.1",
   ])("rejects %s", (input) => {
     expect(normalizeDomain(input)).toBeNull();
   });
@@ -184,5 +196,77 @@ describe(checkDomain, () => {
     await expect(
       checkDomain("example.com", TOKEN, fetchFn)
     ).resolves.toBeFalsy();
+  });
+
+  it("refuses unnormalised domains without fetching", async () => {
+    const fetchFn = vi.fn<typeof fetch>(() => Promise.resolve(respond(TOKEN)));
+    await expect(checkDomain("127.1", TOKEN, fetchFn)).resolves.toBeFalsy();
+    await expect(checkDomain("x://evil", TOKEN, fetchFn)).resolves.toBeFalsy();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("refuses private resolutions without fetching", async () => {
+    const fetchFn = vi.fn<typeof fetch>(() => Promise.resolve(respond(TOKEN)));
+    await expect(
+      checkDomain("example.com", TOKEN, fetchFn, privateResolver)
+    ).resolves.toBeFalsy();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("refuses when the resolver throws or returns nothing", async () => {
+    const fetchFn = vi.fn<typeof fetch>(() => Promise.resolve(respond(TOKEN)));
+    await expect(
+      checkDomain("example.com", TOKEN, fetchFn, emptyResolver)
+    ).resolves.toBeFalsy();
+    await expect(
+      checkDomain("example.com", TOKEN, fetchFn, brokenResolver)
+    ).resolves.toBeFalsy();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("fetches when every resolved address is public", async () => {
+    const fetchFn = vi.fn<typeof fetch>(() => Promise.resolve(respond(TOKEN)));
+    await expect(
+      checkDomain("example.com", TOKEN, fetchFn, publicResolver)
+    ).resolves.toBeTruthy();
+  });
+});
+
+describe(isPrivateAddress, () => {
+  it.each([
+    "0.0.0.0",
+    "10.1.2.3",
+    "100.64.0.1",
+    "127.0.0.1",
+    "169.254.169.254",
+    "172.16.0.1",
+    "172.31.255.255",
+    "192.168.1.1",
+    "224.0.0.1",
+    "255.255.255.255",
+    "::",
+    "::1",
+    "fc00::1",
+    "fd12::1",
+    "fe80::1",
+    "::ffff:10.0.0.1",
+    "::ffff:a00:1",
+    "not-an-ip",
+  ])("treats %s as private", (ip) => {
+    expect(isPrivateAddress(ip)).toBeTruthy();
+  });
+
+  it.each([
+    "172.15.255.255",
+    "172.32.0.1",
+    "100.63.255.255",
+    "100.128.0.1",
+    "8.8.8.8",
+    "93.184.216.34",
+    "223.255.255.255",
+    "2606:4700::1",
+    "::ffff:8.8.8.8",
+  ])("treats %s as public", (ip) => {
+    expect(isPrivateAddress(ip)).toBeFalsy();
   });
 });

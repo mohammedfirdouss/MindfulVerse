@@ -1,4 +1,3 @@
-const SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:\/\//iu;
 const IPV4_PATTERN = /^\d{1,3}(?:\.\d{1,3}){3}$/u;
 const WWW_PREFIX = "www.";
 const RESERVED_SUFFIXES = [".local", ".internal", ".localhost", ".test"];
@@ -13,32 +12,148 @@ const TOKEN_BYTES = 24;
 const KEY_BYTES = 32;
 const HTTP_OK = 200;
 
-export const normalizeDomain = (input: string): string | null => {
-  const trimmed = input.trim();
-  if (!trimmed) {
-    return null;
-  }
-  let host: string;
+const SCHEME_CAPTURE = /^(?<scheme>[a-z][a-z0-9+.-]*):\/\//iu;
+const ALLOWED_SCHEMES = new Set(["http", "https"]);
+const IPV4_PART_COUNT = 4;
+const IPV6_GROUP_COUNT = 8;
+const HEX_RADIX = 16;
+const BYTE_MAX = 255;
+const BYTE_RANGE = 256;
+const GROUP_ULA = 0xfc_00;
+const GROUP_ULA_SPAN = 0x02_00;
+const GROUP_LINK_LOCAL = 0xfe_80;
+const GROUP_LINK_LOCAL_SPAN = 0x00_40;
+
+const fetchHostname = (host: string): string | null => {
   try {
-    host = new URL(
-      SCHEME_PATTERN.test(trimmed) ? trimmed : `https://${trimmed}`
-    ).hostname.toLowerCase();
+    return new URL(`https://${host}`).hostname.toLowerCase();
   } catch {
     return null;
   }
-  while (host.endsWith(".")) {
+};
+
+export const normalizeDomain = (input: string): string | null => {
+  let rest = input.trim();
+  const scheme = SCHEME_CAPTURE.exec(rest);
+  if (scheme) {
+    if (!ALLOWED_SCHEMES.has((scheme.groups?.scheme ?? "").toLowerCase())) {
+      return null;
+    }
+    rest = rest.slice(scheme[0].length);
+  }
+  let host = fetchHostname(rest);
+  while (host?.endsWith(".")) {
     host = host.slice(0, -1);
   }
-  if (host.startsWith(WWW_PREFIX)) {
+  if (host?.startsWith(WWW_PREFIX)) {
     host = host.slice(WWW_PREFIX.length);
+  }
+  if (!host) {
+    return null;
+  }
+  if (fetchHostname(host) !== host) {
+    return null;
   }
   const isIpLiteral = host.startsWith("[") || IPV4_PATTERN.test(host);
   const isSingleLabel = !host.includes(".");
   const isReserved = RESERVED_SUFFIXES.some((suffix) => host.endsWith(suffix));
-  if (!host || isIpLiteral || isSingleLabel || isReserved) {
+  if (isIpLiteral || isSingleLabel || isReserved) {
     return null;
   }
   return host;
+};
+
+const parseIpv4 = (ip: string): number[] | null => {
+  const parts = ip.split(".");
+  if (parts.length !== IPV4_PART_COUNT) {
+    return null;
+  }
+  const nums = parts.map((part) =>
+    /^\d{1,3}$/u.test(part) ? Number(part) : -1
+  );
+  return nums.every((n) => n >= 0 && n <= BYTE_MAX) ? nums : null;
+};
+
+const isPrivateIpv4 = (ip: string): boolean => {
+  const nums = parseIpv4(ip);
+  if (!nums) {
+    return true;
+  }
+  const [a, b] = nums;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    a >= 224
+  );
+};
+
+const toGroups = (part: string): string[] => (part ? part.split(":") : []);
+
+const expandIpv6 = (ip: string): number[] | null => {
+  let text = ip;
+  const lastColon = text.lastIndexOf(":");
+  const tail = text.slice(lastColon + 1);
+  if (tail.includes(".")) {
+    const v4 = parseIpv4(tail);
+    if (!v4) {
+      return null;
+    }
+    const hi = (v4[0] * BYTE_RANGE + v4[1]).toString(HEX_RADIX);
+    const lo = (v4[2] * BYTE_RANGE + v4[3]).toString(HEX_RADIX);
+    text = `${text.slice(0, lastColon + 1)}${hi}:${lo}`;
+  }
+  const halves = text.split("::");
+  if (halves.length > 2) {
+    return null;
+  }
+  const head = toGroups(halves[0]);
+  const rest = halves.length === 2 ? toGroups(halves[1]) : [];
+  const fill = IPV6_GROUP_COUNT - head.length - rest.length;
+  if (halves.length === 1 ? fill !== 0 : fill < 1) {
+    return null;
+  }
+  const groups = [
+    ...head,
+    ...Array.from({ length: halves.length === 2 ? fill : 0 }, () => "0"),
+    ...rest,
+  ];
+  const nums = groups.map((g) =>
+    /^[0-9a-f]{1,4}$/iu.test(g) ? Number.parseInt(g, HEX_RADIX) : -1
+  );
+  return nums.every((n) => n >= 0) ? nums : null;
+};
+
+const isPrivateIpv6 = (ip: string): boolean => {
+  const g = expandIpv6(ip);
+  if (!g) {
+    return true;
+  }
+  const leadingZero = g.slice(0, 5).every((n) => n === 0);
+  if (leadingZero && g[5] === 0xff_ff) {
+    return isPrivateIpv4(
+      `${Math.floor(g[6] / BYTE_RANGE)}.${g[6] % BYTE_RANGE}.${Math.floor(g[7] / BYTE_RANGE)}.${g[7] % BYTE_RANGE}`
+    );
+  }
+  if (leadingZero && g[5] === 0 && g[6] === 0 && g[7] <= 1) {
+    return true;
+  }
+  return (
+    (g[0] >= GROUP_ULA && g[0] < GROUP_ULA + GROUP_ULA_SPAN) ||
+    (g[0] >= GROUP_LINK_LOCAL &&
+      g[0] < GROUP_LINK_LOCAL + GROUP_LINK_LOCAL_SPAN)
+  );
+};
+
+export const isPrivateAddress = (ip: string): boolean => {
+  const trimmed = ip.trim().replaceAll(/^\[|\]$/gu, "");
+  return trimmed.includes(":")
+    ? isPrivateIpv6(trimmed)
+    : isPrivateIpv4(trimmed);
 };
 
 export const originAllowed = (
@@ -157,11 +272,30 @@ const fetchBody = async (
   }
 };
 
+const resolvesPublicly = async (
+  domain: string,
+  resolve: (host: string) => Promise<string[]>
+): Promise<boolean> => {
+  try {
+    const addresses = await resolve(domain);
+    return addresses.length > 0 && !addresses.some(isPrivateAddress);
+  } catch {
+    return false;
+  }
+};
+
 export const checkDomain = async (
   domain: string,
   token: string,
-  fetchFn: typeof fetch
+  fetchFn: typeof fetch,
+  resolve?: (host: string) => Promise<string[]>
 ): Promise<boolean> => {
+  if (normalizeDomain(domain) !== domain) {
+    return false;
+  }
+  if (resolve && !(await resolvesPublicly(domain, resolve))) {
+    return false;
+  }
   const fileBody = await fetchBody(
     `https://${domain}${WELL_KNOWN_PATH}`,
     fetchFn
