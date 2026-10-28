@@ -14,7 +14,7 @@ import {
   SAMPLE_ARABIC,
   SAMPLE_REFERENCE,
   SAMPLE_TRANSLATION,
-} from "./sampleVerse";
+} from "./sample-verse";
 
 const COPIED_MS = 2000;
 const SITE_URL_HINT = "https://example.com";

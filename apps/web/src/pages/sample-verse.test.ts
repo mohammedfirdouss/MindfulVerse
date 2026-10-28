@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { SAMPLE_ARABIC, SAMPLE_TRANSLATION } from "./sampleVerse";
+import { SAMPLE_ARABIC, SAMPLE_TRANSLATION } from "./sample-verse";
 
 describe("developers sample verse", () => {
   it("matches the app data for 94:6 exactly", () => {

@@ -1,5 +1,5 @@
 // A real verse from the app data, shown on the developers page. Keep it
-// identical to public/data/quran/94.json (sampleVerse.test.ts checks).
+// identical to public/data/quran/94.json (sample-verse.test.ts checks).
 
 export const SAMPLE_ARABIC = "إِنَّ مَعَ ٱلۡعُسۡرِ يُسۡرٗا";
 
