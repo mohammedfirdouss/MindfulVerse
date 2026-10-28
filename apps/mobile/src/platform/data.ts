@@ -1,3 +1,4 @@
+import type { ReadJson } from "@mindfulverse/core/data";
 // Native reader for core's data loaders (configureData). Paths are
 // data-root-relative, exactly as on web: "surahs.json", "quran/2.json".
 //
@@ -9,22 +10,30 @@
 // from Metro) and expo-file-system reads it. Core caches each parsed result.
 import { Asset } from "expo-asset";
 import { File } from "expo-file-system";
-import type { ReadJson } from "@mindfulverse/core/data";
 
 let manifest: Record<string, number> | undefined;
 
 function assetIdFor(path: string): number {
   // Generated, gitignored: run `npm run sync-data -w @mindfulverse/mobile`.
-  manifest ??= require("../../assets/data/manifest.js") as Record<string, number>;
+  manifest ??= require("../../assets/data/manifest.js") as Record<
+    string,
+    number
+  >;
   const id = manifest[path];
-  if (id === undefined) throw new Error(`Failed to load /data/${path}: not bundled`);
+  if (id === undefined) {
+    throw new Error(`Failed to load /data/${path}: not bundled`);
+  }
   return id;
 }
 
 export const readBundledJson: ReadJson = async (path) => {
   const asset = Asset.fromModule(assetIdFor(path));
-  if (!asset.localUri) await asset.downloadAsync();
-  if (!asset.localUri) throw new Error(`Failed to load /data/${path}: no local file`);
+  if (!asset.localUri) {
+    await asset.downloadAsync();
+  }
+  if (!asset.localUri) {
+    throw new Error(`Failed to load /data/${path}: no local file`);
+  }
   const text = await new File(asset.localUri).text();
   return JSON.parse(text);
 };

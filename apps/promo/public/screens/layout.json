@@ -9,12 +9,7 @@
     "w": 94.03125,
     "h": 44,
     "radius": "999px",
-    "padding": [
-      0,
-      16,
-      0,
-      16
-    ],
+    "padding": [0, 16, 0, 16],
     "border": 1,
     "font": "Outfit, system-ui, sans-serif",
     "size": 16,
@@ -29,12 +24,7 @@
     "w": 346,
     "h": 315.71875,
     "radius": "4px",
-    "padding": [
-      22,
-      22,
-      22,
-      22
-    ],
+    "padding": [22, 22, 22, 22],
     "border": 0,
     "font": "Outfit, system-ui, sans-serif",
     "size": 17,
@@ -49,12 +39,7 @@
     "w": 346,
     "h": 184,
     "radius": "2px",
-    "padding": [
-      14,
-      16,
-      14,
-      16
-    ],
+    "padding": [14, 16, 14, 16],
     "border": 1,
     "font": "Outfit, system-ui, sans-serif",
     "size": 16,
@@ -69,12 +54,7 @@
     "w": 152.796875,
     "h": 48,
     "radius": "3px",
-    "padding": [
-      12,
-      22,
-      12,
-      22
-    ],
+    "padding": [12, 22, 12, 22],
     "border": 2,
     "font": "Outfit, system-ui, sans-serif",
     "size": 16,
@@ -89,12 +69,7 @@
     "w": 346,
     "h": 112,
     "radius": "2px",
-    "padding": [
-      12,
-      14,
-      12,
-      14
-    ],
+    "padding": [12, 14, 12, 14],
     "border": 1,
     "font": "Outfit, system-ui, sans-serif",
     "size": 16,
@@ -109,12 +84,7 @@
     "w": 152.796875,
     "h": 48,
     "radius": "3px",
-    "padding": [
-      12,
-      22,
-      12,
-      22
-    ],
+    "padding": [12, 22, 12, 22],
     "border": 2,
     "font": "Outfit, system-ui, sans-serif",
     "size": 16,

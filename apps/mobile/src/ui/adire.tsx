@@ -1,19 +1,22 @@
+import { markBounds, markPath } from "@mindfulverse/core/brand";
 // Adire ornaments, drawn in SVG. Adire is Yoruba resist-dyed indigo cloth:
 // pale motifs left where the dye could not reach. The web uses one of them
 // (the band, index.css --adire-band); the app carries the same language a
 // little further: the band on every screen, the diamond as the verse and
 // surah marker, and a dyed-cloth panel for the moments that matter most.
-import { useId, type ReactNode } from "react";
-import { View, type ViewStyle } from "react-native";
+import { useId } from "react";
+import type { ReactNode } from "react";
+import { View } from "react-native";
+import type { ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, Path, Pattern, Rect } from "react-native-svg";
-import { markBounds, markPath } from "@mindfulverse/core/brand";
+
 import { fonts, useTheme } from "../theme";
 import { Text } from "./Text";
 
 /** Pattern ids must be unique per mounted Svg (web shares one DOM). */
 function usePatternId(prefix: string) {
-  return `${prefix}-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  return `${prefix}-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
 }
 
 /** The web's adire band: diamond and ringed dot, repeated. 12dp tall. */
@@ -24,10 +27,18 @@ export function AdireBand({ height = 12 }: { height?: number }) {
   const ink = scheme === "dark" ? colors.indigo : colors.cotton;
   const k = height / 12;
   return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <Svg width="100%" height={height}>
         <Defs>
-          <Pattern id={id} patternUnits="userSpaceOnUse" width={36 * k} height={height}>
+          <Pattern
+            id={id}
+            patternUnits="userSpaceOnUse"
+            width={36 * k}
+            height={height}
+          >
             <Rect width={36 * k} height={height} fill={ground} />
             <Path
               d={`M${9 * k} ${1 * k} L${14 * k} ${6 * k} L${9 * k} ${11 * k} L${4 * k} ${6 * k}Z`}
@@ -35,7 +46,14 @@ export function AdireBand({ height = 12 }: { height?: number }) {
               stroke={ink}
               strokeWidth={1.2}
             />
-            <Circle cx={27 * k} cy={6 * k} r={2.4 * k} fill="none" stroke={ink} strokeWidth={1.2} />
+            <Circle
+              cx={27 * k}
+              cy={6 * k}
+              r={2.4 * k}
+              fill="none"
+              stroke={ink}
+              strokeWidth={1.2}
+            />
             <Circle cx={27 * k} cy={6 * k} r={0.9 * k} fill={ink} />
           </Pattern>
         </Defs>
@@ -51,7 +69,13 @@ export function TopBand() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ paddingTop: insets.top, backgroundColor: colors.cotton, zIndex: 1 }}>
+    <View
+      style={{
+        backgroundColor: colors.cotton,
+        paddingTop: insets.top,
+        zIndex: 1,
+      }}
+    >
       <AdireBand />
     </View>
   );
@@ -75,7 +99,14 @@ export function Diamond({
   // Three-digit numbers need a smaller numeral to stay inside the point.
   const fontSize = size * (text.length >= 3 ? 0.27 : 0.34);
   return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+    <View
+      style={{
+        alignItems: "center",
+        height: size,
+        justifyContent: "center",
+        width: size,
+      }}
+    >
       <Svg width={size} height={size} style={{ position: "absolute" }}>
         <Path
           d={`M${h} 1 L${size - 1} ${h} L${h} ${size - 1} L1 ${h}Z`}
@@ -87,10 +118,10 @@ export function Diamond({
       {text ? (
         <Text
           style={{
+            color: solid ? colors.cottonRaised : colors.indigo,
             fontFamily: fonts.readSemiBold,
             fontSize,
             lineHeight: fontSize * 1.2,
-            color: solid ? colors.cottonRaised : colors.indigo,
           }}
         >
           {text}
@@ -105,28 +136,45 @@ export function DyeRule({ style }: { style?: ViewStyle }) {
   const { colors } = useTheme();
   return (
     <View
-      style={[{ flexDirection: "row", alignItems: "center", gap: 10 }, style]}
+      style={[{ alignItems: "center", flexDirection: "row", gap: 10 }, style]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <View style={{ flex: 1, height: 1, backgroundColor: colors.lineStrong }} />
+      <View
+        style={{ backgroundColor: colors.lineStrong, flex: 1, height: 1 }}
+      />
       <Svg width={8} height={8}>
         <Path d="M4 0 L8 4 L4 8 L0 4Z" fill={colors.indigo} />
       </Svg>
-      <View style={{ flex: 1, height: 1, backgroundColor: colors.lineStrong }} />
+      <View
+        style={{ backgroundColor: colors.lineStrong, flex: 1, height: 1 }}
+      />
     </View>
   );
 }
 
 /** One tile of resist motifs: a nested diamond, ringed dots at the corners,
  *  and dashes between, the way eleko stencils repeat across a cloth. */
-function ClothTile({ id, size, ink }: { id: string; size: number; ink: string }) {
+function ClothTile({
+  id,
+  size,
+  ink,
+}: {
+  id: string;
+  size: number;
+  ink: string;
+}) {
   const s = size;
   const m = s / 2;
   const d = s * 0.26;
   return (
     <Pattern id={id} patternUnits="userSpaceOnUse" width={s} height={s}>
-      <Path d={`M${m} ${m - d} L${m + d} ${m} L${m} ${m + d} L${m - d} ${m}Z`} fill="none" stroke={ink} strokeWidth={1.3} />
+      <Path
+        d={`M${m} ${m - d} L${m + d} ${m} L${m} ${m + d} L${m - d} ${m}Z`}
+        fill="none"
+        stroke={ink}
+        strokeWidth={1.3}
+      />
       <Path
         d={`M${m} ${m - d * 0.45} L${m + d * 0.45} ${m} L${m} ${m + d * 0.45} L${m - d * 0.45} ${m}Z`}
         fill={ink}
@@ -137,7 +185,15 @@ function ClothTile({ id, size, ink }: { id: string; size: number; ink: string })
         [0, s],
         [s, s],
       ].map(([x, y]) => (
-        <Circle key={`${x}-${y}`} cx={x} cy={y} r={s * 0.09} fill="none" stroke={ink} strokeWidth={1.2} />
+        <Circle
+          key={`${x}-${y}`}
+          cx={x}
+          cy={y}
+          r={s * 0.09}
+          fill="none"
+          stroke={ink}
+          strokeWidth={1.2}
+        />
       ))}
       <Path
         d={`M${m - 3} 0 H${m + 3} M${m - 3} ${s} H${m + 3} M0 ${m - 3} V${m + 3} M${s} ${m - 3} V${m + 3}`}
@@ -167,9 +223,14 @@ export function AdireCloth({
   const ground = scheme === "dark" ? colors.indigoWash : colors.indigoDeep;
   const ink = scheme === "dark" ? colors.indigo : colors.cotton;
   return (
-    <View style={[{ backgroundColor: ground, borderRadius: 6, overflow: "hidden" }, style]}>
+    <View
+      style={[
+        { backgroundColor: ground, borderRadius: 6, overflow: "hidden" },
+        style,
+      ]}
+    >
       <View
-        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
@@ -177,7 +238,12 @@ export function AdireCloth({
           <Defs>
             <ClothTile id={id} size={tile} ink={ink} />
           </Defs>
-          <Rect width="100%" height="100%" fill={`url(#${id})`} opacity={motifOpacity} />
+          <Rect
+            width="100%"
+            height="100%"
+            fill={`url(#${id})`}
+            opacity={motifOpacity}
+          />
         </Svg>
       </View>
       {children}
@@ -189,8 +255,8 @@ export function AdireCloth({
 export function useOnCloth() {
   const { scheme, colors } = useTheme();
   return scheme === "dark"
-    ? { strong: colors.ink, soft: colors.inkSoft, accent: "#c5cff2" }
-    : { strong: colors.cottonRaised, soft: "#d6d9ea", accent: "#b9c4ec" };
+    ? { accent: "#c5cff2", soft: colors.inkSoft, strong: colors.ink }
+    : { accent: "#b9c4ec", soft: "#d6d9ea", strong: colors.cottonRaised };
 }
 
 /** The MindfulVerse mark: تدبر in square Kufic, left pale inside an indigo tile
@@ -203,9 +269,19 @@ export function BrandMark({ size = 28 }: { size?: number }) {
   const ox = b.minX - (box - b.width) / 2;
   const oy = b.minY - (box - b.height) / 2;
   return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <Svg width={size} height={size} viewBox={`${ox} ${oy} ${box} ${box}`}>
-        <Rect x={ox} y={oy} width={box} height={box} rx={box * 0.22} fill={colors.indigo} />
+        <Rect
+          x={ox}
+          y={oy}
+          width={box}
+          height={box}
+          rx={box * 0.22}
+          fill={colors.indigo}
+        />
         <Path d={markPath()} fill={colors.cotton} />
       </Svg>
     </View>

@@ -3,7 +3,17 @@
 // restless feed; the question turns the screen to cool cotton daylight.
 // Scene lengths vary on purpose (1.5 to 5 s) so the pace never settles.
 import type { CSSProperties, ReactNode } from "react";
-import { AbsoluteFill, Audio, Easing, Series, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Audio,
+  Easing,
+  Series,
+  interpolate,
+  staticFile,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+
 import { MARK_RECTS, markBounds } from "../../../packages/core/brand";
 import { C, F, bandTile, clothTile, fontCss } from "./brand";
 
@@ -12,20 +22,20 @@ const s = (sec: number) => Math.round(sec * FPS);
 
 /** Scene lengths, in order. Change a number here and the total follows. */
 export const SCENES = {
-  hook: s(3.2),
-  meant: s(1.8),
   aLot: s(2.2),
-  scrolled: s(2),
-  further: s(2.5),
-  question: s(3.6),
-  tap: s(1.6),
-  verse: s(5),
-  orToday: s(1.8),
-  tap2: s(1.6),
-  verse2: s(4.4),
-  oneMinute: s(2.7),
-  inside: s(5.6),
   cta: s(6),
+  further: s(2.5),
+  hook: s(3.2),
+  inside: s(5.6),
+  meant: s(1.8),
+  oneMinute: s(2.7),
+  orToday: s(1.8),
+  question: s(3.6),
+  scrolled: s(2),
+  tap: s(1.6),
+  tap2: s(1.6),
+  verse: s(5),
+  verse2: s(4.4),
 };
 export const DURATION = Object.values(SCENES).reduce((a, b) => a + b, 0);
 
@@ -34,24 +44,68 @@ const inOut = Easing.bezier(0.77, 0, 0.175, 1);
 
 /** 0 → 1 between two frames, eased. */
 function prog(frame: number, from: number, to: number, ease = out) {
-  return interpolate(frame, [from, to], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease });
+  return interpolate(frame, [from, to], [0, 1], {
+    easing: ease,
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 }
 
 /** Fade and rise in from an already-visible offset. */
-function rise(frame: number, start: number, dur = 14, dist = 28): CSSProperties {
+function rise(
+  frame: number,
+  start: number,
+  dur = 14,
+  dist = 28
+): CSSProperties {
   const p = prog(frame, start, start + dur);
-  return { opacity: p, transform: `translateY(${(1 - p) * dist}px)`, filter: `blur(${(1 - p) * 6}px)` };
+  return {
+    filter: `blur(${(1 - p) * 6}px)`,
+    opacity: p,
+    transform: `translateY(${(1 - p) * dist}px)`,
+  };
 }
 
-const page: CSSProperties = { padding: "0 96px", justifyContent: "center" };
+const page: CSSProperties = { justifyContent: "center", padding: "0 96px" };
 
-function Night({ children, style }: { children: ReactNode; style?: CSSProperties }) {
-  return <AbsoluteFill style={{ background: C.night, ...page, ...style }}>{children}</AbsoluteFill>;
-}
-
-function Big({ children, color = C.nightInk, size = 92, style }: { children: ReactNode; color?: string; size?: number; style?: CSSProperties }) {
+function Night({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: CSSProperties;
+}) {
   return (
-    <div style={{ fontFamily: F.ui, fontWeight: 600, fontSize: size, lineHeight: 1.08, letterSpacing: "-0.03em", color, textWrap: "balance", ...style }}>
+    <AbsoluteFill style={{ background: C.night, ...page, ...style }}>
+      {children}
+    </AbsoluteFill>
+  );
+}
+
+function Big({
+  children,
+  color = C.nightInk,
+  size = 92,
+  style,
+}: {
+  children: ReactNode;
+  color?: string;
+  size?: number;
+  style?: CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        color,
+        fontFamily: F.ui,
+        fontSize: size,
+        fontWeight: 600,
+        letterSpacing: "-0.03em",
+        lineHeight: 1.08,
+        textWrap: "balance",
+        ...style,
+      }}
+    >
       {children}
     </div>
   );
@@ -65,7 +119,15 @@ function Hook() {
     <Night>
       <Big size={104}>
         {words.map((w, i) => (
-          <span key={i} style={{ display: "inline-block", marginRight: "0.24em", ...rise(f, 6 + i * 4, 16, 20), color: i === words.length - 1 ? C.nightIndigo : C.nightInk }}>
+          <span
+            key={i}
+            style={{
+              display: "inline-block",
+              marginRight: "0.24em",
+              ...rise(f, 6 + i * 4, 16, 20),
+              color: i === words.length - 1 ? C.nightIndigo : C.nightInk,
+            }}
+          >
             {w}
           </span>
         ))}
@@ -86,9 +148,10 @@ function Meant() {
 
 /** Darkens the feed behind a line of text so the text always reads. */
 function Scrim({ at }: { at: "center" | "bottom" }) {
-  const g = at === "center"
-    ? `linear-gradient(to bottom, transparent 30%, ${C.night}ee 44%, ${C.night}ee 56%, transparent 70%)`
-    : `linear-gradient(to bottom, transparent 55%, ${C.night}f2 72%, ${C.night})`;
+  const g =
+    at === "center"
+      ? `linear-gradient(to bottom, transparent 30%, ${C.night}ee 44%, ${C.night}ee 56%, transparent 70%)`
+      : `linear-gradient(to bottom, transparent 55%, ${C.night}f2 72%, ${C.night})`;
   return <AbsoluteFill style={{ background: g }} />;
 }
 
@@ -96,12 +159,43 @@ function Scrim({ at }: { at: "center" | "bottom" }) {
 function Feed({ offset, opacity }: { offset: number; opacity: number }) {
   const cards = Array.from({ length: 14 }, (_, i) => i);
   return (
-    <AbsoluteFill style={{ padding: "0 96px", opacity }}>
-      <div style={{ transform: `translateY(${-offset}px)`, display: "grid", gap: 36 }}>
+    <AbsoluteFill style={{ opacity, padding: "0 96px" }}>
+      <div
+        style={{
+          display: "grid",
+          gap: 36,
+          transform: `translateY(${-offset}px)`,
+        }}
+      >
         {cards.map((i) => (
-          <div key={i} style={{ height: i % 3 === 0 ? 520 : 300, borderRadius: 28, background: C.nightRaised, display: "grid", alignContent: "end", gap: 18, padding: 40 }}>
-            <div style={{ height: 22, width: `${50 + ((i * 17) % 40)}%`, borderRadius: 11, background: "#2a2e40" }} />
-            <div style={{ height: 22, width: `${30 + ((i * 29) % 30)}%`, borderRadius: 11, background: "#2a2e40" }} />
+          <div
+            key={i}
+            style={{
+              alignContent: "end",
+              background: C.nightRaised,
+              borderRadius: 28,
+              display: "grid",
+              gap: 18,
+              height: i % 3 === 0 ? 520 : 300,
+              padding: 40,
+            }}
+          >
+            <div
+              style={{
+                background: "#2a2e40",
+                borderRadius: 11,
+                height: 22,
+                width: `${50 + ((i * 17) % 40)}%`,
+              }}
+            />
+            <div
+              style={{
+                background: "#2a2e40",
+                borderRadius: 11,
+                height: 22,
+                width: `${30 + ((i * 29) % 30)}%`,
+              }}
+            />
           </div>
         ))}
       </div>
@@ -116,7 +210,15 @@ function ALot() {
     <Night>
       <Feed offset={p * 300} opacity={0.55 * prog(f, 0, 12)} />
       <Scrim at="center" />
-      <Big style={{ ...rise(f, 4), position: "relative", textShadow: `0 0 60px ${C.night}` }}>But it felt like a lot.</Big>
+      <Big
+        style={{
+          ...rise(f, 4),
+          position: "relative",
+          textShadow: `0 0 60px ${C.night}`,
+        }}
+      >
+        But it felt like a lot.
+      </Big>
     </Night>
   );
 }
@@ -129,7 +231,15 @@ function Scrolled() {
     <Night style={{ justifyContent: "flex-end", paddingBottom: 300 }}>
       <Feed offset={300 + p * 2600} opacity={0.55} />
       <Scrim at="bottom" />
-      <Big style={{ ...rise(f, 6), position: "relative", textShadow: `0 0 60px ${C.night}, 0 0 30px ${C.night}` }}>So you scrolled instead.</Big>
+      <Big
+        style={{
+          ...rise(f, 6),
+          position: "relative",
+          textShadow: `0 0 60px ${C.night}, 0 0 30px ${C.night}`,
+        }}
+      >
+        So you scrolled instead.
+      </Big>
     </Night>
   );
 }
@@ -139,7 +249,14 @@ function Further() {
   const away = prog(f, 10, SCENES.further, inOut);
   return (
     <Night>
-      <Big style={{ ...rise(f, 2), transform: `scale(${1 - away * 0.32})`, opacity: 1 - away * 0.6, transformOrigin: "left center" }}>
+      <Big
+        style={{
+          ...rise(f, 2),
+          opacity: 1 - away * 0.6,
+          transform: `scale(${1 - away * 0.32})`,
+          transformOrigin: "left center",
+        }}
+      >
         And felt a little further away.
       </Big>
     </Night>
@@ -147,41 +264,80 @@ function Further() {
 }
 
 // 6–7. The question, then a tap
-const FEELINGS = ["Anxious", "Grateful", "Grieving", "Hopeful", "Overwhelmed", "Lonely", "Weary", "Afraid"];
+const FEELINGS = [
+  "Anxious",
+  "Grateful",
+  "Grieving",
+  "Hopeful",
+  "Overwhelmed",
+  "Lonely",
+  "Weary",
+  "Afraid",
+];
 
-function Daylight({ children, wipe = 1 }: { children: ReactNode; wipe?: number }) {
+function Daylight({
+  children,
+  wipe = 1,
+}: {
+  children: ReactNode;
+  wipe?: number;
+}) {
   return (
     <AbsoluteFill style={{ background: C.night }}>
-      <AbsoluteFill style={{ background: C.cotton, clipPath: `inset(0 0 ${(1 - wipe) * 100}% 0)` }}>
-        <div style={{ height: 30, background: bandTile(C.indigo, C.cotton), backgroundRepeat: "repeat-x" }} />
+      <AbsoluteFill
+        style={{
+          background: C.cotton,
+          clipPath: `inset(0 0 ${(1 - wipe) * 100}% 0)`,
+        }}
+      >
+        <div
+          style={{
+            background: bandTile(C.indigo, C.cotton),
+            backgroundRepeat: "repeat-x",
+            height: 30,
+          }}
+        />
         <AbsoluteFill style={{ ...page, top: 30 }}>{children}</AbsoluteFill>
       </AbsoluteFill>
     </AbsoluteFill>
   );
 }
 
-function Chips({ frame, start, picked, pickProgress = 0 }: { frame: number; start: number; picked?: string; pickProgress?: number }) {
+function Chips({
+  frame,
+  start,
+  picked,
+  pickProgress = 0,
+}: {
+  frame: number;
+  start: number;
+  picked?: string;
+  pickProgress?: number;
+}) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 22, marginTop: 64 }}>
       {FEELINGS.map((label, i) => {
         const on = label === picked;
         const dim = picked && !on ? 1 - pickProgress * 0.55 : 1;
-        const press = on ? 1 - Math.sin(Math.min(pickProgress, 1) * Math.PI) * 0.06 : 1;
+        const press = on
+          ? 1 - Math.sin(Math.min(pickProgress, 1) * Math.PI) * 0.06
+          : 1;
         return (
           <div
             key={label}
             style={{
               ...rise(frame, start + i * 2, 12, 18),
-              opacity: (rise(frame, start + i * 2, 12, 18).opacity as number) * dim,
-              transform: `${rise(frame, start + i * 2, 12, 18).transform} scale(${press})`,
-              padding: "26px 42px",
-              borderRadius: 999,
-              fontFamily: F.ui,
-              fontWeight: 500,
-              fontSize: 44,
-              border: `2px solid ${on && pickProgress > 0.3 ? C.indigo : C.line}`,
               background: on && pickProgress > 0.3 ? C.indigo : C.raised,
+              border: `2px solid ${on && pickProgress > 0.3 ? C.indigo : C.line}`,
+              borderRadius: 999,
               color: on && pickProgress > 0.3 ? C.cotton : C.inkSoft,
+              fontFamily: F.ui,
+              fontSize: 44,
+              fontWeight: 500,
+              opacity:
+                (rise(frame, start + i * 2, 12, 18).opacity as number) * dim,
+              padding: "26px 42px",
+              transform: `${rise(frame, start + i * 2, 12, 18).transform} scale(${press})`,
             }}
           >
             {label}
@@ -197,14 +353,19 @@ function Question() {
   const wipe = prog(f, 0, 18, inOut);
   return (
     <Daylight wipe={wipe}>
-      <Big color={C.indigoDeep} size={108} style={rise(f, 14, 16)}>How is your heart today?</Big>
+      <Big color={C.indigoDeep} size={108} style={rise(f, 14, 16)}>
+        How is your heart today?
+      </Big>
       <Chips frame={f} start={30} />
     </Daylight>
   );
 }
 
 /** Where each chip's centre sits in the 1080x1920 frame (measured from renders). */
-const CHIP_AT: Record<string, [number, number]> = { Weary: [204, 1272], Anxious: [216, 1004] };
+const CHIP_AT: Record<string, [number, number]> = {
+  Anxious: [216, 1004],
+  Weary: [204, 1272],
+};
 
 function Tap({ feeling }: { feeling: string }) {
   const f = useCurrentFrame();
@@ -214,21 +375,28 @@ function Tap({ feeling }: { feeling: string }) {
   const [cx, cy] = CHIP_AT[feeling];
   return (
     <Daylight>
-      <Big color={C.indigoDeep} size={108}>How is your heart today?</Big>
+      <Big color={C.indigoDeep} size={108}>
+        How is your heart today?
+      </Big>
       <div style={{ position: "relative" }}>
-        <Chips frame={f + 100} start={0} picked={feeling} pickProgress={press} />
+        <Chips
+          frame={f + 100}
+          start={0}
+          picked={feeling}
+          pickProgress={press}
+        />
       </div>
       <div
         style={{
-          position: "absolute",
-          left: cx - 60,
-          top: cy - 60 - 30,
-          width: 120,
-          height: 120,
-          borderRadius: 60,
           background: C.indigo,
+          borderRadius: 60,
+          height: 120,
+          left: cx - 60,
           opacity: touch * 0.16 * (1 - prog(f, 26, 44)),
+          position: "absolute",
+          top: cy - 60 - 30,
           transform: `scale(${0.6 + touch * 0.5})`,
+          width: 120,
         }}
       />
     </Daylight>
@@ -237,8 +405,16 @@ function Tap({ feeling }: { feeling: string }) {
 
 // 8. A verse on indigo cloth (the app's own text for that feeling)
 const VERSES = {
-  weary: { ar: "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ", en: "Your Lord did not abandon you, nor did He forget.", ref: "Ad-Duha 93:3" },
-  anxious: { ar: "إِنَّ مَعَ ٱلۡعُسۡرِ يُسۡرٗا", en: "With hardship comes ease.", ref: "Ash-Sharh 94:6" },
+  anxious: {
+    ar: "إِنَّ مَعَ ٱلۡعُسۡرِ يُسۡرٗا",
+    en: "With hardship comes ease.",
+    ref: "Ash-Sharh 94:6",
+  },
+  weary: {
+    ar: "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ",
+    en: "Your Lord did not abandon you, nor did He forget.",
+    ref: "Ad-Duha 93:3",
+  },
 };
 
 function Verse({ verse }: { verse: keyof typeof VERSES }) {
@@ -249,20 +425,53 @@ function Verse({ verse }: { verse: keyof typeof VERSES }) {
     <Daylight>
       <div
         style={{
-          transform: `translateY(${(1 - up) * 260}px)`,
-          opacity: up,
-          borderRadius: 40,
-          padding: "96px 80px",
           background: `${clothTile(C.cotton)}, ${C.indigoDeep}`,
+          borderRadius: 40,
           display: "grid",
           gap: 56,
+          opacity: up,
+          padding: "96px 80px",
+          transform: `translateY(${(1 - up) * 260}px)`,
         }}
       >
-        <div lang="ar" dir="rtl" style={{ ...rise(f, 16, 22, 30), fontFamily: F.arabic, fontSize: 92, lineHeight: 1.9, whiteSpace: "nowrap", color: C.cotton, textAlign: "right" }}>
+        <div
+          lang="ar"
+          dir="rtl"
+          style={{
+            ...rise(f, 16, 22, 30),
+            color: C.cotton,
+            fontFamily: F.arabic,
+            fontSize: 92,
+            lineHeight: 1.9,
+            textAlign: "right",
+            whiteSpace: "nowrap",
+          }}
+        >
           {v.ar}
         </div>
-        <div style={{ ...rise(f, 40, 20), fontFamily: F.text, fontSize: 62, lineHeight: 1.4, color: C.cotton, textWrap: "balance" }}>{v.en}</div>
-        <div style={{ ...rise(f, 58, 16), fontFamily: F.ui, fontWeight: 500, fontSize: 38, color: "#d6d9ea" }}>{v.ref}</div>
+        <div
+          style={{
+            ...rise(f, 40, 20),
+            color: C.cotton,
+            fontFamily: F.text,
+            fontSize: 62,
+            lineHeight: 1.4,
+            textWrap: "balance",
+          }}
+        >
+          {v.en}
+        </div>
+        <div
+          style={{
+            ...rise(f, 58, 16),
+            color: "#d6d9ea",
+            fontFamily: F.ui,
+            fontSize: 38,
+            fontWeight: 500,
+          }}
+        >
+          {v.ref}
+        </div>
       </div>
     </Daylight>
   );
@@ -273,7 +482,9 @@ function OrToday() {
   const f = useCurrentFrame();
   return (
     <Daylight>
-      <Big color={C.indigoDeep} size={104} style={rise(f, 2)}>Or maybe today feels different.</Big>
+      <Big color={C.indigoDeep} size={104} style={rise(f, 2)}>
+        Or maybe today feels different.
+      </Big>
     </Daylight>
   );
 }
@@ -282,15 +493,20 @@ function OrToday() {
 function OneMinute() {
   const f = useCurrentFrame();
   const lines = [
-    { t: "One verse.", at: 2 },
-    { t: "One minute.", at: 16 },
-    { t: "Just for where you are.", at: 34 },
+    { at: 2, t: "One verse." },
+    { at: 16, t: "One minute." },
+    { at: 34, t: "Just for where you are." },
   ];
   return (
     <Daylight>
       <div style={{ display: "grid", gap: 18 }}>
         {lines.map(({ t, at }, i) => (
-          <Big key={t} color={i === 2 ? C.indigo : C.indigoDeep} size={i === 2 ? 96 : 120} style={rise(f, at, 16)}>
+          <Big
+            key={t}
+            color={i === 2 ? C.indigo : C.indigoDeep}
+            size={i === 2 ? 96 : 120}
+            style={rise(f, at, 16)}
+          >
             {t}
           </Big>
         ))}
@@ -303,19 +519,62 @@ function OneMinute() {
 function Inside() {
   const f = useCurrentFrame();
   const rows = [
-    { t: "Read the whole Qur’an, with commentary.", at: 4, icon: "M5.6 11.2C12 9.2 18.4 10 24 13.6c5.6-3.6 12-4.4 18.4-2.4v26c-6.4-2-12.8-1.2-18.4 2.4-5.6-3.6-12-4.4-18.4-2.4ZM24 13.6v26" },
-    { t: "Ponder one verse, one question at a time.", at: 46, icon: "M24 17l7 7-7 7-7-7ZM24 8.5a15.5 15.5 0 1 1 0 31a15.5 15.5 0 1 1 0-31" },
-    { t: "Keep what stays with you, privately.", at: 92, icon: "M12 34.4l2-7.6 17.8-17.8a3.8 3.8 0 0 1 5.4 5.4L19.4 32.2ZM7 41h34" },
+    {
+      at: 4,
+      icon: "M5.6 11.2C12 9.2 18.4 10 24 13.6c5.6-3.6 12-4.4 18.4-2.4v26c-6.4-2-12.8-1.2-18.4 2.4-5.6-3.6-12-4.4-18.4-2.4ZM24 13.6v26",
+      t: "Read the whole Qur’an, with commentary.",
+    },
+    {
+      at: 46,
+      icon: "M24 17l7 7-7 7-7-7ZM24 8.5a15.5 15.5 0 1 1 0 31a15.5 15.5 0 1 1 0-31",
+      t: "Ponder one verse, one question at a time.",
+    },
+    {
+      at: 92,
+      icon: "M12 34.4l2-7.6 17.8-17.8a3.8 3.8 0 0 1 5.4 5.4L19.4 32.2ZM7 41h34",
+      t: "Keep what stays with you, privately.",
+    },
   ];
   return (
     <Daylight>
       <div style={{ display: "grid", gap: 72 }}>
         {rows.map((r) => (
-          <div key={r.t} style={{ display: "flex", gap: 40, alignItems: "center", ...rise(f, r.at, 16) }}>
-            <svg width="96" height="96" viewBox="0 0 48 48" style={{ flex: "none" }}>
-              <path d={r.icon} fill="none" stroke={C.indigo} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          <div
+            key={r.t}
+            style={{
+              alignItems: "center",
+              display: "flex",
+              gap: 40,
+              ...rise(f, r.at, 16),
+            }}
+          >
+            <svg
+              width="96"
+              height="96"
+              viewBox="0 0 48 48"
+              style={{ flex: "none" }}
+            >
+              <path
+                d={r.icon}
+                fill="none"
+                stroke={C.indigo}
+                strokeWidth="2.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
-            <div style={{ fontFamily: F.ui, fontWeight: 600, fontSize: 64, lineHeight: 1.15, letterSpacing: "-0.02em", color: C.indigoDeep }}>{r.t}</div>
+            <div
+              style={{
+                color: C.indigoDeep,
+                fontFamily: F.ui,
+                fontSize: 64,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                lineHeight: 1.15,
+              }}
+            >
+              {r.t}
+            </div>
           </div>
         ))}
       </div>
@@ -332,8 +591,20 @@ function Mark({ frame, size }: { frame: number; size: number }) {
   const oy = b.minY - (box - b.height) / 2;
   const tile = prog(frame, 0, 16);
   return (
-    <svg width={size} height={size} viewBox={`${ox} ${oy} ${box} ${box}`} style={{ transform: `scale(${0.92 + tile * 0.08})`, opacity: tile }}>
-      <rect x={ox} y={oy} width={box} height={box} rx={box * 0.22} fill={C.indigo} />
+    <svg
+      width={size}
+      height={size}
+      viewBox={`${ox} ${oy} ${box} ${box}`}
+      style={{ opacity: tile, transform: `scale(${0.92 + tile * 0.08})` }}
+    >
+      <rect
+        x={ox}
+        y={oy}
+        width={box}
+        height={box}
+        rx={box * 0.22}
+        fill={C.indigo}
+      />
       {MARK_RECTS.map(([x, y, w, h], i) => {
         const p = prog(frame, 10 + i * 2.5, 22 + i * 2.5);
         const cx = x + w / 2;
@@ -359,18 +630,56 @@ function Cta({ credit }: { credit: boolean }) {
   const f = useCurrentFrame();
   return (
     <Daylight>
-      <div style={{ display: "grid", justifyItems: "start", gap: 48 }}>
+      <div style={{ display: "grid", gap: 48, justifyItems: "start" }}>
         <Mark frame={f} size={300} />
-        <Big color={C.indigoDeep} size={112} style={rise(f, 40, 16)}>MindfulVerse</Big>
+        <Big color={C.indigoDeep} size={112} style={rise(f, 40, 16)}>
+          MindfulVerse
+        </Big>
         <div style={{ display: "grid", gap: 14, ...rise(f, 54, 16) }}>
-          <div style={{ fontFamily: F.text, fontSize: 60, color: C.ink }}>Find your verse today.</div>
-          <div style={{ fontFamily: F.ui, fontWeight: 500, fontSize: 40, color: C.inkFaint }}>Free, no sign-up</div>
+          <div style={{ color: C.ink, fontFamily: F.text, fontSize: 60 }}>
+            Find your verse today.
+          </div>
+          <div
+            style={{
+              color: C.inkFaint,
+              fontFamily: F.ui,
+              fontSize: 40,
+              fontWeight: 500,
+            }}
+          >
+            Free, no sign-up
+          </div>
         </div>
-        <div style={{ ...rise(f, 70, 16), fontFamily: F.ui, fontWeight: 500, fontSize: 44, color: C.indigo, marginTop: 24 }}>mindfulverse.vercel.app</div>
+        <div
+          style={{
+            ...rise(f, 70, 16),
+            color: C.indigo,
+            fontFamily: F.ui,
+            fontSize: 44,
+            fontWeight: 500,
+            marginTop: 24,
+          }}
+        >
+          mindfulverse.vercel.app
+        </div>
       </div>
-      {credit ? <div style={{ position: "absolute", left: 96, right: 96, bottom: 110, ...rise(f, 90, 16, 0), fontFamily: F.ui, fontWeight: 500, fontSize: 28, color: C.inkFaint }}>
-        Nasheed: “Alhamdulillah” by Jawad Syed, CC BY 3.0
-      </div> : null}
+      {credit ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 96,
+            right: 96,
+            bottom: 110,
+            ...rise(f, 90, 16, 0),
+            fontFamily: F.ui,
+            fontWeight: 500,
+            fontSize: 28,
+            color: C.inkFaint,
+          }}
+        >
+          Nasheed: “Alhamdulillah” by Jawad Syed, CC BY 3.0
+        </div>
+      ) : null}
     </Daylight>
   );
 }
@@ -378,33 +687,66 @@ function Cta({ credit }: { credit: boolean }) {
 export function HeartPromo({ withNasheed = true }: { withNasheed?: boolean }) {
   const { width, height } = useVideoConfig();
   return (
-    <AbsoluteFill style={{ width, height, background: C.night }}>
+    <AbsoluteFill style={{ background: C.night, height, width }}>
       <style>{fontCss}</style>
       {/* Vocals-only nasheed, CC BY 3.0 (public/audio/CREDITS.md): fade in, settle under the
           story, and fade out over the last two seconds. */}
       {withNasheed ? (
-      <Audio
-        src={staticFile("audio/alhamdulillah-jawad-syed.m4a")}
-        volume={(f) =>
-          interpolate(f, [0, 24, DURATION - 60, DURATION], [0, 0.85, 0.85, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
-        }
-      />
+        <Audio
+          src={staticFile("audio/alhamdulillah-jawad-syed.m4a")}
+          volume={(f) =>
+            interpolate(
+              f,
+              [0, 24, DURATION - 60, DURATION],
+              [0, 0.85, 0.85, 0],
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+            )
+          }
+        />
       ) : null}
       <Series>
-        <Series.Sequence durationInFrames={SCENES.hook}><Hook /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.meant}><Meant /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.aLot}><ALot /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.scrolled}><Scrolled /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.further}><Further /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.question}><Question /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.tap}><Tap feeling="Weary" /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.verse}><Verse verse="weary" /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.orToday}><OrToday /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.tap2}><Tap feeling="Anxious" /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.verse2}><Verse verse="anxious" /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.oneMinute}><OneMinute /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.inside}><Inside /></Series.Sequence>
-        <Series.Sequence durationInFrames={SCENES.cta}><Cta credit={withNasheed} /></Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.hook}>
+          <Hook />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.meant}>
+          <Meant />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.aLot}>
+          <ALot />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.scrolled}>
+          <Scrolled />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.further}>
+          <Further />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.question}>
+          <Question />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.tap}>
+          <Tap feeling="Weary" />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.verse}>
+          <Verse verse="weary" />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.orToday}>
+          <OrToday />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.tap2}>
+          <Tap feeling="Anxious" />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.verse2}>
+          <Verse verse="anxious" />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.oneMinute}>
+          <OneMinute />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.inside}>
+          <Inside />
+        </Series.Sequence>
+        <Series.Sequence durationInFrames={SCENES.cta}>
+          <Cta credit={withNasheed} />
+        </Series.Sequence>
       </Series>
     </AbsoluteFill>
   );

@@ -1,4 +1,6 @@
-import { ActivityIndicator, Pressable, type PressableProps, type ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable } from "react-native";
+import type { PressableProps, ViewStyle } from "react-native";
+
 import { tapLight } from "../platform/haptics";
 import { fonts, radius, useTheme } from "../theme";
 import { Text } from "./Text";
@@ -31,37 +33,28 @@ export function Button({
   // A disabled filled button becomes an empty outline: clearly off, no new colour
   // (half-strength indigo over cotton reads as a muddy violet).
   const off = !!disabled && !busy && (filled || cloth);
-  const fg = off ? colors.inkFaint : filled ? colors.cottonRaised : cloth ? clothText : colors.indigo;
+  const fg = off
+    ? colors.inkFaint
+    : filled
+      ? colors.cottonRaised
+      : cloth
+        ? clothText
+        : colors.indigo;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: !!(disabled || busy), busy }}
+      accessibilityState={{ busy, disabled: !!(disabled || busy) }}
       disabled={disabled || busy}
       {...rest}
       onPress={(e) => {
-        if (filled || cloth) tapLight();
+        if (filled || cloth) {
+          tapLight();
+        }
         onPress?.(e);
       }}
       style={({ pressed }) => [
         {
-          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          minHeight: 48,
-          paddingVertical: 12,
-          paddingHorizontal: kind === "ghost" ? 4 : 22,
-          borderWidth: 2,
-          borderRadius: radius.sm,
-          borderColor: off
-            ? colors.lineStrong
-            : kind === "ghost"
-              ? "transparent"
-              : cloth
-                ? clothFace
-                : pressed && filled
-                  ? colors.indigoDeep
-                  : colors.indigo,
           backgroundColor: off
             ? "transparent"
             : cloth
@@ -77,14 +70,40 @@ export function Button({
                 : pressed && kind === "secondary"
                   ? colors.indigoWash
                   : "transparent",
+          borderColor: off
+            ? colors.lineStrong
+            : kind === "ghost"
+              ? "transparent"
+              : cloth
+                ? clothFace
+                : pressed && filled
+                  ? colors.indigoDeep
+                  : colors.indigo,
+          borderRadius: radius.sm,
+          borderWidth: 2,
+          flexDirection: "row",
+          gap: 8,
+          justifyContent: "center",
+          minHeight: 48,
           opacity: disabled && !off ? 0.5 : 1,
+          paddingHorizontal: kind === "ghost" ? 4 : 22,
+          paddingVertical: 12,
           transform: [{ scale: pressed ? 0.97 : 1 }],
         },
         style,
       ]}
     >
       {busy ? <ActivityIndicator color={fg} /> : null}
-      <Text style={{ color: fg, fontFamily: fonts.read, fontSize: 17, lineHeight: 22 }}>{title}</Text>
+      <Text
+        style={{
+          color: fg,
+          fontFamily: fonts.read,
+          fontSize: 17,
+          lineHeight: 22,
+        }}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 }
