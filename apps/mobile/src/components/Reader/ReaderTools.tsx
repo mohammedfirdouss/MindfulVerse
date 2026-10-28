@@ -1,3 +1,4 @@
+import type { ReadView } from "@mindfulverse/core/readingPrefs";
 // Port of apps/web/src/components/ReaderTools.tsx: one quiet row under the
 // title plate — the numbered diamond ("Go to a verse") and "Aa" ("Reading
 // settings") — and the two sheets they open. The open sheet is owned by the
@@ -5,28 +6,40 @@
 // the settings sheet must stay open through that.
 import { useEffect, useState } from "react";
 import { Keyboard, Platform, Pressable, View } from "react-native";
-import type { ReadView } from "@mindfulverse/core/readingPrefs";
-import { fonts, space, useTheme } from "../../theme";
 import Svg, { Path } from "react-native-svg";
+
+import { fonts, space, useTheme } from "../../theme";
 import { Button, Sheet, Text } from "../../ui";
 import { JumpToVerse } from "./JumpToVerse";
 import { ReadingControls } from "./ReadingControls";
 
 export type ReaderPanel = "display" | "jump" | null;
 
-export function ReaderToolbar({ onOpen }: { onOpen: (p: Exclude<ReaderPanel, null>) => void }) {
+export function ReaderToolbar({
+  onOpen,
+}: {
+  onOpen: (p: Exclude<ReaderPanel, null>) => void;
+}) {
   const { colors } = useTheme();
   const tool = ({ pressed }: { pressed: boolean }) => ({
-    width: 44,
-    height: 44,
-    borderRadius: 22,
     alignItems: "center" as const,
-    justifyContent: "center" as const,
     backgroundColor: pressed ? colors.indigoWash : "transparent",
+    borderRadius: 22,
+    height: 44,
+    justifyContent: "center" as const,
     transform: [{ scale: pressed ? 0.94 : 1 }],
+    width: 44,
   });
   return (
-    <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: space.xs, paddingTop: 6, paddingBottom: 2 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        gap: space.xs,
+        justifyContent: "flex-end",
+        paddingBottom: 2,
+        paddingTop: 6,
+      }}
+    >
       <Pressable
         onPress={() => onOpen("jump")}
         accessibilityRole="button"
@@ -37,13 +50,32 @@ export function ReaderToolbar({ onOpen }: { onOpen: (p: Exclude<ReaderPanel, nul
         <View
           importantForAccessibility="no-hide-descendants"
           accessibilityElementsHidden
-          style={{ width: 30, height: 30, alignItems: "center", justifyContent: "center" }}
+          style={{
+            alignItems: "center",
+            height: 30,
+            justifyContent: "center",
+            width: 30,
+          }}
         >
           {/* The adire verse diamond (ui Diamond), with a numeral-sized "#". */}
           <Svg width={30} height={30} style={{ position: "absolute" }}>
-            <Path d="M15 1.5 L28.5 15 L15 28.5 L1.5 15Z" fill="none" stroke={colors.indigo} strokeWidth={1.6} />
+            <Path
+              d="M15 1.5 L28.5 15 L15 28.5 L1.5 15Z"
+              fill="none"
+              stroke={colors.indigo}
+              strokeWidth={1.6}
+            />
           </Svg>
-          <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 13, lineHeight: 16, color: colors.indigo }}>#</Text>
+          <Text
+            style={{
+              color: colors.indigo,
+              fontFamily: fonts.readSemiBold,
+              fontSize: 13,
+              lineHeight: 16,
+            }}
+          >
+            #
+          </Text>
         </View>
       </Pressable>
       <Pressable
@@ -56,7 +88,12 @@ export function ReaderToolbar({ onOpen }: { onOpen: (p: Exclude<ReaderPanel, nul
         <Text
           importantForAccessibility="no"
           accessibilityElementsHidden
-          style={{ fontFamily: fonts.readSemiBold, fontSize: 18, lineHeight: 24, color: colors.indigo }}
+          style={{
+            color: colors.indigo,
+            fontFamily: fonts.readSemiBold,
+            fontSize: 18,
+            lineHeight: 24,
+          }}
         >
           Aa
         </Text>
@@ -79,8 +116,18 @@ export function ReadingSettingsSheet({
   onView: (v: ReadView) => void;
 }) {
   return (
-    <Sheet label="Reading settings" title="Reading settings" onClose={onClose} scroll>
-      <ReadingControls sizeKey={sizeKey} onSize={onSize} view={view} onView={onView} />
+    <Sheet
+      label="Reading settings"
+      title="Reading settings"
+      onClose={onClose}
+      scroll
+    >
+      <ReadingControls
+        sizeKey={sizeKey}
+        onSize={onSize}
+        view={view}
+        onView={onView}
+      />
       <View style={{ alignItems: "flex-start", paddingTop: space.xl }}>
         <Button title="Done" kind="secondary" onPress={onClose} />
       </View>
@@ -88,7 +135,15 @@ export function ReadingSettingsSheet({
   );
 }
 
-export function JumpSheet({ onClose, max, onJump }: { onClose: () => void; max: number; onJump: (n: number) => void }) {
+export function JumpSheet({
+  onClose,
+  max,
+  onJump,
+}: {
+  onClose: () => void;
+  max: number;
+  onJump: (n: number) => void;
+}) {
   const lift = useKeyboardLift();
   return (
     <Sheet label="Go to a verse" title="Go to a verse" onClose={onClose} scroll>
@@ -103,8 +158,12 @@ export function JumpSheet({ onClose, max, onJump }: { onClose: () => void; max: 
 function useKeyboardLift(): number {
   const [h, setH] = useState(0);
   useEffect(() => {
-    if (Platform.OS !== "ios") return;
-    const show = Keyboard.addListener("keyboardWillShow", (e) => setH(e.endCoordinates.height));
+    if (Platform.OS !== "ios") {
+      return;
+    }
+    const show = Keyboard.addListener("keyboardWillShow", (e) =>
+      setH(e.endCoordinates.height)
+    );
     const hide = Keyboard.addListener("keyboardWillHide", () => setH(0));
     return () => {
       show.remove();

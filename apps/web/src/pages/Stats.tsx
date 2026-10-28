@@ -1,14 +1,19 @@
+import { getEvents } from "@mindfulverse/core/analytics";
+import { getEntries } from "@mindfulverse/core/journal";
+import { currentStreak, totalVisitDays } from "@mindfulverse/core/progress";
+import { getReadView } from "@mindfulverse/core/readingPrefs";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import {
+  getSyncStatus,
+  onSyncStatus,
+  statusLabel,
+} from "@mindfulverse/core/sync/engine";
+import type { SyncStatus } from "@mindfulverse/core/sync/engine";
 // /stats — private, on-device dashboard for the v0 retention experiment.
 // No backend: everything is derived from localStorage. The "Copy my stats"
 // button lets testers email their numbers to the founder.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { getEvents } from "@mindfulverse/core/analytics";
-import { currentStreak, totalVisitDays } from "@mindfulverse/core/progress";
-import { getEntries } from "@mindfulverse/core/journal";
-import { getReadView } from "@mindfulverse/core/readingPrefs";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { getSyncStatus, onSyncStatus, statusLabel, type SyncStatus } from "@mindfulverse/core/sync/engine";
 
 const FIRST_SEEN_KEY = "mindfulverse.firstSeen.v1";
 
@@ -22,7 +27,7 @@ interface StatsSnapshot {
   sessionsCompleted: number;
   completionPct: number | null;
   checkinViews: number;
-  topEmotions: Array<[string, number]>;
+  topEmotions: [string, number][];
   journalCount: number;
   payTaps: number;
   versesShared: number;
@@ -43,7 +48,9 @@ function dayKey(t: number): string {
 function readFirstSeen(): number | null {
   try {
     const raw = localStorage.getItem(FIRST_SEEN_KEY);
-    if (!raw) return null;
+    if (!raw) {
+      return null;
+    }
     const n = Number(raw);
     return Number.isFinite(n) ? n : null;
   } catch {
@@ -67,34 +74,48 @@ function computeStats(): StatsSnapshot {
 
   for (const { t, e } of events) {
     switch (e.type) {
-      case "app_open":
+      case "app_open": {
         openDays.add(dayKey(t));
         break;
-      case "session_start":
-        if (e.sessionId.startsWith("surah-")) surahTadabburStarted++;
-        else sessionsStarted++;
+      }
+      case "session_start": {
+        if (e.sessionId.startsWith("surah-")) {
+          surahTadabburStarted++;
+        } else {
+          sessionsStarted++;
+        }
         break;
-      case "session_complete":
+      }
+      case "session_complete": {
         sessionsCompleted++;
         break;
-      case "checkin_view":
+      }
+      case "checkin_view": {
         checkinViews++;
-        if (e.emotion) emotions.set(e.emotion, (emotions.get(e.emotion) ?? 0) + 1);
+        if (e.emotion) {
+          emotions.set(e.emotion, (emotions.get(e.emotion) ?? 0) + 1);
+        }
         break;
-      case "intent_pay_tap":
+      }
+      case "intent_pay_tap": {
         payTaps++;
         break;
-      case "share_verse":
+      }
+      case "share_verse": {
         versesShared++;
         break;
-      case "dhikr_complete":
+      }
+      case "dhikr_complete": {
         dhikrCompleted++;
         break;
-      case "read_view":
+      }
+      case "read_view": {
         readViewSwitches++;
         break;
-      case "journal_save":
+      }
+      case "journal_save": {
         break;
+      }
     }
   }
 
@@ -141,16 +162,16 @@ function summaryText(s: StatsSnapshot): string {
       ? s.topEmotions.map(([name, n]) => `${name} ×${n}`).join(", ")
       : "none";
   const firstSeen =
-    s.firstSeen !== null
-      ? `${new Date(s.firstSeen).toLocaleDateString()} (${s.daysSinceFirstSeen}d ago)`
-      : "unknown";
+    s.firstSeen === null
+      ? "unknown"
+      : `${new Date(s.firstSeen).toLocaleDateString()} (${s.daysSinceFirstSeen}d ago)`;
   return [
     "MindfulVerse. My stats",
     `First seen: ${firstSeen}`,
     `Days visited: ${s.daysVisited} (streak ${s.streak})`,
     `Days opened: ${s.appOpenDays}`,
     `Sessions: ${s.sessionsStarted} started, ${s.sessionsCompleted} completed${
-      s.completionPct !== null ? ` (${s.completionPct}%)` : ""
+      s.completionPct === null ? "" : ` (${s.completionPct}%)`
     }`,
     `Check-ins: ${s.checkinViews} · emotions: ${emotions}`,
     `Journal entries: ${s.journalCount}`,
@@ -162,14 +183,33 @@ function summaryText(s: StatsSnapshot): string {
   ].join("\n");
 }
 
-function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
+function Metric({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+}) {
   return (
     <div className="card">
       <p className="eyebrow">{label}</p>
-      <div style={{ fontSize: "1.9rem", fontWeight: 600, color: "var(--indigo-deep)", lineHeight: 1.2 }}>
+      <div
+        style={{
+          color: "var(--indigo-deep)",
+          fontSize: "1.9rem",
+          fontWeight: 600,
+          lineHeight: 1.2,
+        }}
+      >
         {value}
       </div>
-      {note && <div className="soft" style={{ fontSize: ".9rem", marginTop: 4 }}>{note}</div>}
+      {note && (
+        <div className="soft" style={{ fontSize: ".9rem", marginTop: 4 }}>
+          {note}
+        </div>
+      )}
     </div>
   );
 }
@@ -180,14 +220,18 @@ function AccountRow() {
 
   useEffect(() => onSyncStatus(setStatus), []);
 
-  if (loading) return null;
+  if (loading) {
+    return null;
+  }
 
   return (
     <div className="card">
       <p className="eyebrow">Account</p>
       {user ? (
         <>
-          <div style={{ fontSize: "1.1rem", fontWeight: 600, marginTop: 4 }}>{user.email}</div>
+          <div style={{ fontSize: "1.1rem", fontWeight: 600, marginTop: 4 }}>
+            {user.email}
+          </div>
           {statusLabel(status) !== "" && (
             <div className="soft" style={{ fontSize: ".9rem", marginTop: 4 }}>
               {statusLabel(status)}
@@ -230,30 +274,20 @@ export default function Stats() {
       <header>
         <h1>Your numbers</h1>
         <p className="muted" style={{ marginTop: 0 }}>
-          These numbers are private and stay on this device unless you copy and send them.
+          These numbers are private and stay on this device unless you copy and
+          send them.
         </p>
       </header>
 
       <AccountRow />
 
-      {!hasData ? (
-        <div className="card stack">
-          <p style={{ margin: 0, fontSize: "1.1rem" }}>Nothing to count yet.</p>
-          <p className="soft" style={{ margin: 0 }}>
-            Spend a little time with the app. A check-in, a session, a verse.
-            and your numbers will gather here.
-          </p>
-          <Link to="/" className="btn" style={{ alignSelf: "flex-start", marginTop: 4 }}>
-            Start today
-          </Link>
-        </div>
-      ) : (
+      {hasData ? (
         <>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
               gap: 16,
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
             }}
           >
             <Metric
@@ -270,9 +304,9 @@ export default function Stats() {
               label="Sessions"
               value={`${stats.sessionsCompleted} / ${stats.sessionsStarted}`}
               note={
-                stats.completionPct !== null
-                  ? `${stats.completionPct}% of started sessions completed`
-                  : "none started yet"
+                stats.completionPct === null
+                  ? "none started yet"
+                  : `${stats.completionPct}% of started sessions completed`
               }
             />
             <Metric
@@ -280,15 +314,26 @@ export default function Stats() {
               value={String(stats.checkinViews)}
               note={
                 stats.topEmotions.length > 0
-                  ? stats.topEmotions.map(([name, n]) => `${name} ×${n}`).join(" · ")
+                  ? stats.topEmotions
+                      .map(([name, n]) => `${name} ×${n}`)
+                      .join(" · ")
                   : "no emotions chosen yet"
               }
             />
-            <Metric label="Journal entries" value={String(stats.journalCount)} />
+            <Metric
+              label="Journal entries"
+              value={String(stats.journalCount)}
+            />
             <Metric label="Pay-intent taps" value={String(stats.payTaps)} />
             <Metric label="Verses shared" value={String(stats.versesShared)} />
-            <Metric label="Dhikr completed" value={String(stats.dhikrCompleted)} />
-            <Metric label="Surah tadabbur begun" value={String(stats.surahTadabburStarted)} />
+            <Metric
+              label="Dhikr completed"
+              value={String(stats.dhikrCompleted)}
+            />
+            <Metric
+              label="Surah tadabbur begun"
+              value={String(stats.surahTadabburStarted)}
+            />
             <Metric
               label="Reading view"
               value={stats.readView}
@@ -297,14 +342,14 @@ export default function Stats() {
             <Metric
               label="First seen"
               value={
-                stats.firstSeen !== null
-                  ? new Date(stats.firstSeen).toLocaleDateString()
-                  : "—"
+                stats.firstSeen === null
+                  ? "—"
+                  : new Date(stats.firstSeen).toLocaleDateString()
               }
               note={
-                stats.daysSinceFirstSeen !== null
-                  ? `${stats.daysSinceFirstSeen} day${stats.daysSinceFirstSeen === 1 ? "" : "s"} ago`
-                  : "not recorded yet"
+                stats.daysSinceFirstSeen === null
+                  ? "not recorded yet"
+                  : `${stats.daysSinceFirstSeen} day${stats.daysSinceFirstSeen === 1 ? "" : "s"} ago`
               }
             />
           </div>
@@ -313,11 +358,30 @@ export default function Stats() {
             <p className="soft" style={{ margin: 0 }}>
               Testing MindfulVerse? Copy your numbers and email them over.
             </p>
-            <button className="btn" style={{ alignSelf: "flex-start" }} onClick={copyStats}>
+            <button
+              className="btn"
+              style={{ alignSelf: "flex-start" }}
+              onClick={copyStats}
+            >
               {copied ? "Copied" : "Copy my stats"}
             </button>
           </div>
         </>
+      ) : (
+        <div className="card stack">
+          <p style={{ fontSize: "1.1rem", margin: 0 }}>Nothing to count yet.</p>
+          <p className="soft" style={{ margin: 0 }}>
+            Spend a little time with the app. A check-in, a session, a verse.
+            and your numbers will gather here.
+          </p>
+          <Link
+            to="/"
+            className="btn"
+            style={{ alignSelf: "flex-start", marginTop: 4 }}
+          >
+            Start today
+          </Link>
+        </div>
       )}
     </div>
   );

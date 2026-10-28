@@ -1,8 +1,10 @@
+import type { ReadView } from "@mindfulverse/core/readingPrefs";
 // The reader's quiet control row: "Aa" opens the display sheet (size + view),
 // the numbered diamond opens a small "go to a verse" sheet. Everything else
 // stays off the page so the reader opens on the Qur'an.
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import type { ReadView } from "@mindfulverse/core/readingPrefs";
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+
 import ReadingControls from "./ReadingControls";
 import Sheet from "./Sheet";
 
@@ -32,7 +34,9 @@ export default function ReaderTools({
     setPanel(null);
     let done = false;
     const run = () => {
-      if (done) return;
+      if (done) {
+        return;
+      }
       done = true;
       window.removeEventListener("popstate", soon);
       onJump?.(n);
@@ -55,10 +59,23 @@ export default function ReaderTools({
             title="Go to a verse"
             onClick={() => setPanel("jump")}
           >
-            <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-              <path d="M20 2 38 20 20 38 2 20Z" fill="none" stroke="currentColor" strokeWidth="1.8" />
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 40 40"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M20 2 38 20 20 38 2 20Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
             </svg>
-            <span className="reader-tool-hash" aria-hidden="true">#</span>
+            <span className="reader-tool-hash" aria-hidden="true">
+              #
+            </span>
           </button>
         )}
         <button
@@ -74,16 +91,33 @@ export default function ReaderTools({
       </div>
 
       {panel === "display" && (
-        <Sheet label="Reading settings" title="Reading settings" onClose={() => setPanel(null)}>
-          <ReadingControls sizeKey={sizeKey} onSize={onSize} view={view} onView={onView} />
-          <button type="button" className="btn secondary display-done" onClick={() => setPanel(null)}>
+        <Sheet
+          label="Reading settings"
+          title="Reading settings"
+          onClose={() => setPanel(null)}
+        >
+          <ReadingControls
+            sizeKey={sizeKey}
+            onSize={onSize}
+            view={view}
+            onView={onView}
+          />
+          <button
+            type="button"
+            className="btn secondary display-done"
+            onClick={() => setPanel(null)}
+          >
             Done
           </button>
         </Sheet>
       )}
 
       {panel === "jump" && onJump && (
-        <Sheet label="Go to a verse" title="Go to a verse" onClose={() => setPanel(null)}>
+        <Sheet
+          label="Go to a verse"
+          title="Go to a verse"
+          onClose={() => setPanel(null)}
+        >
           <JumpForm max={maxVerse ?? 300} onGo={jumpAfterClose} />
         </Sheet>
       )}

@@ -1,6 +1,6 @@
-import { Fragment } from "react";
 import { toArabicDigits, verseId } from "@mindfulverse/core/divisions";
 import type { Ayah } from "@mindfulverse/core/types";
+import { Fragment } from "react";
 
 /** Every surah except Al-Fatihah (where it is ayah 1) and At-Tawbah opens
  *  with the basmalah in the mushaf. */
@@ -24,9 +24,12 @@ export default function ReadingText({
 }) {
   const groups: { surah: number; ayahs: Ayah[] }[] = [];
   for (const a of ayahs) {
-    const g = groups[groups.length - 1];
-    if (g && g.surah === a.surah) g.ayahs.push(a);
-    else groups.push({ surah: a.surah, ayahs: [a] });
+    const g = groups.at(-1);
+    if (g && g.surah === a.surah) {
+      g.ayahs.push(a);
+    } else {
+      groups.push({ ayahs: [a], surah: a.surah });
+    }
   }
 
   return (
@@ -38,7 +41,9 @@ export default function ReadingText({
             {headings && (
               <h2 className="reading-surah-name">
                 {surahNames?.get(g.surah) ?? `Surah ${g.surah}`}
-                {from > 1 && <span className="muted"> · from verse {from}</span>}
+                {from > 1 && (
+                  <span className="muted"> · from verse {from}</span>
+                )}
               </h2>
             )}
             {from === 1 && g.surah !== 1 && g.surah !== 9 && (

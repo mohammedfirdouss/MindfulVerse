@@ -1,7 +1,7 @@
+import { markProgressDirty } from "./syncFlags";
 // Local-only progress: visit streak + tadabbur session completion/resume.
 // v0 has no accounts — everything lives in localStorage, mirroring journal.ts.
 import type { LocalProgress } from "./types";
-import { markProgressDirty } from "./syncFlags";
 
 const VISITS_KEY = "mindfulverse.visits.v1"; // string[] of YYYY-MM-DD
 const SESSIONS_KEY = "mindfulverse.sessionProgress.v1";
@@ -45,16 +45,22 @@ export function recordVisit(): void {
 /** Consecutive days ending today (or yesterday, so a morning visit keeps the chain). */
 export function currentStreak(): number {
   const visits = new Set(readVisits());
-  if (visits.size === 0) return 0;
+  if (visits.size === 0) {
+    return 0;
+  }
   let streak = 0;
   const cursor = new Date();
   // allow the chain to be anchored at yesterday if today hasn't been recorded yet
-  if (!visits.has(today())) cursor.setDate(cursor.getDate() - 1);
+  if (!visits.has(today())) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
   for (;;) {
     const m = String(cursor.getMonth() + 1).padStart(2, "0");
     const day = String(cursor.getDate()).padStart(2, "0");
     const key = `${cursor.getFullYear()}-${m}-${day}`;
-    if (!visits.has(key)) break;
+    if (!visits.has(key)) {
+      break;
+    }
     streak++;
     cursor.setDate(cursor.getDate() - 1);
   }
@@ -127,7 +133,9 @@ export function recordSurahTadabbur(surah: number, ayah: number): void {
   }
 }
 
-export function getSurahTadabbur(surah: number): SurahTadabburProgress | undefined {
+export function getSurahTadabbur(
+  surah: number
+): SurahTadabburProgress | undefined {
   return readSurahTadabbur()[String(surah)];
 }
 
@@ -137,10 +145,10 @@ export function latestSurahTadabbur(): { surah: number; ayah: number } | null {
   let best: { surah: number; ayah: number; at: number } | null = null;
   for (const [s, p] of Object.entries(map)) {
     if (!best || p.updatedAt > best.at) {
-      best = { surah: Number(s), ayah: p.ayah, at: p.updatedAt };
+      best = { at: p.updatedAt, ayah: p.ayah, surah: Number(s) };
     }
   }
-  return best ? { surah: best.surah, ayah: best.ayah } : null;
+  return best ? { ayah: best.ayah, surah: best.surah } : null;
 }
 
 const LAST_READ_KEY = "mindfulverse.lastRead.v1";
@@ -154,7 +162,7 @@ export interface LastRead {
 export function recordLastRead(surah: number, ayah: number): void {
   localStorage.setItem(
     LAST_READ_KEY,
-    JSON.stringify({ surah, ayah, at: Date.now() } satisfies LastRead)
+    JSON.stringify({ at: Date.now(), ayah, surah } satisfies LastRead)
   );
   markProgressDirty();
 }
@@ -177,10 +185,10 @@ export function recordSessionComplete(id: string): void {
 
 export function getLocalProgress(): LocalProgress {
   return {
-    visits: readVisits(),
+    lastRead: getLastRead(),
     sessionProgress: readSessions(),
     surahTadabbur: readSurahTadabbur(),
-    lastRead: getLastRead(),
+    visits: readVisits(),
   };
 }
 
@@ -189,12 +197,19 @@ export function replaceLocalProgress(p: LocalProgress): void {
   localStorage.setItem(VISITS_KEY, JSON.stringify(p.visits));
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(p.sessionProgress));
   localStorage.setItem(SURAH_TADABBUR_KEY, JSON.stringify(p.surahTadabbur));
-  if (p.lastRead) localStorage.setItem(LAST_READ_KEY, JSON.stringify(p.lastRead));
+  if (p.lastRead) {
+    localStorage.setItem(LAST_READ_KEY, JSON.stringify(p.lastRead));
+  }
 }
 
 /** Wipe every progress key on this device (account-switch "start fresh"). */
 export function clearLocalProgress(): void {
-  for (const key of [VISITS_KEY, SESSIONS_KEY, SURAH_TADABBUR_KEY, LAST_READ_KEY]) {
+  for (const key of [
+    VISITS_KEY,
+    SESSIONS_KEY,
+    SURAH_TADABBUR_KEY,
+    LAST_READ_KEY,
+  ]) {
     localStorage.removeItem(key);
   }
 }

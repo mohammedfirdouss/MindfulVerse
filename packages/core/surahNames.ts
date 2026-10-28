@@ -123,7 +123,9 @@ export function arabicSurahName(surah: number): string | undefined {
   return SURAHS[surah - 1]?.[0];
 }
 
-export function revelationPlace(surah: number): "Meccan" | "Medinan" | undefined {
+export function revelationPlace(
+  surah: number
+): "Meccan" | "Medinan" | undefined {
   const t = SURAHS[surah - 1]?.[1];
   return t === "M" ? "Meccan" : t === "D" ? "Medinan" : undefined;
 }

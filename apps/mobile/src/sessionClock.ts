@@ -9,7 +9,7 @@
 // `iat` (or with a lifetime shorter than the leeway). Pure: no RN, no SDK.
 
 export const REFRESH_LEEWAY_MS = 120_000;
-export const MIN_DELAY_MS = 5_000;
+export const MIN_DELAY_MS = 5000;
 export const MAX_FLOOR_MS = 10 * 60_000;
 
 export interface TokenClaims {
@@ -21,15 +21,19 @@ export interface TokenClaims {
 export function jwtClaims(token: string): TokenClaims {
   try {
     const part = token.split(".")[1];
-    if (!part) return { iat: null, exp: null };
-    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
-    const json = JSON.parse(atob(b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=")));
+    if (!part) {
+      return { exp: null, iat: null };
+    }
+    const b64 = part.replaceAll("-", "+").replaceAll("_", "/");
+    const json = JSON.parse(
+      atob(b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "="))
+    );
     return {
-      iat: typeof json.iat === "number" ? json.iat : null,
       exp: typeof json.exp === "number" ? json.exp : null,
+      iat: typeof json.iat === "number" ? json.iat : null,
     };
   } catch {
-    return { iat: null, exp: null };
+    return { exp: null, iat: null };
   }
 }
 
@@ -40,9 +44,14 @@ export interface TokenDeadline {
 
 /** The device-clock moment to refresh a token received at `receivedAtMs`,
  *  or null when the token carries no expiry. */
-export function tokenDeadline(claims: TokenClaims, receivedAtMs: number): TokenDeadline | null {
+export function tokenDeadline(
+  claims: TokenClaims,
+  receivedAtMs: number
+): TokenDeadline | null {
   const { iat, exp } = claims;
-  if (exp === null) return null;
+  if (exp === null) {
+    return null;
+  }
   if (iat !== null && exp > iat) {
     const lifetimeMs = (exp - iat) * 1000;
     // Short-lived tokens refresh halfway through rather than "120 s early".
@@ -61,10 +70,12 @@ export function tokenDeadline(claims: TokenClaims, receivedAtMs: number): TokenD
 export function nextRefreshDelay(
   deadline: TokenDeadline,
   nowMs: number,
-  quickStreak: number,
+  quickStreak: number
 ): { delayMs: number; quickStreak: number } {
   const floor = Math.min(MAX_FLOOR_MS, MIN_DELAY_MS * 2 ** quickStreak);
   const raw = deadline.refreshAtMs - nowMs;
-  if (raw < floor) return { delayMs: floor, quickStreak: quickStreak + 1 };
+  if (raw < floor) {
+    return { delayMs: floor, quickStreak: quickStreak + 1 };
+  }
   return { delayMs: raw, quickStreak: 0 };
 }

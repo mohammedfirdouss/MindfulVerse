@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
 import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
 import { getLastRead } from "@mindfulverse/core/progress";
+import {
+  arabicSurahName,
+  revelationPlace,
+} from "@mindfulverse/core/surahNames";
 import type { Division, SurahMeta } from "@mindfulverse/core/types";
-import { arabicSurahName, revelationPlace } from "@mindfulverse/core/surahNames";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+
 import { ChevronIcon, Diamond } from "../components/Adire";
+
 import "./reader.css";
 
 type Status = "loading" | "ready" | "error";
@@ -29,12 +34,16 @@ export default function Reader() {
     setStatus("loading");
     loadSurahs()
       .then((data) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setSurahs(data);
         setStatus("ready");
       })
       .catch(() => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setStatus("error");
       });
     return () => {
@@ -46,7 +55,9 @@ export default function Reader() {
     let active = true;
     loadDivisions()
       .then((d) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setJuzList(d.juz);
         setHizbList(d.hizb);
       })
@@ -58,10 +69,11 @@ export default function Reader() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return surahs;
+    if (!q) {
+      return surahs;
+    }
     return surahs.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) || String(s.number).includes(q)
+      (s) => s.name.toLowerCase().includes(q) || String(s.number).includes(q)
     );
   }, [surahs, query]);
 
@@ -70,7 +82,7 @@ export default function Reader() {
       <header>
         <h1>The Qur'an</h1>
         <p className="muted">Browse by surah or by juz.</p>
-        <p style={{ margin: "10px 0 0", display: "flex", gap: 18 }}>
+        <p style={{ display: "flex", gap: 18, margin: "10px 0 0" }}>
           <Link to="/search">Search the translation</Link>
           <Link to="/themes">Find verses by topic</Link>
         </p>
@@ -86,7 +98,9 @@ export default function Reader() {
               {surahs.find((s) => s.number === lastRead.surah)?.name ??
                 `Surah ${lastRead.surah}`}
             </span>
-            <span className="cloth-soft">Continue from verse {lastRead.ayah}</span>
+            <span className="cloth-soft">
+              Continue from verse {lastRead.ayah}
+            </span>
           </span>
           <ChevronIcon />
         </Link>
@@ -98,7 +112,9 @@ export default function Reader() {
             key={t}
             className="size-btn"
             aria-pressed={tab === t}
-            onClick={() => setParams(t === "surah" ? {} : { tab: t }, { replace: true })}
+            onClick={() =>
+              setParams(t === "surah" ? {} : { tab: t }, { replace: true })
+            }
           >
             {t === "surah" ? "Surah" : "Juz"}
           </button>
@@ -148,7 +164,12 @@ export default function Reader() {
                         </span>
                       </span>
                       {arabic && (
-                        <span className="row-arabic" lang="ar" dir="rtl" aria-hidden="true">
+                        <span
+                          className="row-arabic"
+                          lang="ar"
+                          dir="rtl"
+                          aria-hidden="true"
+                        >
                           {arabic}
                         </span>
                       )}
@@ -163,7 +184,9 @@ export default function Reader() {
 
       {tab === "juz" && juzFailed && (
         <div className="card">
-          <p className="muted" style={{ margin: 0 }}>Juz browsing isn’t available right now.</p>
+          <p className="muted" style={{ margin: 0 }}>
+            Juz browsing isn’t available right now.
+          </p>
         </div>
       )}
 
@@ -176,8 +199,11 @@ export default function Reader() {
           {juzList.map((j) => {
             const [fs, fa] = j.first.split(":").map(Number);
             const [ls, la] = j.last.split(":").map(Number);
-            const name = (s: number) => surahs.find((x) => x.number === s)?.name ?? `Surah ${s}`;
-            const hizbs = hizbList.filter((h) => h.n === j.n * 2 - 1 || h.n === j.n * 2);
+            const name = (s: number) =>
+              surahs.find((x) => x.number === s)?.name ?? `Surah ${s}`;
+            const hizbs = hizbList.filter(
+              (h) => h.n === j.n * 2 - 1 || h.n === j.n * 2
+            );
             return (
               <li key={j.n} className="juz-row">
                 <Link to={`/read/juz/${j.n}`} className="index-row">
@@ -186,7 +212,13 @@ export default function Reader() {
                     <span className="row-text">
                       <span className="row-title">Juz {j.n}</span>
                       <span className="row-meta">
-                        <span>{name(fs)} {fa}</span> – <span>{name(ls)} {la}</span>
+                        <span>
+                          {name(fs)} {fa}
+                        </span>{" "}
+                        –{" "}
+                        <span>
+                          {name(ls)} {la}
+                        </span>
                       </span>
                     </span>
                   </span>
@@ -201,7 +233,11 @@ export default function Reader() {
                     <Link
                       key={h.n}
                       className="hizb-pill"
-                      to={h.first === j.first ? `/read/juz/${j.n}` : `/read/juz/${j.n}?v=${h.first}`}
+                      to={
+                        h.first === j.first
+                          ? `/read/juz/${j.n}`
+                          : `/read/juz/${j.n}?v=${h.first}`
+                      }
                     >
                       Hizb {h.n}
                     </Link>

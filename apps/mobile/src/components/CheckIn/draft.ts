@@ -12,8 +12,11 @@ export function readDraft(): string {
 
 export function writeDraft(v: string): void {
   try {
-    if (v) localStorage.setItem(DRAFT_KEY, v);
-    else localStorage.removeItem(DRAFT_KEY);
+    if (v) {
+      localStorage.setItem(DRAFT_KEY, v);
+    } else {
+      localStorage.removeItem(DRAFT_KEY);
+    }
   } catch {
     /* storage full or blocked — the draft is a convenience */
   }

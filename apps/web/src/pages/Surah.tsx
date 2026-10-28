@@ -1,28 +1,31 @@
-import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import { loadSurahAyahs, loadSurahs, loadTafsirIndex } from "@mindfulverse/core/data";
-import { recordLastRead } from "@mindfulverse/core/progress";
-import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
 import {
-  CommentarySheet,
-  useTafsir,
-  type TafsirIndex,
-} from "../components/Commentary";
-import ReaderTools from "../components/ReaderTools";
-import ReadingText, { BASMALAH } from "../components/ReadingText";
-import VerseBlock from "../components/VerseBlock";
-import VerseSheet from "../components/VerseSheet";
+  loadSurahAyahs,
+  loadSurahs,
+  loadTafsirIndex,
+} from "@mindfulverse/core/data";
 import { verseId } from "@mindfulverse/core/divisions";
+import { recordLastRead } from "@mindfulverse/core/progress";
 import {
   getReadView,
   getSizeKey,
   saveReadView,
   saveSizeKey,
   scaleFor,
-  type ReadView,
 } from "@mindfulverse/core/readingPrefs";
-import { useLastReadTracker } from "../lib/useLastReadTracker";
+import type { ReadView } from "@mindfulverse/core/readingPrefs";
+import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
+import { useEffect, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+
 import { DyeRule, TitlePlate } from "../components/Adire";
+import { CommentarySheet, useTafsir } from "../components/Commentary";
+import type { TafsirIndex } from "../components/Commentary";
+import ReaderTools from "../components/ReaderTools";
+import ReadingText, { BASMALAH } from "../components/ReadingText";
+import VerseBlock from "../components/VerseBlock";
+import VerseSheet from "../components/VerseSheet";
+import { useLastReadTracker } from "../lib/useLastReadTracker";
+
 import "./reader.css";
 
 type Status = "loading" | "ready" | "error";
@@ -68,14 +71,18 @@ function SurahReader() {
       loadSurahs().catch<SurahMeta[]>(() => []),
     ])
       .then(([ayahData, indexData, surahList]) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setAyahs(ayahData);
         setIndex(indexData);
         setMeta(surahList.find((s) => s.number === surahNumber));
         setStatus("ready");
       })
       .catch(() => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setStatus("error");
       });
 
@@ -85,17 +92,28 @@ function SurahReader() {
   }, [surahNumber]);
 
   useEffect(() => {
-    if (meta) document.title = `${meta.name} | MindfulVerse`;
-    else document.title = "Read | MindfulVerse";
+    if (meta) {
+      document.title = `${meta.name} | MindfulVerse`;
+    } else {
+      document.title = "Read | MindfulVerse";
+    }
   }, [meta]);
 
   // Deep link (?v=n): scroll there once the surah renders, in either view.
   useEffect(() => {
-    if (status !== "ready") return;
+    if (status !== "ready") {
+      return;
+    }
     const v = Number(params.get("v"));
-    if (!Number.isFinite(v) || v < 1) return;
-    const el = document.getElementById(view === "reading" ? verseId(surahNumber, v) : `v${v}`);
-    if (!el) return;
+    if (!Number.isFinite(v) || v < 1) {
+      return;
+    }
+    const el = document.getElementById(
+      view === "reading" ? verseId(surahNumber, v) : `v${v}`
+    );
+    if (!el) {
+      return;
+    }
     el.scrollIntoView({ block: "start" });
     recordLastRead(surahNumber, v);
     setFlashKey(`${surahNumber}:${v}`);
@@ -117,8 +135,12 @@ function SurahReader() {
 
   // Out-of-range numbers are caught in the jump sheet; a missing row is a no-op.
   function goToVerse(n: number) {
-    const el = document.getElementById(view === "reading" ? verseId(surahNumber, n) : `v${n}`);
-    if (!el) return;
+    const el = document.getElementById(
+      view === "reading" ? verseId(surahNumber, n) : `v${n}`
+    );
+    if (!el) {
+      return;
+    }
     el.scrollIntoView({ behavior: "smooth", block: "start" });
     recordLastRead(surahNumber, n);
     setFlashKey(`${surahNumber}:${n}`);
@@ -165,7 +187,9 @@ function SurahReader() {
         <div>
           {view === "reading" ? (
             <>
-              {surahNumber !== 1 && surahNumber !== 9 && <DyeRule className="reading-rule" />}
+              {surahNumber !== 1 && surahNumber !== 9 && (
+                <DyeRule className="reading-rule" />
+              )}
               <ReadingText
                 ayahs={ayahs}
                 headings={false}
@@ -215,7 +239,12 @@ function SurahReader() {
       )}
 
       {selected && (
-        <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
+        <VerseSheet
+          ayah={selected}
+          index={index}
+          tafsir={tafsir}
+          onClose={() => setSelected(null)}
+        />
       )}
     </div>
   );

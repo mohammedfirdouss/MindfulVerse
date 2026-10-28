@@ -14,12 +14,14 @@ export function getTheme(): Theme {
 
 export function applyTheme(theme: Theme): void {
   if (theme === "dark") {
-    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.dataset.theme = "dark";
   } else {
-    document.documentElement.removeAttribute("data-theme");
+    delete document.documentElement.dataset.theme;
   }
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "dark" ? "#1b2559" : "#2a3a8c");
+  if (meta) {
+    meta.setAttribute("content", theme === "dark" ? "#1b2559" : "#2a3a8c");
+  }
 }
 
 export function setTheme(theme: Theme): void {

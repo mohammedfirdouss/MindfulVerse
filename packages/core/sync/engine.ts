@@ -1,16 +1,23 @@
+import { getEntries, getTombstones, replaceAll } from "../journal";
+import {
+  getLocalProgress,
+  replaceLocalProgress,
+  clearLocalProgress,
+} from "../progress";
+import { isDirty, clearDirty, onDirty } from "../syncFlags";
+import type { LocalProgress } from "../types";
 // Local-first sync: pull remote → merge (commutative, from merge.ts) → write
 // merged state locally → push the diff. Runs on sign-in, foreground, reconnect
 // (via the host's SyncTriggers), and debounced after local writes. Failures set status and retry on the next
 // trigger — they never surface as exceptions to callers.
 import { insforge } from "./insforge";
 import {
-  mergeJournal, mergeProgress, entryToRow, pruneTombstones,
-  type RemoteJournalRow,
+  mergeJournal,
+  mergeProgress,
+  entryToRow,
+  pruneTombstones,
 } from "./merge";
-import type { LocalProgress } from "../types";
-import { getEntries, getTombstones, replaceAll } from "../journal";
-import { getLocalProgress, replaceLocalProgress, clearLocalProgress } from "../progress";
-import { isDirty, clearDirty, onDirty } from "../syncFlags";
+import type { RemoteJournalRow } from "./merge";
 
 /**
  * What starts a sync pass, per platform. Web wires these to navigator.onLine,
@@ -34,12 +41,20 @@ export function configureSyncTriggers(t: SyncTriggers): void {
 }
 
 function getTriggers(): SyncTriggers {
-  if (!triggers) throw new Error("configureSyncTriggers() must run before sync");
+  if (!triggers) {
+    throw new Error("configureSyncTriggers() must run before sync");
+  }
   return triggers;
 }
 
 export type SyncStatus =
-  | "idle" | "syncing" | "synced" | "offline" | "error" | "signed-out" | "switched-account";
+  | "idle"
+  | "syncing"
+  | "synced"
+  | "offline"
+  | "error"
+  | "signed-out"
+  | "switched-account";
 
 // --- account ownership of the local store -------------------------------
 // localStorage carries no identity of its own. Without a marker, signing out
@@ -49,10 +64,18 @@ export type SyncStatus =
 const OWNER_KEY = "mindfulverse.sync.owner.v1";
 
 export function getSyncOwner(): string | null {
-  try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
 }
 function setSyncOwner(userId: string): void {
-  try { localStorage.setItem(OWNER_KEY, userId); } catch { /* storage full/blocked */ }
+  try {
+    localStorage.setItem(OWNER_KEY, userId);
+  } catch {
+    /* storage full/blocked */
+  }
 }
 
 /** True when this device already holds a *different* account's data. */
@@ -66,7 +89,9 @@ function setStatus(s: SyncStatus): void {
   status = s;
   listeners.forEach((cb) => cb(s));
 }
-export function getSyncStatus(): SyncStatus { return status; }
+export function getSyncStatus(): SyncStatus {
+  return status;
+}
 export function onSyncStatus(cb: (s: SyncStatus) => void): () => void {
   listeners.add(cb);
   return () => listeners.delete(cb);
@@ -75,18 +100,24 @@ export function onSyncStatus(cb: (s: SyncStatus) => void): () => void {
 /** Shared wording for sync status, used on both the Account and Journal/Stats pages. */
 export function statusLabel(s: SyncStatus): string {
   switch (s) {
-    case "synced":
+    case "synced": {
       return "Backed up ✓";
-    case "syncing":
+    }
+    case "syncing": {
       return "Backing up…";
-    case "offline":
+    }
+    case "offline": {
       return "Offline — will sync when you're back";
-    case "error":
+    }
+    case "error": {
       return "Backup hit a snag — will retry";
-    case "switched-account":
+    }
+    case "switched-account": {
       return "This device holds another account's journal — open Account to resolve.";
-    default:
+    }
+    default: {
       return "";
+    }
   }
 }
 
@@ -109,30 +140,51 @@ const PUSH_BATCH_SIZE = 100;
 
 /** A row this device already pushed (PK collision) — not a real failure. */
 function isDuplicateKey(err: unknown): boolean {
-  const e = err as { code?: string | number; statusCode?: number; message?: string } | null;
+  const e = err as {
+    code?: string | number;
+    statusCode?: number;
+    message?: string;
+  } | null;
   const code = String(e?.code ?? "");
-  if (code === "23505" || code === "409" || e?.statusCode === 409) return true;
-  return /duplicate key|already exists|unique constraint|conflict/i.test(e?.message ?? "");
+  if (code === "23505" || code === "409" || e?.statusCode === 409) {
+    return true;
+  }
+  return /duplicate key|already exists|unique constraint|conflict/iu.test(
+    e?.message ?? ""
+  );
 }
 
 export async function syncNow(): Promise<void> {
   // Cleared before the auth check: an explicit call (sign-in, "Sync now") is
   // always allowed to re-test whether somebody is signed in.
   knownSignedOut = false;
-  if (inFlight) return;
+  if (inFlight) {
+    return;
+  }
   inFlight = true;
   try {
-    if (!getTriggers().isOnline()) { setStatus("offline"); return; }
-    const { data: userData, error: authErr } = await insforge.auth.getCurrentUser();
+    if (!getTriggers().isOnline()) {
+      setStatus("offline");
+      return;
+    }
+    const { data: userData, error: authErr } =
+      await insforge.auth.getCurrentUser();
     const userId = userData?.user?.id;
     // An auth error here is indistinguishable from signed-out (a cold load
     // while logged out can surface as a refresh 401) — both mean "cannot
     // sync as a user".
-    if (authErr || !userId) { knownSignedOut = true; setStatus("signed-out"); return; }
+    if (authErr || !userId) {
+      knownSignedOut = true;
+      setStatus("signed-out");
+      return;
+    }
 
     // Another account's data is sitting in localStorage: touch nothing until
     // the user resolves it on /account (resolveOwnerMismatch).
-    if (ownerMismatch(getSyncOwner(), userId)) { setStatus("switched-account"); return; }
+    if (ownerMismatch(getSyncOwner(), userId)) {
+      setStatus("switched-account");
+      return;
+    }
 
     setStatus("syncing");
 
@@ -144,14 +196,21 @@ export async function syncNow(): Promise<void> {
     for (let from = 0; ; from += PULL_PAGE_SIZE) {
       const { data: page, error: pullErr } = await insforge.database
         .from("journal_entries")
-        .select("id, prompt, body, context_kind, context_ref, created_at, deleted_at")
+        .select(
+          "id, prompt, body, context_kind, context_ref, created_at, deleted_at"
+        )
         .eq("user_id", userId) // defense in depth; RLS already scopes this
         .order("created_at", { ascending: false })
         .range(from, from + PULL_PAGE_SIZE - 1);
-      if (pullErr) { setStatus("error"); return; }
+      if (pullErr) {
+        setStatus("error");
+        return;
+      }
       const rows = (page ?? []) as RemoteJournalRow[];
       remoteRows.push(...rows);
-      if (rows.length < PULL_PAGE_SIZE) break;
+      if (rows.length < PULL_PAGE_SIZE) {
+        break;
+      }
     }
     const merged = mergeJournal(getEntries(), getTombstones(), remoteRows);
     replaceAll(merged.entries, merged.tombstones);
@@ -160,13 +219,21 @@ export async function syncNow(): Promise<void> {
     const toInsert = merged.toInsert.map(entryToRow);
     for (let i = 0; i < toInsert.length; i += PUSH_BATCH_SIZE) {
       const batch = toInsert.slice(i, i + PUSH_BATCH_SIZE);
-      const { error } = await insforge.database.from("journal_entries").insert(batch);
-      if (!error) continue;
+      const { error } = await insforge.database
+        .from("journal_entries")
+        .insert(batch);
+      if (!error) {
+        continue;
+      }
       // One bad row must not sink the batch: retry row-by-row and treat
       // duplicate-key failures as "already synced".
       for (const row of batch) {
-        const { error: rowErr } = await insforge.database.from("journal_entries").insert([row]);
-        if (rowErr && !isDuplicateKey(rowErr)) pushFailed = true;
+        const { error: rowErr } = await insforge.database
+          .from("journal_entries")
+          .insert([row]);
+        if (rowErr && !isDuplicateKey(rowErr)) {
+          pushFailed = true;
+        }
       }
     }
     for (const id of merged.toDelete) {
@@ -175,7 +242,9 @@ export async function syncNow(): Promise<void> {
         .from("journal_entries")
         .update({ deleted_at: tomb?.deletedAt ?? Date.now() })
         .eq("id", id);
-      if (error) pushFailed = true;
+      if (error) {
+        pushFailed = true;
+      }
     }
 
     // --- progress ---
@@ -184,37 +253,53 @@ export async function syncNow(): Promise<void> {
       .select("visits, session_progress, surah_tadabbur, last_read")
       .eq("user_id", userId)
       .maybeSingle();
-    if (progErr) { setStatus("error"); return; }
+    if (progErr) {
+      setStatus("error");
+      return;
+    }
     const remoteLp: LocalProgress | null = remoteProgress
       ? {
-          visits: remoteProgress.visits ?? [],
+          lastRead: remoteProgress.last_read ?? null,
           sessionProgress: remoteProgress.session_progress ?? {},
           surahTadabbur: remoteProgress.surah_tadabbur ?? {},
-          lastRead: remoteProgress.last_read ?? null,
+          visits: remoteProgress.visits ?? [],
         }
       : null;
     const mergedProgress = mergeProgress(getLocalProgress(), remoteLp);
     replaceLocalProgress(mergedProgress);
     const row = {
-      visits: mergedProgress.visits,
+      last_read: mergedProgress.lastRead,
       session_progress: mergedProgress.sessionProgress,
       surah_tadabbur: mergedProgress.surahTadabbur,
-      last_read: mergedProgress.lastRead,
+      visits: mergedProgress.visits,
     };
     if (remoteProgress) {
-      const { error } = await insforge.database.from("progress").update(row).eq("user_id", userId);
-      if (error) { setStatus("error"); return; }
+      const { error } = await insforge.database
+        .from("progress")
+        .update(row)
+        .eq("user_id", userId);
+      if (error) {
+        setStatus("error");
+        return;
+      }
     } else {
       const { error } = await insforge.database.from("progress").insert([row]);
-      if (error) { setStatus("error"); return; }
+      if (error) {
+        setStatus("error");
+        return;
+      }
     }
 
-    if (pushFailed) { setStatus("error"); return; }
+    if (pushFailed) {
+      setStatus("error");
+      return;
+    }
 
     // The pull above was exhaustive, so "absent remotely" is trustworthy:
     // retire tombstones older than the TTL whose deletion is confirmed.
     const keptTombstones = pruneTombstones(merged.tombstones, remoteRows, {
-      now: Date.now(), fullPull: true,
+      fullPull: true,
+      now: Date.now(),
     });
     if (keptTombstones.length !== merged.tombstones.length) {
       replaceAll(getEntries(), keptTombstones);
@@ -236,10 +321,16 @@ export async function syncNow(): Promise<void> {
  * - "fresh": wipe this device's journal, tombstones and progress first, so the
  *   new account starts from its own server state only.
  */
-export async function resolveOwnerMismatch(choice: "merge" | "fresh"): Promise<void> {
+export async function resolveOwnerMismatch(
+  choice: "merge" | "fresh"
+): Promise<void> {
   const { data, error } = await insforge.auth.getCurrentUser();
   const userId = data?.user?.id;
-  if (error || !userId) { knownSignedOut = true; setStatus("signed-out"); return; }
+  if (error || !userId) {
+    knownSignedOut = true;
+    setStatus("signed-out");
+    return;
+  }
   if (choice === "fresh") {
     replaceAll([], []);
     clearLocalProgress();
@@ -254,8 +345,18 @@ const debouncedSync = makeDebounced(() => void syncNow(), 3000);
 export function initSync(): void {
   const t = getTriggers();
   onDirty(debouncedSync);
-  t.onOnline(() => { if (!knownSignedOut) void syncNow(); });
-  t.onForeground(() => { if (!knownSignedOut) void syncNow(); });
-  if (isDirty()) debouncedSync();
+  t.onOnline(() => {
+    if (!knownSignedOut) {
+      void syncNow();
+    }
+  });
+  t.onForeground(() => {
+    if (!knownSignedOut) {
+      void syncNow();
+    }
+  });
+  if (isDirty()) {
+    debouncedSync();
+  }
   void syncNow(); // covers the sign-in-then-reload case
 }

@@ -22,9 +22,11 @@ export async function shareVerse(
     }
     await navigator.clipboard.writeText(text);
     return "copied";
-  } catch (err) {
+  } catch (error) {
     // user cancelling the share sheet is not a failure worth surfacing
-    if (err instanceof DOMException && err.name === "AbortError") return "cancelled";
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return "cancelled";
+    }
     try {
       await navigator.clipboard.writeText(text);
       return "copied";

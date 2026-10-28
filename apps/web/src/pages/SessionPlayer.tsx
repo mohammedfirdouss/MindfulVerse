@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { track } from "@mindfulverse/core/analytics";
 import {
   loadSessions,
   loadAyahsByKeys,
@@ -8,14 +7,21 @@ import {
   parseVerseKey,
 } from "@mindfulverse/core/data";
 import { addEntry } from "@mindfulverse/core/journal";
-import FeedbackLink from "../components/FeedbackLink";
-import { track } from "@mindfulverse/core/analytics";
 import {
   getSessionProgress,
   recordSessionComplete,
   recordSessionStep,
 } from "@mindfulverse/core/progress";
-import type { Ayah, SessionStep, TadabburSession } from "@mindfulverse/core/types";
+import type {
+  Ayah,
+  SessionStep,
+  TadabburSession,
+} from "@mindfulverse/core/types";
+import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { Link, useParams } from "react-router-dom";
+
+import FeedbackLink from "../components/FeedbackLink";
 
 // Motion helpers — transform + opacity only, all under 400ms. No index.css edits.
 
@@ -82,19 +88,25 @@ export default function SessionPlayer() {
 
   // SessionFlow names the tab once the session is known.
   useEffect(() => {
-    if (status.kind !== "ready") document.title = "Tadabbur | MindfulVerse";
+    if (status.kind !== "ready") {
+      document.title = "Tadabbur | MindfulVerse";
+    }
   }, [status.kind]);
 
   useEffect(() => {
     let alive = true;
     loadSessions()
       .then((sessions) => {
-        if (!alive) return;
+        if (!alive) {
+          return;
+        }
         const session = sessions.find((s) => s.id === id);
         setStatus(session ? { kind: "ready", session } : { kind: "notfound" });
       })
       .catch(() => {
-        if (alive) setStatus({ kind: "error" });
+        if (alive) {
+          setStatus({ kind: "error" });
+        }
       });
     return () => {
       alive = false;
@@ -184,7 +196,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
 
   function beginSteps(at: number = 0) {
     if (!started) {
-      track({ type: "session_start", sessionId: session.id });
+      track({ sessionId: session.id, type: "session_start" });
       setStarted(true);
     }
     setPhase(at);
@@ -203,7 +215,8 @@ function SessionFlow({ session }: { session: TadabburSession }) {
             <h1>{session.title}</h1>
             <p className="soft">{session.intro}</p>
             <p className="muted" style={{ margin: 0 }}>
-              {stepCount} {stepCount === 1 ? "step" : "steps"}, at your own pace.
+              {stepCount} {stepCount === 1 ? "step" : "steps"}, at your own
+              pace.
             </p>
             {wasCompleted && (
               <p className="muted" style={{ margin: 0 }}>
@@ -213,19 +226,19 @@ function SessionFlow({ session }: { session: TadabburSession }) {
                 You’ve sat with this one before.
               </p>
             )}
-            {resumeStep != null ? (
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {resumeStep == null ? (
+              <div>
+                <button className="btn" onClick={() => beginSteps()}>
+                  Begin
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
                 <button className="btn" onClick={() => beginSteps(resumeStep)}>
                   Continue from step {resumeStep + 1}
                 </button>
                 <button className="btn secondary" onClick={() => beginSteps()}>
                   Start from the beginning
-                </button>
-              </div>
-            ) : (
-              <div>
-                <button className="btn" onClick={() => beginSteps()}>
-                  Begin
                 </button>
               </div>
             )}
@@ -286,7 +299,9 @@ function useSurahNames(): Map<number, string> {
     let alive = true;
     loadSurahs()
       .then((list) => {
-        if (alive) setNames(new Map(list.map((s) => [s.number, s.name])));
+        if (alive) {
+          setNames(new Map(list.map((s) => [s.number, s.name])));
+        }
       })
       .catch(() => {});
     return () => {
@@ -305,10 +320,14 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
     setStatus({ kind: "loading" });
     loadAyahsByKeys(step.verseKeys)
       .then((ayahs) => {
-        if (alive) setStatus({ kind: "ready", ayahs });
+        if (alive) {
+          setStatus({ ayahs, kind: "ready" });
+        }
       })
       .catch(() => {
-        if (alive) setStatus({ kind: "error" });
+        if (alive) {
+          setStatus({ kind: "error" });
+        }
       });
     return () => {
       alive = false;
@@ -346,7 +365,10 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
               reduce={reduce}
               delay={i * 50}
             >
-              <div className="verse" style={{ paddingTop: i === 0 ? 0 : undefined }}>
+              <div
+                className="verse"
+                style={{ paddingTop: i === 0 ? 0 : undefined }}
+              >
                 <div className="verse-head">
                   <span className="roundel">{ayah}</span>
                   <span className="eyebrow">
@@ -369,7 +391,10 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
       {step.reflection && (
         <div
           className="card stack"
-          style={{ background: "var(--surface-2)", borderColor: "var(--line-strong)" }}
+          style={{
+            background: "var(--surface-2)",
+            borderColor: "var(--line-strong)",
+          }}
         >
           <p className="eyebrow" style={{ margin: 0 }}>
             Sit with this
@@ -385,7 +410,10 @@ function StepView({ step, reduce }: { step: SessionStep; reduce: boolean }) {
 
 // Collapsible tafsir for the step's verses
 
-type TafsirEntry = { verseKey: string; text: string };
+interface TafsirEntry {
+  verseKey: string;
+  text: string;
+}
 type TafsirStatus =
   | { kind: "idle" }
   | { kind: "loading" }
@@ -408,7 +436,9 @@ function TafsirExcerpt({ text }: { text: string }) {
   for (const p of paragraphs) {
     excerptCount++;
     chars += p.length;
-    if (chars > 700) break;
+    if (chars > 700) {
+      break;
+    }
   }
   const isTruncated = excerptCount < paragraphs.length;
   const shown = expanded ? paragraphs : paragraphs.slice(0, excerptCount);
@@ -441,22 +471,26 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
   async function toggle() {
     const next = !open;
     setOpen(next);
-    if (!next || (status.kind !== "idle" && status.kind !== "error")) return;
+    if (!next || (status.kind !== "idle" && status.kind !== "error")) {
+      return;
+    }
 
     setStatus({ kind: "loading" });
     try {
-      const surahs = Array.from(
-        new Set(verseKeys.map((vk) => parseVerseKey(vk).surah))
-      );
+      const surahs = [
+        ...new Set(verseKeys.map((vk) => parseVerseKey(vk).surah)),
+      ];
       const maps = await Promise.all(surahs.map((s) => loadSurahTafsir(s)));
       const bySurah = new Map(surahs.map((s, i) => [s, maps[i]]));
       const entries: TafsirEntry[] = [];
       for (const vk of verseKeys) {
         const { surah, ayah } = parseVerseKey(vk);
         const text = bySurah.get(surah)?.[String(ayah)];
-        if (text) entries.push({ verseKey: vk, text });
+        if (text) {
+          entries.push({ text, verseKey: vk });
+        }
       }
-      setStatus({ kind: "ready", entries });
+      setStatus({ entries, kind: "ready" });
     } catch {
       setStatus({ kind: "error" });
     }
@@ -476,9 +510,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
             <p className="muted">The commentary isn’t available right now.</p>
           )}
           {status.kind === "ready" && status.entries.length === 0 && (
-            <p className="muted">
-              There’s no commentary for these verses yet.
-            </p>
+            <p className="muted">There’s no commentary for these verses yet.</p>
           )}
           {status.kind === "ready" &&
             status.entries.map((e) => {
@@ -528,25 +560,32 @@ function FinalScreen({
   // Fire session_complete exactly once when the final screen mounts, and
   // remember the completion locally so the session can be resumed as "done".
   useEffect(() => {
-    track({ type: "session_complete", sessionId: session.id });
+    track({ sessionId: session.id, type: "session_complete" });
     recordSessionComplete(session.id);
   }, [session.id]);
 
-  const canSave = useMemo(() => body.trim().length > 0 && !saved, [body, saved]);
+  const canSave = useMemo(
+    () => body.trim().length > 0 && !saved,
+    [body, saved]
+  );
 
   function save() {
-    if (!canSave) return;
+    if (!canSave) {
+      return;
+    }
     addEntry({
-      prompt: session.journalPrompt,
       body: body.trim(),
       context: { kind: "session", ref: session.id },
+      prompt: session.journalPrompt,
     });
-    track({ type: "journal_save", context: "session" });
+    track({ context: "session", type: "journal_save" });
     setSaved(true);
   }
 
   function tapPay() {
-    if (payTapped) return;
+    if (payTapped) {
+      return;
+    }
     track({ type: "intent_pay_tap", where: "session_end" });
     setPayTapped(true);
   }
@@ -584,14 +623,14 @@ function FinalScreen({
                 placeholder="Write what stayed with you…"
                 rows={6}
                 style={{
-                  width: "100%",
+                  background: "var(--surface)",
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--radius)",
+                  color: "var(--ink)",
                   font: "inherit",
                   padding: 12,
-                  borderRadius: "var(--radius)",
-                  border: "1px solid var(--line)",
-                  background: "var(--surface)",
-                  color: "var(--ink)",
                   resize: "vertical",
+                  width: "100%",
                 }}
               />
               <div>
@@ -608,7 +647,10 @@ function FinalScreen({
       <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
         <div
           className="card stack"
-          style={{ background: "var(--surface-2)", borderColor: "var(--line-strong)" }}
+          style={{
+            background: "var(--surface-2)",
+            borderColor: "var(--line-strong)",
+          }}
         >
           {payTapped ? (
             <p className="soft" style={{ margin: 0 }}>

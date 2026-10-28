@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
-import { ScrollView, View, type ViewStyle } from "react-native";
+import { ScrollView, View } from "react-native";
+import type { ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { space, useTheme } from "../theme";
 import { TopBand } from "./adire";
 
@@ -23,24 +25,28 @@ export function Screen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const padding: ViewStyle = {
+    gap: space.md,
+    paddingBottom: (edges === "none" ? 0 : insets.bottom) + space.xxl,
     paddingHorizontal: space.lg,
     paddingTop: space.lg,
-    paddingBottom: (edges === "none" ? 0 : insets.bottom) + space.xxl,
-    gap: space.md,
   };
   const band = edges === "both" ? <TopBand /> : null;
   if (!scroll) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.cotton }}>
+      <View style={{ backgroundColor: colors.cotton, flex: 1 }}>
         {band}
         <View style={[{ flex: 1 }, padding, contentStyle]}>{children}</View>
       </View>
     );
   }
   return (
-    <View style={{ flex: 1, backgroundColor: colors.cotton }}>
+    <View style={{ backgroundColor: colors.cotton, flex: 1 }}>
       {band}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={[padding, contentStyle]} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[padding, contentStyle]}
+        keyboardShouldPersistTaps="handled"
+      >
         {children}
       </ScrollView>
     </View>

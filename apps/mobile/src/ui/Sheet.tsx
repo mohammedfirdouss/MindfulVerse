@@ -15,6 +15,7 @@
 import type { ReactNode } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { fonts, radius, space, useTheme } from "../theme";
 import { Text } from "./Text";
 
@@ -50,7 +51,15 @@ export function Sheet({
     >
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Pressable
-          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.ink, opacity: 0.4 }}
+          style={{
+            backgroundColor: colors.ink,
+            bottom: 0,
+            left: 0,
+            opacity: 0.4,
+            position: "absolute",
+            right: 0,
+            top: 0,
+          }}
           onPress={onClose}
           accessibilityRole="button"
           accessibilityLabel="Dismiss"
@@ -60,35 +69,39 @@ export function Sheet({
           accessibilityViewIsModal
           accessibilityLabel={label}
           style={{
-            maxHeight: "85%",
             backgroundColor: colors.cottonRaised,
             borderTopLeftRadius: radius.md * 3,
             borderTopRightRadius: radius.md * 3,
+            maxHeight: "85%",
             paddingBottom: Math.max(insets.bottom, space.sm),
           }}
         >
           <View
             style={{
               alignSelf: "center",
-              width: 40,
-              height: 4,
-              borderRadius: 2,
-              marginTop: space.sm,
               backgroundColor: colors.lineStrong,
+              borderRadius: 2,
+              height: 4,
+              marginTop: space.sm,
+              width: 40,
             }}
           />
           <View
             style={{
-              flexDirection: "row",
               alignItems: "center",
+              borderBottomColor: colors.line,
+              borderBottomWidth: 1,
+              flexDirection: "row",
               justifyContent: "space-between",
               paddingLeft: space.lg,
               paddingRight: space.sm,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.line,
             }}
           >
-            <Text variant="eyebrow" style={{ flex: 1 }} accessibilityRole="header">
+            <Text
+              variant="eyebrow"
+              style={{ flex: 1 }}
+              accessibilityRole="header"
+            >
               {title}
             </Text>
             <Pressable
@@ -96,13 +109,33 @@ export function Sheet({
               accessibilityRole="button"
               accessibilityLabel={`Close ${label.charAt(0).toLowerCase()}${label.slice(1)}`}
               hitSlop={8}
-              style={{ minWidth: 48, minHeight: 48, alignItems: "center", justifyContent: "center" }}
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 48,
+                minWidth: 48,
+              }}
             >
-              <Text style={{ fontFamily: fonts.read, fontSize: 20, color: colors.inkSoft }}>✕</Text>
+              <Text
+                style={{
+                  color: colors.inkSoft,
+                  fontFamily: fonts.read,
+                  fontSize: 20,
+                }}
+              >
+                ✕
+              </Text>
             </Pressable>
           </View>
           {scroll ? (
-            <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl }}>{children}</ScrollView>
+            <ScrollView
+              contentContainerStyle={{
+                padding: space.lg,
+                paddingBottom: space.xl,
+              }}
+            >
+              {children}
+            </ScrollView>
           ) : (
             children
           )}

@@ -1,16 +1,31 @@
+import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
+import { getLastRead } from "@mindfulverse/core/progress";
+import type { LastRead } from "@mindfulverse/core/progress";
+import type { Division, SurahMeta } from "@mindfulverse/core/types";
 // Read tab — port of apps/web/src/pages/Reader.tsx: continue-reading card,
 // Surah / Juz browse, search by name or number.
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactElement } from "react";
 import { ActivityIndicator, FlatList, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { loadDivisions, loadSurahs } from "@mindfulverse/core/data";
-import { getLastRead, type LastRead } from "@mindfulverse/core/progress";
-import type { Division, SurahMeta } from "@mindfulverse/core/types";
-import { IndexDivider, JuzRow, SurahRow, verseHref } from "../../src/components/Reader/IndexRows";
+
+import {
+  IndexDivider,
+  JuzRow,
+  SurahRow,
+  verseHref,
+} from "../../src/components/Reader/IndexRows";
 import { Segmented } from "../../src/components/Reader/Segmented";
 import { fonts, radius, space, useTheme } from "../../src/theme";
-import { AdireCloth, Card, LinkPressable, Text, TopBand, useOnCloth } from "../../src/ui";
+import {
+  AdireCloth,
+  Card,
+  LinkPressable,
+  Text,
+  TopBand,
+  useOnCloth,
+} from "../../src/ui";
 import { ChevronIcon } from "../../src/ui/icons";
 
 type Status = "loading" | "ready" | "error";
@@ -39,7 +54,9 @@ export default function Read() {
     setStatus("loading");
     loadSurahs()
       .then((data) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setSurahs(data);
         setStatus("ready");
       })
@@ -52,12 +69,16 @@ export default function Read() {
   // divisions.json loads the first time the Juz tab opens (web: on mount).
   const wantJuz = tab === "juz";
   useEffect(() => {
-    if (!wantJuz || juzList.length > 0) return;
+    if (!wantJuz || juzList.length > 0) {
+      return;
+    }
     let active = true;
     setJuzFailed(false);
     loadDivisions()
       .then((d) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setJuzList(d.juz);
         setHizbList(d.hizb);
       })
@@ -69,12 +90,22 @@ export default function Read() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return surahs;
-    return surahs.filter((s) => s.name.toLowerCase().includes(q) || String(s.number).includes(q));
+    if (!q) {
+      return surahs;
+    }
+    return surahs.filter(
+      (s) => s.name.toLowerCase().includes(q) || String(s.number).includes(q)
+    );
   }, [surahs, query]);
 
-  const names = useMemo(() => new Map(surahs.map((s) => [s.number, s.name])), [surahs]);
-  const nameOf = useCallback((s: number) => names.get(s) ?? `Surah ${s}`, [names]);
+  const names = useMemo(
+    () => new Map(surahs.map((s) => [s.number, s.name])),
+    [surahs]
+  );
+  const nameOf = useCallback(
+    (s: number) => names.get(s) ?? `Surah ${s}`,
+    [names]
+  );
 
   const header = (
     <View style={{ gap: space.md, paddingBottom: space.md }}>
@@ -87,14 +118,34 @@ export default function Read() {
         <LinkPressable
           href={verseHref(lastRead.surah, lastRead.ayah)}
           accessibilityLabel={`Continue reading ${nameOf(lastRead.surah)}, verse ${lastRead.ayah}`}
-          style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.98 : 1 }] })}
+          style={({ pressed }) => ({
+            transform: [{ scale: pressed ? 0.98 : 1 }],
+          })}
         >
-          <AdireCloth style={{ padding: space.lg, flexDirection: "row", alignItems: "center", gap: space.md }}>
+          <AdireCloth
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              gap: space.md,
+              padding: space.lg,
+            }}
+          >
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 20, lineHeight: 27, color: cloth.strong }}>
+              <Text
+                style={{
+                  color: cloth.strong,
+                  fontFamily: fonts.readSemiBold,
+                  fontSize: 20,
+                  lineHeight: 27,
+                }}
+              >
                 {nameOf(lastRead.surah)}
               </Text>
-              <Text style={{ fontSize: 14.5, lineHeight: 20, color: cloth.soft }}>Continue from verse {lastRead.ayah}</Text>
+              <Text
+                style={{ color: cloth.soft, fontSize: 14.5, lineHeight: 20 }}
+              >
+                Continue from verse {lastRead.ayah}
+              </Text>
             </View>
             <ChevronIcon color={cloth.strong} size={22} />
           </AdireCloth>
@@ -107,8 +158,12 @@ export default function Read() {
           value={tab}
           onChange={setTab}
           options={[
-            { key: "surah", label: "Surah", accessibilityLabel: "Browse by surah" },
-            { key: "juz", label: "Juz", accessibilityLabel: "Browse by juz" },
+            {
+              accessibilityLabel: "Browse by surah",
+              key: "surah",
+              label: "Surah",
+            },
+            { accessibilityLabel: "Browse by juz", key: "juz", label: "Juz" },
           ]}
         />
       </View>
@@ -125,15 +180,15 @@ export default function Read() {
           returnKeyType="search"
           clearButtonMode="while-editing"
           style={{
-            paddingVertical: 12,
-            paddingHorizontal: 14,
+            backgroundColor: colors.cottonRaised,
+            borderColor: colors.line,
             borderRadius: radius.md,
             borderWidth: 1,
-            borderColor: colors.line,
-            backgroundColor: colors.cottonRaised,
             color: colors.ink,
             fontFamily: fonts.read,
             fontSize: 17,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
           }}
         />
       ) : null}
@@ -141,21 +196,26 @@ export default function Read() {
   );
 
   const contentStyle = {
+    paddingBottom: insets.bottom + space.xxl,
     paddingHorizontal: space.lg,
     paddingTop: space.lg,
-    paddingBottom: insets.bottom + space.xxl,
   };
 
   let empty: ReactElement | null = null;
   if (tab === "surah") {
-    if (status === "loading") empty = <Loading label="Loading surahs…" />;
-    else if (status === "error")
+    if (status === "loading") {
+      empty = <Loading label="Loading surahs…" />;
+    } else if (status === "error") {
       empty = (
         <Card>
-          <Text variant="muted">Content is being prepared. Please check back soon.</Text>
+          <Text variant="muted">
+            Content is being prepared. Please check back soon.
+          </Text>
         </Card>
       );
-    else empty = <Text variant="muted">No surahs match “{query}”.</Text>;
+    } else {
+      empty = <Text variant="muted">No surahs match “{query}”.</Text>;
+    }
   } else if (juzFailed) {
     empty = (
       <Card>
@@ -167,7 +227,7 @@ export default function Read() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.cotton }}>
+    <View style={{ backgroundColor: colors.cotton, flex: 1 }}>
       <TopBand />
       {tab === "surah" ? (
         <FlatList
@@ -191,7 +251,9 @@ export default function Read() {
           renderItem={({ item }) => (
             <JuzRow
               juz={item}
-              hizbs={hizbList.filter((h) => h.n === item.n * 2 - 1 || h.n === item.n * 2)}
+              hizbs={hizbList.filter(
+                (h) => h.n === item.n * 2 - 1 || h.n === item.n * 2
+              )}
               nameOf={nameOf}
             />
           )}
@@ -209,7 +271,7 @@ export default function Read() {
 function Loading({ label }: { label: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flexDirection: "row", gap: space.sm, alignItems: "center" }}>
+    <View style={{ alignItems: "center", flexDirection: "row", gap: space.sm }}>
       <ActivityIndicator color={colors.indigo} />
       <Text variant="muted">{label}</Text>
     </View>

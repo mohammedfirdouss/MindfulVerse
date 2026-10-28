@@ -1,6 +1,8 @@
 import type { Ayah } from "@mindfulverse/core/types";
+
 import { useShareFeedback } from "../lib/useShareFeedback";
-import { commentaryLabel, coveringFor, type TafsirIndex } from "./Commentary";
+import { commentaryLabel, coveringFor } from "./Commentary";
+import type { TafsirIndex } from "./Commentary";
 
 export default function VerseBlock({
   ayah,
@@ -19,7 +21,11 @@ export default function VerseBlock({
   const share = useShareFeedback("reader");
   const covering = coveringFor(index, ayah);
   return (
-    <article id={id} className={flash ? "verse flash" : "verse"} style={{ scrollMarginTop: 16 }}>
+    <article
+      id={id}
+      className={flash ? "verse flash" : "verse"}
+      style={{ scrollMarginTop: 16 }}
+    >
       <div className="verse-head">
         <span className="roundel">{ayah.ayah}</span>
         <span className="rule" />
@@ -28,7 +34,14 @@ export default function VerseBlock({
         {ayah.arabic}
       </p>
       <p className="translation">{ayah.translation}</p>
-      <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+      <div
+        style={{
+          alignItems: "center",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 18,
+        }}
+      >
         <button
           className="commentary-open"
           disabled={covering === null}
@@ -36,7 +49,10 @@ export default function VerseBlock({
         >
           {commentaryLabel(index, ayah)}
         </button>
-        <button className="commentary-open" onClick={() => void share.share(ayah)}>
+        <button
+          className="commentary-open"
+          onClick={() => void share.share(ayah)}
+        >
           {share.label ?? "Share"}
         </button>
       </div>

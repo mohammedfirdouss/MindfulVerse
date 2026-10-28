@@ -1,7 +1,7 @@
 // Metro config for the monorepo. Expo's default config already watches the
 // repo root and adds both node_modules folders to the lookup path; this file
 // adds two resolver rules on top.
-const path = require("path");
+const path = require("node:path");
 const { getDefaultConfig } = require("expo/metro-config");
 
 const projectRoot = __dirname;
@@ -17,11 +17,17 @@ const config = getDefaultConfig(projectRoot);
 //    resolution, on by default) already dedupes react and react-native; this
 //    rule is the explicit guarantee, and also covers scheduler and the SDK.
 //    `npm run check:bundle` verifies the result on an export.
-const SINGLETONS = ["react", "react-dom", "react-native", "scheduler", "@insforge/sdk"];
+const SINGLETONS = [
+  "react",
+  "react-dom",
+  "react-native",
+  "scheduler",
+  "@insforge/sdk",
+];
 const appOrigin = path.join(projectRoot, "package.json");
 
 function isSingleton(name) {
-  return SINGLETONS.some((p) => name === p || name.startsWith(p + "/"));
+  return SINGLETONS.some((p) => name === p || name.startsWith(`${p}/`));
 }
 
 const upstream = config.resolver.resolveRequest;
@@ -30,10 +36,16 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 
   // 2. @insforge/sdk has `await import("crypto")` on a Node-only branch
   //    (process.versions.node). Metro resolves it statically, so stub it.
-  if (moduleName === "crypto") return { type: "empty" };
+  if (moduleName === "crypto") {
+    return { type: "empty" };
+  }
 
   if (isSingleton(moduleName)) {
-    return resolve({ ...context, originModulePath: appOrigin }, moduleName, platform);
+    return resolve(
+      { ...context, originModulePath: appOrigin },
+      moduleName,
+      platform
+    );
   }
   return resolve(context, moduleName, platform);
 };
@@ -49,10 +61,12 @@ config.resolver.assetExts.push("mvdata");
 syncDataIfStale();
 
 function syncDataIfStale() {
-  const fs = require("fs");
+  const fs = require("node:fs");
   const src = path.resolve(projectRoot, "../web/public/data");
   const manifest = path.join(projectRoot, "assets/data/manifest.js");
-  if (!fs.existsSync(src)) return; // sync-data reports this itself when run
+  if (!fs.existsSync(src)) {
+    return;
+  } // sync-data reports this itself when run
   let stale = !fs.existsSync(manifest);
   if (!stale) {
     const built = fs.statSync(manifest).mtimeMs;
@@ -64,9 +78,13 @@ function syncDataIfStale() {
     stale = fs.statSync(src).mtimeMs > built || walk(src);
   }
   if (stale) {
-    require("child_process").execFileSync(process.execPath, [path.join(projectRoot, "scripts/sync-data.mjs")], {
-      stdio: "inherit",
-    });
+    require("node:child_process").execFileSync(
+      process.execPath,
+      [path.join(projectRoot, "scripts/sync-data.mjs")],
+      {
+        stdio: "inherit",
+      }
+    );
   }
 }
 

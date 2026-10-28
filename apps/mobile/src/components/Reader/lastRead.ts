@@ -18,8 +18,12 @@ export interface RowRange {
 export function topmostRow(rows: Iterable<RowRange>): RowRange | null {
   let best: RowRange | null = null;
   for (const r of rows) {
-    if (!Number.isFinite(r.first) || r.first < 1) continue;
-    if (best === null || r.first < best.first) best = r;
+    if (!Number.isFinite(r.first) || r.first < 1) {
+      continue;
+    }
+    if (best === null || r.first < best.first) {
+      best = r;
+    }
   }
   return best;
 }
@@ -30,8 +34,12 @@ export const LAST_READ_DEBOUNCE_MS = 800;
 export function topmostAyah(visible: Iterable<number>): number | null {
   let best: number | null = null;
   for (const n of visible) {
-    if (!Number.isFinite(n) || n < 1) continue;
-    if (best === null || n < best) best = n;
+    if (!Number.isFinite(n) || n < 1) {
+      continue;
+    }
+    if (best === null || n < best) {
+      best = n;
+    }
   }
   return best;
 }
@@ -42,8 +50,8 @@ export interface Timers {
 }
 
 const realTimers: Timers = {
-  set: (fn, ms) => setTimeout(fn, ms),
   clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
+  set: (fn, ms) => setTimeout(fn, ms),
 };
 
 /** Debounces viewability reports into one record() call per pause in
@@ -52,26 +60,32 @@ const realTimers: Timers = {
 export function createLastReadScheduler(
   record: (ayah: number) => void,
   delayMs: number = LAST_READ_DEBOUNCE_MS,
-  timers: Timers = realTimers,
+  timers: Timers = realTimers
 ) {
   let handle: unknown;
   let pending = false;
   let last: number | null = null;
 
   function cancel() {
-    if (pending) timers.clear(handle);
+    if (pending) {
+      timers.clear(handle);
+    }
     pending = false;
   }
 
   function update(visible: Iterable<RowRange>) {
     cancel();
     const top = topmostRow(visible);
-    if (top === null) return;
+    if (top === null) {
+      return;
+    }
     pending = true;
     handle = timers.set(() => {
       pending = false;
       // Still on the verse already recorded (or the paragraph holding it).
-      if (last !== null && last >= top.first && last <= top.last) return;
+      if (last !== null && last >= top.first && last <= top.last) {
+        return;
+      }
       last = top.first;
       record(top.first);
     }, delayMs);
@@ -83,5 +97,5 @@ export function createLastReadScheduler(
     last = ayah;
   }
 
-  return { update, cancel, noteRecorded };
+  return { cancel, noteRecorded, update };
 }

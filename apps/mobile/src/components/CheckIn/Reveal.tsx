@@ -1,7 +1,9 @@
 // A short arrival for each step of the check-in: opacity plus a 6dp rise in
 // 220ms (web: .ci-reveal). Reduced motion: content simply appears.
-import { useEffect, useRef, type ReactNode } from "react";
-import { Animated, Easing, type ViewStyle } from "react-native";
+import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
+import { Animated, Easing } from "react-native";
+import type { ViewStyle } from "react-native";
 
 export function Reveal({
   reduce,
@@ -21,10 +23,10 @@ export function Reveal({
       return;
     }
     const anim = Animated.timing(t, {
-      toValue: 1,
-      duration: 220,
       delay,
+      duration: 220,
       easing: Easing.out(Easing.cubic),
+      toValue: 1,
       useNativeDriver: true,
     });
     anim.start();
@@ -36,7 +38,14 @@ export function Reveal({
         style,
         {
           opacity: t,
-          transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }],
+          transform: [
+            {
+              translateY: t.interpolate({
+                inputRange: [0, 1],
+                outputRange: [6, 0],
+              }),
+            },
+          ],
         },
       ]}
     >

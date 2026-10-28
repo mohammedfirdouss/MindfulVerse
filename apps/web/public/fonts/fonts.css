@@ -1,45 +1,45 @@
 /* Interface: Outfit (OFL). Long reading: Literata (OFL). Latin subsets, self-hosted. */
 @font-face {
-  font-family: 'Outfit';
+  font-family: "Outfit";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/outfit-regular.woff2) format('woff2');
+  src: url(/fonts/outfit-regular.woff2) format("woff2");
 }
 @font-face {
-  font-family: 'Outfit';
+  font-family: "Outfit";
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(/fonts/outfit-medium.woff2) format('woff2');
+  src: url(/fonts/outfit-medium.woff2) format("woff2");
 }
 @font-face {
-  font-family: 'Outfit';
+  font-family: "Outfit";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(/fonts/outfit-semibold.woff2) format('woff2');
+  src: url(/fonts/outfit-semibold.woff2) format("woff2");
 }
 @font-face {
-  font-family: 'Literata';
+  font-family: "Literata";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/literata-regular.woff2) format('woff2');
+  src: url(/fonts/literata-regular.woff2) format("woff2");
 }
 @font-face {
-  font-family: 'Literata';
+  font-family: "Literata";
   font-style: italic;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/literata-italic.woff2) format('woff2');
+  src: url(/fonts/literata-italic.woff2) format("woff2");
 }
 
 /* KFGQPC Uthmanic Hafs — the Madinah mushaf script (freely distributed by the King Fahd Complex). */
 @font-face {
-  font-family: 'Uthmanic Hafs';
+  font-family: "Uthmanic Hafs";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/uthmanic-hafs.woff2') format('woff2');
+  src: url("/fonts/uthmanic-hafs.woff2") format("woff2");
 }

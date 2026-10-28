@@ -1,4 +1,6 @@
-import { Text as RNText, type TextProps } from "react-native";
+import { Text as RNText } from "react-native";
+import type { TextProps } from "react-native";
+
 import { fonts, type as scale, useTheme } from "../theme";
 
 /** Qur'anic Arabic in KFGQPC Uthmanic Hafs.
@@ -10,17 +12,21 @@ import { fonts, type as scale, useTheme } from "../theme";
  *  - No letterSpacing, ever: it breaks Arabic joining/shaping.
  *  - includeFontPadding stays on (Android default) for the same clipping reason.
  *  `scale` follows the reader size control (readingPrefs.scaleFor). */
-export function ArabicText({ scale: k = 1, style, ...rest }: TextProps & { scale?: number }) {
+export function ArabicText({
+  scale: k = 1,
+  style,
+  ...rest
+}: TextProps & { scale?: number }) {
   const { colors } = useTheme();
   return (
     <RNText
       {...rest}
       style={[
         {
+          color: colors.indigoDeep,
           fontFamily: fonts.arabic,
           fontSize: scale.arabic.fontSize * k,
           lineHeight: scale.arabic.lineHeight * k,
-          color: colors.indigoDeep,
           textAlign: "right",
           writingDirection: "rtl",
         },

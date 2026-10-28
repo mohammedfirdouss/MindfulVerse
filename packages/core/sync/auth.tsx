@@ -2,11 +2,22 @@
 // works in that state. The SDK stores the access token in memory and
 // rehydrates from an httpOnly refresh cookie, so getCurrentUser() must run
 // once on startup — during that round-trip `loading` is true.
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
+
 import { insforge } from "./insforge";
 
-export interface AccountUser { id: string; email: string; name?: string }
+export interface AccountUser {
+  id: string;
+  email: string;
+  name?: string;
+}
 
 interface AccountState {
   user: AccountUser | null;
@@ -15,7 +26,9 @@ interface AccountState {
 }
 
 const AccountContext = createContext<AccountState>({
-  user: null, loading: true, refresh: async () => {},
+  loading: true,
+  refresh: async () => {},
+  user: null,
 });
 
 export function AccountProvider({ children }: { children: ReactNode }) {
@@ -26,16 +39,24 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     const { data, error } = await insforge.auth.getCurrentUser();
     // UserSchema (from @insforge/shared-schemas) has no top-level `name`;
     // display name lives under the nullable `profile` object instead.
-    setUser(error || !data?.user ? null : {
-      id: data.user.id, email: data.user.email, name: data.user.profile?.name ?? undefined,
-    });
+    setUser(
+      error || !data?.user
+        ? null
+        : {
+            email: data.user.email,
+            id: data.user.id,
+            name: data.user.profile?.name ?? undefined,
+          }
+    );
     setLoading(false);
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   return (
-    <AccountContext.Provider value={{ user, loading, refresh }}>
+    <AccountContext.Provider value={{ loading, refresh, user }}>
       {children}
     </AccountContext.Provider>
   );

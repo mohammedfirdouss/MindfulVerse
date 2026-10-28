@@ -6,33 +6,43 @@
 //   - cold start: the response that launched the app (getLastNotificationResponse);
 //   - warm: addNotificationResponseReceivedListener.
 import * as Notifications from "expo-notifications";
-import { router, type Href } from "expo-router";
+import { router } from "expo-router";
+import type { Href } from "expo-router";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 
 // Foreground presentation. shouldShowAlert is deprecated in SDK 57 (F5).
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
 /** Only in-app paths: never let a payload open an arbitrary scheme. */
 export function routeForNotification(data: unknown): string | null {
   const url = (data as { url?: unknown } | null)?.url;
-  if (typeof url !== "string" || !url.startsWith("/") || url.startsWith("//")) return null;
+  if (typeof url !== "string" || !url.startsWith("/") || url.startsWith("//")) {
+    return null;
+  }
   return url;
 }
 
 const handled = new Set<string>();
 
 function open(response: Notifications.NotificationResponse | null): void {
-  if (!response || response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+  if (
+    !response ||
+    response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER
+  ) {
+    return;
+  }
   const id = response.notification.request.identifier;
-  if (handled.has(id)) return; // cold-start response can also reach the listener
+  if (handled.has(id)) {
+    return;
+  } // cold-start response can also reach the listener
   handled.add(id);
   // Forget it natively too: `handled` lives in JS memory, so after a JS reload
   // (dev reload, an update) getLastNotificationResponse() would return the same
@@ -44,13 +54,17 @@ function open(response: Notifications.NotificationResponse | null): void {
     /* not available on this platform */
   }
   const url = routeForNotification(response.notification.request.content.data);
-  if (url) router.push(url as Href);
+  if (url) {
+    router.push(url as Href);
+  }
 }
 
 /** Mount once, inside the root navigator (app/_layout.tsx). */
 export function useNotificationRouting(): void {
   useEffect(() => {
-    if (Platform.OS === "web") return; // the browser design preview has no notifications
+    if (Platform.OS === "web") {
+      return;
+    } // the browser design preview has no notifications
     open(Notifications.getLastNotificationResponse());
     const sub = Notifications.addNotificationResponseReceivedListener(open);
     return () => sub.remove();

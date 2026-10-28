@@ -24,7 +24,7 @@
 ## File Map
 
 | File | Status | Responsibility |
-|---|---|---|
+| --- | --- | --- |
 | `scripts/build-data.mjs` | modify | emit `divisions.json` |
 | `public/data/divisions.json` | generated | juz / hizb / rub / sajdah boundaries |
 | `src/lib/types.ts` | modify | `Division`, `Divisions` types |
@@ -53,12 +53,14 @@
 ### Task 1: Generate `divisions.json`
 
 **Files:**
+
 - Modify: `scripts/build-data.mjs` (inside `main()`, after the `search.json` block, before `// ---- Summary ----`)
 - Modify: `src/lib/types.ts` (append)
 - Create: `src/lib/divisions.data.test.ts`
 - Generated: `public/data/divisions.json`
 
 **Interfaces:**
+
 - Produces: `public/data/divisions.json` shaped as `Divisions`; types `Division`, `Divisions` exported from `src/lib/types.ts`.
 
 - [ ] **Step 1: Add the types** — append to `src/lib/types.ts`:
@@ -86,7 +88,9 @@ export interface Divisions {
 
 ```ts
 import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
+
 import type { Divisions, SurahMeta } from "./types";
 
 function read<T>(file: string): T {
@@ -122,7 +126,8 @@ describe("divisions.json", () => {
     }
     let total = 0;
     for (const j of d.juz) {
-      for (let k: string | null = j.first; k; k = k === j.last ? null : next(k)) total++;
+      for (let k: string | null = j.first; k; k = k === j.last ? null : next(k))
+        total++;
     }
     expect(total).toBe(6236);
   });
@@ -141,63 +146,66 @@ describe("divisions.json", () => {
 
 - [ ] **Step 3: Run it to see it fail**
 
-Run: `npx vitest run src/lib/divisions.data.test.ts`
-Expected: FAIL — `ENOENT ... divisions.json`.
+Run: `npx vitest run src/lib/divisions.data.test.ts` Expected: FAIL — `ENOENT ... divisions.json`.
 
 - [ ] **Step 4: Emit the file** — in `scripts/build-data.mjs`, after the `search.json` block, add:
 
 ```js
-  // ---- divisions.json ----
-  // Juz / hizb / quarter / sajdah boundaries for juz reading and the inline
-  // mushaf marks. `opening` is copied verbatim so the juz list needn't load
-  // surah files just to label its rows.
-  const metadata = (name) =>
-    Object.values(
-      readJSON(path.join(QUL, "Quran metadata", `quran-metadata-${name}.json`)),
-    );
-  const firstWords = (key, n = 3) => {
-    const [s, a] = key.split(":").map(Number);
-    const ayah = bySurah.get(s).find((x) => x.ayah === a);
-    return ayah.arabic.split(/\s+/).slice(0, n).join(" ");
-  };
-  const byNumber = (field) => (x, y) => x[field] - y[field];
-  const divisions = {
-    juz: metadata("juz")
-      .sort(byNumber("juz_number"))
-      .map((j) => ({
-        n: j.juz_number,
-        first: j.first_verse_key,
-        last: j.last_verse_key,
-        opening: firstWords(j.first_verse_key),
-      })),
-    hizb: metadata("hizb")
-      .sort(byNumber("hizb_number"))
-      .map((h) => ({ n: h.hizb_number, first: h.first_verse_key, last: h.last_verse_key })),
-    rub: metadata("rub")
-      .sort(byNumber("rub_number"))
-      .map((r) => r.first_verse_key),
-    sajda: metadata("sajda")
-      .sort(byNumber("sajdah_number"))
-      .map((s) => ({ key: s.verse_key, type: s.sajdah_type })),
-  };
-  fs.writeFileSync(path.join(OUT, "divisions.json"), JSON.stringify(divisions));
+// ---- divisions.json ----
+// Juz / hizb / quarter / sajdah boundaries for juz reading and the inline
+// mushaf marks. `opening` is copied verbatim so the juz list needn't load
+// surah files just to label its rows.
+const metadata = (name) =>
+  Object.values(
+    readJSON(path.join(QUL, "Quran metadata", `quran-metadata-${name}.json`))
+  );
+const firstWords = (key, n = 3) => {
+  const [s, a] = key.split(":").map(Number);
+  const ayah = bySurah.get(s).find((x) => x.ayah === a);
+  return ayah.arabic.split(/\s+/).slice(0, n).join(" ");
+};
+const byNumber = (field) => (x, y) => x[field] - y[field];
+const divisions = {
+  juz: metadata("juz")
+    .sort(byNumber("juz_number"))
+    .map((j) => ({
+      n: j.juz_number,
+      first: j.first_verse_key,
+      last: j.last_verse_key,
+      opening: firstWords(j.first_verse_key),
+    })),
+  hizb: metadata("hizb")
+    .sort(byNumber("hizb_number"))
+    .map((h) => ({
+      n: h.hizb_number,
+      first: h.first_verse_key,
+      last: h.last_verse_key,
+    })),
+  rub: metadata("rub")
+    .sort(byNumber("rub_number"))
+    .map((r) => r.first_verse_key),
+  sajda: metadata("sajda")
+    .sort(byNumber("sajdah_number"))
+    .map((s) => ({ key: s.verse_key, type: s.sajdah_type })),
+};
+fs.writeFileSync(path.join(OUT, "divisions.json"), JSON.stringify(divisions));
 ```
 
 and in the summary block add:
 
 ```js
-  console.log(`divisions:             ${divisions.juz.length} juz, ${divisions.hizb.length} hizb, ${divisions.rub.length} rub, ${divisions.sajda.length} sajdah`);
+console.log(
+  `divisions:             ${divisions.juz.length} juz, ${divisions.hizb.length} hizb, ${divisions.rub.length} rub, ${divisions.sajda.length} sajdah`
+);
 ```
 
 - [ ] **Step 5: Regenerate and check nothing else changed**
 
-Run: `npm run build:data && git status --short public/data`
-Expected: summary prints `divisions: 30 juz, 60 hizb, 240 rub, 15 sajdah`; `git status` shows **only** `?? public/data/divisions.json`. If any other data file shows as modified, stop and report — the build is not deterministic and that must be understood first.
+Run: `npm run build:data && git status --short public/data` Expected: summary prints `divisions: 30 juz, 60 hizb, 240 rub, 15 sajdah`; `git status` shows **only** `?? public/data/divisions.json`. If any other data file shows as modified, stop and report — the build is not deterministic and that must be understood first.
 
 - [ ] **Step 6: Run the test**
 
-Run: `npx vitest run src/lib/divisions.data.test.ts`
-Expected: 4 passed.
+Run: `npx vitest run src/lib/divisions.data.test.ts` Expected: 4 passed.
 
 - [ ] **Step 7: Commit**
 
@@ -211,10 +219,12 @@ git commit -m "feat: generate juz, hizb, quarter and sajdah boundaries"
 ### Task 2: Boundary helpers
 
 **Files:**
+
 - Create: `src/lib/divisions.ts`, `src/lib/divisions.test.ts`
 - Modify: `src/lib/data.ts` (add loader)
 
 **Interfaces:**
+
 - Consumes: `Divisions`, `Division` from `./types`.
 - Produces (all exported from `src/lib/divisions.ts`):
   - `compareKeys(a: string, b: string): number`
@@ -233,7 +243,9 @@ git commit -m "feat: generate juz, hizb, quarter and sajdah boundaries"
 
 ```ts
 import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
+
 import {
   compareKeys,
   hizbOf,
@@ -252,7 +264,9 @@ function read<T>(file: string): T {
   ) as T;
 }
 const d = read<Divisions>("divisions.json");
-const counts = new Map(read<SurahMeta[]>("surahs.json").map((s) => [s.number, s.ayahCount]));
+const counts = new Map(
+  read<SurahMeta[]>("surahs.json").map((s) => [s.number, s.ayahCount])
+);
 
 describe("compareKeys", () => {
   it("orders numerically, not lexically", () => {
@@ -291,7 +305,9 @@ describe("spansInRange", () => {
     expect(spans[36]).toEqual({ surah: 114, from: 1, to: 6 });
   });
   it("handles a range inside one surah", () => {
-    expect(spansInRange("2:142", "2:252", counts)).toEqual([{ surah: 2, from: 142, to: 252 }]);
+    expect(spansInRange("2:142", "2:252", counts)).toEqual([
+      { surah: 2, from: 142, to: 252 },
+    ]);
   });
 });
 
@@ -332,8 +348,7 @@ Note: juz 30 spans surahs 78–114, which is 37 surahs (114 − 78 + 1).
 
 - [ ] **Step 2: Run to see it fail**
 
-Run: `npx vitest run src/lib/divisions.test.ts`
-Expected: FAIL — cannot resolve `./divisions`.
+Run: `npx vitest run src/lib/divisions.test.ts` Expected: FAIL — cannot resolve `./divisions`.
 
 - [ ] **Step 3: Implement** — create `src/lib/divisions.ts`:
 
@@ -381,7 +396,11 @@ export function spansInRange(
   for (let s = fs; s <= ls; s++) {
     const count = ayahCounts.get(s);
     if (!count) continue;
-    spans.push({ surah: s, from: s === fs ? fa : 1, to: s === ls ? la : count });
+    spans.push({
+      surah: s,
+      from: s === fs ? fa : 1,
+      to: s === ls ? la : count,
+    });
   }
   return spans;
 }
@@ -411,7 +430,9 @@ export function verseId(surah: number, ayah: number): string {
 }
 
 /** Reads both "v{ayah}" (surah page translation blocks) and "v{surah}-{ayah}". */
-export function parseVerseId(id: string): { surah: number | null; ayah: number } | null {
+export function parseVerseId(
+  id: string
+): { surah: number | null; ayah: number } | null {
   const m = /^v(?:(\d+)-)?(\d+)$/.exec(id);
   if (!m) return null;
   return { surah: m[1] ? Number(m[1]) : null, ayah: Number(m[2]) };
@@ -427,8 +448,7 @@ export const loadDivisions = () => getJson<Divisions>("/data/divisions.json");
 
 - [ ] **Step 5: Run the tests**
 
-Run: `npx vitest run src/lib/divisions.test.ts && npx tsc -b`
-Expected: all pass, no type errors.
+Run: `npx vitest run src/lib/divisions.test.ts && npx tsc -b` Expected: all pass, no type errors.
 
 - [ ] **Step 6: Commit**
 
@@ -442,10 +462,12 @@ git commit -m "feat: add juz, hizb and verse id helpers"
 ### Task 3: Extract the sheet and commentary (no behaviour change)
 
 **Files:**
+
 - Create: `src/components/Sheet.tsx`, `src/components/Commentary.tsx`
 - Modify: `src/pages/Surah.tsx` — delete `coveringFromIndex` (lines 30–40) and `CommentarySheet` (lines 42–162), replace the tafsir state/logic
 
 **Interfaces:**
+
 - Produces from `src/components/Sheet.tsx`: default export `Sheet(props: { label: string; title: ReactNode; onClose: () => void; children: ReactNode })`.
 - Produces from `src/components/Commentary.tsx`:
   - `type TafsirIndex = Record<string, number[]>`
@@ -512,7 +534,12 @@ export default function Sheet({
   return (
     <>
       <div className="sheet-backdrop" onClick={onClose} />
-      <aside className="sheet" role="dialog" aria-modal="true" aria-label={label}>
+      <aside
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+      >
         <div className="sheet-grip" />
         {/* Compact fixed header — label + close only, so the ✕ is always
             visible and tappable; long content scrolls in the body. */}
@@ -520,7 +547,12 @@ export default function Sheet({
           <p className="eyebrow" style={{ margin: 0 }}>
             {title}
           </p>
-          <button ref={closeRef} className="sheet-close" onClick={onClose} aria-label="Close">
+          <button
+            ref={closeRef}
+            className="sheet-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
             ✕
           </button>
         </div>
@@ -535,6 +567,7 @@ export default function Sheet({
 
 ```tsx
 import { useCallback, useEffect, useState } from "react";
+
 import { loadSurahTafsir } from "../lib/data";
 import type { Ayah, SurahTafsir } from "../lib/types";
 import Sheet from "./Sheet";
@@ -558,7 +591,9 @@ export function commentaryLabel(index: TafsirIndex | null, a: Ayah): string {
   if (!index) return "Commentary isn’t available right now";
   const c = coveringFor(index, a);
   if (c === null) return "No commentary for this verse";
-  return c === a.ayah ? "Read the commentary" : `Read the commentary (with verse ${c})`;
+  return c === a.ayah
+    ? "Read the commentary"
+    : `Read the commentary (with verse ${c})`;
 }
 
 export function commentaryTitle(a: Ayah, source: number): string {
@@ -625,7 +660,8 @@ export function CommentaryBody({
       </p>
       {failed ? (
         <p className="muted">
-          The commentary isn’t available offline yet. Try again when you’re connected.
+          The commentary isn’t available offline yet. Try again when you’re
+          connected.
         </p>
       ) : text === null ? (
         <p className="muted">Opening the commentary…</p>
@@ -635,8 +671,9 @@ export function CommentaryBody({
             <p key={i}>{p}</p>
           ))}
           <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
-            Verse quotations inside the commentary follow its classical English edition,
-            which differs from the ClearQuran translation shown in the reader.
+            Verse quotations inside the commentary follow its classical English
+            edition, which differs from the ClearQuran translation shown in the
+            reader.
           </p>
         </div>
       )}
@@ -679,8 +716,7 @@ export function CommentarySheet({
 
 - [ ] **Step 3: Rewire `Surah.tsx`**
   1. Delete `coveringFromIndex` and the whole `CommentarySheet` function.
-  2. Remove `loadSurahTafsir` from the `../lib/data` import and `SurahTafsir` from the types import; add
-     `import { CommentarySheet, coveringFor, commentaryLabel, useTafsir, type TafsirIndex } from "../components/Commentary";`
+  2. Remove `loadSurahTafsir` from the `../lib/data` import and `SurahTafsir` from the types import; add `import { CommentarySheet, coveringFor, commentaryLabel, useTafsir, type TafsirIndex } from "../components/Commentary";`
   3. Replace the state lines `indexed`, `indexFailed`, `tafsir`, `tafsirFailed`, `tafsirPromise` with:
      ```ts
      const [index, setIndex] = useState<TafsirIndex | null>(null);
@@ -691,21 +727,21 @@ export function CommentarySheet({
   6. Delete `openCovering` / `openText`. In the verse map, replace `const covering = coveringFromIndex(indexed, a.ayah); const direct = covering === a.ayah;` with `const covering = coveringFor(index, a);` and the button's label expression with `{commentaryLabel(index, a)}`.
   7. Replace the sheet at the bottom with:
      ```tsx
-     {openAyah && (
-       <CommentarySheet
-         ayah={openAyah}
-         index={index}
-         tafsir={tafsir}
-         onClose={() => setOpenAyah(null)}
-       />
-     )}
+     {
+       openAyah && (
+         <CommentarySheet
+           ayah={openAyah}
+           index={index}
+           tafsir={tafsir}
+           onClose={() => setOpenAyah(null)}
+         />
+       );
+     }
      ```
 
 - [ ] **Step 4: Verify**
 
-Run: `npx tsc -b && npm test`
-Expected: clean, all tests pass.
-Then `npx vite --port 5199` and in a browser open `http://localhost:5199/read/2`: tap "Read the commentary" on verse 1 → sheet opens with Ibn Kathir text; Escape closes it; browser Back closes it without leaving the page. Stop the server.
+Run: `npx tsc -b && npm test` Expected: clean, all tests pass. Then `npx vite --port 5199` and in a browser open `http://localhost:5199/read/2`: tap "Read the commentary" on verse 1 → sheet opens with Ibn Kathir text; Escape closes it; browser Back closes it without leaving the page. Stop the server.
 
 - [ ] **Step 5: Commit**
 
@@ -719,10 +755,12 @@ git commit -m "refactor: extract the bottom sheet and commentary from the reader
 ### Task 4: Extract the Translation verse block and share feedback
 
 **Files:**
+
 - Create: `src/lib/useShareFeedback.ts`, `src/components/VerseBlock.tsx`
 - Modify: `src/pages/Surah.tsx`
 
 **Interfaces:**
+
 - Consumes: `coveringFor`, `commentaryLabel`, `TafsirIndex` (Task 3).
 - Produces:
   - `useShareFeedback(where: string): { label: string | null; share(a: Ayah): Promise<void> }`
@@ -732,6 +770,7 @@ git commit -m "refactor: extract the bottom sheet and commentary from the reader
 
 ```ts
 import { useEffect, useRef, useState } from "react";
+
 import { shareVerse } from "./share";
 import type { Ayah } from "./types";
 
@@ -778,7 +817,11 @@ export default function VerseBlock({
   const share = useShareFeedback("reader");
   const covering = coveringFor(index, ayah);
   return (
-    <article id={id} className={flash ? "verse flash" : "verse"} style={{ scrollMarginTop: 16 }}>
+    <article
+      id={id}
+      className={flash ? "verse flash" : "verse"}
+      style={{ scrollMarginTop: 16 }}
+    >
       <div className="verse-head">
         <span className="roundel">{ayah.ayah}</span>
         <span className="rule" />
@@ -787,7 +830,14 @@ export default function VerseBlock({
         {ayah.arabic}
       </p>
       <p className="translation">{ayah.translation}</p>
-      <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 18,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
         <button
           className="commentary-open"
           disabled={covering === null}
@@ -795,7 +845,10 @@ export default function VerseBlock({
         >
           {commentaryLabel(index, ayah)}
         </button>
-        <button className="commentary-open" onClick={() => void share.share(ayah)}>
+        <button
+          className="commentary-open"
+          onClick={() => void share.share(ayah)}
+        >
           {share.label ?? "Share"}
         </button>
       </div>
@@ -808,15 +861,17 @@ export default function VerseBlock({
   1. Import `VerseBlock` and delete the `shareVerse` import, the `shared` / `sharedTimer` state, the `useEffect(() => () => window.clearTimeout(sharedTimer.current), [])` line and the `share()` function.
   2. Replace the whole `ayahs.map((a) => { ... })` body with:
      ```tsx
-     {ayahs.map((a) => (
-       <VerseBlock
-         key={a.verseKey}
-         ayah={a}
-         id={`v${a.ayah}`}
-         index={index}
-         onCommentary={setOpenAyah}
-       />
-     ))}
+     {
+       ayahs.map((a) => (
+         <VerseBlock
+           key={a.verseKey}
+           ayah={a}
+           id={`v${a.ayah}`}
+           index={index}
+           onCommentary={setOpenAyah}
+         />
+       ));
+     }
      ```
   3. Remove any imports that are now unused (`tsc -b` will name them).
 
@@ -826,13 +881,15 @@ export default function VerseBlock({
 
 ```css
 /* A deep-linked verse glows briefly so the eye finds where it landed. */
-.verse.flash { background: var(--indigo-wash); transition: background 1.2s ease; }
+.verse.flash {
+  background: var(--indigo-wash);
+  transition: background 1.2s ease;
+}
 ```
 
 - [ ] **Step 5: Verify**
 
-Run: `npx tsc -b && npm test`
-Expected: clean. In the dev server, `/read/2`: Share on a verse shows "Copied ✓" (desktop) and reverts after 2s; commentary still opens.
+Run: `npx tsc -b && npm test` Expected: clean. In the dev server, `/read/2`: Share on a verse shows "Copied ✓" (desktop) and reverts after 2s; commentary still opens.
 
 - [ ] **Step 6: Commit**
 
@@ -846,10 +903,12 @@ git commit -m "refactor: extract the translation verse block from the reader"
 ### Task 5: Reading mode on the surah page
 
 **Files:**
+
 - Create: `src/lib/readingPrefs.ts`, `src/components/ReadingControls.tsx`, `src/lib/useLastReadTracker.ts`, `src/components/ReadingText.tsx`, `src/components/VerseSheet.tsx`
 - Modify: `src/pages/Surah.tsx`, `src/lib/analytics.ts:20`, `src/pages/Stats.tsx` (lines 13, 130–135, 298), `src/index.css`
 
 **Interfaces:**
+
 - Consumes: `Marks`, `makeMarks`, `toArabicDigits`, `verseId`, `parseVerseId` (Task 2); `loadDivisions` (Task 2); `Sheet`, `CommentaryBody`, `commentaryTitle`, `commentaryLabel`, `coveringFor`, `Tafsir`, `TafsirIndex` (Task 3); `useShareFeedback` (Task 4).
 - Produces:
   - `readingPrefs.ts`: `type ReadView = "translation" | "reading"`, `SIZES`, `getReadView(): ReadView`, `saveReadView(v: ReadView): void`, `getSizeKey(): string`, `saveSizeKey(k: string): void`, `scaleFor(k: string): number`
@@ -917,9 +976,7 @@ export function scaleFor(k: string): number {
 
 - [ ] **Step 2: Update analytics and Stats**
   - `src/lib/analytics.ts:20` → `| { type: "read_view"; view: "translation" | "reading" }`
-  - `src/pages/Stats.tsx`: delete `const READ_VIEW_KEY = ...` (line 13); import `getReadView` from `../lib/readingPrefs`; replace the `readView:` expression (lines 132–135) with
-    `readView: getReadView() === "reading" ? "Reading" : "Translation",`
-    and at line 298 replace the `value={...}` with `value={stats.readView}`.
+  - `src/pages/Stats.tsx`: delete `const READ_VIEW_KEY = ...` (line 13); import `getReadView` from `../lib/readingPrefs`; replace the `readView:` expression (lines 132–135) with `readView: getReadView() === "reading" ? "Reading" : "Translation",` and at line 298 replace the `value={...}` with `value={stats.readView}`.
 
 - [ ] **Step 3: Create `src/components/ReadingControls.tsx`** (moved from the controls block in `Surah.tsx`):
 
@@ -938,7 +995,14 @@ export default function ReadingControls({
   onView: (v: ReadView) => void;
 }) {
   return (
-    <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 14,
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
+    >
       <div className="reading-controls" role="group" aria-label="Reading size">
         {SIZES.map((s, i) => (
           <button
@@ -978,6 +1042,7 @@ export default function ReadingControls({
 
 ```ts
 import { useEffect } from "react";
+
 import { parseVerseId } from "./divisions";
 import { recordLastRead } from "./progress";
 
@@ -1013,7 +1078,9 @@ export function useLastReadTracker(
       },
       { rootMargin: "0px 0px -60% 0px" }
     );
-    document.querySelectorAll("article.verse, .rv").forEach((el) => observer.observe(el));
+    document
+      .querySelectorAll("article.verse, .rv")
+      .forEach((el) => observer.observe(el));
     return () => {
       window.clearTimeout(timer);
       observer.disconnect();
@@ -1026,6 +1093,7 @@ export function useLastReadTracker(
 
 ```tsx
 import { Fragment } from "react";
+
 import { toArabicDigits, verseId, type Marks } from "../lib/divisions";
 import type { Ayah } from "../lib/types";
 
@@ -1067,7 +1135,9 @@ export default function ReadingText({
             {headings && (
               <h2 className="reading-surah-name">
                 {surahNames.get(g.surah) ?? `Surah ${g.surah}`}
-                {from > 1 && <span className="muted"> · from verse {from}</span>}
+                {from > 1 && (
+                  <span className="muted"> · from verse {from}</span>
+                )}
               </h2>
             )}
             {from === 1 && g.surah !== 1 && g.surah !== 9 && (
@@ -1116,6 +1186,7 @@ export default function ReadingText({
 ```tsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
+
 import type { Ayah } from "../lib/types";
 import { useShareFeedback } from "../lib/useShareFeedback";
 import {
@@ -1155,7 +1226,11 @@ export default function VerseSheet({
   return (
     <Sheet
       label={`Verse ${ayah.verseKey}`}
-      title={inCommentary ? commentaryTitle(ayah, covering) : `Verse ${ayah.verseKey}`}
+      title={
+        inCommentary
+          ? commentaryTitle(ayah, covering)
+          : `Verse ${ayah.verseKey}`
+      }
       onClose={onClose}
     >
       {inCommentary ? (
@@ -1175,20 +1250,41 @@ export default function VerseSheet({
         </>
       ) : (
         <>
-          <p className="arabic" lang="ar" style={{ fontSize: "1.5rem", lineHeight: 2, margin: "0 0 12px" }}>
+          <p
+            className="arabic"
+            lang="ar"
+            style={{ fontSize: "1.5rem", lineHeight: 2, margin: "0 0 12px" }}
+          >
             {ayah.arabic}
           </p>
           <p className="translation" style={{ margin: "0 0 6px" }}>
             {ayah.translation}
           </p>
-          <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-            <button className="commentary-open" disabled={covering === null} onClick={openCommentary}>
+          <div
+            style={{
+              display: "flex",
+              gap: 18,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              className="commentary-open"
+              disabled={covering === null}
+              onClick={openCommentary}
+            >
               {commentaryLabel(index, ayah)}
             </button>
-            <button className="commentary-open" onClick={() => void share.share(ayah)}>
+            <button
+              className="commentary-open"
+              onClick={() => void share.share(ayah)}
+            >
               {share.label ?? "Share"}
             </button>
-            <Link className="commentary-open" to={`/tadabbur/${ayah.surah}?v=${ayah.ayah}`}>
+            <Link
+              className="commentary-open"
+              to={`/tadabbur/${ayah.surah}?v=${ayah.ayah}`}
+            >
               Reflect on this verse
             </Link>
           </div>
@@ -1203,32 +1299,61 @@ export default function VerseSheet({
 
 ```css
 /* --- Reading mode: flowing mushaf-style text --- */
-.reading { color: var(--indigo-deep); padding-top: 8px; }
-.reading-surah + .reading-surah { margin-top: 30px; }
+.reading {
+  color: var(--indigo-deep);
+  padding-top: 8px;
+}
+.reading-surah + .reading-surah {
+  margin-top: 30px;
+}
 .reading-surah-name {
-  font-family: var(--font-read); font-size: 1.1rem; font-weight: 600;
-  text-align: center; color: var(--indigo);
-  margin: 14px 0 8px; padding-block: 10px;
+  font-family: var(--font-read);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--indigo);
+  margin: 14px 0 8px;
+  padding-block: 10px;
   border-block: 1px solid var(--line);
 }
 .reading-basmalah {
-  font-family: var(--font-arabic); text-align: center;
-  font-size: calc(1.7rem * var(--read-scale, 1)); line-height: 2.2; margin: 6px 0 4px;
+  font-family: var(--font-arabic);
+  text-align: center;
+  font-size: calc(1.7rem * var(--read-scale, 1));
+  line-height: 2.2;
+  margin: 6px 0 4px;
 }
 .reading-text {
   font-family: var(--font-arabic);
-  font-size: calc(1.9rem * var(--read-scale, 1)); line-height: 2.5;
-  text-align: justify; text-align-last: start; margin: 0;
+  font-size: calc(1.9rem * var(--read-scale, 1));
+  line-height: 2.5;
+  text-align: justify;
+  text-align-last: start;
+  margin: 0;
 }
 .rv {
-  cursor: pointer; border-radius: 4px; scroll-margin-top: 24px;
-  -webkit-box-decoration-break: clone; box-decoration-break: clone;
-  transition: background .15s ease;
+  cursor: pointer;
+  border-radius: 4px;
+  scroll-margin-top: 24px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background 0.15s ease;
 }
-.rv:hover, .rv:focus-visible { background: var(--indigo-wash); outline: none; }
-.rv.active { background: var(--indigo-wash); }
-.ayah-end { color: var(--indigo); white-space: nowrap; }
-.reading-rub { color: var(--indigo); }
+.rv:hover,
+.rv:focus-visible {
+  background: var(--indigo-wash);
+  outline: none;
+}
+.rv.active {
+  background: var(--indigo-wash);
+}
+.ayah-end {
+  color: var(--indigo);
+  white-space: nowrap;
+}
+.reading-rub {
+  color: var(--indigo);
+}
 ```
 
 - [ ] **Step 8: Wire Reading mode into `Surah.tsx`**
@@ -1238,9 +1363,16 @@ export default function VerseSheet({
      import ReadingControls from "../components/ReadingControls";
      import ReadingText from "../components/ReadingText";
      import VerseSheet from "../components/VerseSheet";
-     import { loadDivisions } from "../lib/data";   // merge into the existing data import
+     import { loadDivisions } from "../lib/data"; // merge into the existing data import
      import { makeMarks, verseId, type Marks } from "../lib/divisions";
-     import { getReadView, getSizeKey, saveReadView, saveSizeKey, scaleFor, type ReadView } from "../lib/readingPrefs";
+     import {
+       getReadView,
+       getSizeKey,
+       saveReadView,
+       saveSizeKey,
+       scaleFor,
+       type ReadView,
+     } from "../lib/readingPrefs";
      import { useLastReadTracker } from "../lib/useLastReadTracker";
      ```
   3. New state:
@@ -1259,7 +1391,9 @@ export default function VerseSheet({
        if (status !== "ready") return;
        const v = Number(params.get("v"));
        if (!Number.isFinite(v) || v < 1) return;
-       const el = document.getElementById(view === "reading" ? verseId(surahNumber, v) : `v${v}`);
+       const el = document.getElementById(
+         view === "reading" ? verseId(surahNumber, v) : `v${v}`
+       );
        if (!el) return;
        el.scrollIntoView({ block: "start" });
        recordLastRead(surahNumber, v);
@@ -1283,59 +1417,70 @@ export default function VerseSheet({
      }
      ```
   8. Root element: `<div style={{ ["--read-scale" as string]: String(scaleFor(sizeKey)) }}>`.
-  9. In the controls bar, replace the inner `<div style={{ display: "flex", gap: 14 ... }}>…</div>` (both button groups) with
-     `<ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />`.
+  9. In the controls bar, replace the inner `<div style={{ display: "flex", gap: 14 ... }}>…</div>` (both button groups) with `<ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />`.
   10. Replace the `status === "ready"` content block's basmalah + verse list with:
       ```tsx
-      {view === "reading" ? (
-        <ReadingText
-          ayahs={ayahs}
-          marks={marks}
-          surahNames={new Map()}
-          headings={false}
-          activeKey={selected?.verseKey ?? flashKey}
-          onSelect={setSelected}
-        />
-      ) : (
-        <>
-          {surahNumber !== 1 && surahNumber !== 9 && (
-            <p className="arabic" lang="ar" style={{ textAlign: "center", padding: "18px 0 4px" }}>
-              بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-            </p>
-          )}
-          {ayahs.map((a) => (
-            <VerseBlock
-              key={a.verseKey}
-              ayah={a}
-              id={`v${a.ayah}`}
-              index={index}
-              onCommentary={setOpenAyah}
-              flash={flashKey === a.verseKey}
-            />
-          ))}
-        </>
-      )}
+      {
+        view === "reading" ? (
+          <ReadingText
+            ayahs={ayahs}
+            marks={marks}
+            surahNames={new Map()}
+            headings={false}
+            activeKey={selected?.verseKey ?? flashKey}
+            onSelect={setSelected}
+          />
+        ) : (
+          <>
+            {surahNumber !== 1 && surahNumber !== 9 && (
+              <p
+                className="arabic"
+                lang="ar"
+                style={{ textAlign: "center", padding: "18px 0 4px" }}
+              >
+                بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+              </p>
+            )}
+            {ayahs.map((a) => (
+              <VerseBlock
+                key={a.verseKey}
+                ayah={a}
+                id={`v${a.ayah}`}
+                index={index}
+                onCommentary={setOpenAyah}
+                flash={flashKey === a.verseKey}
+              />
+            ))}
+          </>
+        );
+      }
       ```
       (keep the existing "Next surah" block after it).
   11. Next to the `CommentarySheet`, add:
       ```tsx
-      {selected && (
-        <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
-      )}
+      {
+        selected && (
+          <VerseSheet
+            ayah={selected}
+            index={index}
+            tafsir={tafsir}
+            onClose={() => setSelected(null)}
+          />
+        );
+      }
       ```
 
 - [ ] **Step 9: Verify types and tests**
 
-Run: `npx tsc -b && npm test`
-Expected: clean, all pass.
+Run: `npx tsc -b && npm test` Expected: clean, all pass.
 
 - [ ] **Step 10: Check the end-of-ayah mark renders as an ornament**
 
 Start `npx vite --port 5199`, open `/read/1`, choose **Reading**, zoom into the end of verse 1.
+
 - If each verse ends in the decorative ayah medallion with the number inside: done.
 - If it shows plain Arabic-Indic digits: in `ReadingText.tsx` change the marker to `{"۝" + toArabicDigits(a.ayah)}` and re-check.
-- If neither composes into a medallion: use `{"﴿" + toArabicDigits(a.ayah) + "﴾"}` (﴿١﴾).
-Say which variant was used in your task report (not in the commit message, which stays one line).
+- If neither composes into a medallion: use `{"﴿" + toArabicDigits(a.ayah) + "﴾"}` (﴿١﴾). Say which variant was used in your task report (not in the commit message, which stays one line).
 
 - [ ] **Step 11: Manual behaviour check** (dev server)
   - `/read/2` Reading: text flows and justifies; ۞ appears before 2:26; tapping a verse highlights it and opens the verse sheet; "Read the commentary" swaps to commentary inside the sheet and "← Back to the verse" returns; "Reflect on this verse" goes to `/tadabbur/2?v=<n>`.
@@ -1357,10 +1502,12 @@ git commit -m "feat: add a flowing Reading mode to the surah reader"
 ### Task 6: Juz page
 
 **Files:**
+
 - Create: `src/pages/Juz.tsx`
 - Modify: `src/App.tsx` (import + route)
 
 **Interfaces:**
+
 - Consumes: `loadDivisions`, `loadSurahs`, `loadSurahAyahs`, `loadTafsirIndex` (data.ts); `spansInRange`, `makeMarks`, `juzOf`, `verseId`, `Marks` (Task 2); `CommentarySheet`, `useTafsir`, `TafsirIndex` (Task 3); `VerseBlock` (Task 4); `ReadingControls`, `ReadingText`, `VerseSheet`, `readingPrefs`, `useLastReadTracker` (Task 5).
 - Produces: route `/read/juz/:n` with optional `?v=S:A`.
 
@@ -1369,13 +1516,29 @@ git commit -m "feat: add a flowing Reading mode to the surah reader"
 ```tsx
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { CommentarySheet, useTafsir, type TafsirIndex } from "../components/Commentary";
+
+import {
+  CommentarySheet,
+  useTafsir,
+  type TafsirIndex,
+} from "../components/Commentary";
 import ReadingControls from "../components/ReadingControls";
 import ReadingText from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
 import VerseSheet from "../components/VerseSheet";
-import { loadDivisions, loadSurahAyahs, loadSurahs, loadTafsirIndex } from "../lib/data";
-import { juzOf, makeMarks, spansInRange, verseId, type Marks } from "../lib/divisions";
+import {
+  loadDivisions,
+  loadSurahAyahs,
+  loadSurahs,
+  loadTafsirIndex,
+} from "../lib/data";
+import {
+  juzOf,
+  makeMarks,
+  spansInRange,
+  verseId,
+  type Marks,
+} from "../lib/divisions";
 import { recordLastRead } from "../lib/progress";
 import {
   getReadView,
@@ -1401,7 +1564,9 @@ function JuzReader() {
   const juz = Number(n);
   const [params] = useSearchParams();
 
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [range, setRange] = useState<Division | null>(null);
   const [hizbs, setHizbs] = useState<Division[]>([]);
@@ -1440,7 +1605,9 @@ function JuzReader() {
         const slices = await Promise.all(
           spans.map((sp) =>
             loadSurahAyahs(sp.surah)
-              .then((list) => list.filter((a) => a.ayah >= sp.from && a.ayah <= sp.to))
+              .then((list) =>
+                list.filter((a) => a.ayah >= sp.from && a.ayah <= sp.to)
+              )
               .catch(() => null)
           )
         );
@@ -1450,7 +1617,9 @@ function JuzReader() {
         setMarks(makeMarks(divs));
         setSurahNames(new Map(surahs.map((s) => [s.number, s.name])));
         setIndex(idx);
-        setMissing(spans.filter((_, i) => slices[i] === null).map((sp) => sp.surah));
+        setMissing(
+          spans.filter((_, i) => slices[i] === null).map((sp) => sp.surah)
+        );
         setAyahs(slices.flatMap((s) => s ?? []));
         setStatus("ready");
       } catch {
@@ -1521,7 +1690,14 @@ function JuzReader() {
           </p>
         )}
         {hizbs.length > 0 && (
-          <p style={{ margin: "8px 0 0", display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <p
+            style={{
+              margin: "8px 0 0",
+              display: "flex",
+              gap: 16,
+              flexWrap: "wrap",
+            }}
+          >
             {hizbs.map((h) => (
               <Link key={h.n} to={`/read/juz/${juz}?v=${h.first}`} replace>
                 Hizb {h.n}
@@ -1532,8 +1708,19 @@ function JuzReader() {
       </header>
 
       {status === "ready" && (
-        <div style={{ padding: "10px 0 16px", borderBottom: "1px solid var(--line)", marginBottom: 4 }}>
-          <ReadingControls sizeKey={sizeKey} onSize={chooseSize} view={view} onView={chooseView} />
+        <div
+          style={{
+            padding: "10px 0 16px",
+            borderBottom: "1px solid var(--line)",
+            marginBottom: 4,
+          }}
+        >
+          <ReadingControls
+            sizeKey={sizeKey}
+            onSize={chooseSize}
+            view={view}
+            onView={chooseView}
+          />
         </div>
       )}
 
@@ -1542,14 +1729,16 @@ function JuzReader() {
       {status === "error" && (
         <div className="card">
           <p className="soft" style={{ margin: 0 }}>
-            This juz isn’t available right now. Please try again in a little while.
+            This juz isn’t available right now. Please try again in a little
+            while.
           </p>
         </div>
       )}
 
       {status === "ready" && missing.length > 0 && (
         <p className="soft" style={{ fontSize: ".9rem" }}>
-          Part of this juz ({missing.map(name).join(", ")}) couldn’t be loaded right now.
+          Part of this juz ({missing.map(name).join(", ")}) couldn’t be loaded
+          right now.
         </p>
       )}
 
@@ -1570,13 +1759,24 @@ function JuzReader() {
                 <Link to={`/read/${sec.surah}`} style={{ color: "inherit" }}>
                   {name(sec.surah)}
                 </Link>
-                {sec.ayahs[0].ayah > 1 && <span className="muted"> · from verse {sec.ayahs[0].ayah}</span>}
+                {sec.ayahs[0].ayah > 1 && (
+                  <span className="muted">
+                    {" "}
+                    · from verse {sec.ayahs[0].ayah}
+                  </span>
+                )}
               </h2>
-              {sec.ayahs[0].ayah === 1 && sec.surah !== 1 && sec.surah !== 9 && (
-                <p className="arabic" lang="ar" style={{ textAlign: "center", padding: "10px 0 4px" }}>
-                  {BASMALAH}
-                </p>
-              )}
+              {sec.ayahs[0].ayah === 1 &&
+                sec.surah !== 1 &&
+                sec.surah !== 9 && (
+                  <p
+                    className="arabic"
+                    lang="ar"
+                    style={{ textAlign: "center", padding: "10px 0 4px" }}
+                  >
+                    {BASMALAH}
+                  </p>
+                )}
               {sec.ayahs.map((a) => (
                 <VerseBlock
                   key={a.verseKey}
@@ -1600,10 +1800,20 @@ function JuzReader() {
       )}
 
       {selected && (
-        <VerseSheet ayah={selected} index={index} tafsir={tafsir} onClose={() => setSelected(null)} />
+        <VerseSheet
+          ayah={selected}
+          index={index}
+          tafsir={tafsir}
+          onClose={() => setSelected(null)}
+        />
       )}
       {openAyah && (
-        <CommentarySheet ayah={openAyah} index={index} tafsir={tafsir} onClose={() => setOpenAyah(null)} />
+        <CommentarySheet
+          ayah={openAyah}
+          index={index}
+          tafsir={tafsir}
+          onClose={() => setOpenAyah(null)}
+        />
       )}
     </div>
   );
@@ -1619,6 +1829,7 @@ function JuzReader() {
 - [ ] **Step 3: Verify**
 
 Run: `npx tsc -b && npm test`. Then in the dev server:
+
 - `/read/juz/1` — both views; headings "Al-Fatihah" and "Al-Baqarah"; Hizb 1 · Hizb 2 links; "Hizb 2" scrolls to 2:75 and glows; "Next juz" → `/read/juz/2`, whose heading reads "Al-Baqarah · from verse 142".
 - `/read/juz/30` — 37 surah headings, basmalah before each except none duplicated; scrolls smoothly; no "Next juz".
 - `/read/juz/31` — the calm error card.
@@ -1637,9 +1848,11 @@ git commit -m "feat: read the Qur'an by juz with hizb jump points"
 ### Task 7: Surah | Juz tabs on the Read page
 
 **Files:**
+
 - Modify: `src/pages/Reader.tsx`, `src/index.css`
 
 **Interfaces:**
+
 - Consumes: `loadDivisions` (Task 2); `Division` type (Task 1).
 - Produces: `/read?tab=juz` shows the juz list; `/read` (or `?tab=surah`) the surah list.
 
@@ -1682,7 +1895,9 @@ git commit -m "feat: read the Qur'an by juz with hizb jump points"
       className="size-btn"
       aria-selected={tab === t}
       aria-pressed={tab === t}
-      onClick={() => setParams(t === "surah" ? {} : { tab: t }, { replace: true })}
+      onClick={() =>
+        setParams(t === "surah" ? {} : { tab: t }, { replace: true })
+      }
     >
       {t === "surah" ? "Surah" : "Juz"}
     </button>
@@ -1695,47 +1910,58 @@ Wrap the existing `status === "ready"` surah search + list in `{tab === "surah" 
 - [ ] **Step 3: Render the juz list** — below:
 
 ```tsx
-{tab === "juz" && juzFailed && (
-  <div className="card">
-    <p className="muted" style={{ margin: 0 }}>Juz browsing isn’t available right now.</p>
-  </div>
-)}
+{
+  tab === "juz" && juzFailed && (
+    <div className="card">
+      <p className="muted" style={{ margin: 0 }}>
+        Juz browsing isn’t available right now.
+      </p>
+    </div>
+  );
+}
 
-{tab === "juz" && !juzFailed && (
-  <div className="stack">
-    {juzList.map((j) => {
-      const [fs, fa] = j.first.split(":").map(Number);
-      const [ls, la] = j.last.split(":").map(Number);
-      const name = (s: number) => surahs.find((x) => x.number === s)?.name ?? `Surah ${s}`;
-      const hizbs = hizbList.filter((h) => h.n === j.n * 2 - 1 || h.n === j.n * 2);
-      return (
-        <div key={j.n} className="card juz-card">
-          <Link to={`/read/juz/${j.n}`} className="juz-main">
-            <span className="eyebrow juz-num">{j.n}</span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontWeight: 650, display: "block" }}>Juz {j.n}</span>
-              <span className="muted" style={{ fontSize: ".9rem" }}>
-                {name(fs)} {fa} – {name(ls)} {la}
+{
+  tab === "juz" && !juzFailed && (
+    <div className="stack">
+      {juzList.map((j) => {
+        const [fs, fa] = j.first.split(":").map(Number);
+        const [ls, la] = j.last.split(":").map(Number);
+        const name = (s: number) =>
+          surahs.find((x) => x.number === s)?.name ?? `Surah ${s}`;
+        const hizbs = hizbList.filter(
+          (h) => h.n === j.n * 2 - 1 || h.n === j.n * 2
+        );
+        return (
+          <div key={j.n} className="card juz-card">
+            <Link to={`/read/juz/${j.n}`} className="juz-main">
+              <span className="eyebrow juz-num">{j.n}</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontWeight: 650, display: "block" }}>
+                  Juz {j.n}
+                </span>
+                <span className="muted" style={{ fontSize: ".9rem" }}>
+                  {name(fs)} {fa} – {name(ls)} {la}
+                </span>
               </span>
-            </span>
-            {j.opening && (
-              <span className="juz-opening" lang="ar" dir="rtl">
-                {j.opening}
-              </span>
-            )}
-          </Link>
-          <p className="juz-hizbs">
-            {hizbs.map((h) => (
-              <Link key={h.n} to={`/read/juz/${j.n}?v=${h.first}`}>
-                Hizb {h.n}
-              </Link>
-            ))}
-          </p>
-        </div>
-      );
-    })}
-  </div>
-)}
+              {j.opening && (
+                <span className="juz-opening" lang="ar" dir="rtl">
+                  {j.opening}
+                </span>
+              )}
+            </Link>
+            <p className="juz-hizbs">
+              {hizbs.map((h) => (
+                <Link key={h.n} to={`/read/juz/${j.n}?v=${h.first}`}>
+                  Hizb {h.n}
+                </Link>
+              ))}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 ```
 
 (Hizb 2n−1 and 2n belong to juz n — two hizbs per juz; the data test in Task 1 plus Task 2's `hizbOf` tests guard the boundaries.)
@@ -1744,20 +1970,42 @@ Wrap the existing `status === "ready"` surah search + list in `{tab === "surah" 
 
 ```css
 /* --- Read index: juz rows --- */
-.juz-card { display: block; }
-.juz-main { display: flex; align-items: center; gap: 14px; color: var(--ink); }
-.juz-num { min-width: 36px; text-align: center; }
-.juz-opening {
-  font-family: var(--font-arabic); color: var(--indigo-deep);
-  font-size: 1.25rem; line-height: 1.8; flex: none; max-width: 45%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.juz-card {
+  display: block;
 }
-.juz-hizbs { display: flex; gap: 16px; margin: 8px 0 0 50px; font-size: .92rem; }
+.juz-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--ink);
+}
+.juz-num {
+  min-width: 36px;
+  text-align: center;
+}
+.juz-opening {
+  font-family: var(--font-arabic);
+  color: var(--indigo-deep);
+  font-size: 1.25rem;
+  line-height: 1.8;
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juz-hizbs {
+  display: flex;
+  gap: 16px;
+  margin: 8px 0 0 50px;
+  font-size: 0.92rem;
+}
 ```
 
 - [ ] **Step 5: Verify**
 
 Run: `npx tsc -b && npm test`. Dev server:
+
 - `/read` shows Surah tab as before (search works). Tap **Juz** → URL `?tab=juz`, 30 rows with range, Arabic opening words, "Hizb 1 · Hizb 2" … "Hizb 59 · Hizb 60".
 - Open a juz, press "← All juz" or browser Back → returns to the Juz tab.
 - At 390px wide the Arabic opening truncates cleanly; nothing overflows horizontally.
@@ -1775,16 +2023,13 @@ git commit -m "feat: browse the reader by surah or juz"
 
 **Files:** none new in the repo (screenshot script lives in the session scratchpad).
 
-- [ ] **Step 1: Screenshot matrix** — with `npx vite --port 5199` running, write a Playwright script (Playwright is in `node_modules`; import it by absolute path to `node_modules/playwright/index.mjs`) that, for `colorScheme` light and dark (set `localStorage["mindfulverse.theme.v1"]` to `"light"`/`"dark"` via `addInitScript`), at viewports 390×844 and 1200×900, and for `localStorage["mindfulverse.readView.v1"]` = `"translation"` and `"reading"`, visits:
-  `/read`, `/read?tab=juz`, `/read/1`, `/read/2`, `/read/9`, `/read/7?v=206`, `/read/juz/1`, `/read/juz/30`
-  waits 2200 ms (the splash holds ≥1.4 s), takes full-page screenshots, and logs any `pageerror` and whether `document.documentElement.scrollWidth > innerWidth`.
+- [ ] **Step 1: Screenshot matrix** — with `npx vite --port 5199` running, write a Playwright script (Playwright is in `node_modules`; import it by absolute path to `node_modules/playwright/index.mjs`) that, for `colorScheme` light and dark (set `localStorage["mindfulverse.theme.v1"]` to `"light"`/`"dark"` via `addInitScript`), at viewports 390×844 and 1200×900, and for `localStorage["mindfulverse.readView.v1"]` = `"translation"` and `"reading"`, visits: `/read`, `/read?tab=juz`, `/read/1`, `/read/2`, `/read/9`, `/read/7?v=206`, `/read/juz/1`, `/read/juz/30` waits 2200 ms (the splash holds ≥1.4 s), takes full-page screenshots, and logs any `pageerror` and whether `document.documentElement.scrollWidth > innerWidth`.
 
 - [ ] **Step 2: Look at every screenshot** and fix anything sloppy: overflow, clipped Arabic diacritics (raise `.reading-text` line-height), low-contrast marks in dark mode, headings colliding with the theme toggle, uneven spacing between surah sections. Re-run until clean.
 
 - [ ] **Step 3: Full checks**
 
-Run: `npx tsc -b && npm test && npm run build`
-Expected: clean; all tests pass; build succeeds (precache count may rise slightly — `divisions.json` is under `/data`, so it is runtime-cached, not precached).
+Run: `npx tsc -b && npm test && npm run build` Expected: clean; all tests pass; build succeeds (precache count may rise slightly — `divisions.json` is under `/data`, so it is runtime-cached, not precached).
 
 - [ ] **Step 4: Commit any fixes**
 
@@ -1792,4 +2037,5 @@ Expected: clean; all tests pass; build succeeds (precache count may rise slightl
 git add -A src
 git commit -m "fix: polish reading mode and juz layout"
 ```
+
 (Skip if nothing changed. Never `git add` anything under `docs/superpowers/`.)

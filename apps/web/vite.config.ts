@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 // Offline-first PWA. Quran data lives in /public/data and is fetched at runtime,
@@ -13,18 +13,34 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg"],
       manifest: {
+        background_color: "#f4f5f8",
+        description:
+          "Quranic contemplation: tadabbur, daily check-in, journaling.",
+        display: "standalone",
+        icons: [
+          {
+            purpose: "any",
+            sizes: "192x192",
+            src: "mark-v2-192.png",
+            type: "image/png",
+          },
+          {
+            purpose: "any",
+            sizes: "512x512",
+            src: "mark-v2-512.png",
+            type: "image/png",
+          },
+          {
+            purpose: "maskable",
+            sizes: "512x512",
+            src: "mark-v2-512.png",
+            type: "image/png",
+          },
+        ],
         name: "MindfulVerse",
         short_name: "MindfulVerse",
-        description: "Quranic contemplation: tadabbur, daily check-in, journaling.",
-        theme_color: "#2a3a8c",
-        background_color: "#f4f5f8",
-        display: "standalone",
         start_url: "/",
-        icons: [
-          { src: "mark-v2-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-          { src: "mark-v2-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-          { src: "mark-v2-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-        ],
+        theme_color: "#2a3a8c",
       },
       // Custom SW (src/sw.ts) handles precache + /data runtime caching (parity
       // with the previous generateSW config) plus push/notificationclick.

@@ -1,20 +1,27 @@
 // Small presentational pieces of the Account screen: web's .field,
 // .notice-wash, .form-error, .link-btn and .auth-section.
-import { forwardRef, type ReactNode } from "react";
-import { Pressable, TextInput, View, type TextInputProps } from "react-native";
+import { forwardRef } from "react";
+import type { ReactNode } from "react";
+import { Pressable, TextInput, View } from "react-native";
+import type { TextInputProps } from "react-native";
+
 import { fonts, radius, space, type as scale, useTheme } from "../../theme";
 import { Text } from "../../ui";
 
 /** Labelled text input (web's .field). The label is also the input's
  *  accessibility label, so screen readers announce it on focus. */
-export const Field = forwardRef<TextInput, TextInputProps & { label: string; hint?: string }>(function Field(
-  { label, hint, style, ...rest },
-  ref,
-) {
+export const Field = forwardRef<
+  TextInput,
+  TextInputProps & { label: string; hint?: string }
+>(({ label, hint, style, ...rest }, ref) => {
   const { colors } = useTheme();
   return (
     <View style={{ gap: space.xs }}>
-      <Text variant="eyebrow" importantForAccessibility="no" accessibilityElementsHidden>
+      <Text
+        variant="eyebrow"
+        importantForAccessibility="no"
+        accessibilityElementsHidden
+      >
         {label}
       </Text>
       <TextInput
@@ -27,15 +34,15 @@ export const Field = forwardRef<TextInput, TextInputProps & { label: string; hin
         style={[
           {
             ...scale.body,
-            fontFamily: fonts.read,
-            color: colors.ink,
             backgroundColor: colors.cottonRaised,
-            borderWidth: 1,
             borderColor: colors.lineStrong,
             borderRadius: radius.sm,
+            borderWidth: 1,
+            color: colors.ink,
+            fontFamily: fonts.read,
+            minHeight: 48,
             paddingHorizontal: 14,
             paddingVertical: 10,
-            minHeight: 48,
           },
           style,
         ]}
@@ -50,7 +57,12 @@ export function Notice({ children }: { children: ReactNode }) {
   return (
     <View
       accessibilityLiveRegion="polite"
-      style={{ backgroundColor: colors.indigoWash, borderRadius: radius.md, padding: space.md, gap: space.sm }}
+      style={{
+        backgroundColor: colors.indigoWash,
+        borderRadius: radius.md,
+        gap: space.sm,
+        padding: space.md,
+      }}
     >
       {typeof children === "string" ? <Text>{children}</Text> : children}
     </View>
@@ -60,7 +72,9 @@ export function Notice({ children }: { children: ReactNode }) {
 /** Web's .form-error, announced as an alert. */
 export function FormError({ message }: { message: string | null }) {
   const { colors } = useTheme();
-  if (!message) return null;
+  if (!message) {
+    return null;
+  }
   return (
     <Text
       accessibilityRole="alert"
@@ -95,20 +109,48 @@ export function LinkButton({
       disabled={disabled}
       onPress={onPress}
       hitSlop={10}
-      style={({ pressed }) => ({ opacity: disabled ? 0.5 : pressed ? 0.6 : 1, paddingVertical: 4 })}
+      style={({ pressed }) => ({
+        opacity: disabled ? 0.5 : pressed ? 0.6 : 1,
+        paddingVertical: 4,
+      })}
     >
-      <Text style={{ color: danger ? colors.kola : colors.indigo, textDecorationLine: "underline" }}>{title}</Text>
+      <Text
+        style={{
+          color: danger ? colors.kola : colors.indigo,
+          textDecorationLine: "underline",
+        }}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 }
 
 /** Web's .auth-section: a ruled-off block inside the account card. */
-export function Section({ title, children, aside }: { title?: string; children: ReactNode; aside?: string }) {
+export function Section({
+  title,
+  children,
+  aside,
+}: {
+  title?: string;
+  children: ReactNode;
+  aside?: string;
+}) {
   const { colors } = useTheme();
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: colors.line, paddingTop: space.md, gap: space.sm }}>
+    <View
+      style={{
+        borderTopColor: colors.line,
+        borderTopWidth: 1,
+        gap: space.sm,
+        paddingTop: space.md,
+      }}
+    >
       {title ? (
-        <Text accessibilityRole="header" style={{ fontFamily: fonts.readSemiBold }}>
+        <Text
+          accessibilityRole="header"
+          style={{ fontFamily: fonts.readSemiBold }}
+        >
           {title}
           {aside ? <Text variant="soft">{` · ${aside}`}</Text> : null}
         </Text>

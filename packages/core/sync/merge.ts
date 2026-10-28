@@ -4,9 +4,13 @@
 import type { JournalEntry, JournalTombstone, LocalProgress } from "../types";
 
 export interface RemoteJournalRow {
-  id: string; prompt: string; body: string;
-  context_kind: string | null; context_ref: string | null;
-  created_at: number; deleted_at: number | null;
+  id: string;
+  prompt: string;
+  body: string;
+  context_kind: string | null;
+  context_ref: string | null;
+  created_at: number;
+  deleted_at: number | null;
 }
 export interface JournalMergeResult {
   entries: JournalEntry[];
@@ -17,7 +21,10 @@ export interface JournalMergeResult {
 
 export function rowToEntry(row: RemoteJournalRow): JournalEntry {
   const entry: JournalEntry = {
-    id: row.id, createdAt: row.created_at, prompt: row.prompt, body: row.body,
+    body: row.body,
+    createdAt: row.created_at,
+    id: row.id,
+    prompt: row.prompt,
   };
   if (row.context_kind) {
     entry.context = {
@@ -28,34 +35,53 @@ export function rowToEntry(row: RemoteJournalRow): JournalEntry {
   return entry;
 }
 
-export function entryToRow(e: JournalEntry): Omit<RemoteJournalRow, "deleted_at"> {
+export function entryToRow(
+  e: JournalEntry
+): Omit<RemoteJournalRow, "deleted_at"> {
   return {
-    id: e.id, prompt: e.prompt, body: e.body,
-    context_kind: e.context?.kind ?? null, context_ref: e.context?.ref ?? null,
+    body: e.body,
+    context_kind: e.context?.kind ?? null,
+    context_ref: e.context?.ref ?? null,
     created_at: e.createdAt,
+    id: e.id,
+    prompt: e.prompt,
   };
 }
 
 export function mergeJournal(
-  local: JournalEntry[], tombstones: JournalTombstone[], remote: RemoteJournalRow[]
+  local: JournalEntry[],
+  tombstones: JournalTombstone[],
+  remote: RemoteJournalRow[]
 ): JournalMergeResult {
   const dead = new Map(tombstones.map((t) => [t.id, t.deletedAt]));
   for (const row of remote) {
-    if (row.deleted_at != null && !dead.has(row.id)) dead.set(row.id, row.deleted_at);
+    if (row.deleted_at != null && !dead.has(row.id)) {
+      dead.set(row.id, row.deleted_at);
+    }
   }
   const merged = new Map<string, JournalEntry>();
-  for (const e of local) if (!dead.has(e.id)) merged.set(e.id, e);
+  for (const e of local) {
+    if (!dead.has(e.id)) {
+      merged.set(e.id, e);
+    }
+  }
   const remoteIds = new Set<string>();
   for (const row of remote) {
     remoteIds.add(row.id);
-    if (!dead.has(row.id) && !merged.has(row.id)) merged.set(row.id, rowToEntry(row));
+    if (!dead.has(row.id) && !merged.has(row.id)) {
+      merged.set(row.id, rowToEntry(row));
+    }
   }
-  const remoteDeleted = new Set(remote.filter((r) => r.deleted_at != null).map((r) => r.id));
+  const remoteDeleted = new Set(
+    remote.filter((r) => r.deleted_at != null).map((r) => r.id)
+  );
   return {
     entries: [...merged.values()].sort((a, b) => b.createdAt - a.createdAt),
-    tombstones: [...dead].map(([id, deletedAt]) => ({ id, deletedAt })),
+    toDelete: [...dead.keys()].filter(
+      (id) => remoteIds.has(id) && !remoteDeleted.has(id)
+    ),
     toInsert: local.filter((e) => !dead.has(e.id) && !remoteIds.has(e.id)),
-    toDelete: [...dead.keys()].filter((id) => remoteIds.has(id) && !remoteDeleted.has(id)),
+    tombstones: [...dead].map(([id, deletedAt]) => ({ deletedAt, id })),
   };
 }
 
@@ -75,34 +101,59 @@ export function pruneTombstones(
   opts: { now: number; fullPull: boolean }
 ): JournalTombstone[] {
   const remoteIds = new Set(remote.map((r) => r.id));
-  const remoteDeleted = new Set(remote.filter((r) => r.deleted_at != null).map((r) => r.id));
+  const remoteDeleted = new Set(
+    remote.filter((r) => r.deleted_at != null).map((r) => r.id)
+  );
   return tombstones.filter((t) => {
-    if (opts.now - t.deletedAt <= TOMBSTONE_TTL_MS) return true;
-    const confirmed = remoteDeleted.has(t.id) || (opts.fullPull && !remoteIds.has(t.id));
+    if (opts.now - t.deletedAt <= TOMBSTONE_TTL_MS) {
+      return true;
+    }
+    const confirmed =
+      remoteDeleted.has(t.id) || (opts.fullPull && !remoteIds.has(t.id));
     return !confirmed;
   });
 }
 
-export function mergeProgress(local: LocalProgress, remote: LocalProgress | null): LocalProgress {
-  if (!remote) return local;
-  const visits = [...new Set([...local.visits, ...remote.visits])].sort().slice(-366);
+export function mergeProgress(
+  local: LocalProgress,
+  remote: LocalProgress | null
+): LocalProgress {
+  if (!remote) {
+    return local;
+  }
+  const visits = [...new Set([...local.visits, ...remote.visits])]
+    .sort()
+    .slice(-366);
   const sessionProgress: LocalProgress["sessionProgress"] = {};
-  for (const key of new Set([...Object.keys(local.sessionProgress), ...Object.keys(remote.sessionProgress)])) {
-    const a = local.sessionProgress[key], b = remote.sessionProgress[key];
-    const completions = [a?.completedAt, b?.completedAt].filter((x): x is number => x != null);
+  for (const key of new Set([
+    ...Object.keys(local.sessionProgress),
+    ...Object.keys(remote.sessionProgress),
+  ])) {
+    const a = local.sessionProgress[key];
+    const b = remote.sessionProgress[key];
+    const completions = [a?.completedAt, b?.completedAt].filter(
+      (x): x is number => x != null
+    );
     sessionProgress[key] = {
       step: Math.max(a?.step ?? -1, b?.step ?? -1),
       ...(completions.length ? { completedAt: Math.min(...completions) } : {}),
     };
   }
   const surahTadabbur: LocalProgress["surahTadabbur"] = {};
-  for (const key of new Set([...Object.keys(local.surahTadabbur), ...Object.keys(remote.surahTadabbur)])) {
-    const a = local.surahTadabbur[key], b = remote.surahTadabbur[key];
-    surahTadabbur[key] = !a ? b! : !b ? a : a.ayah >= b.ayah ? a : b;
+  for (const key of new Set([
+    ...Object.keys(local.surahTadabbur),
+    ...Object.keys(remote.surahTadabbur),
+  ])) {
+    const a = local.surahTadabbur[key];
+    const b = remote.surahTadabbur[key];
+    surahTadabbur[key] = a ? (b ? (a.ayah >= b.ayah ? a : b) : a) : b!;
   }
-  const lastRead =
-    !local.lastRead ? remote.lastRead :
-    !remote.lastRead ? local.lastRead :
-    local.lastRead.at >= remote.lastRead.at ? local.lastRead : remote.lastRead;
-  return { visits, sessionProgress, surahTadabbur, lastRead };
+  const lastRead = local.lastRead
+    ? remote.lastRead
+      ? local.lastRead.at >= remote.lastRead.at
+        ? local.lastRead
+        : remote.lastRead
+      : local.lastRead
+    : remote.lastRead;
+  return { lastRead, sessionProgress, surahTadabbur, visits };
 }

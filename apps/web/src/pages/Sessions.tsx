@@ -1,5 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { loadSessions, loadSurahs } from "@mindfulverse/core/data";
 import {
   getAllSessionProgress,
@@ -7,6 +5,8 @@ import {
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
 import type { SurahMeta, TadabburSession } from "@mindfulverse/core/types";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 type SessionsStatus =
   | { kind: "loading" }
@@ -22,7 +22,9 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return surahs;
+    if (!q) {
+      return surahs;
+    }
     return surahs.filter(
       (s) => s.name.toLowerCase().includes(q) || String(s.number) === q
     );
@@ -42,20 +44,19 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
         placeholder="Find a surah by name or number"
         aria-label="Find a surah by name or number"
         style={{
-          width: "100%",
-          padding: "10px 12px",
+          background: "var(--surface)",
           border: "1px solid var(--line)",
           borderRadius: "var(--radius)",
-          background: "var(--surface)",
           color: "var(--ink)",
           font: "inherit",
           fontSize: ".95rem",
+          padding: "10px 12px",
+          width: "100%",
         }}
       />
       {visible.length === 0 ? (
         <p className="muted" style={{ margin: 0 }}>
-          No surah matches that. Try a different name or a number from 1 to
-          114.
+          No surah matches that. Try a different name or a number from 1 to 114.
         </p>
       ) : (
         <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -66,12 +67,12 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
                 <Link
                   to={`/tadabbur/${s.number}`}
                   style={{
-                    display: "flex",
                     alignItems: "center",
-                    gap: 12,
-                    color: "inherit",
-                    padding: "10px 0",
                     borderTop: "1px solid var(--line)",
+                    color: "inherit",
+                    display: "flex",
+                    gap: 12,
+                    padding: "10px 0",
                   }}
                 >
                   <span className="roundel">{s.number}</span>
@@ -111,14 +112,20 @@ export default function Sessions() {
     let alive = true;
     loadSessions()
       .then((sessions) => {
-        if (alive) setStatus({ kind: "ready", sessions });
+        if (alive) {
+          setStatus({ kind: "ready", sessions });
+        }
       })
       .catch(() => {
-        if (alive) setStatus({ kind: "error" });
+        if (alive) {
+          setStatus({ kind: "error" });
+        }
       });
     loadSurahs()
       .then((list) => {
-        if (alive) setSurahs(list);
+        if (alive) {
+          setSurahs(list);
+        }
       })
       .catch(() => {});
     return () => {
@@ -127,10 +134,10 @@ export default function Sessions() {
   }, []);
 
   const latestName =
-    latest != null
-      ? (surahs.find((s) => s.number === latest.surah)?.name ??
-        `Surah ${latest.surah}`)
-      : null;
+    latest == null
+      ? null
+      : (surahs.find((s) => s.number === latest.surah)?.name ??
+        `Surah ${latest.surah}`);
 
   return (
     <div className="stack">
@@ -140,7 +147,7 @@ export default function Sessions() {
       </header>
 
       <section className="stack">
-        <h2 style={{ margin: 0, fontWeight: 500 }}>By surah</h2>
+        <h2 style={{ fontWeight: 500, margin: 0 }}>By surah</h2>
         <p className="soft" style={{ margin: 0 }}>
           Learn its background, then move through it verse by verse.
         </p>
@@ -154,7 +161,7 @@ export default function Sessions() {
               <p className="eyebrow" style={{ margin: "0 0 4px" }}>
                 Continue
               </p>
-              <p style={{ margin: 0, fontWeight: 500 }}>
+              <p style={{ fontWeight: 500, margin: 0 }}>
                 {latestName} · verse {latest.ayah}
               </p>
             </div>
@@ -171,7 +178,7 @@ export default function Sessions() {
       </section>
 
       <section className="stack">
-        <h2 style={{ margin: 0, fontWeight: 500 }}>By theme</h2>
+        <h2 style={{ fontWeight: 500, margin: 0 }}>By theme</h2>
         <p className="soft" style={{ margin: 0 }}>
           Short guided reflections. A few verses gathered around one theme.
         </p>
@@ -184,7 +191,7 @@ export default function Sessions() {
 
         {status.kind === "error" && (
           <div className="card stack">
-            <h3 style={{ margin: 0, fontWeight: 500 }}>
+            <h3 style={{ fontWeight: 500, margin: 0 }}>
               We couldn’t reach the sessions
             </h3>
             <p className="muted" style={{ margin: 0 }}>
@@ -197,18 +204,17 @@ export default function Sessions() {
         {status.kind === "ready" &&
           (status.sessions.length === 0 ? (
             <p className="muted" style={{ margin: 0 }}>
-              There are no sessions here yet. More are
-              on the way.
+              There are no sessions here yet. More are on the way.
             </p>
           ) : (
             <ul
               style={{
+                columnGap: 32,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
                 listStyle: "none",
                 margin: 0,
                 padding: 0,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                columnGap: 32,
               }}
             >
               {[...status.sessions]
@@ -216,7 +222,7 @@ export default function Sessions() {
                   const p = progress[s.id];
                   const completed = p?.completedAt != null;
                   const inProgress = !completed && p != null && p.step >= 0;
-                  return { s, completed, inProgress };
+                  return { completed, inProgress, s };
                 })
                 .sort(
                   (a, b) =>
@@ -228,12 +234,12 @@ export default function Sessions() {
                     <Link
                       to={`/sessions/${s.id}`}
                       style={{
-                        display: "flex",
                         alignItems: "baseline",
-                        gap: 12,
-                        color: "inherit",
-                        padding: "12px 0",
                         borderTop: "1px solid var(--line)",
+                        color: "inherit",
+                        display: "flex",
+                        gap: 12,
+                        padding: "12px 0",
                       }}
                     >
                       <span style={{ fontWeight: 500 }}>{s.theme}</span>

@@ -1,7 +1,9 @@
 // Web's FadeRise: opacity + an 8dp rise, 340ms, transform/opacity only.
 // Reduced motion (OS setting): content simply appears.
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AccessibilityInfo, Animated, Easing, type ViewStyle } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { AccessibilityInfo, Animated, Easing } from "react-native";
+import type { ViewStyle } from "react-native";
 
 export function useReducedMotion(): boolean {
   const [reduce, setReduce] = useState(false);
@@ -10,7 +12,10 @@ export function useReducedMotion(): boolean {
     AccessibilityInfo.isReduceMotionEnabled()
       .then((r) => active && setReduce(r))
       .catch(() => {});
-    const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduce);
+    const sub = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged",
+      setReduce
+    );
     return () => {
       active = false;
       sub.remove();
@@ -38,10 +43,10 @@ export function FadeRise({
       return;
     }
     const anim = Animated.timing(t, {
-      toValue: 1,
-      duration: 340,
       delay,
+      duration: 340,
       easing: Easing.out(Easing.cubic),
+      toValue: 1,
       useNativeDriver: true,
     });
     anim.start();
@@ -53,7 +58,14 @@ export function FadeRise({
         style,
         {
           opacity: t,
-          transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+          transform: [
+            {
+              translateY: t.interpolate({
+                inputRange: [0, 1],
+                outputRange: [8, 0],
+              }),
+            },
+          ],
         },
       ]}
     >

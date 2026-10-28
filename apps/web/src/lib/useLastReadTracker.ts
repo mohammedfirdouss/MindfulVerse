@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import { parseVerseId } from "@mindfulverse/core/divisions";
 import { recordLastRead } from "@mindfulverse/core/progress";
+import { useEffect } from "react";
 
 /** The topmost visible verse becomes "last read". Watches both translation
  *  blocks (article.verse) and reading spans (.rv). `fallbackSurah` names the
@@ -11,7 +11,9 @@ export function useLastReadTracker(
   resetKey: unknown
 ): void {
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
     let timer: number | undefined;
     const visible = new Map<string, { surah: number; ayah: number }>();
     const observer = new IntersectionObserver(
@@ -19,22 +21,31 @@ export function useLastReadTracker(
         for (const e of entries) {
           const v = parseVerseId(e.target.id);
           const surah = v?.surah ?? fallbackSurah;
-          if (!v || surah === null) continue;
+          if (!v || surah === null) {
+            continue;
+          }
           const key = `${surah}:${v.ayah}`;
-          if (e.isIntersecting) visible.set(key, { surah, ayah: v.ayah });
-          else visible.delete(key);
+          if (e.isIntersecting) {
+            visible.set(key, { ayah: v.ayah, surah });
+          } else {
+            visible.delete(key);
+          }
         }
         window.clearTimeout(timer);
         timer = window.setTimeout(() => {
           const first = [...visible.values()].sort(
             (a, b) => a.surah - b.surah || a.ayah - b.ayah
           )[0];
-          if (first) recordLastRead(first.surah, first.ayah);
+          if (first) {
+            recordLastRead(first.surah, first.ayah);
+          }
         }, 800);
       },
       { rootMargin: "0px 0px -60% 0px" }
     );
-    document.querySelectorAll("article.verse, .rv").forEach((el) => observer.observe(el));
+    document
+      .querySelectorAll("article.verse, .rv")
+      .forEach((el) => observer.observe(el));
     return () => {
       window.clearTimeout(timer);
       observer.disconnect();

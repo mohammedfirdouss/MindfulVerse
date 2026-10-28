@@ -3,6 +3,7 @@
 // with hour jumps for speed. The readout is an "adjustable" element, so
 // TalkBack/VoiceOver swipe up/down moves it by 15 minutes.
 import { Pressable, View } from "react-native";
+
 import { fonts, radius, space, useTheme } from "../../theme";
 import { Text } from "../../ui";
 import { formatTime, shiftTime, spokenTime, TIME_STEP_MINUTES } from "./logic";
@@ -28,19 +29,21 @@ function StepButton({
       onPress={onPress}
       hitSlop={4}
       style={({ pressed }) => ({
-        minWidth: 48,
-        minHeight: 48,
-        paddingHorizontal: space.sm,
         alignItems: "center",
-        justifyContent: "center",
-        borderWidth: 1,
+        backgroundColor: pressed ? colors.indigoWash : colors.cottonRaised,
         borderColor: colors.lineStrong,
         borderRadius: radius.sm,
-        backgroundColor: pressed ? colors.indigoWash : colors.cottonRaised,
+        borderWidth: 1,
+        justifyContent: "center",
+        minHeight: 48,
+        minWidth: 48,
         opacity: disabled ? 0.5 : 1,
+        paddingHorizontal: space.sm,
       })}
     >
-      <Text style={{ color: colors.indigo, fontSize: 15, lineHeight: 20 }}>{label}</Text>
+      <Text style={{ color: colors.indigo, fontSize: 15, lineHeight: 20 }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -62,7 +65,11 @@ export function TimeStepper({
   return (
     <View style={{ gap: space.sm }}>
       {/* Spoken as part of the adjustable readout below. */}
-      <Text variant="soft" importantForAccessibility="no" accessibilityElementsHidden>
+      <Text
+        variant="soft"
+        importantForAccessibility="no"
+        accessibilityElementsHidden
+      >
         {label}
       </Text>
       <View
@@ -73,19 +80,44 @@ export function TimeStepper({
         accessibilityState={{ disabled: !!disabled }}
         accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
         onAccessibilityAction={(e) => {
-          if (disabled) return;
-          if (e.nativeEvent.actionName === "increment") onChange(shiftTime(value, step));
-          if (e.nativeEvent.actionName === "decrement") onChange(shiftTime(value, -step));
+          if (disabled) {
+            return;
+          }
+          if (e.nativeEvent.actionName === "increment") {
+            onChange(shiftTime(value, step));
+          }
+          if (e.nativeEvent.actionName === "decrement") {
+            onChange(shiftTime(value, -step));
+          }
         }}
       >
-        <Text style={{ fontFamily: fonts.readSemiBold, fontSize: 26, lineHeight: 32, color: colors.indigoDeep }}>
+        <Text
+          style={{
+            color: colors.indigoDeep,
+            fontFamily: fonts.readSemiBold,
+            fontSize: 26,
+            lineHeight: 32,
+          }}
+        >
           {formatTime(value)}
         </Text>
       </View>
       {/* Two pairs, earlier | later; the pairs wrap on very narrow screens. */}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: space.sm }}>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: space.sm,
+          justifyContent: "space-between",
+        }}
+      >
         <View style={{ flexDirection: "row", gap: space.sm }}>
-          <StepButton label="−1 h" a11y="One hour earlier" disabled={disabled} onPress={() => onChange(shiftTime(value, -60))} />
+          <StepButton
+            label="−1 h"
+            a11y="One hour earlier"
+            disabled={disabled}
+            onPress={() => onChange(shiftTime(value, -60))}
+          />
           <StepButton
             label={`−${step} min`}
             a11y={`${step} minutes earlier`}
@@ -100,7 +132,12 @@ export function TimeStepper({
             disabled={disabled}
             onPress={() => onChange(shiftTime(value, step))}
           />
-          <StepButton label="+1 h" a11y="One hour later" disabled={disabled} onPress={() => onChange(shiftTime(value, 60))} />
+          <StepButton
+            label="+1 h"
+            a11y="One hour later"
+            disabled={disabled}
+            onPress={() => onChange(shiftTime(value, 60))}
+          />
         </View>
       </View>
     </View>

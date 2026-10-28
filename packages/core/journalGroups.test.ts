@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { groupEntries, type JournalGroup } from "./journalGroups";
+
+import { groupEntries } from "./journalGroups";
+import type { JournalGroup } from "./journalGroups";
 import type { JournalEntry } from "./types";
 
 function entry(
@@ -7,10 +9,10 @@ function entry(
   createdAt: number,
   context?: JournalEntry["context"]
 ): JournalEntry {
-  return { id, createdAt, prompt: "p", body: "b", context };
+  return { body: "b", context, createdAt, id, prompt: "p" };
 }
 
-describe("groupEntries", () => {
+describe(groupEntries, () => {
   it("clusters verse reflections by surah, sessions by id, the rest under other", () => {
     const groups = groupEntries([
       entry("a", 3, { kind: "checkin", ref: "8:2" }),
@@ -18,13 +20,15 @@ describe("groupEntries", () => {
       entry("c", 1, { kind: "session", ref: "hope-1" }),
       entry("d", 4, { kind: "free" }),
     ]);
-    expect(groups.map((g: JournalGroup) => g.key)).toEqual([
+    expect(groups.map((g: JournalGroup) => g.key)).toStrictEqual([
       "other",
       "surah:8",
       "session:hope-1",
     ]);
     expect(groups.find((g) => g.key === "surah:8")!.surah).toBe(8);
-    expect(groups.find((g) => g.key === "session:hope-1")!.sessionId).toBe("hope-1");
+    expect(groups.find((g) => g.key === "session:hope-1")!.sessionId).toBe(
+      "hope-1"
+    );
   });
 
   it("orders groups by most recent entry, entries inside oldest first", () => {
@@ -33,8 +37,8 @@ describe("groupEntries", () => {
       entry("mid", 5, { kind: "tadabbur", ref: "8:1" }),
       entry("new", 9, { kind: "tadabbur", ref: "8:3" }),
     ]);
-    expect(groups.map((g) => g.key)).toEqual(["surah:8", "surah:2"]);
-    expect(groups[0].entries.map((e) => e.id)).toEqual(["mid", "new"]);
+    expect(groups.map((g) => g.key)).toStrictEqual(["surah:8", "surah:2"]);
+    expect(groups[0].entries.map((e) => e.id)).toStrictEqual(["mid", "new"]);
   });
 
   it("treats a malformed or missing ref as unattributed", () => {
@@ -44,10 +48,10 @@ describe("groupEntries", () => {
     ]);
     expect(groups).toHaveLength(1);
     expect(groups[0].key).toBe("other");
-    expect(groups[0].entries.map((e) => e.id)).toEqual(["a", "b"]);
+    expect(groups[0].entries.map((e) => e.id)).toStrictEqual(["a", "b"]);
   });
 
   it("returns no groups for an empty journal", () => {
-    expect(groupEntries([])).toEqual([]);
+    expect(groupEntries([])).toStrictEqual([]);
   });
 });

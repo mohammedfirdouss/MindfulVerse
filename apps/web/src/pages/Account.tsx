@@ -1,18 +1,32 @@
+import { track } from "@mindfulverse/core/analytics";
+import { useAccount } from "@mindfulverse/core/sync/auth";
+import {
+  getSyncStatus,
+  onSyncStatus,
+  resolveOwnerMismatch,
+  statusLabel,
+  syncNow,
+} from "@mindfulverse/core/sync/engine";
+import type { SyncStatus } from "@mindfulverse/core/sync/engine";
+import { insforge } from "@mindfulverse/core/sync/insforge";
 // /account — optional identity. The whole app works signed-out; an account
 // only backs up your journal and progress across devices.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAccount } from "@mindfulverse/core/sync/auth";
-import { insforge } from "@mindfulverse/core/sync/insforge";
-import {
-  getSyncStatus, onSyncStatus, resolveOwnerMismatch, statusLabel, syncNow, type SyncStatus,
-} from "@mindfulverse/core/sync/engine";
-import { track } from "@mindfulverse/core/analytics";
-import { disableReminder, enableReminder, getReminder, pushSupport, updateReminderTime } from "../lib/push";
-import FeedbackLink from "../components/FeedbackLink";
-import { getTheme, setTheme, type Theme } from "../lib/theme";
 
-const NETWORK_ERROR = "Couldn't reach the server. Check your connection and try again.";
+import FeedbackLink from "../components/FeedbackLink";
+import {
+  disableReminder,
+  enableReminder,
+  getReminder,
+  pushSupport,
+  updateReminderTime,
+} from "../lib/push";
+import { getTheme, setTheme } from "../lib/theme";
+import type { Theme } from "../lib/theme";
+
+const NETWORK_ERROR =
+  "Couldn't reach the server. Check your connection and try again.";
 
 function notificationsBlocked(): boolean {
   return "Notification" in window && Notification.permission === "denied";
@@ -21,10 +35,22 @@ function notificationsBlocked(): boolean {
 function GoogleMark() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
     </svg>
   );
 }
@@ -63,7 +89,7 @@ export default function Account() {
     () =>
       onSyncStatus((s) => {
         if (s !== prevStatus.current && (s === "synced" || s === "error")) {
-          track({ type: "sync_done", ok: s === "synced" });
+          track({ ok: s === "synced", type: "sync_done" });
         }
         prevStatus.current = s;
         setStatus(s);
@@ -80,7 +106,9 @@ export default function Account() {
   }, []);
 
   useEffect(() => {
-    if (!user || pushSupport() !== "ok") return;
+    if (!user || pushSupport() !== "ok") {
+      return;
+    }
     getReminder()
       .then((r) => {
         if (r) {
@@ -101,14 +129,20 @@ export default function Account() {
       if (next) {
         const { error, welcomed } = await enableReminder(reminderTime);
         if (error) {
-          if (notificationsBlocked()) setReminderBlocked(true);
-          else if (error === "Notifications were not allowed.")
-            // Prompt dismissed without choosing — not blocked, so it can be asked again.
-            setReminderError("Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow.");
-          else setReminderError(error);
+          if (notificationsBlocked()) {
+            setReminderBlocked(true);
+          } else if (error === "Notifications were not allowed.")
+          // Prompt dismissed without choosing — not blocked, so it can be asked again.
+          {
+            setReminderError(
+              "Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow."
+            );
+          } else {
+            setReminderError(error);
+          }
           return;
         }
-        track({ type: "reminder_set", enabled: true });
+        track({ enabled: true, type: "reminder_set" });
         setReminderOn(true);
         savedTime.current = reminderTime;
         setReminderNotice(
@@ -118,7 +152,7 @@ export default function Account() {
         );
       } else {
         await disableReminder();
-        track({ type: "reminder_set", enabled: false });
+        track({ enabled: false, type: "reminder_set" });
         setReminderOn(false);
         setReminderNotice(null);
       }
@@ -134,7 +168,9 @@ export default function Account() {
   // Called on blur, not per keystroke: time inputs fire change for each
   // segment edit, and each update would be a racing network write.
   async function commitReminderTime(time: string) {
-    if (!reminderOn || !time || time === savedTime.current) return;
+    if (!reminderOn || !time || time === savedTime.current) {
+      return;
+    }
     setReminderBusy(true);
     setReminderError(null);
     try {
@@ -172,17 +208,22 @@ export default function Account() {
         }
         if (data?.requireEmailVerification) {
           setPendingVerification(true);
-          setNotice("Check your email for a 6-digit code, then enter it below.");
+          setNotice(
+            "Check your email for a 6-digit code, then enter it below."
+          );
           return;
         }
-        track({ type: "account_signup", method: "password" });
+        track({ method: "password", type: "account_signup" });
       } else {
-        const { error } = await insforge.auth.signInWithPassword({ email, password });
+        const { error } = await insforge.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) {
           setNotice(null);
           return setError(error.message);
         }
-        track({ type: "account_signin", method: "password" });
+        track({ method: "password", type: "account_signin" });
       }
       await refresh();
       await syncNow();
@@ -205,7 +246,7 @@ export default function Account() {
         setNotice(null);
         return setError(error.message);
       }
-      track({ type: "account_signup", method: "password" });
+      track({ method: "password", type: "account_signup" });
       setPendingVerification(false);
       setOtp("");
       await refresh();
@@ -220,7 +261,7 @@ export default function Account() {
   }
 
   async function google() {
-    track({ type: "account_signin", method: "google" });
+    track({ method: "google", type: "account_signin" });
     await insforge.auth.signInWithOAuth("google", {
       redirectTo: `${window.location.origin}/account`,
     });
@@ -232,7 +273,9 @@ export default function Account() {
         "Start fresh? This removes the journal entries and progress stored on this device. " +
           "Anything already backed up to the other account stays safe there."
       );
-      if (!sure) return;
+      if (!sure) {
+        return;
+      }
     }
     setBusy(true);
     try {
@@ -258,23 +301,35 @@ export default function Account() {
     await insforge.auth.signOut();
     track({ type: "account_signout" });
     await refresh();
-    setNotice("Signed out. Your entries stay on this device but are no longer backed up.");
+    setNotice(
+      "Signed out. Your entries stay on this device but are no longer backed up."
+    );
   }
 
   async function deleteMyData() {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
     const sure = window.confirm(
       "Delete all synced data from your account? Entries on this device are kept."
     );
-    if (!sure) return;
+    if (!sure) {
+      return;
+    }
     setBusy(true);
     try {
       // Only sign out once every delete succeeded — signing out on a partial
       // failure would strand data the user believes is gone.
       const results = await Promise.all([
-        insforge.database.from("journal_entries").delete().eq("user_id", user.id),
+        insforge.database
+          .from("journal_entries")
+          .delete()
+          .eq("user_id", user.id),
         insforge.database.from("progress").delete().eq("user_id", user.id),
-        insforge.database.from("push_subscriptions").delete().eq("user_id", user.id),
+        insforge.database
+          .from("push_subscriptions")
+          .delete()
+          .eq("user_id", user.id),
       ]);
       if (results.some((r) => r.error)) {
         setNotice(null);
@@ -295,7 +350,9 @@ export default function Account() {
           <h1>Your account</h1>
         </header>
         <div className="auth-card">
-          <p className="soft" style={{ margin: 0 }}>Loading…</p>
+          <p className="soft" style={{ margin: 0 }}>
+            Loading…
+          </p>
         </div>
       </div>
     );
@@ -305,7 +362,11 @@ export default function Account() {
     <div className="stack">
       <header>
         <h1>
-          {user ? "Your account" : mode === "signup" ? "Create account" : "Sign in"}
+          {user
+            ? "Your account"
+            : mode === "signup"
+              ? "Create account"
+              : "Sign in"}
         </h1>
       </header>
 
@@ -315,7 +376,225 @@ export default function Account() {
         </div>
       )}
 
-      {!user ? (
+      {user ? (
+        <div className="auth-card stack">
+          <div>
+            <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
+              {user.name ?? user.email}
+            </div>
+            {user.name && (
+              <div className="soft" style={{ fontSize: ".9rem" }}>
+                {user.email}
+              </div>
+            )}
+          </div>
+
+          {statusLabel(status) && (
+            <p className="soft" style={{ margin: 0 }}>
+              {statusLabel(status)}
+            </p>
+          )}
+
+          {status === "switched-account" && (
+            <div className="notice-wash stack">
+              <p className="soft" style={{ margin: 0 }}>
+                The journal entries and progress saved on this device were
+                written while a different account was signed in. Nothing is
+                being backed up until you choose what should happen to them.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={busy}
+                  onClick={() => void resolveSwitch("merge")}
+                >
+                  Merge into this account
+                </button>
+                <button
+                  type="button"
+                  className="btn secondary"
+                  disabled={busy}
+                  onClick={() => void resolveSwitch("fresh")}
+                >
+                  Start fresh on this device
+                </button>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="form-error">{error}</p>}
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() => void syncNow()}
+              disabled={status === "syncing"}
+            >
+              Sync now
+            </button>
+            <Link to="/journal" className="btn secondary">
+              Export journal
+            </Link>
+          </div>
+
+          <div className="auth-section stack">
+            <div>
+              <div style={{ fontWeight: 600 }}>
+                Daily verse reminder
+                {reminderOn && <span className="soft"> · On</span>}
+              </div>
+              {!reminderOn && (
+                <p className="soft" style={{ margin: "4px 0 0" }}>
+                  Get today&rsquo;s verse as a notification on this phone or
+                  computer, at a time you choose. Tap it to open your check-in.
+                </p>
+              )}
+            </div>
+            {pushSupport() === "needs-install" && (
+              <ol className="soft" style={{ margin: 0, paddingLeft: 20 }}>
+                <li>
+                  Tap <strong>Share</strong> in Safari.
+                </li>
+                <li>
+                  Choose <strong>Add to Home Screen</strong>.
+                </li>
+                <li>
+                  Open MindfulVerse from your Home Screen and come back here to
+                  turn on the reminder.
+                </li>
+              </ol>
+            )}
+            {pushSupport() === "unsupported" && (
+              <p className="soft" style={{ margin: 0 }}>
+                This browser can&rsquo;t show notifications. Try Chrome, Edge,
+                Firefox or Safari, on a computer or phone.
+              </p>
+            )}
+            {pushSupport() === "ok" && reminderBlocked && !reminderOn && (
+              <p className="soft" style={{ margin: 0 }}>
+                Notifications are blocked for MindfulVerse in this browser. To
+                turn them on, open your browser&rsquo;s site settings (the icon
+                left of the address bar), allow Notifications, then reload this
+                page.
+              </p>
+            )}
+            {pushSupport() === "ok" && !reminderBlocked && !reminderOn && (
+              <>
+                <div
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 12,
+                  }}
+                >
+                  <label
+                    htmlFor="reminder-time"
+                    style={{ alignItems: "center", display: "flex", gap: 8 }}
+                  >
+                    <span>Remind me at</span>
+                    <input
+                      id="reminder-time"
+                      type="time"
+                      step={900}
+                      className="field-input"
+                      value={reminderTime}
+                      onChange={(e) => setReminderTime(e.target.value)}
+                      style={{ width: "auto" }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={reminderBusy || !reminderTime}
+                    onClick={() => void toggleReminder(true)}
+                  >
+                    {reminderBusy ? "Turning on…" : "Turn on reminder"}
+                  </button>
+                </div>
+                <p className="soft" style={{ fontSize: ".9rem", margin: 0 }}>
+                  Your browser will ask to allow notifications. Choose Allow.
+                </p>
+              </>
+            )}
+            {pushSupport() === "ok" && reminderOn && (
+              <>
+                <div
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 12,
+                  }}
+                >
+                  <label
+                    htmlFor="reminder-time"
+                    style={{ alignItems: "center", display: "flex", gap: 8 }}
+                  >
+                    <span>Every day at</span>
+                    <input
+                      id="reminder-time"
+                      type="time"
+                      step={900}
+                      className="field-input"
+                      value={reminderTime}
+                      onChange={(e) => setReminderTime(e.target.value)}
+                      onBlur={(e) => void commitReminderTime(e.target.value)}
+                      style={{ width: "auto" }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="link-btn"
+                    disabled={reminderBusy}
+                    onClick={() => void toggleReminder(false)}
+                  >
+                    Turn off
+                  </button>
+                </div>
+                <p className="soft" style={{ fontSize: ".9rem", margin: 0 }}>
+                  Set per device. On a computer, it arrives while your browser
+                  is open.
+                </p>
+              </>
+            )}
+            {reminderNotice && (
+              <p className="soft" style={{ margin: 0 }}>
+                {reminderNotice}
+              </p>
+            )}
+            {reminderError && <p className="form-error">{reminderError}</p>}
+          </div>
+
+          <div className="auth-section">
+            <FeedbackLink subject="About my MindfulVerse account" />
+          </div>
+
+          <div className="auth-section">
+            <button type="button" className="btn ghost" onClick={signOut}>
+              Sign out
+            </button>
+          </div>
+
+          <div className="auth-section">
+            <p className="soft" style={{ fontSize: ".9rem", marginTop: 0 }}>
+              Deleting removes your journal and progress from your account.
+              Entries already on this device are kept.
+            </p>
+            <button
+              type="button"
+              className="btn ghost"
+              style={{ color: "var(--kola)" }}
+              onClick={deleteMyData}
+              disabled={busy}
+            >
+              Delete my data
+            </button>
+          </div>
+        </div>
+      ) : (
         <div className="auth-card stack">
           {pendingVerification ? (
             <form className="stack" onSubmit={submitCode}>
@@ -337,10 +616,18 @@ export default function Account() {
                 />
               </label>
               {error && <p className="form-error">{error}</p>}
-              <button className="btn" type="submit" disabled={busy} style={{ width: "100%" }}>
+              <button
+                className="btn"
+                type="submit"
+                disabled={busy}
+                style={{ width: "100%" }}
+              >
                 {busy ? "Verifying…" : "Verify & sign in"}
               </button>
-              <p className="soft" style={{ margin: 0, textAlign: "center", fontSize: ".95rem" }}>
+              <p
+                className="soft"
+                style={{ fontSize: ".95rem", margin: 0, textAlign: "center" }}
+              >
                 <button
                   type="button"
                   className="link-btn"
@@ -379,37 +666,57 @@ export default function Account() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                    placeholder={mode === "signup" ? "At least 6 characters" : ""}
+                    autoComplete={
+                      mode === "signup" ? "new-password" : "current-password"
+                    }
+                    placeholder={
+                      mode === "signup" ? "At least 6 characters" : ""
+                    }
                     required
                   />
                 </label>
                 {error && <p className="form-error">{error}</p>}
-                <button className="btn" type="submit" disabled={busy} style={{ width: "100%" }}>
+                <button
+                  className="btn"
+                  type="submit"
+                  disabled={busy}
+                  style={{ width: "100%" }}
+                >
                   {busy
                     ? "Please wait…"
                     : mode === "signup"
                       ? "Create account"
                       : "Sign in"}
                 </button>
-                <p className="soft" style={{ margin: 0, textAlign: "center", fontSize: ".95rem" }}>
+                <p
+                  className="soft"
+                  style={{ fontSize: ".95rem", margin: 0, textAlign: "center" }}
+                >
                   {mode === "signin" ? (
                     <>
                       New here?{" "}
-                      <button type="button" className="link-btn" onClick={() => {
+                      <button
+                        type="button"
+                        className="link-btn"
+                        onClick={() => {
                           setMode("signup");
                           setError(null);
-                        }}>
+                        }}
+                      >
                         Create an account
                       </button>
                     </>
                   ) : (
                     <>
                       Already have an account?{" "}
-                      <button type="button" className="link-btn" onClick={() => {
+                      <button
+                        type="button"
+                        className="link-btn"
+                        onClick={() => {
                           setMode("signin");
                           setError(null);
-                        }}>
+                        }}
+                      >
                         Sign in
                       </button>
                     </>
@@ -434,187 +741,6 @@ export default function Account() {
             </>
           )}
         </div>
-      ) : (
-        <div className="auth-card stack">
-          <div>
-            <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>{user.name ?? user.email}</div>
-            {user.name && <div className="soft" style={{ fontSize: ".9rem" }}>{user.email}</div>}
-          </div>
-
-          {statusLabel(status) && (
-            <p className="soft" style={{ margin: 0 }}>{statusLabel(status)}</p>
-          )}
-
-          {status === "switched-account" && (
-            <div className="notice-wash stack">
-              <p className="soft" style={{ margin: 0 }}>
-                The journal entries and progress saved on this device were written
-                while a different account was signed in. Nothing is being backed up
-                until you choose what should happen to them.
-              </p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={busy}
-                  onClick={() => void resolveSwitch("merge")}
-                >
-                  Merge into this account
-                </button>
-                <button
-                  type="button"
-                  className="btn secondary"
-                  disabled={busy}
-                  onClick={() => void resolveSwitch("fresh")}
-                >
-                  Start fresh on this device
-                </button>
-              </div>
-            </div>
-          )}
-
-          {error && <p className="form-error">{error}</p>}
-
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={() => void syncNow()}
-              disabled={status === "syncing"}
-            >
-              Sync now
-            </button>
-            <Link to="/journal" className="btn secondary">
-              Export journal
-            </Link>
-          </div>
-
-          <div className="auth-section stack">
-            <div>
-              <div style={{ fontWeight: 600 }}>
-                Daily verse reminder{reminderOn && <span className="soft"> · On</span>}
-              </div>
-              {!reminderOn && (
-                <p className="soft" style={{ margin: "4px 0 0" }}>
-                  Get today&rsquo;s verse as a notification on this phone or computer, at a
-                  time you choose. Tap it to open your check-in.
-                </p>
-              )}
-            </div>
-            {pushSupport() === "needs-install" && (
-              <ol className="soft" style={{ margin: 0, paddingLeft: 20 }}>
-                <li>Tap <strong>Share</strong> in Safari.</li>
-                <li>Choose <strong>Add to Home Screen</strong>.</li>
-                <li>
-                  Open MindfulVerse from your Home Screen and come back here to turn on
-                  the reminder.
-                </li>
-              </ol>
-            )}
-            {pushSupport() === "unsupported" && (
-              <p className="soft" style={{ margin: 0 }}>
-                This browser can&rsquo;t show notifications. Try Chrome, Edge, Firefox or
-                Safari, on a computer or phone.
-              </p>
-            )}
-            {pushSupport() === "ok" && reminderBlocked && !reminderOn && (
-              <p className="soft" style={{ margin: 0 }}>
-                Notifications are blocked for MindfulVerse in this browser. To turn them
-                on, open your browser&rsquo;s site settings (the icon left of the address
-                bar), allow Notifications, then reload this page.
-              </p>
-            )}
-            {pushSupport() === "ok" && !reminderBlocked && !reminderOn && (
-              <>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <label htmlFor="reminder-time" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span>Remind me at</span>
-                    <input
-                      id="reminder-time"
-                      type="time"
-                      step={900}
-                      className="field-input"
-                      value={reminderTime}
-                      onChange={(e) => setReminderTime(e.target.value)}
-                      style={{ width: "auto" }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={reminderBusy || !reminderTime}
-                    onClick={() => void toggleReminder(true)}
-                  >
-                    {reminderBusy ? "Turning on…" : "Turn on reminder"}
-                  </button>
-                </div>
-                <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
-                  Your browser will ask to allow notifications. Choose Allow.
-                </p>
-              </>
-            )}
-            {pushSupport() === "ok" && reminderOn && (
-              <>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <label htmlFor="reminder-time" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span>Every day at</span>
-                    <input
-                      id="reminder-time"
-                      type="time"
-                      step={900}
-                      className="field-input"
-                      value={reminderTime}
-                      onChange={(e) => setReminderTime(e.target.value)}
-                      onBlur={(e) => void commitReminderTime(e.target.value)}
-                      style={{ width: "auto" }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="link-btn"
-                    disabled={reminderBusy}
-                    onClick={() => void toggleReminder(false)}
-                  >
-                    Turn off
-                  </button>
-                </div>
-                <p className="soft" style={{ margin: 0, fontSize: ".9rem" }}>
-                  Set per device. On a computer, it arrives while your browser is open.
-                </p>
-              </>
-            )}
-            {reminderNotice && (
-              <p className="soft" style={{ margin: 0 }}>{reminderNotice}</p>
-            )}
-            {reminderError && <p className="form-error">{reminderError}</p>}
-          </div>
-
-          <div className="auth-section">
-            <FeedbackLink subject="About my MindfulVerse account" />
-          </div>
-
-          <div className="auth-section">
-            <button type="button" className="btn ghost" onClick={signOut}>
-              Sign out
-            </button>
-          </div>
-
-          <div className="auth-section">
-            <p className="soft" style={{ marginTop: 0, fontSize: ".9rem" }}>
-              Deleting removes your journal and progress from your account.
-              Entries already on this device are kept.
-            </p>
-            <button
-              type="button"
-              className="btn ghost"
-              style={{ color: "var(--kola)" }}
-              onClick={deleteMyData}
-              disabled={busy}
-            >
-              Delete my data
-            </button>
-          </div>
-        </div>
       )}
 
       <Appearance />
@@ -631,15 +757,23 @@ function Appearance() {
   };
   return (
     <section className="auth-section stack" aria-labelledby="appearance-title">
-      <h2 id="appearance-title" style={{ fontSize: "1.1rem" }}>Appearance</h2>
-      <div className="appearance-choices" role="radiogroup" aria-labelledby="appearance-title">
+      <h2 id="appearance-title" style={{ fontSize: "1.1rem" }}>
+        Appearance
+      </h2>
+      <div
+        className="appearance-choices"
+        role="radiogroup"
+        aria-labelledby="appearance-title"
+      >
         {(["light", "dark"] as const).map((t) => (
           <button
             key={t}
             type="button"
             role="radio"
             aria-checked={theme === t}
-            className={theme === t ? "appearance-choice on" : "appearance-choice"}
+            className={
+              theme === t ? "appearance-choice on" : "appearance-choice"
+            }
             onClick={() => choose(t)}
           >
             {t === "light" ? "Light" : "Night"}

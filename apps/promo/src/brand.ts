@@ -4,25 +4,25 @@ import { staticFile } from "remotion";
 
 export const C = {
   cotton: "#f4f5f8",
-  raised: "#fcfcfd",
   indigo: "#2a3a8c",
   indigoDeep: "#1b2559",
-  wash: "#e3e7f4",
   ink: "#161a2e",
-  inkSoft: "#474d66",
   inkFaint: "#666c85",
+  inkSoft: "#474d66",
   line: "#c9cedc",
   night: "#12141d",
-  nightRaised: "#191c28",
-  nightInk: "#e8eaf2",
-  nightSoft: "#8b91a8",
   nightIndigo: "#b5c2ef",
+  nightInk: "#e8eaf2",
+  nightRaised: "#191c28",
+  nightSoft: "#8b91a8",
+  raised: "#fcfcfd",
+  wash: "#e3e7f4",
 };
 
 export const F = {
-  ui: "Outfit, sans-serif",
-  text: "Literata, serif",
   arabic: "UthmanicHafs, serif",
+  text: "Literata, serif",
+  ui: "Outfit, sans-serif",
 };
 
 const face = (family: string, file: string, weight = 400) =>
@@ -44,9 +44,16 @@ export function clothTile(ink: string, opacity = 0.13, s = 88): string {
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><g fill="none" stroke="${ink}" stroke-width="2.4" opacity="${opacity}">` +
     `<path d="M${m} ${m - d}L${m + d} ${m}L${m} ${m + d}L${m - d} ${m}Z"/>` +
-    `<path d="M${m} ${m - d2}L${m + d2} ${m}L${m} ${m + d2}L${m - d2} ${m}Z" fill="${ink}" stroke="none"/>` +
-    [[0, 0], [s, 0], [0, s], [s, s]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("") +
-    `<path d="M${m - 6} 0H${m + 6}M${m - 6} ${s}H${m + 6}M0 ${m - 6}V${m + 6}M${s} ${m - 6}V${m + 6}" stroke-linecap="round"/>` +
+    `<path d="M${m} ${m - d2}L${m + d2} ${m}L${m} ${m + d2}L${m - d2} ${m}Z" fill="${ink}" stroke="none"/>${[
+      [0, 0],
+      [s, 0],
+      [0, s],
+      [s, s],
+    ]
+      .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`)
+      .join(
+        ""
+      )}<path d="M${m - 6} 0H${m + 6}M${m - 6} ${s}H${m + 6}M0 ${m - 6}V${m + 6}M${s} ${m - 6}V${m + 6}" stroke-linecap="round"/>` +
     `</g></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }

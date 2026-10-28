@@ -2,9 +2,15 @@
 // imports here so vitest can run it under the root `npm test`.
 
 export function greeting(hour: number): string {
-  if (hour < 5) return "Peace be upon you tonight";
-  if (hour < 12) return "Peace be upon you this morning";
-  if (hour < 18) return "Peace be upon you today";
+  if (hour < 5) {
+    return "Peace be upon you tonight";
+  }
+  if (hour < 12) {
+    return "Peace be upon you this morning";
+  }
+  if (hour < 18) {
+    return "Peace be upon you today";
+  }
   return "Peace be upon you this evening";
 }
 
@@ -21,11 +27,14 @@ export interface VersePos {
 /** Where tadabbur continues. Web falls back to /sessions (the surah picker),
  *  which is deferred on native, so a first tadabbur begins at Al-Fatihah. */
 export function tadabburTarget(deeper: VersePos | null): VersePos {
-  return deeper ?? { surah: 1, ayah: 1 };
+  return deeper ?? { ayah: 1, surah: 1 };
 }
 
 /** The tadabbur button label once today's check-in is saved. */
-export function deeperLabel(deeper: VersePos | null, surahNames: Map<number, string>): string {
+export function deeperLabel(
+  deeper: VersePos | null,
+  surahNames: Map<number, string>
+): string {
   return deeper
     ? `Continue ${surahNames.get(deeper.surah) ?? `Surah ${deeper.surah}`}`
     : "Begin tadabbur";

@@ -4,9 +4,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import Database from "better-sqlite3";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = import.meta.dirname;
 const ROOT = path.resolve(__dirname, "..");
 const QUL = path.join(ROOT, "QUL copy");
 const OUT = path.join(ROOT, "apps", "web", "public", "data");
@@ -21,22 +22,28 @@ function resolveFile(expected) {
     throw new Error(`Source not found: ${expected}`);
   }
   const stat = fs.statSync(expected);
-  if (stat.isFile()) return expected;
+  if (stat.isFile()) {
+    return expected;
+  }
   if (stat.isDirectory()) {
     const inner = path.join(expected, path.basename(expected));
-    if (fs.existsSync(inner) && fs.statSync(inner).isFile()) return inner;
+    if (fs.existsSync(inner) && fs.statSync(inner).isFile()) {
+      return inner;
+    }
     // Fall back to the sole file inside the directory.
     const entries = fs
       .readdirSync(expected)
       .filter((e) => fs.statSync(path.join(expected, e)).isFile());
-    if (entries.length === 1) return path.join(expected, entries[0]);
+    if (entries.length === 1) {
+      return path.join(expected, entries[0]);
+    }
     throw new Error(`Could not resolve file inside directory: ${expected}`);
   }
   throw new Error(`Unexpected node type: ${expected}`);
 }
 
 function readJSON(expected) {
-  return JSON.parse(fs.readFileSync(resolveFile(expected), "utf8"));
+  return JSON.parse(fs.readFileSync(resolveFile(expected), "utf-8"));
 }
 
 /**
@@ -48,36 +55,41 @@ function readJSON(expected) {
  * - collapse runs of whitespace but preserve paragraph breaks (\n\n)
  */
 function stripHtml(html) {
-  if (html == null) return "";
+  if (html == null) {
+    return "";
+  }
   let s = String(html);
   // Convert closing block tags to paragraph separators.
-  s = s.replace(/<\/(p|div|h[1-6]|li|ul|ol|blockquote|tr|table)>/gi, "\n\n");
+  s = s.replaceAll(
+    /<\/(p|div|h[1-6]|li|ul|ol|blockquote|tr|table)>/giu,
+    "\n\n"
+  );
   // <br> and opening list items -> newline.
-  s = s.replace(/<br\s*\/?>/gi, "\n");
-  s = s.replace(/<li[^>]*>/gi, "\n- ");
+  s = s.replaceAll(/<br\s*\/?>/giu, "\n");
+  s = s.replaceAll(/<li[^>]*>/giu, "\n- ");
   // Remove all remaining tags.
-  s = s.replace(/<[^>]+>/g, "");
+  s = s.replaceAll(/<[^>]+>/gu, "");
   // Decode common named + numeric entities.
   s = s
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#0*39;/gi, "'")
-    .replace(/&apos;/gi, "'")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&#x2f;/gi, "/")
-    .replace(/&#(\d+);/g, (_, d) => {
+    .replaceAll(/&nbsp;/giu, " ")
+    .replaceAll(/&amp;/giu, "&")
+    .replaceAll(/&quot;/giu, '"')
+    .replaceAll(/&#0*39;/giu, "'")
+    .replaceAll(/&apos;/giu, "'")
+    .replaceAll(/&lt;/giu, "<")
+    .replaceAll(/&gt;/giu, ">")
+    .replaceAll(/&#x2f;/giu, "/")
+    .replaceAll(/&#(\d+);/gu, (_, d) => {
       const cp = Number(d);
       return Number.isFinite(cp) ? String.fromCodePoint(cp) : _;
     });
   // Normalize newlines: collapse 3+ into exactly 2 (paragraph break).
   // First, trim spaces on each line and drop spaces around newlines.
-  s = s.replace(/[ \t]*\n[ \t]*/g, "\n");
+  s = s.replaceAll(/[ \t]*\n[ \t]*/gu, "\n");
   // Collapse horizontal whitespace runs within lines.
-  s = s.replace(/[ \t]{2,}/g, " ");
+  s = s.replaceAll(/[ \t]{2,}/gu, " ");
   // Collapse 3+ newlines to 2.
-  s = s.replace(/\n{3,}/g, "\n\n");
+  s = s.replaceAll(/\n{3,}/gu, "\n\n");
   return s.trim();
 }
 
@@ -94,16 +106,20 @@ function ensureDir(dir) {
  * resolved are left as-is rather than dropped.
  */
 function swapEmbeddedTranslations(html, surah, trByKey) {
-  if (html == null) return html;
-  return String(html).replace(
-    /<p class="en translation"[^>]*>([\s\S]*?)<\/p>/gi,
+  if (html == null) {
+    return html;
+  }
+  return String(html).replaceAll(
+    /<p class="en translation"[^>]*>([\s\S]*?)<\/p>/giu,
     (match, inner) => {
-      const nums = [...inner.matchAll(/\((\d{1,3})\)/g)];
-      const last = nums.length ? Number(nums[nums.length - 1][1]) : NaN;
+      const nums = [...inner.matchAll(/\((\d{1,3})\)/gu)];
+      const last = nums.length ? Number(nums.at(-1)[1]) : Number.NaN;
       const itani = trByKey.get(`${surah}:${last}`);
-      if (!itani) return match;
+      if (!itani) {
+        return match;
+      }
       return `<p>${itani.trim()} (${surah}:${last})</p>`;
-    },
+    }
   );
 }
 
@@ -115,13 +131,13 @@ function main() {
 
   // ---- Load sources ----
   const ayahMeta = readJSON(
-    path.join(QUL, "Quran metadata", "quran-metadata-ayah.json"),
+    path.join(QUL, "Quran metadata", "quran-metadata-ayah.json")
   );
   const surahNames = readJSON(
-    path.join(QUL, "Quran metadata", "quran-metadata-surah-name.json"),
+    path.join(QUL, "Quran metadata", "quran-metadata-surah-name.json")
   );
   const tafsir = readJSON(
-    path.join(QUL, "Tafsirs", "en-tafisr-ibn-kathir.json"),
+    path.join(QUL, "Tafsirs", "en-tafisr-ibn-kathir.json")
   );
   // Translation: Talal Itani (ClearQuran), CC BY-NC-ND 4.0 — attribution required,
   // verbatim only (NoDerivs), and NON-COMMERCIAL: a commercial-safe translation
@@ -146,14 +162,21 @@ function main() {
     const ayah = m.ayah_number;
     const verseKey = m.verse_key || `${surah}:${ayah}`;
     const translation = trByKey.get(verseKey) ?? "";
-    if (!trByKey.has(verseKey)) missingTranslations.push(verseKey);
+    if (!trByKey.has(verseKey)) {
+      missingTranslations.push(verseKey);
+    }
 
     // Strip trailing ayah-number glyph (Arabic-Indic digits) if present.
     // e.g. "... ٱلرَّحِيمِ ١" -> drop the trailing " ١".
-    let arabic = m.text.trim().replace(/[\s۝]*[٠-٩۰-۹]+$/u, "").trim();
+    const arabic = m.text
+      .trim()
+      .replace(/[\s۝]*[٠-٩۰-۹]+$/u, "")
+      .trim();
 
-    const obj = { surah, ayah, verseKey, arabic, translation };
-    if (!bySurah.has(surah)) bySurah.set(surah, []);
+    const obj = { arabic, ayah, surah, translation, verseKey };
+    if (!bySurah.has(surah)) {
+      bySurah.set(surah, []);
+    }
     bySurah.get(surah).push(obj);
     ayahCounts.set(surah, Math.max(ayahCounts.get(surah) ?? 0, ayah));
     totalAyahs++;
@@ -165,7 +188,7 @@ function main() {
     const arr = bySurah.get(surah).sort((a, b) => a.ayah - b.ayah);
     fs.writeFileSync(
       path.join(OUT, "quran", `${surah}.json`),
-      JSON.stringify(arr),
+      JSON.stringify(arr)
     );
   }
 
@@ -173,11 +196,11 @@ function main() {
   const surahsMeta = surahNumbers.map((number) => {
     const meta = surahNames[String(number)];
     const name = meta?.name_simple || meta?.name || `Surah ${number}`;
-    return { number, name, ayahCount: ayahCounts.get(number) };
+    return { ayahCount: ayahCounts.get(number), name, number };
   });
   fs.writeFileSync(
     path.join(OUT, "surahs.json"),
-    JSON.stringify(surahsMeta, null, 0),
+    JSON.stringify(surahsMeta, null, 0)
   );
 
   // ---- tafsir/{surah}.json ----
@@ -187,27 +210,35 @@ function main() {
     const [sStr, aStr] = vk.split(":");
     const s = Number(sStr);
     const a = Number(aStr);
-    if (!Number.isFinite(s) || !Number.isFinite(a)) continue;
+    if (!Number.isFinite(s) || !Number.isFinite(a)) {
+      continue;
+    }
     const raw = swapEmbeddedTranslations(tafsir[vk]?.text, s, trByKey);
     const cleaned = stripHtml(raw);
-    if (!cleaned) continue; // omit empty
-    if (!tafsirBySurah.has(s)) tafsirBySurah.set(s, {});
+    if (!cleaned) {
+      continue;
+    } // omit empty
+    if (!tafsirBySurah.has(s)) {
+      tafsirBySurah.set(s, {});
+    }
     tafsirBySurah.get(s)[String(a)] = cleaned;
   }
   let surahsWithTafsir = 0;
   for (const s of [...tafsirBySurah.keys()].sort((a, b) => a - b)) {
     const map = tafsirBySurah.get(s);
-    if (Object.keys(map).length === 0) continue;
+    if (Object.keys(map).length === 0) {
+      continue;
+    }
     surahsWithTafsir++;
     fs.writeFileSync(
       path.join(OUT, "tafsir", `${s}.json`),
-      JSON.stringify(map),
+      JSON.stringify(map)
     );
   }
 
   // ---- info/{surah}.json ----
   const surahInfo = readJSON(
-    path.join(QUL, "Surah Info", "surah-info-en.json"),
+    path.join(QUL, "Surah Info", "surah-info-en.json")
   );
   let infoWritten = 0;
   const missingInfo = [];
@@ -220,7 +251,7 @@ function main() {
     }
     fs.writeFileSync(
       path.join(OUT, "info", `${n}.json`),
-      JSON.stringify({ surah: n, name: entry.surah_name ?? "", text }),
+      JSON.stringify({ name: entry.surah_name ?? "", surah: n, text })
     );
     infoWritten++;
   }
@@ -228,20 +259,20 @@ function main() {
   // ---- themes.json ----
   const db = new Database(
     resolveFile(path.join(QUL, "Ayah Theme", "ayah-themes.db")),
-    { readonly: true },
+    { readonly: true }
   );
   const rows = db
     .prepare(
-      "SELECT theme, surah_number, ayah_from, ayah_to FROM themes ORDER BY surah_number, ayah_from, ayah_to",
+      "SELECT theme, surah_number, ayah_from, ayah_to FROM themes ORDER BY surah_number, ayah_from, ayah_to"
     )
     .all();
   db.close();
   const themes = rows.map((r, i) => ({
-    id: i,
-    theme: r.theme,
-    surah: r.surah_number,
     ayahFrom: r.ayah_from,
     ayahTo: r.ayah_to,
+    id: i,
+    surah: r.surah_number,
+    theme: r.theme,
   }));
   fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(themes));
 
@@ -252,17 +283,24 @@ function main() {
   for (let n = 1; n <= 114; n++) {
     const entries = tafsirBySurah.get(n);
     tafsirIndex[n] = entries
-      ? Object.keys(entries).map(Number).sort((a, b) => a - b)
+      ? Object.keys(entries)
+          .map(Number)
+          .sort((a, b) => a - b)
       : [];
   }
-  fs.writeFileSync(path.join(OUT, "tafsir-index.json"), JSON.stringify(tafsirIndex));
+  fs.writeFileSync(
+    path.join(OUT, "tafsir-index.json"),
+    JSON.stringify(tafsirIndex)
+  );
 
   // ---- search.json ----
   // Compact translation search index: [verseKey, translation] pairs.
   // Loaded on demand only when the user searches (metered-data friendly).
   const search = [];
   for (const n of surahNumbers) {
-    for (const a of bySurah.get(n)) search.push([a.verseKey, a.translation]);
+    for (const a of bySurah.get(n)) {
+      search.push([a.verseKey, a.translation]);
+    }
   }
   fs.writeFileSync(path.join(OUT, "search.json"), JSON.stringify(search));
 
@@ -272,28 +310,34 @@ function main() {
   // surah files just to label its rows.
   const metadata = (name) =>
     Object.values(
-      readJSON(path.join(QUL, "Quran metadata", `quran-metadata-${name}.json`)),
+      readJSON(path.join(QUL, "Quran metadata", `quran-metadata-${name}.json`))
     );
   const firstWords = (key, n = 3) => {
     const [s, a] = key.split(":").map(Number);
     const ayah = bySurah.get(s).find((x) => x.ayah === a);
-    if (!ayah) throw new Error(`firstWords: no ayah found for key ${key}`);
-    const words = ayah.arabic.split(/\s+/).filter((w) => !/^[۞۩]$/.test(w));
+    if (!ayah) {
+      throw new Error(`firstWords: no ayah found for key ${key}`);
+    }
+    const words = ayah.arabic.split(/\s+/u).filter((w) => !/^[۞۩]$/u.test(w));
     return words.slice(0, n).join(" ");
   };
   const byNumber = (field) => (x, y) => x[field] - y[field];
   const divisions = {
+    hizb: metadata("hizb")
+      .sort(byNumber("hizb_number"))
+      .map((h) => ({
+        first: h.first_verse_key,
+        last: h.last_verse_key,
+        n: h.hizb_number,
+      })),
     juz: metadata("juz")
       .sort(byNumber("juz_number"))
       .map((j) => ({
-        n: j.juz_number,
         first: j.first_verse_key,
         last: j.last_verse_key,
+        n: j.juz_number,
         opening: firstWords(j.first_verse_key),
       })),
-    hizb: metadata("hizb")
-      .sort(byNumber("hizb_number"))
-      .map((h) => ({ n: h.hizb_number, first: h.first_verse_key, last: h.last_verse_key })),
     rub: metadata("rub")
       .sort(byNumber("rub_number"))
       .map((r) => r.first_verse_key),
@@ -307,7 +351,9 @@ function main() {
   console.log("=== build-data summary ===");
   console.log(`tafsir index surahs:   ${Object.keys(tafsirIndex).length}`);
   console.log(`search entries:        ${search.length}`);
-  console.log(`divisions:             ${divisions.juz.length} juz, ${divisions.hizb.length} hizb, ${divisions.rub.length} rub, ${divisions.sajda.length} sajdah`);
+  console.log(
+    `divisions:             ${divisions.juz.length} juz, ${divisions.hizb.length} hizb, ${divisions.rub.length} rub, ${divisions.sajda.length} sajdah`
+  );
   console.log(`surahs written:        ${surahNumbers.length}`);
   console.log(`total ayahs:           ${totalAyahs}`);
   console.log(`surahs with tafsir:    ${surahsWithTafsir}`);
@@ -318,7 +364,7 @@ function main() {
   }
   if (missingTranslations.length) {
     console.log(
-      `WARNING missing translations: ${missingTranslations.length} (e.g. ${missingTranslations.slice(0, 5).join(", ")})`,
+      `WARNING missing translations: ${missingTranslations.length} (e.g. ${missingTranslations.slice(0, 5).join(", ")})`
     );
   } else {
     console.log(`missing translations:  0`);

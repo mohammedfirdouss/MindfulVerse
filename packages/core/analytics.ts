@@ -32,7 +32,9 @@ interface StoredEvent {
 /** Host hook called after each event is stored (web: console.debug in dev). */
 let onTrack: ((e: AnalyticsEvent) => void) | null = null;
 
-export function configureAnalytics(opts: { onTrack?: (e: AnalyticsEvent) => void }): void {
+export function configureAnalytics(opts: {
+  onTrack?: (e: AnalyticsEvent) => void;
+}): void {
   onTrack = opts.onTrack ?? null;
 }
 
@@ -43,7 +45,7 @@ export function track(e: AnalyticsEvent): void {
   try {
     const raw = localStorage.getItem(KEY);
     const events: StoredEvent[] = raw ? JSON.parse(raw) : [];
-    events.push({ t: Date.now(), e });
+    events.push({ e, t: Date.now() });
     localStorage.setItem(KEY, JSON.stringify(events));
     onTrack?.(e);
   } catch {

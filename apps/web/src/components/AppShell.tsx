@@ -1,13 +1,22 @@
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { useEffect, useState, type ReactNode } from "react";
+
 import { BrandMark } from "./Adire";
 import InstallPrompt from "./InstallPrompt";
+
 import "./shell.css";
 
 /* --- Nav icons, drawn like the mobile tab icons (apps/mobile/src/ui/icons.tsx):
    a 24-unit grid, 1.6 stroke, currentColor. The open page's motif is filled. --- */
 
-function IconBase({ children, size = 22 }: { children: ReactNode; size?: number }) {
+function IconBase({
+  children,
+  size = 22,
+}: {
+  children: ReactNode;
+  size?: number;
+}) {
   return (
     <svg
       aria-hidden="true"
@@ -26,7 +35,9 @@ function IconBase({ children, size = 22 }: { children: ReactNode; size?: number 
   );
 }
 
-type NavIconProps = { active: boolean };
+interface NavIconProps {
+  active: boolean;
+}
 
 /** A tinted fill for the open page's motif (the mobile tab's 18% fill). */
 const tint = (active: boolean) =>
@@ -37,7 +48,10 @@ function HomeIcon({ active }: NavIconProps) {
   return (
     <IconBase>
       <path d="M12 2.5 21.5 12 12 21.5 2.5 12Z" />
-      <path d="M12 8.2 15.8 12 12 15.8 8.2 12Z" fill={active ? "currentColor" : "none"} />
+      <path
+        d="M12 8.2 15.8 12 12 15.8 8.2 12Z"
+        fill={active ? "currentColor" : "none"}
+      />
     </IconBase>
   );
 }
@@ -58,7 +72,11 @@ function HeartIcon({ active }: NavIconProps) {
 function TadabburNavIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M12 9.6 14.4 12 12 14.4 9.6 12Z" fill="currentColor" stroke="none" />
+      <path
+        d="M12 9.6 14.4 12 12 14.4 9.6 12Z"
+        fill="currentColor"
+        stroke="none"
+      />
       <circle cx="12" cy="12" r="5.6" {...tint(active)} />
       <circle cx="12" cy="12" r="9.4" strokeDasharray="2.2 2.6" />
     </IconBase>
@@ -82,7 +100,10 @@ function MushafIcon({ active }: NavIconProps) {
 function PenIcon({ active }: NavIconProps) {
   return (
     <IconBase>
-      <path d="M6 17.2 7 13.4l8.9-8.9a1.9 1.9 0 0 1 2.7 2.7l-8.9 8.9Z" {...tint(active)} />
+      <path
+        d="M6 17.2 7 13.4l8.9-8.9a1.9 1.9 0 0 1 2.7 2.7l-8.9 8.9Z"
+        {...tint(active)}
+      />
       <path d="M3.5 20.5h17" />
     </IconBase>
   );
@@ -101,12 +122,12 @@ function PersonIcon({ active }: NavIconProps) {
 // The desktop sidebar lists every section. The phone tab bar keeps four, as
 // the mobile app does: check-in and tadabbur both start from Home.
 const tabs = [
-  { to: "/", label: "Home", end: true, Icon: HomeIcon, phone: true },
-  { to: "/checkin", label: "Check-in", Icon: HeartIcon, phone: false },
-  { to: "/sessions", label: "Tadabbur", Icon: TadabburNavIcon, phone: false },
-  { to: "/read", label: "Read", Icon: MushafIcon, phone: true },
-  { to: "/journal", label: "Journal", Icon: PenIcon, phone: true },
-  { to: "/account", label: "Account", Icon: PersonIcon, phone: true },
+  { Icon: HomeIcon, end: true, label: "Home", phone: true, to: "/" },
+  { Icon: HeartIcon, label: "Check-in", phone: false, to: "/checkin" },
+  { Icon: TadabburNavIcon, label: "Tadabbur", phone: false, to: "/sessions" },
+  { Icon: MushafIcon, label: "Read", phone: true, to: "/read" },
+  { Icon: PenIcon, label: "Journal", phone: true, to: "/journal" },
+  { Icon: PersonIcon, label: "Account", phone: true, to: "/account" },
 ];
 
 const COLLAPSE_KEY = "mindfulverse.sidebarCollapsed.v1";
@@ -181,33 +202,37 @@ export default function AppShell({ children }: { children: ReactNode }) {
           aria-expanded={!collapsed}
         >
           <IconBase>
-            {collapsed ? <path d="M9 5l7 7-7 7" /> : <path d="M15 5l-7 7 7 7" />}
+            {collapsed ? (
+              <path d="M9 5l7 7-7 7" />
+            ) : (
+              <path d="M15 5l-7 7 7 7" />
+            )}
           </IconBase>
         </button>
       </nav>
-
 
       <main className="container">{children}</main>
       <InstallPrompt />
 
       <nav className="tabbar" aria-label="Primary">
-        {tabs.filter((t) => t.phone).map((t) => (
-          <NavLink
-            key={t.to}
-            to={t.to}
-            end={t.end}
-            className={({ isActive }) => (isActive ? "tab active" : "tab")}
-          >
-            {({ isActive }) => (
-              <>
-                <t.Icon active={isActive} />
-                <span className="tab-label">{t.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
+        {tabs
+          .filter((t) => t.phone)
+          .map((t) => (
+            <NavLink
+              key={t.to}
+              to={t.to}
+              end={t.end}
+              className={({ isActive }) => (isActive ? "tab active" : "tab")}
+            >
+              {({ isActive }) => (
+                <>
+                  <t.Icon active={isActive} />
+                  <span className="tab-label">{t.label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
       </nav>
-
     </div>
   );
 }

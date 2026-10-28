@@ -1,12 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { track } from "@mindfulverse/core/analytics";
 import {
   loadSurahAyahs,
   loadSurahInfo,
@@ -15,10 +7,22 @@ import {
   loadTafsirIndex,
 } from "@mindfulverse/core/data";
 import { addEntry } from "@mindfulverse/core/journal";
-import { track } from "@mindfulverse/core/analytics";
-import { getSurahTadabbur, recordSurahTadabbur } from "@mindfulverse/core/progress";
-import type { Ayah, SurahInfo, SurahMeta, SurahTafsir } from "@mindfulverse/core/types";
+import {
+  getSurahTadabbur,
+  recordSurahTadabbur,
+} from "@mindfulverse/core/progress";
+import type {
+  Ayah,
+  SurahInfo,
+  SurahMeta,
+  SurahTafsir,
+} from "@mindfulverse/core/types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+
 import { Diamond, DyeRule, TitlePlate } from "../components/Adire";
+
 import "./tadabbur.css";
 
 // Motion helpers — transform + opacity only, under 400ms (same approach as
@@ -74,12 +78,14 @@ function useMounted(resetKey: unknown): boolean {
 function coveringFromIndex(indexed: number[], ayah: number): number | null {
   let best: number | null = null;
   for (const n of indexed) {
-    if (n <= ayah) best = n;
-    else break;
+    if (n <= ayah) {
+      best = n;
+    } else {
+      break;
+    }
   }
   return best;
 }
-
 
 // The surah's background text, shown first (per user feedback). Long infos are
 // trimmed to the opening paragraphs with a "Read more" expander.
@@ -96,19 +102,31 @@ function InfoText({ text }: { text: string }) {
   const isHeading = (p: string) => p.length < 60 && !p.includes(".");
   // Collapsed: the first section only (leading subheadings + one paragraph).
   let first = 0;
-  while (first < paragraphs.length && isHeading(paragraphs[first])) first += 1;
+  while (first < paragraphs.length && isHeading(paragraphs[first])) {
+    first += 1;
+  }
   const excerpt = Math.min(paragraphs.length, first + 1);
-  const shown = expanded ? paragraphs : paragraphs.slice(0, Math.min(excerpt, ABOUT_COLLAPSED_PARAGRAPHS));
-  const more = paragraphs.length > excerpt || (paragraphs[excerpt - 1]?.length ?? 0) > ABOUT_EXCERPT_CHARS;
+  const shown = expanded
+    ? paragraphs
+    : paragraphs.slice(0, Math.min(excerpt, ABOUT_COLLAPSED_PARAGRAPHS));
+  const more =
+    paragraphs.length > excerpt ||
+    (paragraphs[excerpt - 1]?.length ?? 0) > ABOUT_EXCERPT_CHARS;
 
   return (
     <div className="stack">
       <div className={`tafsir${expanded ? "" : " tad-about-clamp"}`}>
-        {shown.map((p, i) => (isHeading(p) ? <h3 key={i}>{p}</h3> : <p key={i}>{p}</p>))}
+        {shown.map((p, i) =>
+          isHeading(p) ? <h3 key={i}>{p}</h3> : <p key={i}>{p}</p>
+        )}
       </div>
       {more && (
         <div>
-          <button className="commentary-open" aria-expanded={expanded} onClick={() => setExpanded((e) => !e)}>
+          <button
+            className="commentary-open"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((e) => !e)}
+          >
             {expanded ? "Show less" : "Read more"}
           </button>
         </div>
@@ -136,7 +154,7 @@ function VerseCommentary({
 
   if (indexUnavailable) {
     return (
-      <p className="muted" style={{ margin: 0, fontSize: ".9rem" }}>
+      <p className="muted" style={{ fontSize: ".9rem", margin: 0 }}>
         The commentary isn’t available right now.
       </p>
     );
@@ -144,7 +162,7 @@ function VerseCommentary({
 
   if (covering === null) {
     return (
-      <p className="muted" style={{ margin: 0, fontSize: ".9rem" }}>
+      <p className="muted" style={{ fontSize: ".9rem", margin: 0 }}>
         No commentary for this verse.
       </p>
     );
@@ -160,7 +178,9 @@ function VerseCommentary({
   function toggle() {
     const next = !open;
     setOpen(next);
-    if (next) ensureTafsir();
+    if (next) {
+      ensureTafsir();
+    }
   }
 
   return (
@@ -211,7 +231,7 @@ export interface Draft {
   action: string;
 }
 
-const EMPTY_DRAFT: Draft = { lessons: "", stirs: "", action: "" };
+const EMPTY_DRAFT: Draft = { action: "", lessons: "", stirs: "" };
 
 const QUESTIONS: readonly { key: keyof Draft; label: string }[] = [
   { key: "lessons", label: "What does it teach?" },
@@ -248,25 +268,35 @@ function defaultStore(): DraftStore | null {
   }
 }
 
-export function parseTadabburDrafts(raw: string | null | undefined): Record<string, Draft> {
-  if (!raw) return {};
+export function parseTadabburDrafts(
+  raw: string | null | undefined
+): Record<string, Draft> {
+  if (!raw) {
+    return {};
+  }
   let data: unknown;
   try {
     data = JSON.parse(raw);
   } catch {
     return {};
   }
-  if (!data || typeof data !== "object" || Array.isArray(data)) return {};
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return {};
+  }
   const out: Record<string, Draft> = {};
   for (const [verseKey, v] of Object.entries(data as Record<string, unknown>)) {
-    if (!v || typeof v !== "object") continue;
+    if (!v || typeof v !== "object") {
+      continue;
+    }
     const o = v as Record<string, unknown>;
     const d: Draft = {
+      action: typeof o.action === "string" ? o.action : "",
       lessons: typeof o.lessons === "string" ? o.lessons : "",
       stirs: typeof o.stirs === "string" ? o.stirs : "",
-      action: typeof o.action === "string" ? o.action : "",
     };
-    if (hasText(d)) out[verseKey] = d;
+    if (hasText(d)) {
+      out[verseKey] = d;
+    }
   }
   return out;
 }
@@ -276,7 +306,9 @@ export function loadTadabburDrafts(
   surah: number,
   store: DraftStore | null = defaultStore()
 ): Record<string, Draft> {
-  if (!store) return {};
+  if (!store) {
+    return {};
+  }
   try {
     return parseTadabburDrafts(store.getItem(tadabburDraftKey(surah)));
   } catch {
@@ -291,14 +323,22 @@ export function saveTadabburDraft(
   draft: Draft,
   store: DraftStore | null = defaultStore()
 ): void {
-  if (!store) return;
+  if (!store) {
+    return;
+  }
   try {
     const all = loadTadabburDrafts(surah, store);
-    if (hasText(draft)) all[verseKey] = { ...draft };
-    else delete all[verseKey];
+    if (hasText(draft)) {
+      all[verseKey] = { ...draft };
+    } else {
+      delete all[verseKey];
+    }
     const key = tadabburDraftKey(surah);
-    if (Object.keys(all).length === 0) store.removeItem(key);
-    else store.setItem(key, JSON.stringify(all));
+    if (Object.keys(all).length === 0) {
+      store.removeItem(key);
+    } else {
+      store.setItem(key, JSON.stringify(all));
+    }
   } catch {
     /* storage full or blocked — the draft stays in memory */
   }
@@ -327,7 +367,9 @@ function ReflectionArea({
 
   // After moving between questions, carry focus to the new prompt's input.
   useEffect(() => {
-    if (!moved.current) return;
+    if (!moved.current) {
+      return;
+    }
     moved.current = false;
     inputRef.current?.focus();
   }, [step]);
@@ -338,17 +380,25 @@ function ReflectionArea({
   }
 
   function keep() {
-    if (!canKeep) return;
+    if (!canKeep) {
+      return;
+    }
     const parts: string[] = [];
-    if (draft.lessons.trim()) parts.push(`Lessons: ${draft.lessons.trim()}`);
-    if (draft.stirs.trim()) parts.push(`Reflection: ${draft.stirs.trim()}`);
-    if (draft.action.trim()) parts.push(`Action: ${draft.action.trim()}`);
+    if (draft.lessons.trim()) {
+      parts.push(`Lessons: ${draft.lessons.trim()}`);
+    }
+    if (draft.stirs.trim()) {
+      parts.push(`Reflection: ${draft.stirs.trim()}`);
+    }
+    if (draft.action.trim()) {
+      parts.push(`Action: ${draft.action.trim()}`);
+    }
     addEntry({
-      prompt: `Tadabbur on ${ayah.verseKey}`,
       body: parts.join("\n\n"),
       context: { kind: "tadabbur", ref: ayah.verseKey },
+      prompt: `Tadabbur on ${ayah.verseKey}`,
     });
-    track({ type: "journal_save", context: "tadabbur" });
+    track({ context: "tadabbur", type: "journal_save" });
     onDraft(EMPTY_DRAFT);
     setStep(0);
     setKept(true);
@@ -362,14 +412,20 @@ function ReflectionArea({
       <p className="eyebrow" style={{ margin: 0 }}>
         Your tadabbur
       </p>
-      <p className="muted" style={{ margin: 0, fontSize: ".9rem" }}>
-        Sit with {name} {ayah.verseKey}. Write as little or as much as you
-        like.
+      <p className="muted" style={{ fontSize: ".9rem", margin: 0 }}>
+        Sit with {name} {ayah.verseKey}. Write as little or as much as you like.
       </p>
       <div className="tad-question">
-        <div className="tad-steps" role="img" aria-label={`Question ${step + 1} of ${QUESTIONS.length}`}>
+        <div
+          className="tad-steps"
+          role="img"
+          aria-label={`Question ${step + 1} of ${QUESTIONS.length}`}
+        >
           {QUESTIONS.map((x, i) => (
-            <span key={x.key} className={`tad-step${i === step ? " is-current" : ""}`} />
+            <span
+              key={x.key}
+              className={`tad-step${i === step ? " is-current" : ""}`}
+            />
           ))}
         </div>
         <label htmlFor={inputId} className="tad-prompt">
@@ -400,7 +456,11 @@ function ReflectionArea({
           <span style={{ flex: 1 }} />
           {!last &&
             (answered ? (
-              <button type="button" className="commentary-open" onClick={() => go(step + 1)}>
+              <button
+                type="button"
+                className="commentary-open"
+                onClick={() => go(step + 1)}
+              >
                 Next question
               </button>
             ) : (
@@ -472,7 +532,9 @@ function SurahTadabburPage() {
   );
 
   useEffect(() => {
-    if (!validSurah) return;
+    if (!validSurah) {
+      return;
+    }
     let active = true;
     setStatus("loading");
     setPhase(-1);
@@ -487,7 +549,9 @@ function SurahTadabburPage() {
       loadSurahs().catch<SurahMeta[]>(() => []),
     ])
       .then(([ayahData, indexData, surahList]) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setAyahs(ayahData);
         setIndexed(indexData?.[String(surahNumber)] ?? []);
         setIndexFailed(indexData === null);
@@ -495,12 +559,16 @@ function SurahTadabburPage() {
         setStatus("ready");
       })
       .catch(() => {
-        if (active) setStatus("error");
+        if (active) {
+          setStatus("error");
+        }
       });
 
     loadSurahInfo(surahNumber)
       .then((d) => {
-        if (active && d) setInfo(d);
+        if (active && d) {
+          setInfo(d);
+        }
       })
       .catch(() => {});
 
@@ -520,7 +588,9 @@ function SurahTadabburPage() {
   // Deep link (?v=n): start straight at that verse once the surah loads.
   const deepLinked = useRef(false);
   useEffect(() => {
-    if (status !== "ready" || deepLinked.current) return;
+    if (status !== "ready" || deepLinked.current) {
+      return;
+    }
     deepLinked.current = true;
     const v = Number(params.get("v"));
     if (Number.isInteger(v) && v >= 1 && v <= ayahs.length) {
@@ -532,9 +602,13 @@ function SurahTadabburPage() {
 
   // Remember the furthest verse pondered (recordSurahTadabbur never regresses).
   useEffect(() => {
-    if (status !== "ready" || phase < 0 || ayahs.length === 0) return;
+    if (status !== "ready" || phase < 0 || ayahs.length === 0) {
+      return;
+    }
     const a = ayahs[Math.min(phase, ayahs.length - 1)];
-    if (a.surah !== surahNumber) return;
+    if (a.surah !== surahNumber) {
+      return;
+    }
     recordSurahTadabbur(surahNumber, a.ayah);
   }, [phase, status, ayahs, surahNumber]);
 
@@ -547,7 +621,7 @@ function SurahTadabburPage() {
 
   function begin(at: number) {
     if (!started) {
-      track({ type: "session_start", sessionId: `surah-${surahNumber}` });
+      track({ sessionId: `surah-${surahNumber}`, type: "session_start" });
       setStarted(true);
     }
     setPhase(at);
@@ -576,8 +650,8 @@ function SurahTadabburPage() {
         <div className="card stack">
           <h2>That surah isn’t here</h2>
           <p className="muted">
-            Surahs run from 1 to 114. We couldn’t find the one this link
-            points to.
+            Surahs run from 1 to 114. We couldn’t find the one this link points
+            to.
           </p>
           <div>
             <Link to="/sessions" className="btn secondary">
@@ -632,7 +706,10 @@ function SurahTadabburPage() {
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
             <TitlePlate surah={surahNumber} name={name} />
-            <p className="muted" style={{ margin: "10px 0 0", textAlign: "center" }}>
+            <p
+              className="muted"
+              style={{ margin: "10px 0 0", textAlign: "center" }}
+            >
               {count} {count === 1 ? "verse" : "verses"}, one at a time.
             </p>
           </div>
@@ -648,8 +725,12 @@ function SurahTadabburPage() {
           </FadeRise>
         )}
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {resumeAyah != null ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            {resumeAyah == null ? (
+              <button className="btn" onClick={() => begin(0)}>
+                Begin pondering
+              </button>
+            ) : (
               <>
                 <button className="btn" onClick={() => begin(resumeAyah - 1)}>
                   Continue from verse {resumeAyah}
@@ -658,10 +739,6 @@ function SurahTadabburPage() {
                   Start from verse 1
                 </button>
               </>
-            ) : (
-              <button className="btn" onClick={() => begin(0)}>
-                Begin pondering
-              </button>
             )}
           </div>
         </FadeRise>
@@ -683,7 +760,7 @@ function SurahTadabburPage() {
           </div>
         </FadeRise>
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 60}>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {surahNumber < 114 && (
               <Link to={`/tadabbur/${surahNumber + 1}`} className="btn">
                 Next surah

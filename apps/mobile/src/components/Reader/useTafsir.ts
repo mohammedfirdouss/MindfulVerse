@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
 import { loadSurahTafsir } from "@mindfulverse/core/data";
 import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
+import { useCallback, useState } from "react";
 
 /** Port of web's useTafsir (components/Commentary.tsx): each surah's Ibn
  *  Kathir file (up to 1.3 MB) loads on the first commentary tap, not with the
@@ -25,7 +25,7 @@ export function useTafsir() {
     return !!failed[surah] && !bySurah[surah];
   }
 
-  return { request, textFor, failedFor };
+  return { failedFor, request, textFor };
 }
 
 export type Tafsir = ReturnType<typeof useTafsir>;

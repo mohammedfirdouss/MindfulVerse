@@ -1,11 +1,8 @@
 # MindfulVerse
 
-A quiet app for reflecting on the Qur'an. Read verses with translation and
-commentary, sit with a short guided reflection, count your dhikr, and keep a
-private journal.
+A quiet app for reflecting on the Qur'an. Read verses with translation and commentary, sit with a short guided reflection, count your dhikr, and keep a private journal.
 
-It works in the browser, needs no sign up, and works offline. This is an early
-version. It is free.
+It works in the browser, needs no sign up, and works offline. This is an early version. It is free.
 
 Live at [mindfulverse.vercel.app](https://mindfulverse.vercel.app)
 
@@ -20,8 +17,7 @@ Live at [mindfulverse.vercel.app](https://mindfulverse.vercel.app)
 - **Accounts & sync.** Optional sign-in (email or Google) backs up your journal and progress across devices.
 - **Daily reminder.** A push notification with the verse of the day, at a time you choose.
 
-All Qur'an text, translation, and commentary are shown exactly as they are.
-The app never rewrites or generates religious content.
+All Qur'an text, translation, and commentary are shown exactly as they are. The app never rewrites or generates religious content.
 
 ## Screenshots
 
@@ -55,10 +51,7 @@ npm run dev          # web app dev server
 
 ## How it is built
 
-React, TypeScript, and Vite, with a service worker for offline use. All Qur'an
-data is bundled and the journal lives in your browser first; the only server
-component is an optional [InsForge](https://insforge.dev) backend for account
-sync and reminders (see "Accounts & sync" below).
+React, TypeScript, and Vite, with a service worker for offline use. All Qur'an data is bundled and the journal lives in your browser first; the only server component is an optional [InsForge](https://insforge.dev) backend for account sync and reminders (see "Accounts & sync" below).
 
 ```text
 packages/core/        shared logic, no DOM: data loaders, journal, progress,
@@ -73,28 +66,19 @@ scripts/              build-data.mjs, which turns raw datasets into app data
 raw-data/             source datasets, not committed
 ```
 
-The core never touches browser APIs directly. A host app wires it up once at
-startup — `configureInsforge`, `configureData`, `configureSyncTriggers`, and
-`configureAnalytics` — and provides `localStorage` and `crypto.randomUUID`.
-See `docs/superpowers/plans/2026-10-06-rn-phase1-extraction.md`.
+The core never touches browser APIs directly. A host app wires it up once at startup — `configureInsforge`, `configureData`, `configureSyncTriggers`, and `configureAnalytics` — and provides `localStorage` and `crypto.randomUUID`. See `docs/superpowers/plans/2026-10-06-rn-phase1-extraction.md`.
 
 To change the data, update the files in `raw-data/` and run `npm run build:data` again.
 
 ## Acknowledgments
 
-The Qur'anic datasets come from the [Quranic Universal Library](https://qul.tarteel.ai)
-by [Tarteel](https://tarteel.ai). This app would not exist without their work.
+The Qur'anic datasets come from the [Quranic Universal Library](https://qul.tarteel.ai) by [Tarteel](https://tarteel.ai). This app would not exist without their work.
 
-The English translation is [ClearQuran](https://www.clearquran.com) by Talal Itani,
-used under the CC BY-NC-ND 4.0 license. The Arabic typeface is the KFGQPC Uthmanic
-Hafs script from the King Fahd Glorious Qur'an Printing Complex in Madinah.
+The English translation is [ClearQuran](https://www.clearquran.com) by Talal Itani, used under the CC BY-NC-ND 4.0 license. The Arabic typeface is the KFGQPC Uthmanic Hafs script from the King Fahd Glorious Qur'an Printing Complex in Madinah.
 
 ## Accounts & sync (v1)
 
-Signing in is optional — the whole app works signed-out, offline, on-device.
-An account only backs up your journal and progress so they follow you to
-another device. Auth, storage, and Postgres are provided by
-[InsForge](https://insforge.dev); there is no other server.
+Signing in is optional — the whole app works signed-out, offline, on-device. An account only backs up your journal and progress so they follow you to another device. Auth, storage, and Postgres are provided by [InsForge](https://insforge.dev); there is no other server.
 
 | Env var | Used for |
 | --- | --- |
@@ -102,30 +86,14 @@ another device. Auth, storage, and Postgres are provided by
 | `VITE_INSFORGE_ANON_KEY` | Public anon key for unauthenticated/auth requests |
 | `VITE_VAPID_PUBLIC_KEY` | Public key for the daily verse reminder (Web Push) |
 
-Set these in `.env` (or `.env.local`) for local development — see
-`.env.example`. On Vercel, add all three under Project → Settings →
-Environment Variables for both **Production** and **Preview**, then redeploy;
-they are `VITE_*` so Vite inlines them at build time, not at runtime.
+Set these in `.env` (or `.env.local`) for local development — see `.env.example`. On Vercel, add all three under Project → Settings → Environment Variables for both **Production** and **Preview**, then redeploy; they are `VITE_*` so Vite inlines them at build time, not at runtime.
 
-Backend setup — SQL migrations live in `migrations/`, and the reminder/push
-edge functions live in `functions/`; both are applied to the InsForge
-project directly (see the InsForge CLI), not run from this repo.
+Backend setup — SQL migrations live in `migrations/`, and the reminder/push edge functions live in `functions/`; both are applied to the InsForge project directly (see the InsForge CLI), not run from this repo.
 
-The merge story, in three sentences: everything is written to `localStorage`
-first, so the app never blocks on the network; signing in, reconnecting, or
-returning to the tab triggers a sync that pulls the account's remote journal
-and progress and merges them with what's on this device — journal entries
-by union-by-id with soft-delete tombstones, progress by per-key max /
-earliest-completion / latest-read / set-union — then pushes back only the
-resulting diff. Every merge is deliberately commutative and idempotent —
-running it twice, or on two devices at once, converges to the same state
-rather than duplicating or clobbering entries.
+The merge story, in three sentences: everything is written to `localStorage` first, so the app never blocks on the network; signing in, reconnecting, or returning to the tab triggers a sync that pulls the account's remote journal and progress and merges them with what's on this device — journal entries by union-by-id with soft-delete tombstones, progress by per-key max / earliest-completion / latest-read / set-union — then pushes back only the resulting diff. Every merge is deliberately commutative and idempotent — running it twice, or on two devices at once, converges to the same state rather than duplicating or clobbering entries.
 
 ## Good to know
 
-- The translation renders the divine name as "God". It is shown word for word,
-  as the license requires.
-- Ibn Kathir wrote commentary on passages, so some verses share a note with a
-  neighboring verse.
-- Recitation audio, payments, and more languages are planned for later.
-  See `ROADMAP.md`.
+- The translation renders the divine name as "God". It is shown word for word, as the license requires.
+- Ibn Kathir wrote commentary on passages, so some verses share a note with a neighboring verse.
+- Recitation audio, payments, and more languages are planned for later. See `ROADMAP.md`.

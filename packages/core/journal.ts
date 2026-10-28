@@ -1,7 +1,7 @@
+import { markJournalDirty } from "./syncFlags";
 // Local-only journal (v0 has no accounts or sync). Persists to localStorage.
 import type { JournalEntry } from "./types";
 import type { JournalTombstone } from "./types";
-import { markJournalDirty } from "./syncFlags";
 
 const KEY = "mindfulverse.journal.v1";
 const TOMBSTONES_KEY = "mindfulverse.journal.deleted.v1";
@@ -16,7 +16,10 @@ function notifySaved(): void {
     window?: { dispatchEvent?: (e: unknown) => boolean };
     Event?: new (type: string) => unknown;
   };
-  if (typeof g.window?.dispatchEvent === "function" && typeof g.Event === "function") {
+  if (
+    typeof g.window?.dispatchEvent === "function" &&
+    typeof g.Event === "function"
+  ) {
     g.window.dispatchEvent(new g.Event(JOURNAL_SAVED_EVENT));
   }
 }
@@ -42,11 +45,16 @@ export function getTombstones(): JournalTombstone[] {
   try {
     const raw = localStorage.getItem(TOMBSTONES_KEY);
     return raw ? (JSON.parse(raw) as JournalTombstone[]) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 /** Sync engine writes merged state back; never marks dirty. */
-export function replaceAll(entries: JournalEntry[], tombstones: JournalTombstone[]): void {
+export function replaceAll(
+  entries: JournalEntry[],
+  tombstones: JournalTombstone[]
+): void {
   writeAll(entries);
   localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(tombstones));
 }
@@ -56,8 +64,8 @@ export function addEntry(
 ): JournalEntry {
   const entry: JournalEntry = {
     ...input,
-    id: crypto.randomUUID(),
     createdAt: Date.now(),
+    id: crypto.randomUUID(),
   };
   const all = readAll();
   all.push(entry);
@@ -81,7 +89,7 @@ export function deleteEntry(id: string): void {
   writeAll(readAll().filter((e) => e.id !== id));
   const tombs = getTombstones();
   if (!tombs.some((t) => t.id === id)) {
-    tombs.push({ id, deletedAt: Date.now() });
+    tombs.push({ deletedAt: Date.now(), id });
     localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(tombs));
   }
   markJournalDirty();

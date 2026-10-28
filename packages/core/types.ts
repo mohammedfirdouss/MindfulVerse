@@ -83,7 +83,10 @@ export interface JournalEntry {
 }
 
 /** Soft-delete marker so a deletion propagates instead of resurrecting. */
-export interface JournalTombstone { id: string; deletedAt: number }
+export interface JournalTombstone {
+  id: string;
+  deletedAt: number;
+}
 
 /** Local progress state persisted to localStorage and synced. */
 export interface LocalProgress {

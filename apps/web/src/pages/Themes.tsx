@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
 import { loadThemes } from "@mindfulverse/core/data";
 import type { Theme } from "@mindfulverse/core/types";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 const PAGE_SIZE = 120;
 
@@ -21,13 +21,18 @@ function groupByTheme(rows: Theme[]): ThemeGroup[] {
   const seen = new Set<string>();
   for (const row of rows) {
     const key = `${row.theme}|${row.surah}|${row.ayahFrom}|${row.ayahTo}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) {
+      continue;
+    }
     seen.add(key);
     const existing = byName.get(row.theme);
-    if (existing) existing.push(row);
-    else byName.set(row.theme, [row]);
+    if (existing) {
+      existing.push(row);
+    } else {
+      byName.set(row.theme, [row]);
+    }
   }
-  return Array.from(byName, ([theme, ranges]) => ({ theme, ranges }));
+  return Array.from(byName, ([theme, ranges]) => ({ ranges, theme }));
 }
 
 function rangeLabel(r: Theme): string {
@@ -48,10 +53,14 @@ export default function Themes() {
     let alive = true;
     loadThemes()
       .then((rows) => {
-        if (alive) setStatus({ kind: "ready", groups: groupByTheme(rows) });
+        if (alive) {
+          setStatus({ groups: groupByTheme(rows), kind: "ready" });
+        }
       })
       .catch(() => {
-        if (alive) setStatus({ kind: "error" });
+        if (alive) {
+          setStatus({ kind: "error" });
+        }
       });
     return () => {
       alive = false;
@@ -62,7 +71,9 @@ export default function Themes() {
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    if (!q) return groups;
+    if (!q) {
+      return groups;
+    }
     return groups.filter((g) => g.theme.toLowerCase().includes(q));
   }, [groups, filter]);
 
@@ -97,8 +108,8 @@ export default function Themes() {
       <header>
         <h1>Verses by topic</h1>
         <p className="soft">
-          An index of topics across the Qur’an. Each links to the passages
-          that speak to it.
+          An index of topics across the Qur’an. Each links to the passages that
+          speak to it.
         </p>
         <p className="muted" style={{ margin: 0 }}>
           {filtering
@@ -132,27 +143,27 @@ export default function Themes() {
               <li
                 key={g.theme}
                 style={{
-                  padding: "16px 0",
                   borderTop: "1px solid var(--line)",
+                  padding: "16px 0",
                 }}
               >
                 <h2
                   style={{
-                    margin: "0 0 6px",
-                    fontWeight: 500,
                     fontSize: "1.15rem",
+                    fontWeight: 500,
+                    margin: "0 0 6px",
                   }}
                 >
                   {g.theme}
                 </h2>
                 <p
                   style={{
-                    margin: 0,
+                    columnGap: 18,
                     display: "flex",
                     flexWrap: "wrap",
-                    columnGap: 18,
-                    rowGap: 4,
                     fontSize: "0.92rem",
+                    margin: 0,
+                    rowGap: 4,
                   }}
                 >
                   {g.ranges.map((r) => (

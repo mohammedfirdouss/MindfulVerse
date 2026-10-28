@@ -2,7 +2,7 @@
 // the stored data model and sync merge are untouched.
 import type { JournalEntry } from "./types";
 
-const VERSE_KEY_RE = /^(\d{1,3}):\d{1,3}$/;
+const VERSE_KEY_RE = /^(\d{1,3}):\d{1,3}$/u;
 
 export interface JournalGroup {
   /** "surah:<n>" | "session:<id>" | "other" */
@@ -15,14 +15,22 @@ export interface JournalGroup {
   latest: number;
 }
 
-function keyFor(e: JournalEntry): { key: string; surah?: number; sessionId?: string } {
+function keyFor(e: JournalEntry): {
+  key: string;
+  surah?: number;
+  sessionId?: string;
+} {
   const kind = e.context?.kind;
   const ref = e.context?.ref;
   if ((kind === "checkin" || kind === "tadabbur") && ref) {
     const m = VERSE_KEY_RE.exec(ref);
-    if (m) return { key: `surah:${Number(m[1])}`, surah: Number(m[1]) };
+    if (m) {
+      return { key: `surah:${Number(m[1])}`, surah: Number(m[1]) };
+    }
   }
-  if (kind === "session" && ref) return { key: `session:${ref}`, sessionId: ref };
+  if (kind === "session" && ref) {
+    return { key: `session:${ref}`, sessionId: ref };
+  }
   return { key: "other" };
 }
 
@@ -33,7 +41,7 @@ export function groupEntries(entries: JournalEntry[]): JournalGroup[] {
     const { key, surah, sessionId } = keyFor(e);
     let g = groups.get(key);
     if (!g) {
-      g = { key, surah, sessionId, entries: [], latest: 0 };
+      g = { entries: [], key, latest: 0, sessionId, surah };
       groups.set(key, g);
     }
     g.entries.push(e);
