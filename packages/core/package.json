@@ -20,6 +20,7 @@
     "./sync/insforge": "./sync/insforge.ts",
     "./sync/merge": "./sync/merge.ts",
     "./syncFlags": "./syncFlags.ts",
+    "./translation": "./translation.ts",
     "./types": "./types.ts"
   },
   "scripts": {

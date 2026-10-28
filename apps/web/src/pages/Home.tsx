@@ -7,6 +7,7 @@ import {
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
 import { useAccount } from "@mindfulverse/core/sync/auth";
+import { TRANSLATION_SOURCE_URL } from "@mindfulverse/core/translation";
 import type { Ayah } from "@mindfulverse/core/types";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -252,12 +253,14 @@ export default function Home() {
         <p className="muted home-attribution">
           English translation by{" "}
           <a
-            href="https://www.clearquran.com"
+            href={TRANSLATION_SOURCE_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
             Talal Itani (ClearQuran)
           </a>
+          {" · "}
+          <Link to="/developers">For developers</Link>
         </p>
       </footer>
     </div>

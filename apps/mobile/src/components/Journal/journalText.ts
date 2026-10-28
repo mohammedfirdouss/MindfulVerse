@@ -3,6 +3,7 @@
 // navigator.share, document). Keep the two in step until the formatter moves
 // to packages/core; the output must match web's byte for byte.
 import type { JournalGroup } from "@mindfulverse/core/journalGroups";
+import { TRANSLATION_CREDIT } from "@mindfulverse/core/translation";
 import type { JournalEntry } from "@mindfulverse/core/types";
 
 export interface ExportItem {
@@ -103,8 +104,7 @@ export function formatDay(d: Date): string {
   return d.toLocaleDateString(undefined, { dateStyle: "long" });
 }
 
-export const TRANSLATION_CREDIT =
-  "English translation by Talal Itani (ClearQuran).";
+export { TRANSLATION_CREDIT } from "@mindfulverse/core/translation";
 
 export function hasTranslations(input: ExportInput): boolean {
   return input.sections.some((s) => s.items.some((i) => i.translation));
