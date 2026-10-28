@@ -12,6 +12,7 @@ import {
   handleDailyVerse,
   isValidTimeZone,
   pickVerse,
+  rpcCount,
   sha256Hex,
 } from "./daily-verse";
 import { localDayIndexInZone } from "./send-reminders";
@@ -365,4 +366,22 @@ describe(pickVerse, () => {
   it("throws when the ayah is missing", () => {
     expect(() => pickVerse("1:9", ayahs, surahs)).toThrow("not found");
   });
+});
+
+describe(rpcCount, () => {
+  it.each([
+    [5, 5],
+    ["5", 5],
+    [[5], 5],
+    [[{ api_hit: 5 }], 5],
+  ])("reads %j as %i", (input, expected) => {
+    expect(rpcCount(input)).toBe(expected);
+  });
+
+  it.each([[null], [{}], ["x"], [Number.NaN], [[]], [""]])(
+    "throws on %j",
+    (input) => {
+      expect(() => rpcCount(input)).toThrow("unexpected rpc result");
+    }
+  );
 });

@@ -240,6 +240,39 @@ export const pickVerse = (
   };
 };
 
+/** Read the count out of an RPC result; anything unexpected throws so limits fail closed. */
+export const rpcCount = (data: unknown): number => {
+  if (typeof data === "number" && Number.isFinite(data)) {
+    return data;
+  }
+  if (typeof data === "string" && data.trim() !== "") {
+    const n = Number(data);
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+  if (Array.isArray(data) && data.length === 1) {
+    return rpcCount(data[0]);
+  }
+  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
+    const values = Object.values(data);
+    if (values.length === 1) {
+      return rpcCount(values[0]);
+    }
+  }
+  throw new Error("unexpected rpc result");
+};
+
+const surahCache = new Map<number, Promise<AyahRow[]>>();
+let surahList: Promise<SurahMeta[]> | null = null;
+const getJson = async <T>(path: string): Promise<T> => {
+  const res = await fetch(`${SITE_URL}${path}`);
+  if (!res.ok) {
+    throw new Error(`fetch ${path} failed: ${res.status}`);
+  }
+  return (await res.json()) as T;
+};
+
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
 export default async function handler(req: Request): Promise<Response> {
@@ -249,16 +282,6 @@ export default async function handler(req: Request): Promise<Response> {
       apiKey: Deno.env.get("API_KEY") ?? "",
       baseUrl: Deno.env.get("INSFORGE_BASE_URL") ?? "",
     }).database;
-
-    const surahCache = new Map<number, Promise<AyahRow[]>>();
-    let surahList: Promise<SurahMeta[]> | null = null;
-    const getJson = async <T>(path: string): Promise<T> => {
-      const res = await fetch(`${SITE_URL}${path}`);
-      if (!res.ok) {
-        throw new Error(`fetch ${path} failed: ${res.status}`);
-      }
-      return (await res.json()) as T;
-    };
 
     return await handleDailyVerse(req, {
       findKey: async (hash) => {
@@ -282,7 +305,7 @@ export default async function handler(req: Request): Promise<Response> {
         if (error) {
           throw new Error("hit failed");
         }
-        return Number(data);
+        return rpcCount(data);
       },
       now: () => Date.now(),
       verse: async (verseKey) => {

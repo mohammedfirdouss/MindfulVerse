@@ -1,4 +1,4 @@
-import { jsonError, sha256Hex } from "./daily-verse";
+import { jsonError, rpcCount, sha256Hex } from "./daily-verse";
 import {
   checkDomain,
   newApiKey,
@@ -294,7 +294,7 @@ export default async function handler(req: Request): Promise<Response> {
         if (error) {
           throw new Error("attempt failed");
         }
-        return Number(data) <= limit;
+        return rpcCount(data) <= limit;
       },
       check: (domain, token) =>
         checkDomain(domain, token, fetch, (host) =>
