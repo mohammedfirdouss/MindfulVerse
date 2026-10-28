@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "./components/AppShell";
 import Account from "./pages/Account";
 import CheckIn from "./pages/CheckIn";
+import Developers from "./pages/Developers";
 import Dhikr from "./pages/Dhikr";
 import Home from "./pages/Home";
 import Journal from "./pages/Journal";
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/themes" element={<Themes />} />
         <Route path="/dhikr" element={<Dhikr />} />
+        <Route path="/developers" element={<Developers />} />
         <Route path="/account" element={<Account />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

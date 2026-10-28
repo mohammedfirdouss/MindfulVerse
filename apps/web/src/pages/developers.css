@@ -1,0 +1,124 @@
+/* Developers: get a key, call the API, see the card, read the terms. */
+.dev {
+  padding-bottom: 32px;
+}
+.dev-lede {
+  margin: 10px 0 0;
+  font-size: 1.05rem;
+}
+.dev h2 {
+  font-size: 1.15rem;
+}
+.dev code {
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+.dev-form {
+  max-width: 480px;
+}
+.dev-terms {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.dev-terms input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--indigo);
+}
+.dev-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.dev-error {
+  display: block;
+  margin: 0;
+  min-height: 1.4em;
+  color: var(--ink);
+  font-weight: 600;
+}
+.dev-error:empty {
+  display: none;
+}
+.dev-note {
+  margin: 0;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.dev-copy-title {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.dev-copy-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.dev-code-inline {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--cotton);
+  color: var(--ink);
+}
+.dev-copy {
+  flex: none;
+  min-height: 44px;
+}
+.dev-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.dev-code {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--cotton);
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.dev-code:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+.dev-example .translation {
+  margin: 10px 0 0;
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+.dev-example .arabic {
+  margin: 0;
+}
+.dev-example-ref {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+}
+.dev-example-credit {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+}
+.dev-list {
+  margin: 0;
+  padding-left: 20px;
+}
+.dev-list li + li {
+  margin-top: 8px;
+}
+.dev-list a {
+  overflow-wrap: anywhere;
+}
