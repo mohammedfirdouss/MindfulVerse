@@ -40,8 +40,14 @@ export function spansInRange(
   const spans: Span[] = [];
   for (let s = fs; s <= ls; s++) {
     const count = ayahCounts.get(s);
-    if (!count) continue;
-    spans.push({ surah: s, from: s === fs ? fa : 1, to: s === ls ? la : count });
+    if (!count) {
+      continue;
+    }
+    spans.push({
+      from: s === fs ? fa : 1,
+      surah: s,
+      to: s === ls ? la : count,
+    });
   }
   return spans;
 }
@@ -49,7 +55,7 @@ export function spansInRange(
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 export function toArabicDigits(n: number): string {
-  return String(n).replace(/\d/g, (c) => ARABIC_DIGITS[Number(c)]);
+  return String(n).replaceAll(/\d/g, (c) => ARABIC_DIGITS[Number(c)]);
 }
 
 /** DOM id for a verse where two surahs can share a page (juz, reading text). */
@@ -58,8 +64,12 @@ export function verseId(surah: number, ayah: number): string {
 }
 
 /** Reads both "v{ayah}" (surah page translation blocks) and "v{surah}-{ayah}". */
-export function parseVerseId(id: string): { surah: number | null; ayah: number } | null {
+export function parseVerseId(
+  id: string
+): { surah: number | null; ayah: number } | null {
   const m = /^v(?:(\d+)-)?(\d+)$/.exec(id);
-  if (!m) return null;
-  return { surah: m[1] ? Number(m[1]) : null, ayah: Number(m[2]) };
+  if (!m) {
+    return null;
+  }
+  return { ayah: Number(m[2]), surah: m[1] ? Number(m[1]) : null };
 }

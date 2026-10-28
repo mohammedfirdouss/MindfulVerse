@@ -13,12 +13,12 @@ interface Storage {
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
 }
-declare var localStorage: Storage;
+declare let localStorage: Storage;
 
 interface Crypto {
   randomUUID(): `${string}-${string}-${string}-${string}-${string}`;
 }
-declare var crypto: Crypto;
+declare let crypto: Crypto;
 
 declare function setTimeout(handler: () => void, timeout?: number): number;
 declare function clearTimeout(id: number | undefined): void;

@@ -4,14 +4,23 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const store = new Map<string, string>();
 vi.stubGlobal("localStorage", {
   getItem: (k: string) => store.get(k) ?? null,
-  setItem: (k: string, v: string) => void store.set(k, v),
   removeItem: (k: string) => void store.delete(k),
+  setItem: (k: string, v: string) => void store.set(k, v),
 });
 
+import {
+  addEntry,
+  deleteEntry,
+  getEntries,
+  getTombstones,
+  replaceAll,
+} from "./journal";
 import { markJournalDirty, isDirty, clearDirty, onDirty } from "./syncFlags";
-import { addEntry, deleteEntry, getEntries, getTombstones, replaceAll } from "./journal";
 
-beforeEach(() => { store.clear(); clearDirty(); });
+beforeEach(() => {
+  store.clear();
+  clearDirty();
+});
 
 describe("syncFlags", () => {
   it("starts clean, marks dirty, clears", () => {
@@ -21,6 +30,7 @@ describe("syncFlags", () => {
     clearDirty();
     expect(isDirty()).toBe(false);
   });
+
   it("notifies the registered listener on mark", () => {
     const cb = vi.fn();
     onDirty(cb);
@@ -31,19 +41,21 @@ describe("syncFlags", () => {
 
 describe("journal tombstones", () => {
   it("deleteEntry records a tombstone", () => {
-    const e = addEntry({ prompt: "p", body: "b" });
+    const e = addEntry({ body: "b", prompt: "p" });
     deleteEntry(e.id);
     expect(getEntries()).toEqual([]);
     expect(getTombstones().map((t) => t.id)).toEqual([e.id]);
   });
+
   it("replaceAll swaps state without marking dirty", () => {
     clearDirty();
-    replaceAll([{ id: "z", createdAt: 1, prompt: "", body: "b" }], []);
+    replaceAll([{ body: "b", createdAt: 1, id: "z", prompt: "" }], []);
     expect(getEntries()).toHaveLength(1);
     expect(isDirty()).toBe(false);
   });
+
   it("addEntry marks dirty", () => {
-    addEntry({ prompt: "p", body: "b" });
+    addEntry({ body: "b", prompt: "p" });
     expect(isDirty()).toBe(true);
   });
 });

@@ -32,7 +32,12 @@ export function markBounds(rects: readonly MarkRect[] = MARK_RECTS) {
   const ys = rects.flatMap(([, y, , h]) => [y, y + h]);
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
-  return { minX, minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY };
+  return {
+    height: Math.max(...ys) - minY,
+    minX,
+    minY,
+    width: Math.max(...xs) - minX,
+  };
 }
 
 export interface MarkSvgOptions {
@@ -50,7 +55,13 @@ export interface MarkSvgOptions {
 
 /** The mark as a square SVG string, centred with even padding. With `ground`
  *  it is the app icon (concept B: the word left pale inside indigo). */
-export function markSvg({ ink, ground, pad = 0.2, radius = 0, size }: MarkSvgOptions): string {
+export function markSvg({
+  ink,
+  ground,
+  pad = 0.2,
+  radius = 0,
+  size,
+}: MarkSvgOptions): string {
   const b = markBounds();
   const span = Math.max(b.width, b.height);
   const box = span / (1 - 2 * pad);
@@ -62,7 +73,7 @@ export function markSvg({ ink, ground, pad = 0.2, radius = 0, size }: MarkSvgOpt
     out += `<rect x="${r(ox)}" y="${r(oy)}" width="${r(box)}" height="${r(box)}" rx="${r(radius * box)}" fill="${ground}"/>`;
   }
   out += `<path fill="${ink}" d="${markPath()}"/>`;
-  return out + "</svg>";
+  return `${out}</svg>`;
 }
 
 /** All squares as one path, in grid units. */

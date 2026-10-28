@@ -51,18 +51,26 @@ function getJson<T>(path: string): Promise<T> {
   let p = cache.get(path);
   if (!p) {
     const read = readJson;
-    if (!read) return Promise.reject(new Error("configureData() must run before loading data"));
+    if (!read) {
+      return Promise.reject(
+        new Error("configureData() must run before loading data")
+      );
+    }
     // Via then(): a reader that throws synchronously still yields a rejection.
     const pending: Promise<unknown> = Promise.resolve().then(() => read(path));
     p = pending;
     cache.set(path, pending);
     pending.catch(() => {
-      if (cache.get(path) !== pending) return; // already evicted or replaced
+      if (cache.get(path) !== pending) {
+        return;
+      } // already evicted or replaced
       cache.delete(path);
       tafsirLru.delete(path);
     });
   }
-  if (isTafsir(path)) touchTafsir(path);
+  if (isTafsir(path)) {
+    touchTafsir(path);
+  }
   return p as Promise<T>;
 }
 
@@ -86,11 +94,9 @@ export const loadTafsirIndex = () =>
   getJson<Record<string, number[]>>("tafsir-index.json");
 
 /** [verseKey, translation] pairs (~1MB) — fetch only when the user searches. */
-export const loadSearchIndex = () =>
-  getJson<[string, string][]>("search.json");
+export const loadSearchIndex = () => getJson<[string, string][]>("search.json");
 
-export const loadSessions = () =>
-  getJson<TadabburSession[]>("sessions.json");
+export const loadSessions = () => getJson<TadabburSession[]>("sessions.json");
 
 export const loadEmotions = () => getJson<EmotionMap>("emotions.json");
 
@@ -98,7 +104,10 @@ export const loadEmotions = () => getJson<EmotionMap>("emotions.json");
 export const loadDivisions = () => getJson<Divisions>("divisions.json");
 
 /** Convenience: fetch a specific ayah (surah + translation + arabic). */
-export async function loadAyah(surah: number, ayah: number): Promise<Ayah | undefined> {
+export async function loadAyah(
+  surah: number,
+  ayah: number
+): Promise<Ayah | undefined> {
   const ayahs = await loadSurahAyahs(surah);
   return ayahs.find((a) => a.ayah === ayah);
 }
@@ -106,7 +115,7 @@ export async function loadAyah(surah: number, ayah: number): Promise<Ayah | unde
 /** Parse "2:255" -> { surah: 2, ayah: 255 }. */
 export function parseVerseKey(vk: string): { surah: number; ayah: number } {
   const [s, a] = vk.split(":").map(Number);
-  return { surah: s, ayah: a };
+  return { ayah: a, surah: s };
 }
 
 /** Load a list of ayahs by verse keys, grouped-fetch per surah for efficiency. */
@@ -114,15 +123,21 @@ export async function loadAyahsByKeys(verseKeys: string[]): Promise<Ayah[]> {
   const bySurah = new Map<number, Set<number>>();
   for (const vk of verseKeys) {
     const { surah, ayah } = parseVerseKey(vk);
-    if (!bySurah.has(surah)) bySurah.set(surah, new Set());
+    if (!bySurah.has(surah)) {
+      bySurah.set(surah, new Set());
+    }
     bySurah.get(surah)!.add(ayah);
   }
   const out: Ayah[] = [];
   for (const [surah, ayahs] of bySurah) {
     const all = await loadSurahAyahs(surah);
-    for (const a of all) if (ayahs.has(a.ayah)) out.push(a);
+    for (const a of all) {
+      if (ayahs.has(a.ayah)) {
+        out.push(a);
+      }
+    }
   }
   // preserve requested order
   const order = new Map(verseKeys.map((vk, i) => [vk, i]));
-  return out.sort((x, y) => (order.get(x.verseKey)! - order.get(y.verseKey)!));
+  return out.sort((x, y) => order.get(x.verseKey)! - order.get(y.verseKey)!);
 }

@@ -5,8 +5,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const store = new Map<string, string>();
 vi.stubGlobal("localStorage", {
   getItem: (k: string) => store.get(k) ?? null,
-  setItem: (k: string, v: string) => void store.set(k, v),
   removeItem: (k: string) => void store.delete(k),
+  setItem: (k: string, v: string) => void store.set(k, v),
 });
 
 let currentUserId: string | null = "user-b";
@@ -18,7 +18,16 @@ function query(): Record<string, unknown> {
     then: (resolve: (v: { data: unknown; error: null }) => unknown) =>
       resolve({ data: [], error: null }),
   };
-  for (const m of ["select", "eq", "order", "range", "insert", "update", "delete", "limit"]) {
+  for (const m of [
+    "select",
+    "eq",
+    "order",
+    "range",
+    "insert",
+    "update",
+    "delete",
+    "limit",
+  ]) {
     chain[m] = () => chain;
   }
   chain.maybeSingle = () => ({
@@ -28,7 +37,8 @@ function query(): Record<string, unknown> {
   return chain;
 }
 
-vi.mock("./insforge", () => ({
+// Partial fakes: `as never` lets the typed vi.mock accept them.
+vi.mock(import("./insforge"), () => ({
   insforge: {
     auth: {
       getCurrentUser: async () => {
@@ -40,23 +50,30 @@ vi.mock("./insforge", () => ({
       },
     },
     database: { from: () => query() },
-  },
+  } as never,
 }));
 
-import {
-  makeDebounced, ownerMismatch, getSyncOwner, getSyncStatus, syncNow, resolveOwnerMismatch,
-  configureSyncTriggers, initSync, type SyncTriggers,
-} from "./engine";
 import { addEntry, getEntries, getTombstones } from "../journal";
 import { recordVisit, recordLastRead, getLocalProgress } from "../progress";
+import {
+  makeDebounced,
+  ownerMismatch,
+  getSyncOwner,
+  getSyncStatus,
+  syncNow,
+  resolveOwnerMismatch,
+  configureSyncTriggers,
+  initSync,
+} from "./engine";
+import type { SyncTriggers } from "./engine";
 
 const OWNER_KEY = "mindfulverse.sync.owner.v1";
 
 // Always online; passive triggers never fire (these tests call syncNow directly).
 const testTriggers: SyncTriggers = {
   isOnline: () => true,
-  onOnline: () => () => {},
   onForeground: () => () => {},
+  onOnline: () => () => {},
 };
 configureSyncTriggers(testTriggers);
 
@@ -68,12 +85,14 @@ beforeEach(() => {
   currentUserId = "user-b";
 });
 
-describe("makeDebounced", () => {
+describe(makeDebounced, () => {
   it("coalesces bursts into one trailing call", () => {
     vi.useFakeTimers();
     const fn = vi.fn();
     const run = makeDebounced(fn, 3000);
-    run(); run(); run();
+    run();
+    run();
+    run();
     expect(fn).not.toHaveBeenCalled();
     vi.advanceTimersByTime(3000);
     expect(fn).toHaveBeenCalledOnce();
@@ -81,13 +100,15 @@ describe("makeDebounced", () => {
   });
 });
 
-describe("ownerMismatch", () => {
+describe(ownerMismatch, () => {
   it("is false with no stored owner (first ever sync)", () => {
     expect(ownerMismatch(null, "user-a")).toBe(false);
   });
+
   it("is false for the same account signing back in", () => {
     expect(ownerMismatch("user-a", "user-a")).toBe(false);
   });
+
   it("is true for a different account", () => {
     expect(ownerMismatch("user-a", "user-b")).toBe(true);
   });
@@ -102,7 +123,7 @@ describe("syncNow owner guard", () => {
 
   it("refuses to touch local data when another account owns it", async () => {
     store.set(OWNER_KEY, "user-a");
-    const entry = addEntry({ prompt: "p", body: "b" });
+    const entry = addEntry({ body: "b", prompt: "p" });
     await syncNow();
     expect(getSyncStatus()).toBe("switched-account");
     expect(getSyncOwner()).toBe("user-a"); // untouched
@@ -110,10 +131,10 @@ describe("syncNow owner guard", () => {
   });
 });
 
-describe("resolveOwnerMismatch", () => {
+describe(resolveOwnerMismatch, () => {
   it('"merge" keeps local entries and adopts the current account', async () => {
     store.set(OWNER_KEY, "user-a");
-    const entry = addEntry({ prompt: "p", body: "b" });
+    const entry = addEntry({ body: "b", prompt: "p" });
     await resolveOwnerMismatch("merge");
     expect(getSyncOwner()).toBe("user-b");
     expect(getEntries().map((e) => e.id)).toEqual([entry.id]);
@@ -122,8 +143,11 @@ describe("resolveOwnerMismatch", () => {
 
   it('"fresh" clears entries, tombstones and progress, then takes ownership', async () => {
     store.set(OWNER_KEY, "user-a");
-    addEntry({ prompt: "p", body: "b" });
-    store.set("mindfulverse.journal.deleted.v1", JSON.stringify([{ id: "x", deletedAt: 1 }]));
+    addEntry({ body: "b", prompt: "p" });
+    store.set(
+      "mindfulverse.journal.deleted.v1",
+      JSON.stringify([{ deletedAt: 1, id: "x" }])
+    );
     recordVisit();
     recordLastRead(2, 255);
 
@@ -142,7 +166,7 @@ describe("resolveOwnerMismatch", () => {
   it("does nothing but report signed-out when nobody is signed in", async () => {
     store.set(OWNER_KEY, "user-a");
     currentUserId = null;
-    addEntry({ prompt: "p", body: "b" });
+    addEntry({ body: "b", prompt: "p" });
     await resolveOwnerMismatch("fresh");
     expect(getSyncStatus()).toBe("signed-out");
     expect(getEntries()).toHaveLength(1);
@@ -165,8 +189,14 @@ describe("sync triggers", () => {
     let fireForeground = () => {};
     configureSyncTriggers({
       isOnline: () => true,
-      onOnline: (cb) => { fireOnline = cb; return () => {}; },
-      onForeground: (cb) => { fireForeground = cb; return () => {}; },
+      onForeground: (cb) => {
+        fireForeground = cb;
+        return () => {};
+      },
+      onOnline: (cb) => {
+        fireOnline = cb;
+        return () => {};
+      },
     });
     authCalls = 0;
     initSync();

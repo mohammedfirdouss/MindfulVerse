@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import divisionsJson from "../../apps/web/public/data/divisions.json";
 import surahsJson from "../../apps/web/public/data/surahs.json";
 import {
@@ -13,9 +14,11 @@ import {
 import type { Divisions, SurahMeta } from "./types";
 
 const d = divisionsJson as Divisions;
-const counts = new Map((surahsJson as SurahMeta[]).map((s) => [s.number, s.ayahCount]));
+const counts = new Map(
+  (surahsJson as SurahMeta[]).map((s) => [s.number, s.ayahCount])
+);
 
-describe("compareKeys", () => {
+describe(compareKeys, () => {
   it("orders numerically, not lexically", () => {
     expect(compareKeys("2:141", "2:142")).toBeLessThan(0);
     expect(compareKeys("9:1", "10:1")).toBeLessThan(0);
@@ -33,43 +36,50 @@ describe("juzOf / hizbOf", () => {
     expect(hizbOf("2:74", d)).toBe(1);
     expect(hizbOf("2:75", d)).toBe(2);
   });
+
   it("returns null for a key outside the Qur'an", () => {
     expect(juzOf("115:1", d)).toBeNull();
   });
 });
 
-describe("spansInRange", () => {
+describe(spansInRange, () => {
   it("splits juz 1 into Al-Fatihah and part of Al-Baqarah", () => {
     expect(spansInRange("1:1", "2:141", counts)).toEqual([
-      { surah: 1, from: 1, to: 7 },
-      { surah: 2, from: 1, to: 141 },
+      { from: 1, surah: 1, to: 7 },
+      { from: 1, surah: 2, to: 141 },
     ]);
   });
+
   it("covers the 37 surahs of juz 30", () => {
     const spans = spansInRange("78:1", "114:6", counts);
     expect(spans).toHaveLength(37);
-    expect(spans[0]).toEqual({ surah: 78, from: 1, to: 40 });
-    expect(spans[36]).toEqual({ surah: 114, from: 1, to: 6 });
+    expect(spans[0]).toEqual({ from: 1, surah: 78, to: 40 });
+    expect(spans[36]).toEqual({ from: 1, surah: 114, to: 6 });
   });
+
   it("handles a range inside one surah", () => {
-    expect(spansInRange("2:142", "2:252", counts)).toEqual([{ surah: 2, from: 142, to: 252 }]);
+    expect(spansInRange("2:142", "2:252", counts)).toEqual([
+      { from: 142, surah: 2, to: 252 },
+    ]);
   });
 });
 
 describe("verse ids", () => {
   it("round-trips surah-qualified ids", () => {
     expect(verseId(2, 255)).toBe("v2-255");
-    expect(parseVerseId("v2-255")).toEqual({ surah: 2, ayah: 255 });
+    expect(parseVerseId("v2-255")).toEqual({ ayah: 255, surah: 2 });
   });
+
   it("reads the surah page's plain ids", () => {
-    expect(parseVerseId("v12")).toEqual({ surah: null, ayah: 12 });
+    expect(parseVerseId("v12")).toEqual({ ayah: 12, surah: null });
   });
+
   it("rejects anything else", () => {
     expect(parseVerseId("verse")).toBeNull();
   });
 });
 
-describe("toArabicDigits", () => {
+describe(toArabicDigits, () => {
   it("converts to Arabic-Indic digits", () => {
     expect(toArabicDigits(286)).toBe("٢٨٦");
     expect(toArabicDigits(10)).toBe("١٠");

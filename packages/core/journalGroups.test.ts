@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { groupEntries, type JournalGroup } from "./journalGroups";
+
+import { groupEntries } from "./journalGroups";
+import type { JournalGroup } from "./journalGroups";
 import type { JournalEntry } from "./types";
 
 function entry(
@@ -7,10 +9,10 @@ function entry(
   createdAt: number,
   context?: JournalEntry["context"]
 ): JournalEntry {
-  return { id, createdAt, prompt: "p", body: "b", context };
+  return { body: "b", context, createdAt, id, prompt: "p" };
 }
 
-describe("groupEntries", () => {
+describe(groupEntries, () => {
   it("clusters verse reflections by surah, sessions by id, the rest under other", () => {
     const groups = groupEntries([
       entry("a", 3, { kind: "checkin", ref: "8:2" }),
@@ -24,7 +26,9 @@ describe("groupEntries", () => {
       "session:hope-1",
     ]);
     expect(groups.find((g) => g.key === "surah:8")!.surah).toBe(8);
-    expect(groups.find((g) => g.key === "session:hope-1")!.sessionId).toBe("hope-1");
+    expect(groups.find((g) => g.key === "session:hope-1")!.sessionId).toBe(
+      "hope-1"
+    );
   });
 
   it("orders groups by most recent entry, entries inside oldest first", () => {

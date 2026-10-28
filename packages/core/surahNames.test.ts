@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { arabicSurahName, revelationPlace } from "./surahNames";
 
 describe("surahNames", () => {
@@ -18,6 +19,8 @@ describe("surahNames", () => {
   });
 
   it("drops the سورة prefix", () => {
-    for (let n = 1; n <= 114; n++) expect(arabicSurahName(n)).not.toMatch(/^سُورَةُ|^سورة/);
+    for (let n = 1; n <= 114; n++) {
+      expect(arabicSurahName(n)).not.toMatch(/^سُورَةُ|^سورة/);
+    }
   });
 });

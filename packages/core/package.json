@@ -1,9 +1,9 @@
 {
   "name": "@mindfulverse/core",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "description": "Platform-neutral MindfulVerse logic shared by the web and mobile apps (no DOM, no react-native).",
+  "type": "module",
   "exports": {
     "./analytics": "./analytics.ts",
     "./brand": "./brand.ts",
@@ -28,11 +28,11 @@
   "dependencies": {
     "@insforge/sdk": "^1.5.2"
   },
-  "peerDependencies": {
-    "react": "^18.3.1 || ^19.0.0"
-  },
   "devDependencies": {
     "@types/react": "^18.3.5",
     "react": "^18.3.1"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0"
   }
 }
