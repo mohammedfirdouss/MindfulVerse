@@ -1,6 +1,8 @@
 const IPV4_PATTERN = /^\d{1,3}(?:\.\d{1,3}){3}$/u;
 const WWW_PREFIX = "www.";
 const RESERVED_SUFFIXES = [".local", ".internal", ".localhost", ".test"];
+const INERT_BLOCK_PATTERN =
+  /<script\b[\s\S]*?<\/script\s*>|<style\b[\s\S]*?<\/style\s*>|<!--[\s\S]*?-->/giu;
 const META_TAG_PATTERN = /<meta\b[^>]*>/giu;
 const META_NAME = "mindfulverse-verification";
 const WELL_KNOWN_PATH = "/.well-known/mindfulverse-verify.txt";
@@ -173,11 +175,11 @@ export const originAllowed = (
 };
 
 export const tokenInFile = (body: string, token: string): boolean =>
-  body.trim() === token;
+  token !== "" && body.trim() === token;
 
 const readAttribute = (tag: string, name: string): string | null => {
   const pattern = new RegExp(
-    `\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`,
+    `(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`,
     "iu"
   );
   const match = pattern.exec(tag);
@@ -188,7 +190,11 @@ const readAttribute = (tag: string, name: string): string | null => {
 };
 
 export const tokenInHtml = (html: string, token: string): boolean => {
-  for (const tag of html.match(META_TAG_PATTERN) ?? []) {
+  if (token === "") {
+    return false;
+  }
+  const visible = html.replaceAll(INERT_BLOCK_PATTERN, "");
+  for (const tag of visible.match(META_TAG_PATTERN) ?? []) {
     const name = readAttribute(tag, "name")?.trim().toLowerCase();
     if (name === META_NAME && readAttribute(tag, "content")?.trim() === token) {
       return true;
@@ -284,6 +290,26 @@ const resolvesPublicly = async (
   }
 };
 
+const checkHost = async (
+  host: string,
+  token: string,
+  fetchFn: typeof fetch,
+  resolve?: (host: string) => Promise<string[]>
+): Promise<boolean> => {
+  if (resolve && !(await resolvesPublicly(host, resolve))) {
+    return false;
+  }
+  const fileBody = await fetchBody(
+    `https://${host}${WELL_KNOWN_PATH}`,
+    fetchFn
+  );
+  if (fileBody !== null && tokenInFile(fileBody, token)) {
+    return true;
+  }
+  const homeBody = await fetchBody(`https://${host}/`, fetchFn);
+  return homeBody !== null && tokenInHtml(homeBody, token);
+};
+
 export const checkDomain = async (
   domain: string,
   token: string,
@@ -296,15 +322,10 @@ export const checkDomain = async (
   if (resolve && !(await resolvesPublicly(domain, resolve))) {
     return false;
   }
-  const fileBody = await fetchBody(
-    `https://${domain}${WELL_KNOWN_PATH}`,
-    fetchFn
-  );
-  if (fileBody !== null && tokenInFile(fileBody, token)) {
+  if (await checkHost(domain, token, fetchFn)) {
     return true;
   }
-  const homeBody = await fetchBody(`https://${domain}/`, fetchFn);
-  return homeBody !== null && tokenInHtml(homeBody, token);
+  return checkHost(`${WWW_PREFIX}${domain}`, token, fetchFn, resolve);
 };
 
 const randomBase64Url = (byteCount: number): string => {

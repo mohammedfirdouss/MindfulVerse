@@ -74,7 +74,7 @@ const curlExample = (base: string) =>
   -H "X-Seed: a-stable-id-for-this-reader"`;
 
 const fetchExample = (base: string) =>
-  `const res = await fetch("${base}/functions/daily-verse?tz=" + tz, {
+  `const res = await fetch("${base}/functions/daily-verse?tz=" + encodeURIComponent(tz), {
   headers: {
     Authorization: "Bearer YOUR_KEY",
     "X-Seed": readerId,
@@ -189,6 +189,11 @@ export default function Developers() {
             <p className="soft dev-note">
               The file should contain only this token: {started.token}
             </p>
+            <p className="soft dev-note">
+              We check your bare domain over HTTPS, and if that fails we also
+              try the www version of it. The file or the meta tag must be served
+              there.
+            </p>
             <CopyRow
               label="Copy the meta tag"
               text={started.metaTag}
@@ -285,12 +290,39 @@ export default function Developers() {
           browser with{" "}
           <code>Intl.DateTimeFormat().resolvedOptions().timeZone</code>.
         </p>
-        <pre className="dev-code" aria-label="curl example">
+        <pre
+          className="dev-code"
+          aria-label="curl example"
+          // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- scrollable code must be keyboard reachable
+          tabIndex={0}
+        >
           <code>{curlExample(base)}</code>
         </pre>
-        <pre className="dev-code" aria-label="fetch example">
+        <pre
+          className="dev-code"
+          aria-label="fetch example"
+          // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- scrollable code must be keyboard reachable
+          tabIndex={0}
+        >
           <code>{fetchExample(base)}</code>
         </pre>
+        <p>
+          Call from your server where you can. Browser calls only work from the
+          verified domain or its subdomains, and other origins get a 403.
+        </p>
+        <p>
+          Each key can make 10,000 verse requests per UTC day. A 429 means the
+          limit is reached, so try again tomorrow (UTC). Requesting keys is
+          limited to 20 starts and 20 verifies per IP address per day, and 10
+          verifies per domain per day.
+        </p>
+        <p>
+          Errors come back as JSON like{" "}
+          <code>{'{ "error": "...", "message": "..." }'}</code> with one of
+          these codes: 400 for bad input, 401 for a missing, unknown or revoked
+          key, 403 for an origin that is not allowed, 429 for a reached limit,
+          and 500 or 502 when the problem is on our side, so retry later.
+        </p>
       </section>
 
       <section className="stack" aria-labelledby="dev-card-title">
@@ -340,7 +372,7 @@ export default function Developers() {
           <li>Do not edit the text.</li>
           <li>Cache each response until its validUntil time.</li>
           <li>We can revoke a key that is misused.</li>
-          <li>We do not store your users’ IDs or time zones.</li>
+          <li>We don’t keep your users’ IDs or time zones in our database.</li>
         </ul>
       </section>
     </div>

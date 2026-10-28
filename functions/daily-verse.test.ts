@@ -306,6 +306,13 @@ describe("origin", () => {
     expect(res.headers.get("Vary")).toContain("Origin");
   });
 
+  it("varies on the seed and key headers too", async () => {
+    const { res } = await callJson(NOON);
+    const vary = res.headers.get("Vary") ?? "";
+    expect(vary).toContain("X-Seed");
+    expect(vary).toContain("Authorization");
+  });
+
   it("allows requests without an Origin", async () => {
     const { res } = await callJson(NOON);
     expect(res.status).toBe(HTTP_OK);

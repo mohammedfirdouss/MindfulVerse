@@ -14,11 +14,18 @@ import {
 const TOKEN = "mv-verify-abc";
 const FILE_URL = "https://example.com/.well-known/mindfulverse-verify.txt";
 const HOME_URL = "https://example.com/";
+const WWW_FILE_URL =
+  "https://www.example.com/.well-known/mindfulverse-verify.txt";
+const WWW_HOME_URL = "https://www.example.com/";
 const BASE64URL = /^[A-Za-z0-9_-]+$/u;
 const KB = 1024;
 
 const privateResolver = () => Promise.resolve(["10.0.0.5"]);
 const publicResolver = () => Promise.resolve(["93.184.216.34"]);
+const wwwPrivateResolver = (host: string) =>
+  Promise.resolve(
+    host === "www.example.com" ? ["10.0.0.5"] : ["93.184.216.34"]
+  );
 const emptyResolver = () => Promise.resolve([]);
 const brokenResolver = () => Promise.reject(new Error("dns"));
 
@@ -85,6 +92,10 @@ describe(tokenInFile, () => {
   it("rejects partial match", () => {
     expect(tokenInFile("xtok", "tok")).toBeFalsy();
   });
+
+  it("rejects an empty token", () => {
+    expect(tokenInFile("", "")).toBeFalsy();
+  });
 });
 
 describe(tokenInHtml, () => {
@@ -100,6 +111,37 @@ describe(tokenInHtml, () => {
   it("rejects other meta names and plain text", () => {
     expect(tokenInHtml('<meta name="other" content="tok">', "tok")).toBeFalsy();
     expect(tokenInHtml("<p>tok</p>", "tok")).toBeFalsy();
+  });
+
+  it("ignores meta tags inside script, style and comments", () => {
+    const meta = '<meta name="mindfulverse-verification" content="tok">';
+    expect(
+      tokenInHtml(`<script>var a = '${meta}';</script>`, "tok")
+    ).toBeFalsy();
+    expect(tokenInHtml(`<STYLE>\n${meta}\n</STYLE>`, "tok")).toBeFalsy();
+    expect(tokenInHtml(`<!--\n${meta}\n-->`, "tok")).toBeFalsy();
+    expect(tokenInHtml(`<!-- x -->${meta}`, "tok")).toBeTruthy();
+  });
+
+  it("does not match lookalike attribute names", () => {
+    expect(
+      tokenInHtml(
+        '<meta data-name="mindfulverse-verification" content="tok">',
+        "tok"
+      )
+    ).toBeFalsy();
+    expect(
+      tokenInHtml(
+        '<meta itemprop="name=mindfulverse-verification" content="tok">',
+        "tok"
+      )
+    ).toBeFalsy();
+  });
+
+  it("rejects an empty token", () => {
+    expect(
+      tokenInHtml('<meta name="mindfulverse-verification" content="">', "")
+    ).toBeFalsy();
   });
 });
 
@@ -154,6 +196,35 @@ describe(checkDomain, () => {
       checkDomain("example.com", TOKEN, fetchFn)
     ).resolves.toBeFalsy();
     const urls = fetchFn.mock.calls.map((call) => String(call[0]));
+    expect(urls).toStrictEqual([
+      FILE_URL,
+      HOME_URL,
+      WWW_FILE_URL,
+      WWW_HOME_URL,
+    ]);
+  });
+
+  it("accepts the token on www when the bare domain redirects", async () => {
+    const fetchFn = vi.fn<typeof fetch>((url) =>
+      Promise.resolve(
+        String(url) === WWW_FILE_URL
+          ? respond(TOKEN)
+          : new Response(null, { status: 301 })
+      )
+    );
+    await expect(
+      checkDomain("example.com", TOKEN, fetchFn)
+    ).resolves.toBeTruthy();
+  });
+
+  it("does not fetch www when it resolves privately", async () => {
+    const fetchFn = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(null, { status: 301 }))
+    );
+    await expect(
+      checkDomain("example.com", TOKEN, fetchFn, wwwPrivateResolver)
+    ).resolves.toBeFalsy();
+    const urls = fetchFn.mock.calls.map((call) => String(call[0]));
     expect(urls).toStrictEqual([FILE_URL, HOME_URL]);
   });
 
@@ -184,9 +255,9 @@ describe(checkDomain, () => {
     vi.useFakeTimers();
     const fetchFn = vi.fn<typeof fetch>(() => Promise.race<Response>([]));
     const pending = checkDomain("example.com", TOKEN, fetchFn);
-    await vi.advanceTimersByTimeAsync(20_000);
+    await vi.advanceTimersByTimeAsync(30_000);
     await expect(pending).resolves.toBeFalsy();
-    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(fetchFn).toHaveBeenCalledTimes(4);
   });
 
   it("returns false when fetch throws", async () => {

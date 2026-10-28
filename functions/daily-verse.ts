@@ -45,7 +45,7 @@ const corsHeaders = (origin: string | null): Record<string, string> => ({
   "Access-Control-Allow-Headers": "Authorization, X-Seed",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Origin": origin ?? "*",
-  Vary: "Origin",
+  Vary: "Origin, X-Seed, Authorization",
 });
 
 export const jsonError = (

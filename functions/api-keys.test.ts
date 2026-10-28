@@ -184,6 +184,30 @@ describe("handleApiKeys verify", () => {
     expect(deps.check).not.toHaveBeenCalled();
   });
 
+  it("treats an unparseable expiry as no_pending", async () => {
+    const deps = makeDeps({
+      loadPending: vi.fn<KeyDeps["loadPending"]>(() =>
+        Promise.resolve({
+          contactEmail: null,
+          expiresAt: "not-a-date",
+          siteName: "S",
+          termsVersion: TERMS_VERSION,
+        })
+      ),
+    });
+    const { json, status } = await call(deps, verifyBody("t"));
+    expect(status).toBe(404);
+    expect(json.error).toBe("no_pending");
+    expect(deps.check).not.toHaveBeenCalled();
+  });
+
+  it("marks the key response no-store", async () => {
+    const deps = makeDeps();
+    const token = await started(deps);
+    const res = await handleApiKeys(post(verifyBody(token)), deps);
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+  });
+
   it("returns 404 for an unknown token", async () => {
     const { status } = await call(makeDeps(), verifyBody("zzz"));
     expect(status).toBe(404);

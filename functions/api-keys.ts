@@ -155,7 +155,7 @@ const handleVerify = async (
   }
   const token = text(body.token);
   const pending = token ? await deps.loadPending(domain, token) : null;
-  if (!pending || Date.parse(pending.expiresAt) <= deps.now()) {
+  if (!pending || !(Date.parse(pending.expiresAt) > deps.now())) {
     return fail(
       HTTP_NOT_FOUND,
       "no_pending",
@@ -205,7 +205,9 @@ const handleVerify = async (
     }
     throw error;
   }
-  return ok({ apiKey, domain });
+  const res = ok({ apiKey, domain });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 };
 
 export const handleApiKeys = async (
