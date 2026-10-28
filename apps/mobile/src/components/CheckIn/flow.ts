@@ -11,6 +11,8 @@ export function openingStage(checkedIn: boolean, draft: string): CheckInStage {
 
 /** The quiet note beside "Keep in journal". */
 export function keepNote(body: string, kept: boolean): "kept" | "draft" | null {
-  if (body.trim().length > 0) return "draft";
+  if (body.trim().length > 0) {
+    return "draft";
+  }
   return kept ? "kept" : null;
 }

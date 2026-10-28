@@ -1,28 +1,41 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createLastReadScheduler, LAST_READ_DEBOUNCE_MS, topmostAyah, topmostRow } from "./lastRead";
+
+import {
+  createLastReadScheduler,
+  LAST_READ_DEBOUNCE_MS,
+  topmostAyah,
+  topmostRow,
+} from "./lastRead";
 
 const v = (...ns: number[]) => ns.map((n) => ({ first: n, last: n }));
 
-describe("topmostAyah", () => {
+describe(topmostAyah, () => {
   it("picks the lowest visible ayah regardless of report order", () => {
     expect(topmostAyah([12, 10, 11])).toBe(10);
   });
+
   it("is null when nothing is visible", () => {
     expect(topmostAyah([])).toBeNull();
   });
+
   it("ignores junk values", () => {
     expect(topmostAyah([Number.NaN, 0, 7])).toBe(7);
   });
 });
 
-describe("topmostRow", () => {
+describe(topmostRow, () => {
   it("picks the row with the lowest first ayah", () => {
-    expect(topmostRow([{ first: 9, last: 12 }, { first: 5, last: 8 }])).toEqual({ first: 5, last: 8 });
+    expect(
+      topmostRow([
+        { first: 9, last: 12 },
+        { first: 5, last: 8 },
+      ])
+    ).toEqual({ first: 5, last: 8 });
     expect(topmostRow([])).toBeNull();
   });
 });
 
-describe("createLastReadScheduler", () => {
+describe(createLastReadScheduler, () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
@@ -45,7 +58,7 @@ describe("createLastReadScheduler", () => {
     vi.advanceTimersByTime(300);
     s.update(v(90, 91));
     vi.advanceTimersByTime(LAST_READ_DEBOUNCE_MS);
-    expect(record).toHaveBeenCalledTimes(1);
+    expect(record).toHaveBeenCalledOnce();
     expect(record).toHaveBeenCalledWith(90);
   });
 
@@ -56,7 +69,7 @@ describe("createLastReadScheduler", () => {
     vi.advanceTimersByTime(LAST_READ_DEBOUNCE_MS);
     s.update(v(8, 9));
     vi.advanceTimersByTime(LAST_READ_DEBOUNCE_MS);
-    expect(record).toHaveBeenCalledTimes(1);
+    expect(record).toHaveBeenCalledOnce();
   });
 
   it("skips a verse already recorded elsewhere (deep link)", () => {
@@ -72,7 +85,10 @@ describe("createLastReadScheduler", () => {
     const record = vi.fn();
     const s = createLastReadScheduler(record);
     s.noteRecorded(255);
-    s.update([{ first: 253, last: 256 }, { first: 257, last: 260 }]);
+    s.update([
+      { first: 253, last: 256 },
+      { first: 257, last: 260 },
+    ]);
     vi.advanceTimersByTime(LAST_READ_DEBOUNCE_MS);
     expect(record).not.toHaveBeenCalled();
     s.update([{ first: 257, last: 260 }]);

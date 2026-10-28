@@ -1,11 +1,17 @@
+import { SIZES } from "@mindfulverse/core/readingPrefs";
+import type { ReadView } from "@mindfulverse/core/readingPrefs";
 import { View } from "react-native";
-import { SIZES, type ReadView } from "@mindfulverse/core/readingPrefs";
+
 import { tickSelection } from "../../platform/haptics";
 import { space } from "../../theme";
 import { Text } from "../../ui";
 import { Segmented } from "./Segmented";
 
-const SIZE_NAMES: Record<string, string> = { s: "small", m: "medium", l: "large" };
+const SIZE_NAMES: Record<string, string> = {
+  l: "large",
+  m: "medium",
+  s: "small",
+};
 
 /** Port of apps/web/src/components/ReadingControls.tsx: the size and the
  *  Translation / Reading (Arabic-only, flowing) choices, shown inside the
@@ -31,7 +37,9 @@ export function ReadingControls({
           accessibilityLabel="Reading size"
           value={sizeKey}
           onChange={(k) => {
-            if (k !== sizeKey) tickSelection();
+            if (k !== sizeKey) {
+              tickSelection();
+            }
             onSize(k);
           }}
           options={SIZES.map((s, i) => ({
@@ -51,16 +59,28 @@ export function ReadingControls({
           accessibilityLabel="Reading view"
           value={view}
           onChange={(v) => {
-            if (v !== view) tickSelection();
+            if (v !== view) {
+              tickSelection();
+            }
             onView(v);
           }}
           options={[
-            { key: "translation", label: "Translation", accessibilityLabel: "Translation view: Arabic with English" },
-            { key: "reading", label: "Reading", accessibilityLabel: "Reading view: Arabic only" },
+            {
+              accessibilityLabel: "Translation view: Arabic with English",
+              key: "translation",
+              label: "Translation",
+            },
+            {
+              accessibilityLabel: "Reading view: Arabic only",
+              key: "reading",
+              label: "Reading",
+            },
           ]}
         />
         <Text variant="muted" style={{ fontSize: 14, lineHeight: 20 }}>
-          {view === "translation" ? "Arabic with English, verse by verse." : "Arabic only, flowing as on the page."}
+          {view === "translation"
+            ? "Arabic with English, verse by verse."
+            : "Arabic only, flowing as on the page."}
         </Text>
       </View>
     </View>

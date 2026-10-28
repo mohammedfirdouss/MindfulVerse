@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { TextInput, View } from "react-native";
+
 import { fonts, radius, space, useTheme } from "../../theme";
 import { Button, Text } from "../../ui";
 
 /** The "Go to a verse" sheet body: number field + Go (the keyboard's Go key
  *  submits too). Keeps its own input state so typing doesn't re-render the
  *  verse list. Out-of-range numbers stay put with a quiet hint. */
-export function JumpToVerse({ max, onJump }: { max: number; onJump: (n: number) => void }) {
+export function JumpToVerse({
+  max,
+  onJump,
+}: {
+  max: number;
+  onJump: (n: number) => void;
+}) {
   const { colors } = useTheme();
   const [value, setValue] = useState("");
   const [hint, setHint] = useState("");
@@ -23,11 +30,13 @@ export function JumpToVerse({ max, onJump }: { max: number; onJump: (n: number) 
       <Text variant="muted" style={{ fontSize: 14, lineHeight: 20 }}>
         Verse number
       </Text>
-      <View style={{ flexDirection: "row", gap: space.sm, alignItems: "center" }}>
+      <View
+        style={{ alignItems: "center", flexDirection: "row", gap: space.sm }}
+      >
         <TextInput
           value={value}
           onChangeText={(t) => {
-            setValue(t.replace(/\D/g, ""));
+            setValue(t.replaceAll(/\D/g, ""));
             setHint("");
           }}
           onSubmitEditing={go}
@@ -40,23 +49,23 @@ export function JumpToVerse({ max, onJump }: { max: number; onJump: (n: number) 
           accessibilityLabel="Verse number"
           accessibilityHint={`1 to ${max}`}
           style={{
-            width: 120,
-            minHeight: 48,
-            paddingHorizontal: 12,
-            borderWidth: 1,
+            backgroundColor: colors.cotton,
             borderColor: colors.lineStrong,
             borderRadius: radius.md,
-            backgroundColor: colors.cotton,
+            borderWidth: 1,
             color: colors.ink,
             fontFamily: fonts.read,
             fontSize: 18,
+            minHeight: 48,
+            paddingHorizontal: 12,
+            width: 120,
           }}
         />
         <Button
           title="Go"
           onPress={go}
           accessibilityLabel="Go to verse"
-          style={{ minHeight: 48, paddingVertical: 8, paddingHorizontal: 22 }}
+          style={{ minHeight: 48, paddingHorizontal: 22, paddingVertical: 8 }}
         />
       </View>
       <Text

@@ -1,4 +1,6 @@
-import { Pressable, type PressableProps } from "react-native";
+import { Pressable } from "react-native";
+import type { PressableProps } from "react-native";
+
 import { fonts, useTheme } from "../../theme";
 import { Text } from "../../ui";
 
@@ -20,10 +22,10 @@ export function ActionLink({
       {({ pressed }) => (
         <Text
           style={{
+            color: disabled ? colors.inkFaint : colors.kola,
             fontFamily: fonts.read,
             fontSize: 16,
             lineHeight: 24,
-            color: disabled ? colors.inkFaint : colors.kola,
             textDecorationLine: pressed && !disabled ? "underline" : "none",
           }}
         >

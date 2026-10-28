@@ -1,7 +1,9 @@
+import type { Ayah } from "@mindfulverse/core/types";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { useRouter } from "expo-router";
-import type { Ayah } from "@mindfulverse/core/types";
+
+import { useShareVerse } from "../../share";
 import { space, useTheme } from "../../theme";
 import { ArabicText, Sheet, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
@@ -10,25 +12,39 @@ import {
   commentaryTitle,
   coveringFor,
   splitParagraphs,
-  type TafsirIndex,
 } from "./commentary";
-import { useShareVerse } from "../../share";
+import type { TafsirIndex } from "./commentary";
 import type { Tafsir } from "./useTafsir";
 
 /** Web's CommentaryBody: the verse, then Ibn Kathir's paragraphs. */
-export function CommentaryBody({ ayah, text, failed }: { ayah: Ayah; text: string | null; failed: boolean }) {
+export function CommentaryBody({
+  ayah,
+  text,
+  failed,
+}: {
+  ayah: Ayah;
+  text: string | null;
+  failed: boolean;
+}) {
   const { colors } = useTheme();
   const paragraphs = splitParagraphs(text);
   return (
     <View style={{ gap: space.md }}>
       <ArabicText
         scale={0.74}
-        style={{ paddingBottom: space.md, borderBottomWidth: 1, borderBottomColor: colors.line }}
+        style={{
+          borderBottomColor: colors.line,
+          borderBottomWidth: 1,
+          paddingBottom: space.md,
+        }}
       >
         {ayah.arabic}
       </ArabicText>
       {failed ? (
-        <Text variant="muted">The commentary isn’t available offline yet. Try again when you’re connected.</Text>
+        <Text variant="muted">
+          The commentary isn’t available offline yet. Try again when you’re
+          connected.
+        </Text>
       ) : text === null ? (
         <Text variant="muted">Opening the commentary…</Text>
       ) : (
@@ -39,8 +55,9 @@ export function CommentaryBody({ ayah, text, failed }: { ayah: Ayah; text: strin
             </Text>
           ))}
           <Text variant="muted" style={{ fontSize: 13.5, lineHeight: 20 }}>
-            Verse quotations inside the commentary follow its classical English edition, which differs from the
-            ClearQuran translation shown in the reader.
+            Verse quotations inside the commentary follow its classical English
+            edition, which differs from the ClearQuran translation shown in the
+            reader.
           </Text>
         </>
       )}
@@ -65,10 +82,21 @@ export function CommentarySheet({
   useEffect(() => {
     request(ayah.surah);
   }, [request, ayah.surah]);
-  if (covering === null) return null;
+  if (covering === null) {
+    return null;
+  }
   return (
-    <Sheet scroll label={`Commentary on verse ${ayah.verseKey}`} title={commentaryTitle(ayah, covering)} onClose={onClose}>
-      <CommentaryBody ayah={ayah} text={tafsir.textFor(ayah, covering)} failed={tafsir.failedFor(ayah.surah)} />
+    <Sheet
+      scroll
+      label={`Commentary on verse ${ayah.verseKey}`}
+      title={commentaryTitle(ayah, covering)}
+      onClose={onClose}
+    >
+      <CommentaryBody
+        ayah={ayah}
+        text={tafsir.textFor(ayah, covering)}
+        failed={tafsir.failedFor(ayah.surah)}
+      />
     </Sheet>
   );
 }
@@ -92,14 +120,19 @@ export function VerseSheet({
   const covering = coveringFor(index, ayah);
 
   function openCommentary() {
-    if (covering === null) return;
+    if (covering === null) {
+      return;
+    }
     tafsir.request(ayah.surah);
     setShowCommentary(true);
   }
 
   function reflect() {
     onClose();
-    router.push({ pathname: "/tadabbur/[surah]", params: { surah: String(ayah.surah), v: String(ayah.ayah) } });
+    router.push({
+      params: { surah: String(ayah.surah), v: String(ayah.ayah) },
+      pathname: "/tadabbur/[surah]",
+    });
   }
 
   const inCommentary = showCommentary && covering !== null;
@@ -107,19 +140,38 @@ export function VerseSheet({
     <Sheet
       scroll
       label={`Verse ${ayah.verseKey}`}
-      title={inCommentary ? commentaryTitle(ayah, covering) : `Verse ${ayah.verseKey}`}
+      title={
+        inCommentary
+          ? commentaryTitle(ayah, covering)
+          : `Verse ${ayah.verseKey}`
+      }
       onClose={onClose}
     >
       {inCommentary ? (
         <View style={{ gap: space.md }}>
-          <ActionLink title="← Back to the verse" onPress={() => setShowCommentary(false)} />
-          <CommentaryBody ayah={ayah} text={tafsir.textFor(ayah, covering)} failed={tafsir.failedFor(ayah.surah)} />
+          <ActionLink
+            title="← Back to the verse"
+            onPress={() => setShowCommentary(false)}
+          />
+          <CommentaryBody
+            ayah={ayah}
+            text={tafsir.textFor(ayah, covering)}
+            failed={tafsir.failedFor(ayah.surah)}
+          />
         </View>
       ) : (
         <View style={{ gap: space.sm }}>
           <ArabicText scale={0.8}>{ayah.arabic}</ArabicText>
           <Text variant="translation">{ayah.translation}</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: space.lg, rowGap: space.sm, marginTop: space.sm }}>
+          <View
+            style={{
+              columnGap: space.lg,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              marginTop: space.sm,
+              rowGap: space.sm,
+            }}
+          >
             <ActionLink
               title={commentaryLabel(index, ayah)}
               disabled={covering === null}

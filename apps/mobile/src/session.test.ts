@@ -36,7 +36,7 @@ vi.mock(import("@mindfulverse/core/sync/insforge"), () => ({
     },
     getHttpClient: () => ({ setRefreshToken: () => {} }),
     setAccessToken: (t: string | null) => fake.tokens.push(t),
-  },
+  } as never,
 }));
 
 /** An unsigned JWT with the given iat/exp (seconds). */

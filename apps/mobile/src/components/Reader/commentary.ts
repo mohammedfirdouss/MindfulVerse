@@ -16,20 +16,31 @@ export function showsBasmalah(surah: number): boolean {
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Find the entry covering this ayah. */
 export function coveringFor(index: TafsirIndex | null, a: Ayah): number | null {
-  if (!index) return null;
+  if (!index) {
+    return null;
+  }
   let best: number | null = null;
   for (const n of index[String(a.surah)] ?? []) {
-    if (n <= a.ayah) best = n;
-    else break;
+    if (n <= a.ayah) {
+      best = n;
+    } else {
+      break;
+    }
   }
   return best;
 }
 
 export function commentaryLabel(index: TafsirIndex | null, a: Ayah): string {
-  if (!index) return "Commentary isn’t available right now";
+  if (!index) {
+    return "Commentary isn’t available right now";
+  }
   const c = coveringFor(index, a);
-  if (c === null) return "No commentary for this verse";
-  return c === a.ayah ? "Read the commentary" : `Read the commentary (with verse ${c})`;
+  if (c === null) {
+    return "No commentary for this verse";
+  }
+  return c === a.ayah
+    ? "Read the commentary"
+    : `Read the commentary (with verse ${c})`;
 }
 
 export function commentaryTitle(a: Ayah, source: number): string {
@@ -46,11 +57,20 @@ export function splitParagraphs(text: string | null): string[] {
 }
 
 /** A `?v=` param as an ayah number, or null when absent/invalid. */
-export function parseVerseParam(v: string | string[] | undefined, ayahCount?: number): number | null {
+export function parseVerseParam(
+  v: string | string[] | undefined,
+  ayahCount?: number
+): number | null {
   const raw = Array.isArray(v) ? v[0] : v;
-  if (raw === undefined || raw === "") return null;
+  if (raw === undefined || raw === "") {
+    return null;
+  }
   const n = Number(raw);
-  if (!Number.isInteger(n) || n < 1) return null;
-  if (ayahCount !== undefined && n > ayahCount) return null;
+  if (!Number.isInteger(n) || n < 1) {
+    return null;
+  }
+  if (ayahCount !== undefined && n > ayahCount) {
+    return null;
+  }
   return n;
 }

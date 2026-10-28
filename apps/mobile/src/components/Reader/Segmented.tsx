@@ -1,4 +1,6 @@
-import { Pressable, View, type TextStyle } from "react-native";
+import { Pressable, View } from "react-native";
+import type { TextStyle } from "react-native";
+
 import { fonts, radius, useTheme } from "../../theme";
 import { Text } from "../../ui";
 
@@ -24,36 +26,49 @@ export function Segmented<K extends string>({
 }) {
   const { colors } = useTheme();
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel} style={{ flexDirection: "row" }}>
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={accessibilityLabel}
+      style={{ flexDirection: "row" }}
+    >
       {options.map((o, i) => {
         const on = o.key === value;
         return (
           <Pressable
             key={o.key}
             accessibilityRole="radio"
-            accessibilityState={{ selected: on, checked: on }}
+            accessibilityState={{ checked: on, selected: on }}
             accessibilityLabel={o.accessibilityLabel ?? o.label}
             onPress={() => onChange(o.key)}
-            hitSlop={{ top: 6, bottom: 6 }}
+            hitSlop={{ bottom: 6, top: 6 }}
             style={({ pressed }) => ({
+              alignItems: "center",
+              backgroundColor: on
+                ? colors.indigo
+                : pressed
+                  ? colors.indigoWash
+                  : "transparent",
+              borderBottomLeftRadius: i === 0 ? radius.sm : 0,
+              borderBottomRightRadius: i === options.length - 1 ? radius.sm : 0,
+              borderColor: on ? colors.indigo : colors.lineStrong,
+              borderLeftWidth: i === 0 ? 1 : 0,
+              borderTopLeftRadius: i === 0 ? radius.sm : 0,
+              borderTopRightRadius: i === options.length - 1 ? radius.sm : 0,
+              borderWidth: 1,
+              justifyContent: "center",
               minHeight: 40,
               minWidth: 40,
               paddingHorizontal: 12,
-              alignItems: "center",
-              justifyContent: "center",
-              borderWidth: 1,
-              borderLeftWidth: i === 0 ? 1 : 0,
-              borderColor: on ? colors.indigo : colors.lineStrong,
-              backgroundColor: on ? colors.indigo : pressed ? colors.indigoWash : "transparent",
-              borderTopLeftRadius: i === 0 ? radius.sm : 0,
-              borderBottomLeftRadius: i === 0 ? radius.sm : 0,
-              borderTopRightRadius: i === options.length - 1 ? radius.sm : 0,
-              borderBottomRightRadius: i === options.length - 1 ? radius.sm : 0,
             })}
           >
             <Text
               style={[
-                { fontFamily: fonts.read, fontSize: 15, lineHeight: 20, color: on ? colors.cotton : colors.inkSoft },
+                {
+                  color: on ? colors.cotton : colors.inkSoft,
+                  fontFamily: fonts.read,
+                  fontSize: 15,
+                  lineHeight: 20,
+                },
                 o.labelStyle,
               ]}
             >

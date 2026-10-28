@@ -3,6 +3,7 @@
 import type { Href } from "expo-router";
 import type { ComponentType } from "react";
 import { View } from "react-native";
+
 import { useTheme } from "../../theme";
 import { LinkPressable, Text } from "../../ui";
 import { ChevronIcon } from "../../ui/icons";
@@ -22,19 +23,34 @@ export function HomeEntry({
   const live = !!href;
   const body = (
     <>
-      <View style={{ width: 28, alignItems: "center" }}>
+      <View style={{ alignItems: "center", width: 28 }}>
         <Icon color={live ? colors.indigo : colors.inkFaint} size={22} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 17.8, color: live ? colors.ink : colors.inkFaint }}>{title}</Text>
-        <Text variant="muted" style={{ fontSize: 15.2, lineHeight: 21, marginTop: 1 }}>
+        <Text
+          style={{ color: live ? colors.ink : colors.inkFaint, fontSize: 17.8 }}
+        >
+          {title}
+        </Text>
+        <Text
+          variant="muted"
+          style={{ fontSize: 15.2, lineHeight: 21, marginTop: 1 }}
+        >
           {desc}
         </Text>
       </View>
       {live ? (
         <ChevronIcon color={colors.indigo} />
       ) : (
-        <View style={{ borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+        <View
+          style={{
+            borderColor: colors.lineStrong,
+            borderRadius: 10,
+            borderWidth: 1,
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+          }}
+        >
           <Text variant="muted" style={{ fontSize: 12, lineHeight: 16 }}>
             Soon
           </Text>
@@ -42,11 +58,20 @@ export function HomeEntry({
       )}
     </>
   );
-  const row = { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 14 } as const;
+  const row = {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+    paddingVertical: 14,
+  } as const;
 
   if (!href) {
     return (
-      <View accessible accessibilityLabel={`${title}. ${desc}. Coming soon.`} style={row}>
+      <View
+        accessible
+        accessibilityLabel={`${title}. ${desc}. Coming soon.`}
+        style={row}
+      >
         {body}
       </View>
     );
@@ -55,7 +80,13 @@ export function HomeEntry({
     <LinkPressable
       href={href}
       accessibilityLabel={`${title}. ${desc}`}
-      style={({ pressed }) => [row, { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }]}
+      style={({ pressed }) => [
+        row,
+        {
+          opacity: pressed ? 0.6 : 1,
+          transform: [{ scale: pressed ? 0.985 : 1 }],
+        },
+      ]}
     >
       {body}
     </LinkPressable>
@@ -65,5 +96,9 @@ export function HomeEntry({
 /** Spacing between rows: a hairline that starts after the icon column. */
 export function HomeEntryDivider() {
   const { colors } = useTheme();
-  return <View style={{ height: 1, backgroundColor: colors.line, marginLeft: 28 + 14 }} />;
+  return (
+    <View
+      style={{ backgroundColor: colors.line, height: 1, marginLeft: 28 + 14 }}
+    />
+  );
 }

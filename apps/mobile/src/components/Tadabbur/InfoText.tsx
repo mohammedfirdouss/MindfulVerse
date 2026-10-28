@@ -3,9 +3,10 @@
 // the top; "Read more" unfolds the rest and "Show less" folds it back.
 import { useMemo, useState } from "react";
 import { View } from "react-native";
-import { ActionLink } from "../Reader/ActionLink";
+
 import { fonts, radius, space, useTheme } from "../../theme";
 import { Text } from "../../ui";
+import { ActionLink } from "../Reader/ActionLink";
 import { aboutExcerpt, infoBlocks } from "./logic";
 
 const EXCERPT_LINES = 4;
@@ -21,12 +22,12 @@ export function InfoText({ text }: { text: string }) {
     <View
       style={{
         backgroundColor: colors.cottonRaised,
-        borderWidth: 1,
         borderColor: colors.line,
         borderRadius: radius.md,
+        borderWidth: 1,
+        gap: space.sm + 4,
         paddingHorizontal: space.lg,
         paddingVertical: space.md + 2,
-        gap: space.sm + 4,
       }}
     >
       <Text variant="eyebrow" accessibilityRole="header">
@@ -38,7 +39,11 @@ export function InfoText({ text }: { text: string }) {
             <Text
               key={i}
               accessibilityRole="header"
-              style={{ fontFamily: fonts.readSemiBold, color: colors.indigoDeep, marginTop: i ? space.sm : 0 }}
+              style={{
+                color: colors.indigoDeep,
+                fontFamily: fonts.readSemiBold,
+                marginTop: i ? space.sm : 0,
+              }}
             >
               {b.text}
             </Text>
@@ -46,18 +51,26 @@ export function InfoText({ text }: { text: string }) {
             <Text
               key={i}
               variant="soft"
-              numberOfLines={!expanded && excerpt.clamp && i === blocks.length - 1 ? EXCERPT_LINES : undefined}
+              numberOfLines={
+                !expanded && excerpt.clamp && i === blocks.length - 1
+                  ? EXCERPT_LINES
+                  : undefined
+              }
             >
               {b.text}
             </Text>
-          ),
+          )
         )}
       </View>
       {excerpt.more ? (
         <View style={{ alignItems: "flex-start" }}>
           <ActionLink
             title={expanded ? "Show less" : "Read more"}
-            accessibilityHint={expanded ? "Shows only the start of the introduction" : "Shows the rest of the introduction"}
+            accessibilityHint={
+              expanded
+                ? "Shows only the start of the introduction"
+                : "Shows the rest of the introduction"
+            }
             accessibilityState={{ expanded }}
             onPress={() => setExpanded((e) => !e)}
           />
