@@ -20,7 +20,7 @@ describe(groupEntries, () => {
       entry("c", 1, { kind: "session", ref: "hope-1" }),
       entry("d", 4, { kind: "free" }),
     ]);
-    expect(groups.map((g: JournalGroup) => g.key)).toEqual([
+    expect(groups.map((g: JournalGroup) => g.key)).toStrictEqual([
       "other",
       "surah:8",
       "session:hope-1",
@@ -37,8 +37,8 @@ describe(groupEntries, () => {
       entry("mid", 5, { kind: "tadabbur", ref: "8:1" }),
       entry("new", 9, { kind: "tadabbur", ref: "8:3" }),
     ]);
-    expect(groups.map((g) => g.key)).toEqual(["surah:8", "surah:2"]);
-    expect(groups[0].entries.map((e) => e.id)).toEqual(["mid", "new"]);
+    expect(groups.map((g) => g.key)).toStrictEqual(["surah:8", "surah:2"]);
+    expect(groups[0].entries.map((e) => e.id)).toStrictEqual(["mid", "new"]);
   });
 
   it("treats a malformed or missing ref as unattributed", () => {
@@ -48,10 +48,10 @@ describe(groupEntries, () => {
     ]);
     expect(groups).toHaveLength(1);
     expect(groups[0].key).toBe("other");
-    expect(groups[0].entries.map((e) => e.id)).toEqual(["a", "b"]);
+    expect(groups[0].entries.map((e) => e.id)).toStrictEqual(["a", "b"]);
   });
 
   it("returns no groups for an empty journal", () => {
-    expect(groupEntries([])).toEqual([]);
+    expect(groupEntries([])).toStrictEqual([]);
   });
 });

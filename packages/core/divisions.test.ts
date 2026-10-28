@@ -44,7 +44,7 @@ describe("juzOf / hizbOf", () => {
 
 describe(spansInRange, () => {
   it("splits juz 1 into Al-Fatihah and part of Al-Baqarah", () => {
-    expect(spansInRange("1:1", "2:141", counts)).toEqual([
+    expect(spansInRange("1:1", "2:141", counts)).toStrictEqual([
       { from: 1, surah: 1, to: 7 },
       { from: 1, surah: 2, to: 141 },
     ]);
@@ -53,12 +53,12 @@ describe(spansInRange, () => {
   it("covers the 37 surahs of juz 30", () => {
     const spans = spansInRange("78:1", "114:6", counts);
     expect(spans).toHaveLength(37);
-    expect(spans[0]).toEqual({ from: 1, surah: 78, to: 40 });
-    expect(spans[36]).toEqual({ from: 1, surah: 114, to: 6 });
+    expect(spans[0]).toStrictEqual({ from: 1, surah: 78, to: 40 });
+    expect(spans[36]).toStrictEqual({ from: 1, surah: 114, to: 6 });
   });
 
   it("handles a range inside one surah", () => {
-    expect(spansInRange("2:142", "2:252", counts)).toEqual([
+    expect(spansInRange("2:142", "2:252", counts)).toStrictEqual([
       { from: 142, surah: 2, to: 252 },
     ]);
   });
@@ -67,11 +67,11 @@ describe(spansInRange, () => {
 describe("verse ids", () => {
   it("round-trips surah-qualified ids", () => {
     expect(verseId(2, 255)).toBe("v2-255");
-    expect(parseVerseId("v2-255")).toEqual({ ayah: 255, surah: 2 });
+    expect(parseVerseId("v2-255")).toStrictEqual({ ayah: 255, surah: 2 });
   });
 
   it("reads the surah page's plain ids", () => {
-    expect(parseVerseId("v12")).toEqual({ ayah: 12, surah: null });
+    expect(parseVerseId("v12")).toStrictEqual({ ayah: 12, surah: null });
   });
 
   it("rejects anything else", () => {

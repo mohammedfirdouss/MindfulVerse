@@ -6,7 +6,7 @@ describe("brand mark", () => {
   it("keeps the two pieces of تدبر apart (د and ر never join forward)", () => {
     // تد sits at x >= 7, بر at x <= 6: no square bridges the gap between them.
     const bridges = MARK_RECTS.filter(([x, , w]) => x <= 6 && x + w > 7);
-    expect(bridges).toEqual([]);
+    expect(bridges).toStrictEqual([]);
   });
 
   it("has the dots that tell ت from ب: two above, one below", () => {
@@ -31,6 +31,6 @@ describe("brand mark", () => {
   });
 
   it("bounds cover the whole construction", () => {
-    expect(markBounds()).toEqual({ height: 9, minX: 1, minY: 5, width: 14 });
+    expect(markBounds()).toStrictEqual({ height: 9, minX: 1, minY: 5, width: 14 });
   });
 });

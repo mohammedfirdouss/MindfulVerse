@@ -63,7 +63,7 @@ describe("sign-out vs an in-flight refresh", () => {
   it("does not adopt a refresh that resolves after signOut()", async () => {
     const s = await load();
     await s.signIn("a@b.co", "pw");
-    expect(s.hasSession()).toBe(true);
+    expect(s.hasSession()).toBeTruthy();
 
     let resolve!: (v: Awaited<ReturnType<Refresh>>) => void;
     fake.refresh = () => new Promise((r) => (resolve = r));
@@ -77,8 +77,8 @@ describe("sign-out vs an in-flight refresh", () => {
     });
     await pending;
 
-    expect(s.hasSession()).toBe(false);
-    expect(store.has(REFRESH_KEY)).toBe(false);
+    expect(s.hasSession()).toBeFalsy();
+    expect(store.has(REFRESH_KEY)).toBeFalsy();
     expect(fake.tokens.at(-1)).toBeNull();
   });
 });
@@ -100,7 +100,7 @@ describe("ensureFreshSession", () => {
     const changed = vi.fn();
     s.onSessionChange(changed);
     await s.ensureFreshSession();
-    expect(s.hasSession()).toBe(true);
+    expect(s.hasSession()).toBeTruthy();
     expect(changed).toHaveBeenCalledOnce();
     expect(store.get(REFRESH_KEY)).toBe("r2");
   });

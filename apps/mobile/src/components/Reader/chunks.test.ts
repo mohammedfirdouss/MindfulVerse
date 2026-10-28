@@ -17,7 +17,7 @@ describe(chunkAyahs, () => {
       ayah(i + 1, 40 + ((i * 37) % 300))
     );
     const chunks = chunkAyahs(ayahs, 600);
-    expect(chunks.flatMap((c) => c.ayahs.map((a) => a.ayah))).toEqual(
+    expect(chunks.flatMap((c) => c.ayahs.map((a) => a.ayah))).toStrictEqual(
       ayahs.map((a) => a.ayah)
     );
     for (const c of chunks) {
@@ -31,7 +31,7 @@ describe(chunkAyahs, () => {
       [ayah(1, 100), ayah(2, 100), ayah(3, 100), ayah(4, 100)],
       250
     );
-    expect(chunks.map((c) => [c.first, c.last])).toEqual([
+    expect(chunks.map((c) => [c.first, c.last])).toStrictEqual([
       [1, 2],
       [3, 4],
     ]);
@@ -39,7 +39,7 @@ describe(chunkAyahs, () => {
 
   it("lets one long ayah stand alone", () => {
     const chunks = chunkAyahs([ayah(1, 50), ayah(2, 2000), ayah(3, 50)], 600);
-    expect(chunks.map((c) => [c.first, c.last])).toEqual([
+    expect(chunks.map((c) => [c.first, c.last])).toStrictEqual([
       [1, 1],
       [2, 2],
       [3, 3],
@@ -47,7 +47,7 @@ describe(chunkAyahs, () => {
   });
 
   it("is empty for no ayahs; keys are unique verse keys", () => {
-    expect(chunkAyahs([])).toEqual([]);
+    expect(chunkAyahs([])).toStrictEqual([]);
     const keys = chunkAyahs(
       Array.from({ length: 30 }, (_, i) => ayah(i + 1, 90))
     ).map((c) => c.key);

@@ -102,15 +102,15 @@ describe(makeDebounced, () => {
 
 describe(ownerMismatch, () => {
   it("is false with no stored owner (first ever sync)", () => {
-    expect(ownerMismatch(null, "user-a")).toBe(false);
+    expect(ownerMismatch(null, "user-a")).toBeFalsy();
   });
 
   it("is false for the same account signing back in", () => {
-    expect(ownerMismatch("user-a", "user-a")).toBe(false);
+    expect(ownerMismatch("user-a", "user-a")).toBeFalsy();
   });
 
   it("is true for a different account", () => {
-    expect(ownerMismatch("user-a", "user-b")).toBe(true);
+    expect(ownerMismatch("user-a", "user-b")).toBeTruthy();
   });
 });
 
@@ -127,7 +127,7 @@ describe("syncNow owner guard", () => {
     await syncNow();
     expect(getSyncStatus()).toBe("switched-account");
     expect(getSyncOwner()).toBe("user-a"); // untouched
-    expect(getEntries().map((e) => e.id)).toEqual([entry.id]); // nothing pulled/wiped
+    expect(getEntries().map((e) => e.id)).toStrictEqual([entry.id]); // nothing pulled/wiped
   });
 });
 
@@ -137,7 +137,7 @@ describe(resolveOwnerMismatch, () => {
     const entry = addEntry({ body: "b", prompt: "p" });
     await resolveOwnerMismatch("merge");
     expect(getSyncOwner()).toBe("user-b");
-    expect(getEntries().map((e) => e.id)).toEqual([entry.id]);
+    expect(getEntries().map((e) => e.id)).toStrictEqual([entry.id]);
     expect(getSyncStatus()).toBe("synced");
   });
 
@@ -153,13 +153,13 @@ describe(resolveOwnerMismatch, () => {
 
     await resolveOwnerMismatch("fresh");
 
-    expect(getEntries()).toEqual([]);
-    expect(getTombstones()).toEqual([]);
+    expect(getEntries()).toStrictEqual([]);
+    expect(getTombstones()).toStrictEqual([]);
     const p = getLocalProgress();
-    expect(p.visits).toEqual([]);
+    expect(p.visits).toStrictEqual([]);
     expect(p.lastRead).toBeNull();
-    expect(p.sessionProgress).toEqual({});
-    expect(p.surahTadabbur).toEqual({});
+    expect(p.sessionProgress).toStrictEqual({});
+    expect(p.surahTadabbur).toStrictEqual({});
     expect(getSyncOwner()).toBe("user-b");
   });
 

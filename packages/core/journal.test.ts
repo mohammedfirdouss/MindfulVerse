@@ -21,12 +21,12 @@ describe("addEntry saved notification", () => {
     target.addEventListener(JOURNAL_SAVED_EVENT, (e) => seen.push(e.type));
     vi.stubGlobal("window", target);
     addEntry({ body: "b", prompt: "p" });
-    expect(seen).toEqual([JOURNAL_SAVED_EVENT]);
+    expect(seen).toStrictEqual([JOURNAL_SAVED_EVENT]);
   });
 
   it("saves without throwing where window has no dispatchEvent (React Native)", () => {
     vi.stubGlobal("window", {});
     const entry = addEntry({ body: "b", prompt: "p" });
-    expect(getEntries().map((e) => e.id)).toEqual([entry.id]);
+    expect(getEntries().map((e) => e.id)).toStrictEqual([entry.id]);
   });
 });

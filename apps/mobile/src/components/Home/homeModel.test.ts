@@ -31,11 +31,11 @@ describe(streakLine, () => {
 
 describe("tadabbur entry", () => {
   it("continues the latest surah, else begins at Al-Fatihah", () => {
-    expect(tadabburTarget({ ayah: 10, surah: 18 })).toEqual({
+    expect(tadabburTarget({ ayah: 10, surah: 18 })).toStrictEqual({
       ayah: 10,
       surah: 18,
     });
-    expect(tadabburTarget(null)).toEqual({ ayah: 1, surah: 1 });
+    expect(tadabburTarget(null)).toStrictEqual({ ayah: 1, surah: 1 });
   });
 
   it("labels the go-deeper button with the surah name when known", () => {

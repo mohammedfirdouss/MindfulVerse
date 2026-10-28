@@ -95,7 +95,7 @@ describe("journalText", () => {
     const titles = groupEntries(entries).map((g) =>
       groupTitle(g, surahNames, sessionTitles)
     );
-    expect(titles).toEqual([
+    expect(titles).toStrictEqual([
       "Ash-Sharh",
       "On patience",
       "Other reflections",
@@ -111,14 +111,14 @@ describe("journalText", () => {
   });
 
   it("finds verse refs only on check-in and tadabbur entries", () => {
-    expect(entries.map(entryVerseKey)).toEqual([
+    expect(entries.map(entryVerseKey)).toStrictEqual([
       "94:5",
       "2:255",
       null,
       null,
       "94:6",
     ]);
-    expect(exportVerseKeys(entries)).toEqual(["94:5", "2:255", "94:6"]);
+    expect(exportVerseKeys(entries)).toStrictEqual(["94:5", "2:255", "94:6"]);
   });
 
   it("builds the plain-text export", () => {
@@ -146,7 +146,7 @@ describe("journalText", () => {
     );
     // An empty prompt is skipped.
     expect(text).toContain([formatDate(day(4)), "Free writing."].join("\n"));
-    expect(text.endsWith(`\n\n${TRANSLATION_CREDIT}\n`)).toBe(true);
+    expect(text.endsWith(`\n\n${TRANSLATION_CREDIT}\n`)).toBeTruthy();
   });
 
   it("drops the exported line when it repeats the newest entry's day", () => {

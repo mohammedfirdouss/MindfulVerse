@@ -34,34 +34,34 @@ const r = (
 describe(mergeJournal, () => {
   it("unions local-only and remote-only entries", () => {
     const res = mergeJournal([e("a", 1)], [], [r("b", 2)]);
-    expect(res.entries.map((x) => x.id)).toEqual(["b", "a"]); // newest first
-    expect(res.toInsert.map((x) => x.id)).toEqual(["a"]);
-    expect(res.toDelete).toEqual([]);
+    expect(res.entries.map((x) => x.id)).toStrictEqual(["b", "a"]); // newest first
+    expect(res.toInsert.map((x) => x.id)).toStrictEqual(["a"]);
+    expect(res.toDelete).toStrictEqual([]);
   });
 
   it("is idempotent when states match", () => {
     const res = mergeJournal([e("a", 1)], [], [r("a", 1)]);
     expect(res.entries).toHaveLength(1);
-    expect(res.toInsert).toEqual([]);
-    expect(res.toDelete).toEqual([]);
+    expect(res.toInsert).toStrictEqual([]);
+    expect(res.toDelete).toStrictEqual([]);
   });
 
   it("remote soft-delete removes local entry and keeps a tombstone", () => {
     const res = mergeJournal([e("a", 1)], [], [r("a", 1, 99)]);
-    expect(res.entries).toEqual([]);
-    expect(res.tombstones).toEqual([{ deletedAt: 99, id: "a" }]);
-    expect(res.toDelete).toEqual([]);
+    expect(res.entries).toStrictEqual([]);
+    expect(res.tombstones).toStrictEqual([{ deletedAt: 99, id: "a" }]);
+    expect(res.toDelete).toStrictEqual([]);
   });
 
   it("local tombstone schedules remote soft-delete and never resurrects", () => {
     const res = mergeJournal([], [{ deletedAt: 5, id: "a" }], [r("a", 1)]);
-    expect(res.entries).toEqual([]);
-    expect(res.toDelete).toEqual(["a"]);
+    expect(res.entries).toStrictEqual([]);
+    expect(res.toDelete).toStrictEqual(["a"]);
   });
 
   it("tombstone for an already-deleted remote row pushes nothing", () => {
     const res = mergeJournal([], [{ deletedAt: 5, id: "a" }], [r("a", 1, 5)]);
-    expect(res.toDelete).toEqual([]);
+    expect(res.toDelete).toStrictEqual([]);
   });
 });
 
@@ -74,12 +74,12 @@ describe(mergeProgress, () => {
   };
 
   it("returns local when remote is null", () => {
-    expect(mergeProgress(base, null)).toEqual(base);
+    expect(mergeProgress(base, null)).toStrictEqual(base);
   });
 
   it("unions visits, sorted, capped at 366", () => {
     const remote = { ...base, visits: ["2026-09-13", "2026-09-14"] };
-    expect(mergeProgress(base, remote).visits).toEqual([
+    expect(mergeProgress(base, remote).visits).toStrictEqual([
       "2026-09-13",
       "2026-09-14",
     ]);
@@ -100,7 +100,7 @@ describe(mergeProgress, () => {
       { ...base, sessionProgress: { s1: { completedAt: 80, step: 2 } } },
       remote
     );
-    expect(m.sessionProgress).toEqual({
+    expect(m.sessionProgress).toStrictEqual({
       s1: { completedAt: 50, step: 5 },
       s2: { step: 1 },
     });
@@ -116,9 +116,9 @@ describe(mergeProgress, () => {
       },
     };
     const m = mergeProgress(base, remote);
-    expect(m.surahTadabbur["2"]).toEqual({ ayah: 20, updatedAt: 90 });
-    expect(m.surahTadabbur["3"]).toEqual({ ayah: 1, updatedAt: 1 });
-    expect(m.lastRead).toEqual({ at: 200, ayah: 1, surah: 4 });
+    expect(m.surahTadabbur["2"]).toStrictEqual({ ayah: 20, updatedAt: 90 });
+    expect(m.surahTadabbur["3"]).toStrictEqual({ ayah: 1, updatedAt: 1 });
+    expect(m.lastRead).toStrictEqual({ at: 200, ayah: 1, surah: 4 });
   });
 });
 
@@ -131,13 +131,13 @@ describe("row mapping", () => {
       id: "x",
       prompt: "q",
     };
-    expect(rowToEntry({ ...entryToRow(entry), deleted_at: null })).toEqual(
+    expect(rowToEntry({ ...entryToRow(entry), deleted_at: null })).toStrictEqual(
       entry
     );
   });
 
   it("omits context when kind is null", () => {
-    expect(rowToEntry(r("a", 1)).context).toEqual({ kind: "free" });
+    expect(rowToEntry(r("a", 1)).context).toStrictEqual({ kind: "free" });
     const noCtx = { ...r("a", 1), context_kind: null };
     expect(rowToEntry(noCtx).context).toBeUndefined();
   });
@@ -154,7 +154,7 @@ describe(pruneTombstones, () => {
       [r("a", 1, 5)],
       { fullPull: true, now: NOW }
     );
-    expect(kept.map((t) => t.id)).toEqual(["a"]);
+    expect(kept.map((t) => t.id)).toStrictEqual(["a"]);
   });
 
   it("drops an old tombstone whose remote row carries deleted_at", () => {
@@ -163,7 +163,7 @@ describe(pruneTombstones, () => {
         fullPull: true,
         now: NOW,
       })
-    ).toEqual([]);
+    ).toStrictEqual([]);
   });
 
   it("drops an old tombstone absent from a full pull", () => {
@@ -172,7 +172,7 @@ describe(pruneTombstones, () => {
         fullPull: true,
         now: NOW,
       })
-    ).toEqual([]);
+    ).toStrictEqual([]);
   });
 
   it("keeps an old tombstone absent from a PARTIAL pull (unconfirmed)", () => {
@@ -180,7 +180,7 @@ describe(pruneTombstones, () => {
       fullPull: false,
       now: NOW,
     });
-    expect(kept.map((t) => t.id)).toEqual(["a"]);
+    expect(kept.map((t) => t.id)).toStrictEqual(["a"]);
   });
 
   it("keeps an old tombstone whose remote row is still alive (delete not pushed yet)", () => {
@@ -189,6 +189,6 @@ describe(pruneTombstones, () => {
       [r("a", 1, null)],
       { fullPull: true, now: NOW }
     );
-    expect(kept.map((t) => t.id)).toEqual(["a"]);
+    expect(kept.map((t) => t.id)).toStrictEqual(["a"]);
   });
 });

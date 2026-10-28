@@ -39,7 +39,7 @@ describe(configureData, () => {
       loadEmotions(),
       loadDivisions(),
     ]);
-    expect(reads.sort()).toEqual([
+    expect(reads.sort()).toStrictEqual([
       "divisions.json",
       "emotions.json",
       "info/2.json",
@@ -67,7 +67,7 @@ describe(configureData, () => {
       "Failed to load /data/info/9.json: 404"
     );
     fail = false;
-    await expect(loadSurahInfo(9)).resolves.toEqual({ ok: "info/9.json" });
+    await expect(loadSurahInfo(9)).resolves.toStrictEqual({ ok: "info/9.json" });
   });
 
   it("shares one read between concurrent loads", async () => {
@@ -84,7 +84,7 @@ describe(configureData, () => {
     release();
     const [x, y] = await Promise.all([a, b]);
     expect(x).toBe(y);
-    expect(reads).toEqual(["quran/3.json"]);
+    expect(reads).toStrictEqual(["quran/3.json"]);
   });
 
   it("lets every concurrent caller see a failure, then retries", async () => {
@@ -100,9 +100,9 @@ describe(configureData, () => {
       loadSurahInfo(10),
       loadSurahInfo(10),
     ]);
-    expect(results.map((r) => r.status)).toEqual(["rejected", "rejected"]);
+    expect(results.map((r) => r.status)).toStrictEqual(["rejected", "rejected"]);
     expect(calls).toBe(1);
-    await expect(loadSurahInfo(10)).resolves.toEqual({ ok: true });
+    await expect(loadSurahInfo(10)).resolves.toStrictEqual({ ok: true });
     expect(calls).toBe(2);
   });
 
@@ -128,7 +128,7 @@ describe(configureData, () => {
     await loadSurahTafsir(101);
     await loadSurahTafsir(103);
     await loadSurahTafsir(104);
-    expect(reads).toEqual([
+    expect(reads).toStrictEqual([
       "tafsir/101.json",
       "tafsir/102.json",
       "tafsir/103.json",

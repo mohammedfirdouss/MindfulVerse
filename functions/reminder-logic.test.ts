@@ -70,16 +70,16 @@ describe("verse rotation", () => {
 
 describe(isDue, () => {
   it("fires within the 15-minute window after the reminder time", () => {
-    expect(isDue("07:00", 7 * 60)).toBe(true);
-    expect(isDue("07:00", 7 * 60 + 14)).toBe(true);
-    expect(isDue("07:00", 7 * 60 + 15)).toBe(false);
-    expect(isDue("07:00", 7 * 60 - 1)).toBe(false);
+    expect(isDue("07:00", 7 * 60)).toBeTruthy();
+    expect(isDue("07:00", 7 * 60 + 14)).toBeTruthy();
+    expect(isDue("07:00", 7 * 60 + 15)).toBeFalsy();
+    expect(isDue("07:00", 7 * 60 - 1)).toBeFalsy();
   });
 
   it("handles the midnight wrap", () => {
-    expect(isDue("00:05", 23 * 60 + 59)).toBe(false);
-    expect(isDue("23:55", 23 * 60 + 56)).toBe(true);
-    expect(isDue("00:05", 6)).toBe(true);
+    expect(isDue("00:05", 23 * 60 + 59)).toBeFalsy();
+    expect(isDue("23:55", 23 * 60 + 56)).toBeTruthy();
+    expect(isDue("00:05", 6)).toBeTruthy();
   });
 });
 
@@ -93,7 +93,7 @@ describe(pickContinueTarget, () => {
       "2": { ayah: 10, updatedAt: now - 5 * DAY },
       "8": { ayah: 3, updatedAt: now - 2 * DAY },
     };
-    expect(pickContinueTarget(map, counts, now)).toEqual({
+    expect(pickContinueTarget(map, counts, now)).toStrictEqual({
       nextAyah: 4,
       surah: 8,
     });
@@ -104,7 +104,7 @@ describe(pickContinueTarget, () => {
       "2": { ayah: 40, updatedAt: now - 6 * DAY },
       "49": { ayah: 18, updatedAt: now - 1 * DAY }, // finished,
     };
-    expect(pickContinueTarget(map, counts, now)).toEqual({
+    expect(pickContinueTarget(map, counts, now)).toStrictEqual({
       nextAyah: 41,
       surah: 2,
     });
@@ -138,6 +138,6 @@ describe("verse pool parity with the client", () => {
   it("is deep-equal to the pool in packages/core/dailyVerse.ts", async () => {
     const fn = await import("./send-reminders");
     const client = await import("../packages/core/dailyVerse");
-    expect(fn.DAILY_VERSES).toEqual(client.DAILY_VERSES);
+    expect(fn.DAILY_VERSES).toStrictEqual(client.DAILY_VERSES);
   });
 });

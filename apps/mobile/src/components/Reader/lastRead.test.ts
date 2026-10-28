@@ -30,7 +30,7 @@ describe(topmostRow, () => {
         { first: 9, last: 12 },
         { first: 5, last: 8 },
       ])
-    ).toEqual({ first: 5, last: 8 });
+    ).toStrictEqual({ first: 5, last: 8 });
     expect(topmostRow([])).toBeNull();
   });
 });

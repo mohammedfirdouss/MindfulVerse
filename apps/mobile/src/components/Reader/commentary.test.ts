@@ -46,12 +46,12 @@ describe("commentary helpers (ported from web)", () => {
   });
 
   it("splits tafsir into paragraphs", () => {
-    expect(splitParagraphs(" one \n\n\n\ntwo")).toEqual(["one", "two"]);
-    expect(splitParagraphs(null)).toEqual([]);
+    expect(splitParagraphs(" one \n\n\n\ntwo")).toStrictEqual(["one", "two"]);
+    expect(splitParagraphs(null)).toStrictEqual([]);
   });
 
   it("basmalah opens every surah but 1 and 9", () => {
-    expect([1, 2, 9, 114].map(showsBasmalah)).toEqual([
+    expect([1, 2, 9, 114].map(showsBasmalah)).toStrictEqual([
       false,
       true,
       false,

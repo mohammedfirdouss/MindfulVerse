@@ -71,7 +71,7 @@ beforeEach(() => {
 
 describe(expoMessage, () => {
   it("carries the web payload's title, body and deep link in data.url", () => {
-    expect(expoMessage("ExponentPushToken[x]", continuePayload)).toEqual({
+    expect(expoMessage("ExponentPushToken[x]", continuePayload)).toStrictEqual({
       body: "You paused at verse 254. Al-Baqarah is waiting where you left off.",
       data: { url: "/tadabbur/2?v=255" },
       sound: "default",
@@ -85,7 +85,7 @@ describe("deliverReminders — platform branching", () => {
   it("web rows go through web push only, never fetch Expo", async () => {
     const d = deps();
     const counts = await deliverReminders([webRow(1), webRow(2)], d);
-    expect(counts).toEqual({ failed: 0, pruned: 0, sent: 2 });
+    expect(counts).toStrictEqual({ failed: 0, pruned: 0, sent: 2 });
     expect(d.sendWeb).toHaveBeenCalledTimes(2);
     expect(d.sendWeb).toHaveBeenCalledWith(
       webRow(1).endpoint,
@@ -106,7 +106,7 @@ describe("deliverReminders — platform branching", () => {
   it("expo rows go to the Expo Push API only, never web push", async () => {
     const d = deps();
     const counts = await deliverReminders([expoRow(1)], d);
-    expect(counts).toEqual({ failed: 0, pruned: 0, sent: 1 });
+    expect(counts).toStrictEqual({ failed: 0, pruned: 0, sent: 1 });
     expect(d.sendWeb).not.toHaveBeenCalled();
     expect(d.fetch).toHaveBeenCalledOnce();
     expect(d.markSent).toHaveBeenCalledWith(
@@ -118,10 +118,10 @@ describe("deliverReminders — platform branching", () => {
   it("a user with both a web and an expo row gets one send per row, each stamped separately", async () => {
     const d = deps();
     const counts = await deliverReminders([webRow(1), expoRow(1)], d);
-    expect(counts).toEqual({ failed: 0, pruned: 0, sent: 2 });
+    expect(counts).toStrictEqual({ failed: 0, pruned: 0, sent: 2 });
     expect(d.sendWeb).toHaveBeenCalledOnce();
     expect(d.fetch).toHaveBeenCalledOnce();
-    expect((d.markSent as ReturnType<typeof vi.fn>).mock.calls).toEqual(
+    expect((d.markSent as ReturnType<typeof vi.fn>).mock.calls).toStrictEqual(
       expect.arrayContaining([
         [webRow(1).endpoint, "2026-10-06"],
         ["ExponentPushToken[tok-1]", "2026-10-06"],
@@ -132,7 +132,7 @@ describe("deliverReminders — platform branching", () => {
   it("an unknown platform is counted as failed and sent nowhere", async () => {
     const d = deps();
     const counts = await deliverReminders([webRow(1, { platform: "apns" })], d);
-    expect(counts).toEqual({ failed: 1, pruned: 0, sent: 0 });
+    expect(counts).toStrictEqual({ failed: 1, pruned: 0, sent: 0 });
     expect(d.sendWeb).not.toHaveBeenCalled();
     expect(d.fetch).not.toHaveBeenCalled();
   });
@@ -148,11 +148,11 @@ describe("deliverReminders — Expo request", () => {
     expect(init.method).toBe("POST");
     expect(init.headers["Content-Type"]).toBe("application/json");
     expect(init.headers.Authorization).toBeUndefined();
-    expect(JSON.parse(init.body)).toEqual([
+    expect(JSON.parse(init.body)).toStrictEqual([
       expoMessage("ExponentPushToken[tok-1]", continuePayload),
       expoMessage("ExponentPushToken[tok-2]", continuePayload),
     ]);
-    expect(JSON.parse(init.body)[0].data).toEqual({ url: "/tadabbur/2?v=255" });
+    expect(JSON.parse(init.body)[0].data).toStrictEqual({ url: "/tadabbur/2?v=255" });
   });
 
   it("sends Authorization: Bearer only when an access token is configured", async () => {
@@ -169,13 +169,13 @@ describe("deliverReminders — Expo request", () => {
     const counts = await deliverReminders(rows, d);
     const { calls } = (d.fetch as unknown as ReturnType<typeof vi.fn>).mock;
     expect(EXPO_BATCH_SIZE).toBe(100);
-    expect(calls.map((c) => JSON.parse(c[1].body).length)).toEqual([
+    expect(calls.map((c) => JSON.parse(c[1].body).length)).toStrictEqual([
       100, 100, 50,
     ]);
     expect(JSON.parse(calls[2][1].body)[49].to).toBe(
       "ExponentPushToken[tok-249]"
     );
-    expect(counts).toEqual({ failed: 0, pruned: 0, sent: 250 });
+    expect(counts).toStrictEqual({ failed: 0, pruned: 0, sent: 250 });
   });
 });
 
@@ -198,7 +198,7 @@ describe("deliverReminders — Expo errors", () => {
       [expoRow(1), expoRow(2), expoRow(3)],
       d
     );
-    expect(counts).toEqual({ failed: 0, pruned: 1, sent: 2 });
+    expect(counts).toStrictEqual({ failed: 0, pruned: 1, sent: 2 });
     expect(d.prune).toHaveBeenCalledWith("ExponentPushToken[tok-2]");
     expect(d.markSent).not.toHaveBeenCalledWith(
       "ExponentPushToken[tok-2]",
@@ -221,7 +221,7 @@ describe("deliverReminders — Expo errors", () => {
       ) as unknown as typeof fetch,
     });
     const counts = await deliverReminders([expoRow(1), expoRow(2)], d);
-    expect(counts).toEqual({ failed: 1, pruned: 0, sent: 1 });
+    expect(counts).toStrictEqual({ failed: 1, pruned: 0, sent: 1 });
     expect(d.prune).not.toHaveBeenCalled();
     // Tokens are redacted from logs.
     const logged = JSON.stringify(
@@ -246,7 +246,7 @@ describe("deliverReminders — Expo errors", () => {
     const rows = Array.from({ length: 150 }, (_, i) => expoRow(i));
     const counts = await deliverReminders(rows, d);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(counts).toEqual({ failed: 100, pruned: 0, sent: 50 });
+    expect(counts).toStrictEqual({ failed: 100, pruned: 0, sent: 50 });
   });
 
   it("a thrown fetch never propagates and never touches web rows", async () => {
@@ -256,7 +256,7 @@ describe("deliverReminders — Expo errors", () => {
       }) as unknown as typeof fetch,
     });
     const counts = await deliverReminders([expoRow(1), webRow(1)], d);
-    expect(counts).toEqual({ failed: 1, pruned: 0, sent: 1 });
+    expect(counts).toStrictEqual({ failed: 1, pruned: 0, sent: 1 });
     expect(d.sendWeb).toHaveBeenCalledOnce();
   });
 
@@ -265,7 +265,7 @@ describe("deliverReminders — Expo errors", () => {
       fetch: expoFetch(() => [ok()]) as unknown as typeof fetch,
     });
     const counts = await deliverReminders([expoRow(1), expoRow(2)], d);
-    expect(counts).toEqual({ failed: 1, pruned: 0, sent: 1 });
+    expect(counts).toStrictEqual({ failed: 1, pruned: 0, sent: 1 });
   });
 });
 
@@ -277,7 +277,7 @@ describe("deliverReminders — web error parity (unchanged behaviour)", () => {
       }),
     });
     const counts = await deliverReminders([webRow(1)], d);
-    expect(counts).toEqual({ failed: 0, pruned: 1, sent: 0 });
+    expect(counts).toStrictEqual({ failed: 0, pruned: 1, sent: 0 });
     expect(d.prune).toHaveBeenCalledWith(webRow(1).endpoint);
     expect(d.markSent).not.toHaveBeenCalled();
   });
@@ -289,7 +289,7 @@ describe("deliverReminders — web error parity (unchanged behaviour)", () => {
       }),
     });
     const counts = await deliverReminders([webRow(1), webRow(2)], d);
-    expect(counts).toEqual({ failed: 2, pruned: 0, sent: 0 });
+    expect(counts).toStrictEqual({ failed: 2, pruned: 0, sent: 0 });
     expect(d.prune).not.toHaveBeenCalled();
   });
 });

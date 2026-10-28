@@ -24,11 +24,11 @@ beforeEach(() => {
 
 describe("syncFlags", () => {
   it("starts clean, marks dirty, clears", () => {
-    expect(isDirty()).toBe(false);
+    expect(isDirty()).toBeFalsy();
     markJournalDirty();
-    expect(isDirty()).toBe(true);
+    expect(isDirty()).toBeTruthy();
     clearDirty();
-    expect(isDirty()).toBe(false);
+    expect(isDirty()).toBeFalsy();
   });
 
   it("notifies the registered listener on mark", () => {
@@ -43,19 +43,19 @@ describe("journal tombstones", () => {
   it("deleteEntry records a tombstone", () => {
     const e = addEntry({ body: "b", prompt: "p" });
     deleteEntry(e.id);
-    expect(getEntries()).toEqual([]);
-    expect(getTombstones().map((t) => t.id)).toEqual([e.id]);
+    expect(getEntries()).toStrictEqual([]);
+    expect(getTombstones().map((t) => t.id)).toStrictEqual([e.id]);
   });
 
   it("replaceAll swaps state without marking dirty", () => {
     clearDirty();
     replaceAll([{ body: "b", createdAt: 1, id: "z", prompt: "" }], []);
     expect(getEntries()).toHaveLength(1);
-    expect(isDirty()).toBe(false);
+    expect(isDirty()).toBeFalsy();
   });
 
   it("addEntry marks dirty", () => {
     addEntry({ body: "b", prompt: "p" });
-    expect(isDirty()).toBe(true);
+    expect(isDirty()).toBeTruthy();
   });
 });

@@ -28,11 +28,11 @@ describe("tadabbur drafts (web)", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:1", d, s);
     saveTadabburDraft(1, "1:2", { ...empty, stirs: "mercy" }, s);
-    expect(loadTadabburDrafts(1, s)).toEqual({
+    expect(loadTadabburDrafts(1, s)).toStrictEqual({
       "1:1": d,
       "1:2": { ...empty, stirs: "mercy" },
     });
-    expect(loadTadabburDrafts(2, s)).toEqual({});
+    expect(loadTadabburDrafts(2, s)).toStrictEqual({});
   });
 
   it("clears an emptied draft and the key when none remain", () => {
@@ -43,10 +43,10 @@ describe("tadabbur drafts (web)", () => {
   });
 
   it("survives corrupt data and throwing storage", () => {
-    expect(parseTadabburDrafts("{bad")).toEqual({});
+    expect(parseTadabburDrafts("{bad")).toStrictEqual({});
     expect(
       parseTadabburDrafts(JSON.stringify({ "1:1": { lessons: 1, stirs: "x" } }))
-    ).toEqual({
+    ).toStrictEqual({
       "1:1": { ...empty, stirs: "x" },
     });
     const bad = {
@@ -58,7 +58,7 @@ describe("tadabbur drafts (web)", () => {
         throw new Error("full");
       },
     };
-    expect(loadTadabburDrafts(1, bad)).toEqual({});
+    expect(loadTadabburDrafts(1, bad)).toStrictEqual({});
     expect(() => saveTadabburDraft(1, "1:1", d, bad)).not.toThrow();
   });
 });

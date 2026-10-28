@@ -63,10 +63,10 @@ describe(shareVerse, () => {
     let sent: unknown;
     rn.share = async (c) => ((sent = c), { action: "sharedAction" });
     await expect(shareVerse(ayah, "tadabbur")).resolves.toBe("shared");
-    expect(rn.tracked).toEqual([
+    expect(rn.tracked).toStrictEqual([
       { type: "share_verse", verseKey: "94:5", where: "tadabbur" },
     ]);
-    expect(sent).toEqual({ message: verseShareText(ayah) });
+    expect(sent).toStrictEqual({ message: verseShareText(ayah) });
   });
 
   it("reports a thrown share as failed, without throwing", async () => {

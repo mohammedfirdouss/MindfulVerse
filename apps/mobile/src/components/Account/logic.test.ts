@@ -102,19 +102,15 @@ describe("time arithmetic", () => {
 
 describe(notificationsBlocked, () => {
   it("is blocked only when denied and the OS won't ask again", () => {
-    expect(notificationsBlocked({ canAskAgain: false, status: "denied" })).toBe(
-      true
-    );
-    expect(notificationsBlocked({ canAskAgain: true, status: "denied" })).toBe(
-      false
-    );
+    expect(notificationsBlocked({ canAskAgain: false, status: "denied" })).toBeTruthy();
+    expect(notificationsBlocked({ canAskAgain: true, status: "denied" })).toBeFalsy();
     expect(
       notificationsBlocked({ canAskAgain: true, status: "undetermined" })
-    ).toBe(false);
+    ).toBeFalsy();
     expect(
       notificationsBlocked({ canAskAgain: false, status: "granted" })
-    ).toBe(false);
-    expect(notificationsBlocked(null)).toBe(false);
+    ).toBeFalsy();
+    expect(notificationsBlocked(null)).toBeFalsy();
   });
 });
 
@@ -125,7 +121,7 @@ describe(feedbackMailto, () => {
       href.startsWith(
         "mailto:mohammedfirdous682@gmail.com?subject=About%20my%20MindfulVerse%20account&body="
       )
-    ).toBe(true);
+    ).toBeTruthy();
     expect(decodeURIComponent(href.split("body=")[1])).toBe(
       "Salaam alaykum warahmatullah wabarakatuh!\n\n"
     );

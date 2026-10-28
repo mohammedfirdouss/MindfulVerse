@@ -19,15 +19,15 @@ function jwt(claims: object): string {
 
 describe(jwtClaims, () => {
   it("reads iat and exp", () => {
-    expect(jwtClaims(jwt({ exp: 1000, iat: 100, sub: "u" }))).toEqual({
+    expect(jwtClaims(jwt({ exp: 1000, iat: 100, sub: "u" }))).toStrictEqual({
       exp: 1000,
       iat: 100,
     });
   });
 
   it("returns nulls for junk", () => {
-    expect(jwtClaims("nope")).toEqual({ exp: null, iat: null });
-    expect(jwtClaims("a.!!!.c")).toEqual({ exp: null, iat: null });
+    expect(jwtClaims("nope")).toStrictEqual({ exp: null, iat: null });
+    expect(jwtClaims("a.!!!.c")).toStrictEqual({ exp: null, iat: null });
   });
 });
 
@@ -54,7 +54,7 @@ describe(tokenDeadline, () => {
 
 describe(nextRefreshDelay, () => {
   it("waits until the deadline and resets the streak", () => {
-    expect(nextRefreshDelay({ refreshAtMs: 60_000 }, 0, 3)).toEqual({
+    expect(nextRefreshDelay({ refreshAtMs: 60_000 }, 0, 3)).toStrictEqual({
       delayMs: 60_000,
       quickStreak: 0,
     });
@@ -68,7 +68,7 @@ describe(nextRefreshDelay, () => {
       delays.push(next.delayMs);
       streak = next.quickStreak;
     }
-    expect(delays.slice(0, 4)).toEqual([MIN_DELAY_MS, 10_000, 20_000, 40_000]);
+    expect(delays.slice(0, 4)).toStrictEqual([MIN_DELAY_MS, 10_000, 20_000, 40_000]);
     expect(delays.at(-1)).toBe(MAX_FLOOR_MS);
   });
 });

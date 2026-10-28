@@ -78,16 +78,16 @@ describe(resumeAyahFor, () => {
 
 describe("reflection drafts", () => {
   it("hasText ignores whitespace", () => {
-    expect(hasText(EMPTY_DRAFT)).toBe(false);
-    expect(hasText({ action: "", lessons: "  ", stirs: "\n" })).toBe(false);
-    expect(hasText({ action: "x", lessons: "", stirs: "" })).toBe(true);
-    expect(hasText(undefined)).toBe(false);
+    expect(hasText(EMPTY_DRAFT)).toBeFalsy();
+    expect(hasText({ action: "", lessons: "  ", stirs: "\n" })).toBeFalsy();
+    expect(hasText({ action: "x", lessons: "", stirs: "" })).toBeTruthy();
+    expect(hasText(undefined)).toBeFalsy();
   });
 
   it("composes web's journal entry shape", () => {
     expect(
       composeReflection("2:255", { action: "c", lessons: " a ", stirs: "" })
-    ).toEqual({
+    ).toStrictEqual({
       body: "Lessons: a\n\nAction: c",
       context: { kind: "tadabbur", ref: "2:255" },
       prompt: "Tadabbur on 2:255",
@@ -98,8 +98,8 @@ describe("reflection drafts", () => {
 
 describe("text helpers", () => {
   it("splits paragraphs", () => {
-    expect(splitParagraphs(" a \n\n\n\nb\n\n")).toEqual(["a", "b"]);
-    expect(splitParagraphs(null)).toEqual([]);
+    expect(splitParagraphs(" a \n\n\n\nb\n\n")).toStrictEqual(["a", "b"]);
+    expect(splitParagraphs(null)).toStrictEqual([]);
   });
 
   it("collapses the About text and spots subheadings", () => {
@@ -107,15 +107,15 @@ describe("text helpers", () => {
     const text = ["Its Virtues", ...paras].join("\n\n");
     const collapsed = infoBlocks(text, false);
     expect(collapsed.blocks).toHaveLength(ABOUT_COLLAPSED_PARAGRAPHS);
-    expect(collapsed.blocks[0]).toEqual({
+    expect(collapsed.blocks[0]).toStrictEqual({
       kind: "heading",
       text: "Its Virtues",
     });
     expect(collapsed.blocks[1].kind).toBe("paragraph");
-    expect(collapsed.truncated).toBe(true);
+    expect(collapsed.truncated).toBeTruthy();
     const expanded = infoBlocks(text, true);
     expect(expanded.blocks).toHaveLength(8);
-    expect(expanded.truncated).toBe(false);
+    expect(expanded.truncated).toBeFalsy();
   });
 
   it("labels counts and the commentary toggle", () => {
@@ -136,17 +136,17 @@ describe(aboutExcerpt, () => {
   it("shows the opening subheading and its paragraph", () => {
     expect(
       aboutExcerpt([h("Name"), p("Short."), h("Theme"), p("More.")])
-    ).toEqual({ clamp: false, count: 2, more: true });
+    ).toStrictEqual({ clamp: false, count: 2, more: true });
   });
 
   it("keeps stacked subheadings with their paragraph", () => {
     expect(
       aboutExcerpt([h("Name"), h("Why the name?"), p("Because."), h("Theme")])
-    ).toEqual({ clamp: false, count: 3, more: true });
+    ).toStrictEqual({ clamp: false, count: 3, more: true });
   });
 
   it("shows just the first paragraph when there is no subheading", () => {
-    expect(aboutExcerpt([p("One."), p("Two.")])).toEqual({
+    expect(aboutExcerpt([p("One."), p("Two.")])).toStrictEqual({
       clamp: false,
       count: 1,
       more: true,
@@ -154,7 +154,7 @@ describe(aboutExcerpt, () => {
   });
 
   it("clamps a long opening paragraph and offers more", () => {
-    expect(aboutExcerpt([h("Name"), p("x.".repeat(150))])).toEqual({
+    expect(aboutExcerpt([h("Name"), p("x.".repeat(150))])).toStrictEqual({
       clamp: true,
       count: 2,
       more: true,
@@ -162,12 +162,12 @@ describe(aboutExcerpt, () => {
   });
 
   it("offers nothing more when the whole text fits", () => {
-    expect(aboutExcerpt([p("Only.")])).toEqual({
+    expect(aboutExcerpt([p("Only.")])).toStrictEqual({
       clamp: false,
       count: 1,
       more: false,
     });
-    expect(aboutExcerpt([])).toEqual({ clamp: false, count: 0, more: false });
+    expect(aboutExcerpt([])).toStrictEqual({ clamp: false, count: 0, more: false });
   });
 });
 
@@ -190,28 +190,28 @@ describe("tadabbur drafts", () => {
   it("round-trips a verse's draft", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:2", d, s);
-    expect(loadTadabburDrafts(1, s)).toEqual({ "1:2": d });
-    expect(loadTadabburDrafts(2, s)).toEqual({});
+    expect(loadTadabburDrafts(1, s)).toStrictEqual({ "1:2": d });
+    expect(loadTadabburDrafts(2, s)).toStrictEqual({});
   });
 
   it("keeps other verses when one changes", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:1", d, s);
     saveTadabburDraft(1, "1:2", { ...EMPTY_DRAFT, stirs: "mercy" }, s);
-    expect(Object.keys(loadTadabburDrafts(1, s))).toEqual(["1:1", "1:2"]);
+    expect(Object.keys(loadTadabburDrafts(1, s))).toStrictEqual(["1:1", "1:2"]);
   });
 
   it("clears an emptied draft, and the key when none remain", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:1", d, s);
     saveTadabburDraft(1, "1:1", EMPTY_DRAFT, s);
-    expect(s.m.has(tadabburDraftKey(1))).toBe(false);
+    expect(s.m.has(tadabburDraftKey(1))).toBeFalsy();
   });
 
   it("ignores corrupt or malformed storage", () => {
-    expect(parseTadabburDrafts("{nope")).toEqual({});
-    expect(parseTadabburDrafts("[1]")).toEqual({});
-    expect(parseTadabburDrafts(null)).toEqual({});
+    expect(parseTadabburDrafts("{nope")).toStrictEqual({});
+    expect(parseTadabburDrafts("[1]")).toStrictEqual({});
+    expect(parseTadabburDrafts(null)).toStrictEqual({});
     expect(
       parseTadabburDrafts(
         JSON.stringify({
@@ -220,7 +220,7 @@ describe("tadabbur drafts", () => {
           "1:3": {},
         })
       )
-    ).toEqual({
+    ).toStrictEqual({
       "1:1": { action: "", lessons: "", stirs: "x" },
     });
   });
@@ -235,9 +235,9 @@ describe("tadabbur drafts", () => {
         throw new Error("full");
       },
     };
-    expect(loadTadabburDrafts(1, bad)).toEqual({});
+    expect(loadTadabburDrafts(1, bad)).toStrictEqual({});
     expect(() => saveTadabburDraft(1, "1:1", d, bad)).not.toThrow();
-    expect(loadTadabburDrafts(1, null)).toEqual({});
+    expect(loadTadabburDrafts(1, null)).toStrictEqual({});
   });
 });
 
