@@ -1,6 +1,11 @@
-import { SIZES, type ReadView } from "@mindfulverse/core/readingPrefs";
+import { SIZES } from "@mindfulverse/core/readingPrefs";
+import type { ReadView } from "@mindfulverse/core/readingPrefs";
 
-const SIZE_NAMES: Record<string, string> = { s: "small", m: "medium", l: "large" };
+const SIZE_NAMES: Record<string, string> = {
+  l: "large",
+  m: "medium",
+  s: "small",
+};
 
 /** Size and view choices, shown inside the "Reading settings" sheet
  *  (components/ReaderTools.tsx). Each choice applies at once. */
@@ -21,7 +26,11 @@ export default function ReadingControls({
         <p className="display-choice-label" id="rc-size">
           Text size
         </p>
-        <div className="reading-controls" role="group" aria-labelledby="rc-size">
+        <div
+          className="reading-controls"
+          role="group"
+          aria-labelledby="rc-size"
+        >
           {SIZES.map((s, i) => (
             <button
               key={s.key}
@@ -40,7 +49,11 @@ export default function ReadingControls({
         <p className="display-choice-label" id="rc-view">
           View
         </p>
-        <div className="reading-controls" role="group" aria-labelledby="rc-view">
+        <div
+          className="reading-controls"
+          role="group"
+          aria-labelledby="rc-view"
+        >
           <button
             className="size-btn"
             aria-pressed={view === "translation"}
@@ -57,7 +70,9 @@ export default function ReadingControls({
           </button>
         </div>
         <p className="display-choice-hint">
-          {view === "translation" ? "Arabic with English, verse by verse." : "Arabic only, flowing as on the page."}
+          {view === "translation"
+            ? "Arabic with English, verse by verse."
+            : "Arabic only, flowing as on the page."}
         </p>
       </div>
     </div>

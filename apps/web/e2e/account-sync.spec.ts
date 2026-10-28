@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expect, test } from "vitest";
 
 // Env-gated smoke test: sign in, write a journal entry, confirm it syncs to
 // a second signed-in device. Skips cleanly when no credentials are supplied
@@ -16,8 +17,13 @@ async function signIn(page: import("@playwright/test").Page) {
   // The mode-toggle button ("Sign in" / "Create account") also has the name
   // "Sign in" in its default state, so the form's submit button is the last
   // match, not the first.
-  await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
-  await expect(page.getByText(/backed up to your account/i)).toBeVisible({ timeout: 15_000 });
+  await page
+    .getByRole("button", { exact: true, name: "Sign in" })
+    .last()
+    .click();
+  await expect(page.getByText(/backed up to your account/i)).toBeVisible({
+    timeout: 15_000,
+  });
 }
 
 test("sign in, write an entry, sync round-trip", async ({ page }) => {
@@ -30,7 +36,7 @@ test("sign in, write an entry, sync round-trip", async ({ page }) => {
   const journalBox = page.locator("#checkin-journal");
   await expect(journalBox).toBeVisible({ timeout: 15_000 });
   await journalBox.fill(marker);
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByRole("button", { exact: true, name: "Save" }).click();
   await expect(page.getByText(/kept in your journal/i)).toBeVisible();
 
   // Force the push instead of racing the 3s debounce — deterministic rather

@@ -5,12 +5,13 @@ import { configureAnalytics } from "@mindfulverse/core/analytics";
 import { configureData } from "@mindfulverse/core/data";
 import { configureSyncTriggers } from "@mindfulverse/core/sync/engine";
 import { configureInsforge } from "@mindfulverse/core/sync/insforge";
+
 import { fetchJson } from "./platform/data";
 import { webSyncTriggers } from "./platform/syncTriggers";
 
 configureInsforge({
-  baseUrl: import.meta.env.VITE_INSFORGE_URL,
   anonKey: import.meta.env.VITE_INSFORGE_ANON_KEY,
+  baseUrl: import.meta.env.VITE_INSFORGE_URL,
 });
 configureData(fetchJson);
 configureAnalytics({

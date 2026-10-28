@@ -1,4 +1,5 @@
-import { Component, type ReactNode } from "react";
+import { Component } from "react";
+import type { ReactNode } from "react";
 
 // If anything throws, show a calm recovery screen instead of a white page.
 // A tester who hits a blank screen never comes back — and never tells us.
@@ -17,11 +18,11 @@ export default class ErrorBoundary extends Component<
       return (
         <div
           style={{
-            maxWidth: 560,
+            fontFamily: "var(--font-read)",
             margin: "0 auto",
+            maxWidth: 560,
             padding: "80px 22px",
             textAlign: "center",
-            fontFamily: "var(--font-read)",
           }}
         >
           <h1 style={{ color: "var(--indigo-deep)" }}>Something went wrong</h1>

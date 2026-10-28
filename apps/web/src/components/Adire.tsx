@@ -1,9 +1,12 @@
+import { markBounds, markPath } from "@mindfulverse/core/brand";
+import {
+  arabicSurahName,
+  revelationPlace,
+} from "@mindfulverse/core/surahNames";
 // The adire language, shared with the mobile app (apps/mobile/src/ui/adire.tsx):
 // diamond numerals, the dye-rule, the surah title plate, and the section icons.
 // Styles live in index.css under "Adire language".
 import type { ReactNode } from "react";
-import { markBounds, markPath } from "@mindfulverse/core/brand";
-import { arabicSurahName, revelationPlace } from "@mindfulverse/core/surahNames";
 
 /** A numeral in the adire diamond: solid indigo, or an indigo outline. */
 export function Diamond({
@@ -16,11 +19,22 @@ export function Diamond({
   className?: string;
 }) {
   const small = String(n).length >= 3 ? " small" : "";
-  if (!outline) return <span className={`diamond${small} ${className}`} aria-hidden="true">{n}</span>;
+  if (!outline) {
+    return (
+      <span className={`diamond${small} ${className}`} aria-hidden="true">
+        {n}
+      </span>
+    );
+  }
   return (
     <span className={`diamond outline${small} ${className}`} aria-hidden="true">
       <svg width="40" height="40" viewBox="0 0 40 40" focusable="false">
-        <path d="M20 1 39 20 20 39 1 20Z" fill="none" stroke="currentColor" strokeWidth="1.4" />
+        <path
+          d="M20 1 39 20 20 39 1 20Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+        />
       </svg>
       <span>{n}</span>
     </span>
@@ -49,7 +63,11 @@ export function TitlePlate({
   children?: ReactNode;
 }) {
   const arabic = arabicSurahName(surah);
-  const details = [`Surah ${surah}`, revelationPlace(surah), ayahCount ? `${ayahCount} verses` : null]
+  const details = [
+    `Surah ${surah}`,
+    revelationPlace(surah),
+    ayahCount ? `${ayahCount} verses` : null,
+  ]
     .filter(Boolean)
     .join(", ");
   return (
@@ -89,7 +107,11 @@ function Icon({ children, size = 22 }: { children: ReactNode; size?: number }) {
 export function TadabburIcon() {
   return (
     <Icon>
-      <path d="M12 9.6 14.4 12 12 14.4 9.6 12Z" fill="currentColor" stroke="none" />
+      <path
+        d="M12 9.6 14.4 12 12 14.4 9.6 12Z"
+        fill="currentColor"
+        stroke="none"
+      />
       <circle cx="12" cy="12" r="5.6" />
       <circle cx="12" cy="12" r="9.4" strokeDasharray="2.2 2.6" />
     </Icon>
@@ -105,7 +127,14 @@ export function DhikrIcon() {
   return (
     <Icon>
       {beads.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="1.35" fill="currentColor" stroke="none" />
+        <circle
+          key={i}
+          cx={x}
+          cy={y}
+          r="1.35"
+          fill="currentColor"
+          stroke="none"
+        />
       ))}
       <path d="M12 18.6v4M10.6 22.6h2.8" />
     </Icon>
@@ -146,9 +175,16 @@ export function BrandMark({ size = 28 }: { size?: number }) {
       width={size}
       height={size}
       viewBox={`${ox} ${oy} ${box} ${box}`}
-      style={{ flex: "none", display: "block" }}
+      style={{ display: "block", flex: "none" }}
     >
-      <rect x={ox} y={oy} width={box} height={box} rx={box * 0.22} fill="var(--indigo)" />
+      <rect
+        x={ox}
+        y={oy}
+        width={box}
+        height={box}
+        rx={box * 0.22}
+        fill="var(--indigo)"
+      />
       <path d={markPath()} fill="var(--cotton)" />
     </svg>
   );

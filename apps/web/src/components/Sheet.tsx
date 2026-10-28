@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 
 /** Bottom sheet: focus moves in and back out, Escape and the phone's back
  *  gesture close it, and the page behind stops scrolling while it's open. */
@@ -24,7 +25,9 @@ export default function Sheet({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+      }
     };
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
@@ -40,7 +43,9 @@ export default function Sheet({
     const onPop = () => {
       // StrictMode's dev double-mount pushes a second sheet entry; the stray
       // back() from the first cleanup lands on it — that is not a real "back".
-      if (!window.history.state?.mvSheet) onClose();
+      if (!window.history.state?.mvSheet) {
+        onClose();
+      }
     };
     window.history.pushState({ mvSheet: true }, "");
     window.addEventListener("popstate", onPop);
@@ -53,7 +58,9 @@ export default function Sheet({
       // overshoot past the entry the remount just pushed. Deferring lets
       // that pushState land first, so back() only ever takes one clean step.
       queueMicrotask(() => {
-        if (window.history.state?.mvSheet) window.history.back();
+        if (window.history.state?.mvSheet) {
+          window.history.back();
+        }
       });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,7 +69,12 @@ export default function Sheet({
   return (
     <>
       <div className="sheet-backdrop" onClick={onClose} />
-      <aside className="sheet" role="dialog" aria-modal="true" aria-label={label}>
+      <aside
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+      >
         <div className="sheet-grip" />
         {/* Compact fixed header — label + close only, so the ✕ is always
             visible and tappable; long content scrolls in the body. */}

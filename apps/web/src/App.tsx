@@ -1,20 +1,21 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import AppShell from "./components/AppShell";
-import Home from "./pages/Home";
-import Reader from "./pages/Reader";
-import Surah from "./pages/Surah";
-import Juz from "./pages/Juz";
-import Sessions from "./pages/Sessions";
-import SessionPlayer from "./pages/SessionPlayer";
-import SurahTadabbur from "./pages/SurahTadabbur";
-import CheckIn from "./pages/CheckIn";
-import Journal from "./pages/Journal";
-import Stats from "./pages/Stats";
-import Search from "./pages/Search";
-import Themes from "./pages/Themes";
-import Dhikr from "./pages/Dhikr";
 import Account from "./pages/Account";
+import CheckIn from "./pages/CheckIn";
+import Dhikr from "./pages/Dhikr";
+import Home from "./pages/Home";
+import Journal from "./pages/Journal";
+import Juz from "./pages/Juz";
 import NotFound from "./pages/NotFound";
+import Reader from "./pages/Reader";
+import Search from "./pages/Search";
+import SessionPlayer from "./pages/SessionPlayer";
+import Sessions from "./pages/Sessions";
+import Stats from "./pages/Stats";
+import Surah from "./pages/Surah";
+import SurahTadabbur from "./pages/SurahTadabbur";
+import Themes from "./pages/Themes";
 
 // All routes are declared here ONCE so feature agents never touch this file —
 // each agent owns its own page component under src/pages.
@@ -25,7 +26,10 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/read" element={<Reader />} />
         <Route path="/read/:surah" element={<Surah />} />
-        <Route path="/read/juz" element={<Navigate to="/read?tab=juz" replace />} />
+        <Route
+          path="/read/juz"
+          element={<Navigate to="/read?tab=juz" replace />}
+        />
         <Route path="/read/juz/:n" element={<Juz />} />
         <Route path="/sessions" element={<Sessions />} />
         <Route path="/sessions/:id" element={<SessionPlayer />} />

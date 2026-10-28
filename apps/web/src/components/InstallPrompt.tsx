@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { getEntries, JOURNAL_SAVED_EVENT } from "@mindfulverse/core/journal";
+import { useEffect, useState } from "react";
 
 // A quiet, dismissible nudge to install the PWA. An icon on the home screen is
 // the strongest return-visit mechanic a backend-less app has.
@@ -29,7 +29,8 @@ function isIos(): boolean {
 }
 
 export default function InstallPrompt() {
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installEvent, setInstallEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [earned, setEarned] = useState(() => getEntries().length > 0);
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(DISMISS_KEY) === "1"
@@ -37,7 +38,9 @@ export default function InstallPrompt() {
 
   // Chromium fires this once, early — hold on to it until the prompt is earned.
   useEffect(() => {
-    if (dismissed || isStandalone() || isIos()) return;
+    if (dismissed || isStandalone() || isIos()) {
+      return;
+    }
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setInstallEvent(e as BeforeInstallPromptEvent);
@@ -47,7 +50,9 @@ export default function InstallPrompt() {
   }, [dismissed]);
 
   useEffect(() => {
-    if (earned || dismissed) return;
+    if (earned || dismissed) {
+      return;
+    }
     let t: number | undefined;
     const onSaved = () => {
       t = window.setTimeout(() => setEarned(true), AFTER_SAVE_MS);
@@ -67,10 +72,14 @@ export default function InstallPrompt() {
   }
 
   async function install() {
-    if (!installEvent) return;
+    if (!installEvent) {
+      return;
+    }
     await installEvent.prompt();
     const choice = await installEvent.userChoice;
-    if (choice.outcome === "accepted") setInstallEvent(null);
+    if (choice.outcome === "accepted") {
+      setInstallEvent(null);
+    }
     dismiss();
   }
 
@@ -79,12 +88,16 @@ export default function InstallPrompt() {
   // While the banner floats over the page, give the page room to scroll its
   // last lines (e.g. a Save button) clear of it.
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      return;
+    }
     document.body.classList.add("has-install-banner");
     return () => document.body.classList.remove("has-install-banner");
   }, [visible]);
 
-  if (!visible) return null;
+  if (!visible) {
+    return null;
+  }
 
   return (
     <div
@@ -110,7 +123,10 @@ export default function InstallPrompt() {
     >
       <div style={{ flex: 1, fontSize: ".95rem", lineHeight: 1.45 }}>
         {installEvent ? (
-          <>Come back to this tomorrow. Keep MindfulVerse on your home screen. It works offline.</>
+          <>
+            Come back to this tomorrow. Keep MindfulVerse on your home screen.
+            It works offline.
+          </>
         ) : (
           <>
             Come back to this tomorrow. Tap <strong>Share</strong>, then{" "}
@@ -123,14 +139,14 @@ export default function InstallPrompt() {
           onClick={() => void install()}
           style={{
             background: "var(--cotton-raised)",
-            color: "var(--indigo-deep)",
             border: "none",
             borderRadius: 3,
-            padding: "9px 14px",
-            font: "inherit",
-            fontWeight: 600,
+            color: "var(--indigo-deep)",
             cursor: "pointer",
             flex: "none",
+            font: "inherit",
+            fontWeight: 600,
+            padding: "9px 14px",
           }}
         >
           Install
@@ -143,11 +159,11 @@ export default function InstallPrompt() {
           background: "none",
           border: "none",
           color: "var(--cotton-raised)",
-          opacity: 0.7,
-          fontSize: "1.2rem",
           cursor: "pointer",
-          padding: 4,
           flex: "none",
+          fontSize: "1.2rem",
+          opacity: 0.7,
+          padding: 4,
         }}
       >
         ✕

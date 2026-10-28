@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import type { Divisions, SurahMeta } from "@mindfulverse/core/types";
+import { describe, expect, it } from "vitest";
+
 import divisionsJson from "../../public/data/divisions.json";
 import surahsJson from "../../public/data/surahs.json";
 
@@ -10,7 +11,9 @@ const counts = new Map(surahs.map((s) => [s.number, s.ayahCount]));
 /** The verse key right after `key`, or null after 114:6. */
 function next(key: string): string | null {
   const [s, a] = key.split(":").map(Number);
-  if (a < counts.get(s)!) return `${s}:${a + 1}`;
+  if (a < counts.get(s)!) {
+    return `${s}:${a + 1}`;
+  }
   return s < 114 ? `${s + 1}:1` : null;
 }
 
@@ -30,7 +33,13 @@ describe("divisions.json", () => {
     }
     let total = 0;
     for (const j of d.juz) {
-      for (let k: string | null = j.first; k; k = k === j.last ? null : next(k)) total++;
+      for (
+        let k: string | null = j.first;
+        k;
+        k = k === j.last ? null : next(k)
+      ) {
+        total++;
+      }
     }
     expect(total).toBe(6236);
   });
@@ -42,7 +51,9 @@ describe("divisions.json", () => {
   });
 
   it("every juz carries its opening words", () => {
-    for (const j of d.juz) expect(j.opening?.length).toBeGreaterThan(0);
+    for (const j of d.juz) {
+      expect(j.opening?.length).toBeGreaterThan(0);
+    }
   });
 
   it("each juz holds exactly hizbs 2n-1 and 2n", () => {

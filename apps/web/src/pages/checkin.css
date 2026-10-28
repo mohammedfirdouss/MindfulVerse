@@ -3,126 +3,301 @@
    dyed cloth, then an optional reflection on cotton. */
 
 /* Each step arrives softly: opacity and a 6px rise, 220ms. */
-.ci-reveal { animation: ci-in 220ms var(--ease-out) both; }
-.ci-reveal > * + * { margin-top: 20px; }
-@keyframes ci-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ci-reveal {
+  animation: ci-in 220ms var(--ease-out) both;
+}
+.ci-reveal > * + * {
+  margin-top: 20px;
+}
+@keyframes ci-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .ci-reveal { animation-name: ci-fade; }
-  @keyframes ci-fade { from { opacity: 0; } to { opacity: 1; } }
+  .ci-reveal {
+    animation-name: ci-fade;
+  }
+  @keyframes ci-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
-.ci-lede { margin: 10px 0 0; font-size: 1.05rem; }
+.ci-lede {
+  margin: 10px 0 0;
+  font-size: 1.05rem;
+}
 
 /* The heart. On arrival it is the page; once the verse is open it folds into
    a compact row at the top so the feeling can still be changed. */
-.ci-feel > * + * { margin-top: 14px; }
-.ci-page:not(.at-verse) .ci-feel { margin-top: 28px; }
+.ci-feel > * + * {
+  margin-top: 14px;
+}
+.ci-page:not(.at-verse) .ci-feel {
+  margin-top: 28px;
+}
 .ci-feel-label {
   margin: 0;
-  font-family: var(--font-read); font-size: .95rem; line-height: 1.4; font-weight: 600;
-  color: var(--ink-soft); letter-spacing: 0;
+  font-family: var(--font-read);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: 0;
 }
-.ci-page.at-verse .ci-feel > * + * { margin-top: 8px; }
-.ci-page.at-verse .ci-chips { gap: 6px; }
-.ci-page.at-verse .ci-chip { padding: 0 12px; font-size: .92rem; }
+.ci-page.at-verse .ci-feel > * + * {
+  margin-top: 8px;
+}
+.ci-page.at-verse .ci-chips {
+  gap: 6px;
+}
+.ci-page.at-verse .ci-chip {
+  padding: 0 12px;
+  font-size: 0.92rem;
+}
 
 /* "Just show me today's verse": quiet, but a full 44px target. */
 .ci-skip {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
   margin-top: 18px !important;
-  background: none; border: none; cursor: pointer;
-  font-family: var(--font-read); font-size: 1rem; color: var(--indigo);
-  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-read);
+  font-size: 1rem;
+  color: var(--indigo);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
-.ci-skip:hover { text-decoration-thickness: 2px; }
-.ci-verse:focus { outline: none; }
-.ci-verse:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; }
+.ci-skip:hover {
+  text-decoration-thickness: 2px;
+}
+.ci-verse:focus {
+  outline: none;
+}
+.ci-verse:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+}
 
-.ci-page .ci-verse { padding: 22px 22px 14px; }
-.ci-note { margin: 10px 0 8px; }
+.ci-page .ci-verse {
+  padding: 22px 22px 14px;
+}
+.ci-note {
+  margin: 10px 0 8px;
+}
 
 /* A verse: Arabic, translation, then the reference row. */
-.ci-ayah > * + * { margin-top: 14px; }
-.ci-ayah.on-cloth > * + * { margin-top: 10px; }
-.ci-ayah .arabic { margin: 0; }
-.ci-ayah.on-cloth .arabic { color: var(--on-cloth); }
+.ci-ayah > * + * {
+  margin-top: 14px;
+}
+.ci-ayah.on-cloth > * + * {
+  margin-top: 10px;
+}
+.ci-ayah .arabic {
+  margin: 0;
+}
+.ci-ayah.on-cloth .arabic {
+  color: var(--on-cloth);
+}
 .ci-ayah.on-cloth .translation {
   color: var(--on-cloth);
   font-size: calc(1.2rem * var(--read-scale, 1));
   line-height: 1.55;
 }
 .ci-ref-row {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  column-gap: 16px; row-gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 16px;
+  row-gap: 4px;
 }
-.ci-ayah.on-cloth .ci-ref-row { margin-top: 6px; }
-.ci-ref { font-size: .85rem; line-height: 1.4; }
-.ci-ayah.on-cloth .ci-ref { font-size: .9rem; }
+.ci-ayah.on-cloth .ci-ref-row {
+  margin-top: 6px;
+}
+.ci-ref {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.ci-ayah.on-cloth .ci-ref {
+  font-size: 0.9rem;
+}
 
 /* "Share this verse": a small underlined cotton text button on the cloth. */
-.ci-share { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
-.ci-share-status { font-size: .85rem; }
-.ci-share-btn {
-  min-height: 44px; padding: 0 2px;
-  background: none; border: none; cursor: pointer;
-  font-family: var(--font-read); font-size: .95rem; font-weight: 600;
-  color: var(--on-cloth);
-  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
-  transition: opacity .15s ease;
+.ci-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
 }
-.ci-share-btn:hover { text-decoration-thickness: 2px; }
-.ci-share-btn:active { opacity: .6; }
+.ci-share-status {
+  font-size: 0.85rem;
+}
+.ci-share-btn {
+  min-height: 44px;
+  padding: 0 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-read);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--on-cloth);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: opacity 0.15s ease;
+}
+.ci-share-btn:hover {
+  text-decoration-thickness: 2px;
+}
+.ci-share-btn:active {
+  opacity: 0.6;
+}
 
-.ci-reveal > .dye-rule.ci-rule { margin: 30px 0; }
+.ci-reveal > .dye-rule.ci-rule {
+  margin: 30px 0;
+}
 
 /* Open sections on the cotton ground. */
-.ci-section > * + * { margin-top: 16px; }
-.ci-section > .ci-hint { margin-top: 6px; font-size: .95rem; }
+.ci-section > * + * {
+  margin-top: 16px;
+}
+.ci-section > .ci-hint {
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
 .ci-heading {
-  display: block; margin: 0;
-  font-family: var(--font-read); font-size: 1.25rem; line-height: 1.35; font-weight: 600;
-  color: var(--indigo-deep); letter-spacing: -.01em;
+  display: block;
+  margin: 0;
+  font-family: var(--font-read);
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--indigo-deep);
+  letter-spacing: -0.01em;
 }
 
 .ci-textarea {
-  display: block; width: 100%; box-sizing: border-box;
-  min-height: 11.5rem; padding: 14px 16px;
-  font-family: var(--font-read); font-size: 1rem; line-height: 1.6;
-  color: var(--ink); background: var(--cotton-raised);
-  border: 1px solid var(--line-strong); border-radius: 6px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 11.5rem;
+  padding: 14px 16px;
+  font-family: var(--font-read);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--cotton-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
   resize: vertical;
-  transition: border-color .15s ease;
+  transition: border-color 0.15s ease;
 }
-.ci-textarea::placeholder { color: var(--ink-faint); }
-.ci-textarea:focus { outline: none; border-color: var(--indigo); box-shadow: 0 0 0 1px var(--indigo); }
+.ci-textarea::placeholder {
+  color: var(--ink-faint);
+}
+.ci-textarea:focus {
+  outline: none;
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 1px var(--indigo);
+}
 
-.ci-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
-.ci-save { min-width: 112px; }
-.ci-draft { font-size: .9rem; }
+.ci-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.ci-save {
+  min-width: 112px;
+}
+.ci-draft {
+  font-size: 0.9rem;
+}
 
 /* The heart chips: tactile, outlined; the chosen one solid indigo. */
-.ci-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ci-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .ci-chip {
-  min-height: 44px; padding: 0 16px;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-family: var(--font-read); font-size: 1rem; line-height: 1.3;
-  color: var(--ink-soft); background: var(--cotton-raised);
-  border: 1px solid var(--line-strong); border-radius: 999px;
+  min-height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-read);
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  background: var(--cotton-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
   cursor: pointer;
-  transition: background .15s ease, border-color .15s ease, color .15s ease, transform .14s var(--ease-out);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.14s var(--ease-out);
 }
-@media (hover: hover) { .ci-chip:hover { background: var(--indigo-wash); } }
-.ci-chip:active { transform: scale(.97); }
+@media (hover: hover) {
+  .ci-chip:hover {
+    background: var(--indigo-wash);
+  }
+}
+.ci-chip:active {
+  transform: scale(0.97);
+}
 .ci-chip[aria-pressed="true"] {
-  background: var(--indigo); border-color: var(--indigo);
-  color: var(--cotton); font-weight: 600;
+  background: var(--indigo);
+  border-color: var(--indigo);
+  color: var(--cotton);
+  font-weight: 600;
 }
-@media (prefers-reduced-motion: reduce) { .ci-chip:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .ci-chip:active {
+    transform: none;
+  }
+}
 
-.ci-framed { margin-top: 28px; animation: ci-in 220ms var(--ease-out) both; }
-.ci-framed > * + * { margin-top: 16px; }
-@media (prefers-reduced-motion: reduce) { .ci-framed { animation-name: ci-fade; } }
-.ci-framing { margin: 0; font-size: 1.15rem; line-height: 1.45; font-weight: 600; color: var(--ink); }
+.ci-framed {
+  margin-top: 28px;
+  animation: ci-in 220ms var(--ease-out) both;
+}
+.ci-framed > * + * {
+  margin-top: 16px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ci-framed {
+    animation-name: ci-fade;
+  }
+}
+.ci-framing {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--ink);
+}
 
 /* "Show 2 more verses": sits right under the third verse. */
-.ci-more { margin-top: 2px !important; }
+.ci-more {
+  margin-top: 2px !important;
+}

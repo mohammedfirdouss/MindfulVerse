@@ -33,21 +33,24 @@ export function toSections(
   verses: Map<string, { arabic: string; translation: string }>
 ): ExportSection[] {
   return groups.map((g) => ({
-    title: titleFor(g),
     items: g.entries.map((entry) => {
       const ref = entry.context?.ref;
-      if (!ref || !VERSE_KEY_RE.test(ref)) return { entry };
+      if (!ref || !VERSE_KEY_RE.test(ref)) {
+        return { entry };
+      }
       const surah = Number(ref.split(":")[0]);
       const name = surahNames.get(surah);
       const verse = verses.get(ref);
       return {
         entry,
         // Under its own surah's heading the name would only repeat.
-        verseLabel: g.surah === surah ? ref : name ? `${name} · ${ref}` : `Qur’an ${ref}`,
+        verseLabel:
+          g.surah === surah ? ref : name ? `${name} · ${ref}` : `Qur’an ${ref}`,
         translation: verse?.translation,
         arabic: verse?.arabic,
       };
     }),
+    title: titleFor(g),
   }));
 }
 
@@ -62,17 +65,22 @@ export function formatDay(d: Date): string {
   return d.toLocaleDateString(undefined, { dateStyle: "long" });
 }
 
-export const TRANSLATION_CREDIT = "English translation by Talal Itani (ClearQuran).";
+export const TRANSLATION_CREDIT =
+  "English translation by Talal Itani (ClearQuran).";
 
 export function hasTranslations(input: ExportInput): boolean {
   return input.sections.some((s) => s.items.some((i) => i.translation));
 }
 
 export function spanLabel(input: ExportInput): string {
-  const times = input.sections.flatMap((s) => s.items.map((i) => i.entry.createdAt));
+  const times = input.sections.flatMap((s) =>
+    s.items.map((i) => i.entry.createdAt)
+  );
   const n = times.length;
   const count = `${n} ${n === 1 ? "reflection" : "reflections"}`;
-  if (n === 0) return count;
+  if (n === 0) {
+    return count;
+  }
   const first = formatDay(new Date(Math.min(...times)));
   const last = formatDay(new Date(Math.max(...times)));
   // One day's worth: each entry already carries its date.
@@ -81,9 +89,13 @@ export function spanLabel(input: ExportInput): string {
 
 /** "Exported …", only when it adds something the entry dates don't say. */
 export function exportedLabel(input: ExportInput): string | null {
-  const times = input.sections.flatMap((s) => s.items.map((i) => i.entry.createdAt));
+  const times = input.sections.flatMap((s) =>
+    s.items.map((i) => i.entry.createdAt)
+  );
   const exported = formatDay(input.exportedAt);
-  if (times.length && formatDay(new Date(Math.max(...times))) === exported) return null;
+  if (times.length && formatDay(new Date(Math.max(...times))) === exported) {
+    return null;
+  }
   return `Exported ${exported}`;
 }
 
@@ -91,34 +103,52 @@ export function exportedLabel(input: ExportInput): string | null {
 export function buildJournalText(input: ExportInput): string {
   const exported = exportedLabel(input);
   const out: string[] = ["MindfulVerse | Your reflections", spanLabel(input)];
-  if (exported) out.push(exported);
+  if (exported) {
+    out.push(exported);
+  }
   for (const section of input.sections) {
     out.push("", "", section.title);
     for (const { entry, verseLabel, translation, arabic } of section.items) {
       const lines = [formatDate(entry.createdAt)];
-      if (verseLabel) lines.push(verseLabel);
-      if (arabic) lines.push(arabic);
-      if (translation) lines.push(`“${translation}”`);
-      if (entry.prompt) lines.push(entry.prompt);
+      if (verseLabel) {
+        lines.push(verseLabel);
+      }
+      if (arabic) {
+        lines.push(arabic);
+      }
+      if (translation) {
+        lines.push(`“${translation}”`);
+      }
+      if (entry.prompt) {
+        lines.push(entry.prompt);
+      }
       lines.push(entry.body);
       out.push("", lines.join("\n"));
     }
   }
-  if (hasTranslations(input)) out.push("", "", TRANSLATION_CREDIT);
-  return out.join("\n") + "\n";
+  if (hasTranslations(input)) {
+    out.push("", "", TRANSLATION_CREDIT);
+  }
+  return `${out.join("\n")}\n`;
 }
 
 /** Hand a file to the user: the share sheet on phones (where a blob link can
  *  strand an installed app), a normal download everywhere else. */
-export async function saveFile(data: BlobPart, filename: string, type: string): Promise<void> {
+export async function saveFile(
+  data: BlobPart,
+  filename: string,
+  type: string
+): Promise<void> {
   const file = new File([data], filename, { type });
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   if (coarse && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: filename });
       return;
-    } catch (e) {
-      if ((e as DOMException).name === "AbortError") return;
+    } catch (error) {
+      if ((error as DOMException).name === "AbortError") {
+        return;
+      }
       // Fall through to a download if sharing itself failed.
     }
   }
@@ -126,7 +156,7 @@ export async function saveFile(data: BlobPart, filename: string, type: string): 
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
-  document.body.appendChild(a);
+  document.body.append(a);
   a.click();
   a.remove();
   // Revoking immediately can cancel the download in Safari and Firefox.

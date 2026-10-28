@@ -1,15 +1,15 @@
+import type { Ayah } from "@mindfulverse/core/types";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { Ayah } from "@mindfulverse/core/types";
+
 import { useShareFeedback } from "../lib/useShareFeedback";
 import {
   CommentaryBody,
   commentaryLabel,
   commentaryTitle,
   coveringFor,
-  type Tafsir,
-  type TafsirIndex,
 } from "./Commentary";
+import type { Tafsir, TafsirIndex } from "./Commentary";
 import Sheet from "./Sheet";
 
 /** A verse tapped in Reading mode: its translation and what you can do with it.
@@ -30,7 +30,9 @@ export default function VerseSheet({
   const covering = coveringFor(index, ayah);
 
   function openCommentary() {
-    if (covering === null) return;
+    if (covering === null) {
+      return;
+    }
     tafsir.request(ayah.surah);
     setShowCommentary(true);
   }
@@ -39,7 +41,11 @@ export default function VerseSheet({
   return (
     <Sheet
       label={`Verse ${ayah.verseKey}`}
-      title={inCommentary ? commentaryTitle(ayah, covering) : `Verse ${ayah.verseKey}`}
+      title={
+        inCommentary
+          ? commentaryTitle(ayah, covering)
+          : `Verse ${ayah.verseKey}`
+      }
       onClose={onClose}
     >
       {inCommentary ? (
@@ -59,20 +65,42 @@ export default function VerseSheet({
         </>
       ) : (
         <>
-          <p className="arabic" lang="ar" style={{ fontSize: "1.5rem", lineHeight: 2, margin: "0 0 12px" }}>
+          <p
+            className="arabic"
+            lang="ar"
+            style={{ fontSize: "1.5rem", lineHeight: 2, margin: "0 0 12px" }}
+          >
             {ayah.arabic}
           </p>
           <p className="translation" style={{ margin: "0 0 6px" }}>
             {ayah.translation}
           </p>
-          <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-            <button className="commentary-open" disabled={covering === null} onClick={openCommentary}>
+          <div
+            style={{
+              alignItems: "center",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 18,
+            }}
+          >
+            <button
+              className="commentary-open"
+              disabled={covering === null}
+              onClick={openCommentary}
+            >
               {commentaryLabel(index, ayah)}
             </button>
-            <button className="commentary-open" onClick={() => void share.share(ayah)}>
+            <button
+              className="commentary-open"
+              onClick={() => void share.share(ayah)}
+            >
               {share.label ?? "Share"}
             </button>
-            <Link className="commentary-open" to={`/tadabbur/${ayah.surah}?v=${ayah.ayah}`} replace>
+            <Link
+              className="commentary-open"
+              to={`/tadabbur/${ayah.surah}?v=${ayah.ayah}`}
+              replace
+            >
               Reflect on this verse
             </Link>
           </div>

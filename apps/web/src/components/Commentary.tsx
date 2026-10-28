@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
 import { loadSurahTafsir } from "@mindfulverse/core/data";
 import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
+import { useCallback, useEffect, useState } from "react";
+
 import Sheet from "./Sheet";
 
 /** Per-surah list of ayahs that carry a direct Ibn Kathir entry. */
@@ -9,20 +10,31 @@ export type TafsirIndex = Record<string, number[]>;
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Find the entry covering this ayah. */
 export function coveringFor(index: TafsirIndex | null, a: Ayah): number | null {
-  if (!index) return null;
+  if (!index) {
+    return null;
+  }
   let best: number | null = null;
   for (const n of index[String(a.surah)] ?? []) {
-    if (n <= a.ayah) best = n;
-    else break;
+    if (n <= a.ayah) {
+      best = n;
+    } else {
+      break;
+    }
   }
   return best;
 }
 
 export function commentaryLabel(index: TafsirIndex | null, a: Ayah): string {
-  if (!index) return "Commentary isn’t available right now";
+  if (!index) {
+    return "Commentary isn’t available right now";
+  }
   const c = coveringFor(index, a);
-  if (c === null) return "No commentary for this verse";
-  return c === a.ayah ? "Read the commentary" : `Read the commentary (with verse ${c})`;
+  if (c === null) {
+    return "No commentary for this verse";
+  }
+  return c === a.ayah
+    ? "Read the commentary"
+    : `Read the commentary (with verse ${c})`;
 }
 
 export function commentaryTitle(a: Ayah, source: number): string {
@@ -53,7 +65,7 @@ export function useTafsir() {
     return !!failed[surah] && !bySurah[surah];
   }
 
-  return { request, textFor, failedFor };
+  return { failedFor, request, textFor };
 }
 
 export type Tafsir = ReturnType<typeof useTafsir>;
@@ -78,18 +90,19 @@ export function CommentaryBody({
         className="arabic"
         lang="ar"
         style={{
+          borderBottom: "1px solid var(--line)",
           fontSize: "1.4rem",
           lineHeight: 1.9,
           margin: "0 0 14px",
           paddingBottom: 14,
-          borderBottom: "1px solid var(--line)",
         }}
       >
         {ayah.arabic}
       </p>
       {failed ? (
         <p className="muted">
-          The commentary isn’t available offline yet. Try again when you’re connected.
+          The commentary isn’t available offline yet. Try again when you’re
+          connected.
         </p>
       ) : text === null ? (
         <p className="muted">Opening the commentary…</p>
@@ -99,8 +112,9 @@ export function CommentaryBody({
             <p key={i}>{p}</p>
           ))}
           <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
-            Verse quotations inside the commentary follow its classical English edition,
-            which differs from the ClearQuran translation shown in the reader.
+            Verse quotations inside the commentary follow its classical English
+            edition, which differs from the ClearQuran translation shown in the
+            reader.
           </p>
         </div>
       )}
@@ -124,7 +138,9 @@ export function CommentarySheet({
   useEffect(() => {
     request(ayah.surah);
   }, [request, ayah.surah]);
-  if (covering === null) return null;
+  if (covering === null) {
+    return null;
+  }
   return (
     <Sheet
       label={`Commentary on verse ${ayah.verseKey}`}
