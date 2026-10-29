@@ -41,6 +41,13 @@
 .home-verse .arabic {
   margin: 6px 0 0;
 }
+/* Narrow phones: a little smaller, so the sections below show sooner. */
+@media (max-width: 480px) {
+  .home-verse .arabic {
+    font-size: calc(1.6rem * var(--read-scale, 1));
+    line-height: 2.1;
+  }
+}
 .home-verse-translation {
   font-size: 1.2rem;
   line-height: 1.6;

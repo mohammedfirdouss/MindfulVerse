@@ -92,6 +92,14 @@
   font-size: 0.88rem;
   line-height: 1.55;
 }
+/* Phones: wrap long lines so the URL and headers stay readable. */
+@media (max-width: 719px) {
+  .dev-code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 0.8rem;
+  }
+}
 .dev-code:focus-visible {
   outline: 2px solid var(--indigo);
   outline-offset: 2px;

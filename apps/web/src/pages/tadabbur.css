@@ -87,6 +87,19 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.tad-nav {
+  display: flex;
+  gap: 12px;
+}
+/* On a phone the actions span the width, within reach of a thumb. */
+@media (max-width: 719px) {
+  .tad-nav .btn {
+    flex: 1 1 0;
+  }
+  .tad-keep .btn {
+    flex: 1 1 100%;
+  }
+}
 .tad-keep-note {
   font-size: 0.9rem;
 }

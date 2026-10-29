@@ -700,7 +700,7 @@ function SurahTadabburPage() {
         : null;
     return (
       <div className="stack">
-        <Link to="/sessions" className="muted">
+        <Link to="/sessions" className="muted back-link">
           All tadabbur
         </Link>
         <FadeRise show={mounted} reduce={reduce}>
@@ -781,7 +781,7 @@ function SurahTadabburPage() {
 
   return (
     <div className="stack">
-      <Link to="/sessions" className="muted">
+      <Link to="/sessions" className="muted back-link">
         All tadabbur
       </Link>
 
@@ -828,7 +828,7 @@ function SurahTadabburPage() {
         </div>
       </FadeRise>
 
-      <div style={{ display: "flex", gap: 12 }}>
+      <div className="tad-nav">
         <button
           className="btn secondary"
           onClick={() => setPhase((p) => Math.max(-1, p - 1))}

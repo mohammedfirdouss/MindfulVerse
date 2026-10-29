@@ -365,6 +365,31 @@ p.eyebrow + h1 {
   cursor: pointer;
   text-underline-offset: 3px;
 }
+/* Small text controls: a 44px-tall hit area around the text, without moving
+   the layout. */
+.commentary-open,
+.link-btn,
+.back-link,
+.reader-links a,
+.home-attribution a,
+.size-btn {
+  position: relative;
+}
+.commentary-open::after,
+.link-btn::after,
+.back-link::after,
+.reader-links a::after,
+.home-attribution a::after {
+  content: "";
+  position: absolute;
+  inset: -12px -6px;
+}
+/* Segmented: grow up and down only, so neighbours keep their own taps. */
+.size-btn::after {
+  content: "";
+  position: absolute;
+  inset: -10px 0;
+}
 .commentary-open:hover {
   text-decoration: underline;
 }
