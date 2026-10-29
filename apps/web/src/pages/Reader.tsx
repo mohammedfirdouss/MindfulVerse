@@ -82,7 +82,7 @@ export default function Reader() {
       <header>
         <h1>The Qur'an</h1>
         <p className="muted">Browse by surah or by juz.</p>
-        <p style={{ display: "flex", gap: 18, margin: "10px 0 0" }}>
+        <p className="reader-links">
           <Link to="/search">Search the translation</Link>
           <Link to="/themes">Find verses by topic</Link>
         </p>
