@@ -136,6 +136,7 @@ export default function InstallPrompt() {
       </div>
       {installEvent && (
         <button
+          type="button"
           onClick={() => void install()}
           style={{
             background: "var(--cotton-raised)",
@@ -153,6 +154,7 @@ export default function InstallPrompt() {
         </button>
       )}
       <button
+        type="button"
         onClick={dismiss}
         aria-label="Dismiss"
         style={{

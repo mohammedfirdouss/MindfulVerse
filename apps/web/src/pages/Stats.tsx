@@ -359,6 +359,7 @@ export default function Stats() {
               Testing MindfulVerse? Copy your numbers and email them over.
             </p>
             <button
+              type="button"
               className="btn"
               style={{ alignSelf: "flex-start" }}
               onClick={copyStats}

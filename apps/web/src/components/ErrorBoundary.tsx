@@ -29,7 +29,11 @@ export default class ErrorBoundary extends Component<
           <p style={{ color: "var(--ink-soft)" }}>
             A part of the app stumbled. Reloading usually sets it right.
           </p>
-          <button className="btn" onClick={() => window.location.reload()}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => window.location.reload()}
+          >
             Reload
           </button>
         </div>

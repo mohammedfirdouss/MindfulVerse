@@ -51,6 +51,7 @@ export default function VerseSheet({
       {inCommentary ? (
         <>
           <button
+            type="button"
             className="link-btn"
             style={{ marginBottom: 14 }}
             onClick={() => setShowCommentary(false)}
@@ -84,6 +85,7 @@ export default function VerseSheet({
             }}
           >
             <button
+              type="button"
               className="commentary-open"
               disabled={covering === null}
               onClick={openCommentary}
@@ -91,6 +93,7 @@ export default function VerseSheet({
               {commentaryLabel(index, ayah)}
             </button>
             <button
+              type="button"
               className="commentary-open"
               onClick={() => void share.share(ayah)}
             >

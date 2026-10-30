@@ -43,6 +43,7 @@ export default function VerseBlock({
         }}
       >
         <button
+          type="button"
           className="commentary-open"
           disabled={covering === null}
           onClick={() => onCommentary(ayah)}
@@ -50,6 +51,7 @@ export default function VerseBlock({
           {commentaryLabel(index, ayah)}
         </button>
         <button
+          type="button"
           className="commentary-open"
           onClick={() => void share.share(ayah)}
         >

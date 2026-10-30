@@ -83,6 +83,7 @@ export default function Sheet({
             {title}
           </p>
           <button
+            type="button"
             ref={closeRef}
             className="sheet-close"
             onClick={onClose}

@@ -33,6 +33,7 @@ export default function ReadingControls({
         >
           {SIZES.map((s, i) => (
             <button
+              type="button"
               key={s.key}
               className="size-btn"
               aria-pressed={s.key === sizeKey}
@@ -55,6 +56,7 @@ export default function ReadingControls({
           aria-labelledby="rc-view"
         >
           <button
+            type="button"
             className="size-btn"
             aria-pressed={view === "translation"}
             onClick={() => onView("translation")}
@@ -62,6 +64,7 @@ export default function ReadingControls({
             Translation
           </button>
           <button
+            type="button"
             className="size-btn"
             aria-pressed={view === "reading"}
             onClick={() => onView("reading")}

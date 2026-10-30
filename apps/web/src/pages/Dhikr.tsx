@@ -264,7 +264,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
             marginTop: 10,
           }}
         >
-          <button className="btn secondary" onClick={onExit}>
+          <button type="button" className="btn secondary" onClick={onExit}>
             Back to dhikr
           </button>
           <Link to="/" className="btn">
@@ -335,6 +335,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
       }}
     >
       <button
+        type="button"
         data-exit
         className="btn ghost"
         onClick={onExit}
@@ -517,6 +518,7 @@ export default function Dhikr() {
       <div>
         {SETS.map((s) => (
           <button
+            type="button"
             key={s.id}
             onClick={() => open(s)}
             style={{

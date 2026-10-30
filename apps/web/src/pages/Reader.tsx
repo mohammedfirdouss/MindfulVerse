@@ -109,6 +109,7 @@ export default function Reader() {
       <div className="reading-controls" role="group" aria-label="Browse by">
         {(["surah", "juz"] as const).map((t) => (
           <button
+            type="button"
             key={t}
             className="size-btn"
             aria-pressed={tab === t}

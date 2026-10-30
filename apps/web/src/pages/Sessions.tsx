@@ -89,7 +89,11 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
       )}
       {hiddenCount > 0 && (
         <div>
-          <button className="btn ghost" onClick={() => setShowAll(true)}>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => setShowAll(true)}
+          >
             Show all 114
           </button>
         </div>

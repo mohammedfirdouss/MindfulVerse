@@ -228,16 +228,28 @@ function SessionFlow({ session }: { session: TadabburSession }) {
             )}
             {resumeStep == null ? (
               <div>
-                <button className="btn" onClick={() => beginSteps()}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => beginSteps()}
+                >
                   Begin
                 </button>
               </div>
             ) : (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-                <button className="btn" onClick={() => beginSteps(resumeStep)}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => beginSteps(resumeStep)}
+                >
                   Continue from step {resumeStep + 1}
                 </button>
-                <button className="btn secondary" onClick={() => beginSteps()}>
+                <button
+                  type="button"
+                  className="btn secondary"
+                  onClick={() => beginSteps()}
+                >
                   Start from the beginning
                 </button>
               </div>
@@ -272,12 +284,17 @@ function SessionFlow({ session }: { session: TadabburSession }) {
 
       <div style={{ display: "flex", gap: 12 }}>
         <button
+          type="button"
           className="btn secondary"
           onClick={() => setPhase((p) => Math.max(-1, p - 1))}
         >
           Back
         </button>
-        <button className="btn" onClick={() => setPhase((p) => p + 1)}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => setPhase((p) => p + 1)}
+        >
           {phase + 1 === stepCount ? "Finish" : "Next"}
         </button>
       </div>
@@ -452,6 +469,7 @@ function TafsirExcerpt({ text }: { text: string }) {
       ))}
       {isTruncated && !expanded && (
         <button
+          type="button"
           className="commentary-open"
           style={{ marginTop: 10 }}
           onClick={() => setExpanded(true)}
@@ -498,7 +516,12 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
 
   return (
     <div className="stack">
-      <button className="commentary-open" onClick={toggle} aria-expanded={open}>
+      <button
+        type="button"
+        className="commentary-open"
+        onClick={toggle}
+        aria-expanded={open}
+      >
         {open ? "Hide the commentary" : "Read the commentary"}
       </button>
       {open && (
@@ -634,7 +657,12 @@ function FinalScreen({
                 }}
               />
               <div>
-                <button className="btn" onClick={save} disabled={!canSave}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={save}
+                  disabled={!canSave}
+                >
                   Save reflection
                 </button>
               </div>
@@ -667,7 +695,11 @@ function FinalScreen({
                 cost around $3 a month, would that be worth it to you?
               </p>
               <div>
-                <button className="btn secondary" onClick={tapPay}>
+                <button
+                  type="button"
+                  className="btn secondary"
+                  onClick={tapPay}
+                >
                   Yes, I’d pay for that
                 </button>
               </div>
