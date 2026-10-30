@@ -2,8 +2,10 @@ const IPV4_PATTERN = /^\d{1,3}(?:\.\d{1,3}){3}$/u;
 const WWW_PREFIX = "www.";
 const RESERVED_SUFFIXES = [".local", ".internal", ".localhost", ".test"];
 const INERT_BLOCK_PATTERN =
-  /<script\b[\s\S]*?<\/script\s*>|<style\b[\s\S]*?<\/style\s*>|<!--[\s\S]*?-->/giu;
+  /<script\b[\s\S]*?(?:<\/script\s*>|$)|<style\b[\s\S]*?(?:<\/style\s*>|$)|<!--[\s\S]*?(?:-->|$)/giu;
 const META_TAG_PATTERN = /<meta\b[^>]*>/giu;
+const ATTRIBUTE_PATTERN =
+  /(?<name>[^\s"'<>/=]+)(?:\s*=\s*(?:"(?<double>[^"]*)"|'(?<single>[^']*)'|(?<bare>[^\s"'>]+)))?/gu;
 const META_NAME = "mindfulverse-verification";
 const WELL_KNOWN_PATH = "/.well-known/mindfulverse-verify.txt";
 const FETCH_TIMEOUT_MS = 5000;
@@ -21,6 +23,9 @@ const IPV6_GROUP_COUNT = 8;
 const HEX_RADIX = 16;
 const BYTE_MAX = 255;
 const BYTE_RANGE = 256;
+const GROUP_NAT64 = 0x00_64;
+const GROUP_NAT64_TAIL = 0xff_9b;
+const GROUP_MULTICAST = 0xff_00;
 const GROUP_ULA = 0xfc_00;
 const GROUP_ULA_SPAN = 0x02_00;
 const GROUP_LINK_LOCAL = 0xfe_80;
@@ -144,7 +149,13 @@ const isPrivateIpv6 = (ip: string): boolean => {
   if (leadingZero && g[5] === 0 && g[6] === 0 && g[7] <= 1) {
     return true;
   }
+  const isNat64 =
+    g[0] === GROUP_NAT64 &&
+    g[1] === GROUP_NAT64_TAIL &&
+    (g.slice(2, 6).every((n) => n === 0) || g[2] === 1);
   return (
+    isNat64 ||
+    g[0] >= GROUP_MULTICAST ||
     (g[0] >= GROUP_ULA && g[0] < GROUP_ULA + GROUP_ULA_SPAN) ||
     (g[0] >= GROUP_LINK_LOCAL &&
       g[0] < GROUP_LINK_LOCAL + GROUP_LINK_LOCAL_SPAN)
@@ -178,22 +189,21 @@ export const tokenInFile = (body: string, token: string): boolean =>
   token !== "" && body.trim() === token;
 
 const readAttribute = (tag: string, name: string): string | null => {
-  const pattern = new RegExp(
-    `(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`,
-    "iu"
-  );
-  const match = pattern.exec(tag);
-  if (!match) {
-    return null;
+  const body = tag.slice("<meta".length);
+  for (const match of body.matchAll(ATTRIBUTE_PATTERN)) {
+    const { name: attr, double, single, bare } = match.groups ?? {};
+    if (attr?.toLowerCase() === name) {
+      return double ?? single ?? bare ?? "";
+    }
   }
-  return match[1] ?? match[2] ?? match[3] ?? null;
+  return null;
 };
 
 export const tokenInHtml = (html: string, token: string): boolean => {
   if (token === "") {
     return false;
   }
-  const visible = html.replaceAll(INERT_BLOCK_PATTERN, "");
+  const visible = html.replaceAll(INERT_BLOCK_PATTERN, " ");
   for (const tag of visible.match(META_TAG_PATTERN) ?? []) {
     const name = readAttribute(tag, "name")?.trim().toLowerCase();
     if (name === META_NAME && readAttribute(tag, "content")?.trim() === token) {
