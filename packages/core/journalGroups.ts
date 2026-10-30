@@ -3,6 +3,7 @@
 import type { JournalEntry } from "./types";
 
 const VERSE_KEY_RE = /^(\d{1,3}):\d{1,3}$/u;
+const SURAH_RE = /^\d{1,3}$/u;
 
 export interface JournalGroup {
   /** "surah:<n>" | "session:<id>" | "other" */
@@ -15,13 +16,26 @@ export interface JournalGroup {
   latest: number;
 }
 
-function keyFor(e: JournalEntry): {
+interface GroupKey {
   key: string;
   surah?: number;
   sessionId?: string;
-} {
+}
+
+function keyFor(e: JournalEntry, byId: Map<string, JournalEntry>): GroupKey {
   const kind = e.context?.kind;
   const ref = e.context?.ref;
+  if (kind === "followup" && ref) {
+    // Resolves one level only: an original that is missing or itself a
+    // follow-up leaves this one under "other".
+    const original = byId.get(ref);
+    return original && original.context?.kind !== "followup"
+      ? keyFor(original, byId)
+      : { key: "other" };
+  }
+  if (kind === "intention" && ref && SURAH_RE.test(ref)) {
+    return { key: `surah:${Number(ref)}`, surah: Number(ref) };
+  }
   if ((kind === "checkin" || kind === "tadabbur") && ref) {
     const m = VERSE_KEY_RE.exec(ref);
     if (m) {
@@ -37,8 +51,9 @@ function keyFor(e: JournalEntry): {
 /** Cluster entries by what they were written about; newest group first. */
 export function groupEntries(entries: JournalEntry[]): JournalGroup[] {
   const groups = new Map<string, JournalGroup>();
+  const byId = new Map(entries.map((e) => [e.id, e]));
   for (const e of entries) {
-    const { key, surah, sessionId } = keyFor(e);
+    const { key, surah, sessionId } = keyFor(e, byId);
     let g = groups.get(key);
     if (!g) {
       g = { entries: [], key, latest: 0, sessionId, surah };
