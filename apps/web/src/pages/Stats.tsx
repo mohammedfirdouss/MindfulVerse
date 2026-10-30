@@ -1,4 +1,5 @@
 import { getEvents } from "@mindfulverse/core/analytics";
+import type { FollowUpAnswer } from "@mindfulverse/core/followUps";
 import { getEntries } from "@mindfulverse/core/journal";
 import { currentStreak, totalVisitDays } from "@mindfulverse/core/progress";
 import { getReadView } from "@mindfulverse/core/readingPrefs";
@@ -33,6 +34,9 @@ interface StatsSnapshot {
   versesShared: number;
   dhikrCompleted: number;
   readViewSwitches: number;
+  followUpsShown: number;
+  followUpsAnswered: number;
+  followUpBreakdown: Record<FollowUpAnswer, number>;
   readView: string;
   firstSeen: number | null;
   daysSinceFirstSeen: number | null;
@@ -70,6 +74,14 @@ function computeStats(): StatsSnapshot {
   let versesShared = 0;
   let dhikrCompleted = 0;
   let readViewSwitches = 0;
+  // Home remounts per visit; count each verse once per local day.
+  const followUpsSeen = new Set<string>();
+  let followUpsAnswered = 0;
+  const followUpBreakdown: Record<FollowUpAnswer, number> = {
+    "Not yet": 0,
+    Partly: 0,
+    Yes: 0,
+  };
   const emotions = new Map<string, number>();
 
   for (const { t, e } of events) {
@@ -113,6 +125,15 @@ function computeStats(): StatsSnapshot {
         readViewSwitches++;
         break;
       }
+      case "followup_shown": {
+        followUpsSeen.add(`${e.verseKey}|${new Date(t).toDateString()}`);
+        break;
+      }
+      case "followup_answered": {
+        followUpsAnswered++;
+        followUpBreakdown[e.answer]++;
+        break;
+      }
       case "journal_save": {
         break;
       }
@@ -151,12 +172,20 @@ function computeStats(): StatsSnapshot {
     versesShared,
     dhikrCompleted,
     readViewSwitches,
+    followUpsShown: followUpsSeen.size,
+    followUpsAnswered,
+    followUpBreakdown,
     // The settled preference matters more than switch counts: this is the
     // persisted reader setting, defaulting to "with translation".
     readView: getReadView() === "reading" ? "Reading" : "Translation",
     firstSeen,
     daysSinceFirstSeen,
   };
+}
+
+function followUpNote(s: StatsSnapshot): string {
+  const b = s.followUpBreakdown;
+  return `Yes ${b.Yes} · Partly ${b.Partly} · Not yet ${b["Not yet"]}`;
 }
 
 function summaryText(s: StatsSnapshot): string {
@@ -181,6 +210,7 @@ function summaryText(s: StatsSnapshot): string {
     `Pay-intent taps: ${s.payTaps}`,
     `Verses shared: ${s.versesShared}`,
     `Dhikr completed: ${s.dhikrCompleted}`,
+    `Follow-ups: ${s.followUpsAnswered} of ${s.followUpsShown} answered (${followUpNote(s)})`,
     `Surah tadabbur begun: ${s.surahTadabburStarted}`,
     `Reading view: ${s.readView} (${s.readViewSwitches} switches)`,
   ].join("\n");
@@ -332,6 +362,11 @@ export default function Stats() {
             <Metric
               label="Dhikr completed"
               value={String(stats.dhikrCompleted)}
+            />
+            <Metric
+              label="Follow-ups"
+              value={`${stats.followUpsAnswered} of ${stats.followUpsShown}`}
+              note={followUpNote(stats)}
             />
             <Metric
               label="Surah tadabbur begun"

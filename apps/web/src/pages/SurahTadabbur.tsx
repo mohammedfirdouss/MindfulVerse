@@ -6,11 +6,13 @@ import {
   loadSurahs,
   loadTafsirIndex,
 } from "@mindfulverse/core/data";
-import { addEntry } from "@mindfulverse/core/journal";
+import { addEntry, getEntries } from "@mindfulverse/core/journal";
 import {
   getSurahTadabbur,
   recordSurahTadabbur,
 } from "@mindfulverse/core/progress";
+import { surahJournal } from "@mindfulverse/core/surahJournal";
+import { formatTadabburBody } from "@mindfulverse/core/tadabburBody";
 import type {
   Ayah,
   SurahInfo,
@@ -22,6 +24,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { Diamond, DyeRule, TitlePlate } from "../components/Adire";
+import IntentionField from "../components/IntentionField";
 
 import "./tadabbur.css";
 
@@ -390,18 +393,12 @@ function ReflectionArea({
     if (!canKeep) {
       return;
     }
-    const parts: string[] = [];
-    if (draft.lessons.trim()) {
-      parts.push(`Lessons: ${draft.lessons.trim()}`);
-    }
-    if (draft.stirs.trim()) {
-      parts.push(`Reflection: ${draft.stirs.trim()}`);
-    }
-    if (draft.action.trim()) {
-      parts.push(`Action: ${draft.action.trim()}`);
-    }
     addEntry({
-      body: parts.join("\n\n"),
+      body: formatTadabburBody({
+        action: draft.action,
+        lessons: draft.lessons,
+        reflection: draft.stirs,
+      }),
       context: { kind: "tadabbur", ref: ayah.verseKey },
       prompt: `Tadabbur on ${ayah.verseKey}`,
     });
@@ -528,6 +525,7 @@ function SurahTadabburPage() {
 
   /** -1 = about screen, 0..count-1 = a verse, count = completion. */
   const [phase, setPhase] = useState(-1);
+  const [, setPageTick] = useState(0);
   const [started, setStarted] = useState(false);
   // Restored from storage; every change is written back (saveTadabburDraft),
   // so leaving never loses words and needs no warning.
@@ -713,6 +711,7 @@ function SurahTadabburPage() {
       saved.ayah <= count
         ? saved.ayah
         : null;
+    const hasPage = !surahJournal(getEntries(), surahNumber).isEmpty;
     return (
       <div className="stack">
         <Link to="/sessions" className="muted back-link">
@@ -739,6 +738,13 @@ function SurahTadabburPage() {
             </div>
           </FadeRise>
         )}
+        <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 90}>
+          <IntentionField
+            surah={surahNumber}
+            surahName={name}
+            onSaved={() => setPageTick((n) => n + 1)}
+          />
+        </FadeRise>
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {resumeAyah === null || resumeAyah === undefined ? (
@@ -765,12 +771,25 @@ function SurahTadabburPage() {
             )}
           </div>
         </FadeRise>
+        {hasPage && (
+          <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 150}>
+            <div>
+              <Link
+                to={`/tadabbur/${surahNumber}/journal`}
+                className="btn ghost"
+              >
+                {`Your page on ${name}`}
+              </Link>
+            </div>
+          </FadeRise>
+        )}
       </div>
     );
   }
 
   // Completion screen.
   if (phase >= count) {
+    const intention = surahJournal(getEntries(), surahNumber).intention?.body;
     return (
       <div className="stack">
         <FadeRise show={mounted} reduce={reduce}>
@@ -782,6 +801,16 @@ function SurahTadabburPage() {
             </p>
           </div>
         </FadeRise>
+        {intention && (
+          <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 30}>
+            <div className="intention">
+              <p className="eyebrow" style={{ margin: 0 }}>
+                You began with:
+              </p>
+              <blockquote className="intention-quote">{intention}</blockquote>
+            </div>
+          </FadeRise>
+        )}
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 60}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {surahNumber < 114 && (
@@ -789,6 +818,12 @@ function SurahTadabburPage() {
                 Next surah
               </Link>
             )}
+            <Link
+              to={`/tadabbur/${surahNumber}/journal`}
+              className="btn secondary"
+            >
+              {`See your page on ${name}`}
+            </Link>
             <Link to="/sessions" className="btn secondary">
               Back to tadabbur
             </Link>

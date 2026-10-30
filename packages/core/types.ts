@@ -79,7 +79,16 @@ export interface JournalEntry {
   createdAt: number; // epoch ms
   prompt: string; // what the user was responding to
   body: string; // the user's writing
-  context?: { kind: "session" | "checkin" | "tadabbur" | "free"; ref?: string };
+  context?: {
+    kind:
+      | "session"
+      | "checkin"
+      | "tadabbur"
+      | "free"
+      | "intention"
+      | "followup";
+    ref?: string;
+  };
 }
 
 /** Soft-delete marker so a deletion propagates instead of resurrecting. */

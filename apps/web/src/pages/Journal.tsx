@@ -373,8 +373,12 @@ export default function Journal() {
               {g.surah && (
                 <>
                   {" · "}
-                  <Link to={`/tadabbur/${g.surah}`}>
+                  <Link to={`/tadabbur/${g.surah}`} className="sj-link">
                     Continue this surah’s tadabbur
+                  </Link>
+                  {" · "}
+                  <Link to={`/tadabbur/${g.surah}/journal`} className="sj-link">
+                    Your page on this surah
                   </Link>
                 </>
               )}
