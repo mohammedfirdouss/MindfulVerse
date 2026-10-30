@@ -15,6 +15,8 @@ type Status =
   | { kind: "error" }
   | { kind: "ready"; groups: ThemeGroup[] };
 
+const NO_GROUPS: ThemeGroup[] = [];
+
 function groupByTheme(rows: Theme[]): ThemeGroup[] {
   // The source table contains duplicate rows — dedupe on surah + range.
   const byName = new Map<string, Theme[]>();
@@ -67,7 +69,7 @@ export default function Themes() {
     };
   }, []);
 
-  const groups = status.kind === "ready" ? status.groups : [];
+  const groups = status.kind === "ready" ? status.groups : NO_GROUPS;
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();

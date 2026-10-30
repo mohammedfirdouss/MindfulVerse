@@ -181,7 +181,14 @@ function SurahReader({ surah }: { surah: string }) {
   rowsRef.current = rows;
   const pending = useRef<{ index: number; tries: number } | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  useEffect(
+    () => () => {
+      for (const t of timers.current) {
+        clearTimeout(t);
+      }
+    },
+    []
+  );
   const later = useCallback((fn: () => void, ms: number) => {
     timers.current.push(setTimeout(fn, ms));
   }, []);

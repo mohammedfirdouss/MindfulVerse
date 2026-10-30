@@ -3,8 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 // Needs the web dev server: (cd apps/web && npx vite --port 5180 --strictPort &)
 // Usage: node scripts/capture-screens.mjs [baseUrl]
 import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
 const require = createRequire(
   "/Users/amf/Desktop/Git-projects/MindfulVerse/apps/web/"
@@ -29,6 +28,7 @@ function today(h, m) {
 const browser = await chromium.launch();
 
 /** A fresh phone-sized context with localStorage seeded before any script runs. */
+// oxlint-disable-next-line default-param-last -- call sites pass `at` only after an explicit seed
 async function phone(seed = {}, at) {
   const ctx = await browser.newContext({
     deviceScaleFactor: 3,
@@ -73,6 +73,7 @@ async function measure(name, locator) {
     const cs = getComputedStyle(el);
     return {
       background: cs.backgroundColor,
+      // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed styles carry a "px" suffix, which Number() rejects
       border: Number.parseFloat(cs.borderTopWidth),
       color: cs.color,
       font: cs.fontFamily,
@@ -85,6 +86,7 @@ async function measure(name, locator) {
         cs.paddingLeft,
       ].map(parseFloat),
       radius: cs.borderTopLeftRadius,
+      // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed styles carry a "px" suffix, which Number() rejects
       size: Number.parseFloat(cs.fontSize),
       w: r.width,
       weight: cs.fontWeight,

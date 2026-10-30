@@ -123,10 +123,12 @@ export async function loadAyahsByKeys(verseKeys: string[]): Promise<Ayah[]> {
   const bySurah = new Map<number, Set<number>>();
   for (const vk of verseKeys) {
     const { surah, ayah } = parseVerseKey(vk);
-    if (!bySurah.has(surah)) {
-      bySurah.set(surah, new Set());
+    let ayahSet = bySurah.get(surah);
+    if (!ayahSet) {
+      ayahSet = new Set();
+      bySurah.set(surah, ayahSet);
     }
-    bySurah.get(surah)!.add(ayah);
+    ayahSet.add(ayah);
   }
   const out: Ayah[] = [];
   for (const [surah, ayahs] of bySurah) {
@@ -139,5 +141,7 @@ export async function loadAyahsByKeys(verseKeys: string[]): Promise<Ayah[]> {
   }
   // preserve requested order
   const order = new Map(verseKeys.map((vk, i) => [vk, i]));
-  return out.sort((x, y) => order.get(x.verseKey)! - order.get(y.verseKey)!);
+  return out.sort(
+    (x, y) => (order.get(x.verseKey) ?? 0) - (order.get(y.verseKey) ?? 0)
+  );
 }

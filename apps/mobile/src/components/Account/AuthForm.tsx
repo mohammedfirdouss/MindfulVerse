@@ -71,10 +71,13 @@ export function AuthForm({
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error, needsVerification } = await signUp(addr, password);
-        if (error) {
+        const { error: failure, needsVerification } = await signUp(
+          addr,
+          password
+        );
+        if (failure) {
           setNotice(null);
-          return setError(error);
+          return setError(failure);
         }
         if (needsVerification) {
           setPendingVerification(true);
@@ -85,10 +88,10 @@ export function AuthForm({
         }
         track({ method: "password", type: "account_signup" });
       } else {
-        const { error } = await signIn(addr, password);
-        if (error) {
+        const { error: failure } = await signIn(addr, password);
+        if (failure) {
           setNotice(null);
-          return setError(error);
+          return setError(failure);
         }
         track({ method: "password", type: "account_signin" });
       }
@@ -115,10 +118,10 @@ export function AuthForm({
     setError(null);
     setBusy(true);
     try {
-      const { error } = await verifyEmail(email, otp);
-      if (error) {
+      const { error: failure } = await verifyEmail(email, otp);
+      if (failure) {
         setNotice(null);
-        return setError(error);
+        return setError(failure);
       }
       track({ method: "password", type: "account_signup" });
       setPendingVerification(false);

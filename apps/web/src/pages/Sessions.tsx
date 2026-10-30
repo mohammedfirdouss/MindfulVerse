@@ -89,7 +89,11 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
       )}
       {hiddenCount > 0 && (
         <div>
-          <button className="btn ghost" onClick={() => setShowAll(true)}>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => setShowAll(true)}
+          >
             Show all 114
           </button>
         </div>
@@ -134,7 +138,7 @@ export default function Sessions() {
   }, []);
 
   const latestName =
-    latest == null
+    latest === null || latest === undefined
       ? null
       : (surahs.find((s) => s.number === latest.surah)?.name ??
         `Surah ${latest.surah}`);
@@ -152,7 +156,7 @@ export default function Sessions() {
           Learn its background, then move through it verse by verse.
         </p>
 
-        {latest != null && (
+        {latest !== null && latest !== undefined && (
           <Link
             to={`/tadabbur/${latest.surah}?v=${latest.ayah}`}
             style={{ color: "inherit" }}
@@ -220,8 +224,10 @@ export default function Sessions() {
               {[...status.sessions]
                 .map((s) => {
                   const p = progress[s.id];
-                  const completed = p?.completedAt != null;
-                  const inProgress = !completed && p != null && p.step >= 0;
+                  const completed =
+                    p?.completedAt !== null && p?.completedAt !== undefined;
+                  const inProgress =
+                    !completed && p !== null && p !== undefined && p.step >= 0;
                   return { completed, inProgress, s };
                 })
                 .sort(

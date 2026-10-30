@@ -55,7 +55,11 @@ export function mergeJournal(
 ): JournalMergeResult {
   const dead = new Map(tombstones.map((t) => [t.id, t.deletedAt]));
   for (const row of remote) {
-    if (row.deleted_at != null && !dead.has(row.id)) {
+    if (
+      row.deleted_at !== null &&
+      row.deleted_at !== undefined &&
+      !dead.has(row.id)
+    ) {
       dead.set(row.id, row.deleted_at);
     }
   }
@@ -73,7 +77,9 @@ export function mergeJournal(
     }
   }
   const remoteDeleted = new Set(
-    remote.filter((r) => r.deleted_at != null).map((r) => r.id)
+    remote
+      .filter((r) => r.deleted_at !== null && r.deleted_at !== undefined)
+      .map((r) => r.id)
   );
   return {
     entries: [...merged.values()].sort((a, b) => b.createdAt - a.createdAt),
@@ -102,7 +108,9 @@ export function pruneTombstones(
 ): JournalTombstone[] {
   const remoteIds = new Set(remote.map((r) => r.id));
   const remoteDeleted = new Set(
-    remote.filter((r) => r.deleted_at != null).map((r) => r.id)
+    remote
+      .filter((r) => r.deleted_at !== null && r.deleted_at !== undefined)
+      .map((r) => r.id)
   );
   return tombstones.filter((t) => {
     if (opts.now - t.deletedAt <= TOMBSTONE_TTL_MS) {
@@ -132,7 +140,7 @@ export function mergeProgress(
     const a = local.sessionProgress[key];
     const b = remote.sessionProgress[key];
     const completions = [a?.completedAt, b?.completedAt].filter(
-      (x): x is number => x != null
+      (x): x is number => x !== null && x !== undefined
     );
     sessionProgress[key] = {
       step: Math.max(a?.step ?? -1, b?.step ?? -1),
@@ -146,7 +154,7 @@ export function mergeProgress(
   ])) {
     const a = local.surahTadabbur[key];
     const b = remote.surahTadabbur[key];
-    surahTadabbur[key] = a ? (b ? (a.ayah >= b.ayah ? a : b) : a) : b!;
+    surahTadabbur[key] = a && b ? (a.ayah >= b.ayah ? a : b) : (a ?? b);
   }
   const lastRead = local.lastRead
     ? remote.lastRead

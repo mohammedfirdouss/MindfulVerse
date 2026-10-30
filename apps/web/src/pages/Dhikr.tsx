@@ -264,7 +264,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
             marginTop: 10,
           }}
         >
-          <button className="btn secondary" onClick={onExit}>
+          <button type="button" className="btn secondary" onClick={onExit}>
             Back to dhikr
           </button>
           <Link to="/" className="btn">
@@ -316,6 +316,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
   return (
     // The whole screen is the tap target — dhikr is often done with eyes
     // closed, so precision tapping must never be required.
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- whole-screen tap target; the exit button is the keyboard path
     <div
       // click (not pointerdown) so a scroll on a small phone never counts.
       onClick={(e) => {
@@ -335,6 +336,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
       }}
     >
       <button
+        type="button"
         data-exit
         className="btn ghost"
         onClick={onExit}
@@ -517,6 +519,7 @@ export default function Dhikr() {
       <div>
         {SETS.map((s) => (
           <button
+            type="button"
             key={s.id}
             onClick={() => open(s)}
             style={{

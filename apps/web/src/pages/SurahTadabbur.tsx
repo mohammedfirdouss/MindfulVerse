@@ -123,6 +123,7 @@ function InfoText({ text }: { text: string }) {
       {more && (
         <div>
           <button
+            type="button"
             className="commentary-open"
             aria-expanded={expanded}
             onClick={() => setExpanded((e) => !e)}
@@ -185,7 +186,12 @@ function VerseCommentary({
 
   return (
     <div className="stack">
-      <button className="commentary-open" onClick={toggle} aria-expanded={open}>
+      <button
+        type="button"
+        className="commentary-open"
+        onClick={toggle}
+        aria-expanded={open}
+      >
         {open
           ? "Hide the commentary"
           : direct
@@ -331,6 +337,7 @@ export function saveTadabburDraft(
     if (hasText(draft)) {
       all[verseKey] = { ...draft };
     } else {
+      // oxlint-disable-next-line typescript/no-dynamic-delete -- removing one verse draft by key
       delete all[verseKey];
     }
     const key = tadabburDraftKey(surah);
@@ -476,7 +483,12 @@ function ReflectionArea({
         </div>
       </div>
       <div className="tad-keep">
-        <button className="btn secondary" onClick={keep} disabled={!canKeep}>
+        <button
+          type="button"
+          className="btn secondary"
+          onClick={keep}
+          disabled={!canKeep}
+        >
           Keep in journal
         </button>
         <span className="muted tad-keep-note" role="status">
@@ -695,7 +707,10 @@ function SurahTadabburPage() {
   // About screen: background first, then the way in.
   if (phase < 0) {
     const resumeAyah =
-      saved != null && saved.ayah >= 1 && saved.ayah <= count
+      saved !== null &&
+      saved !== undefined &&
+      saved.ayah >= 1 &&
+      saved.ayah <= count
         ? saved.ayah
         : null;
     return (
@@ -726,16 +741,24 @@ function SurahTadabburPage() {
         )}
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            {resumeAyah == null ? (
-              <button className="btn" onClick={() => begin(0)}>
+            {resumeAyah === null || resumeAyah === undefined ? (
+              <button type="button" className="btn" onClick={() => begin(0)}>
                 Begin pondering
               </button>
             ) : (
               <>
-                <button className="btn" onClick={() => begin(resumeAyah - 1)}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => begin(resumeAyah - 1)}
+                >
                   Continue from verse {resumeAyah}
                 </button>
-                <button className="btn ghost" onClick={() => begin(0)}>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => begin(0)}
+                >
                   Start from verse 1
                 </button>
               </>
@@ -830,12 +853,17 @@ function SurahTadabburPage() {
 
       <div className="tad-nav">
         <button
+          type="button"
           className="btn secondary"
           onClick={() => setPhase((p) => Math.max(-1, p - 1))}
         >
           Back
         </button>
-        <button className="btn" onClick={() => setPhase((p) => p + 1)}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => setPhase((p) => p + 1)}
+        >
           {phase + 1 === count ? "Finish" : "Next verse"}
         </button>
       </div>

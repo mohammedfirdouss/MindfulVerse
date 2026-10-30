@@ -147,7 +147,10 @@ export function resumeAyahFor(
   saved: { ayah: number } | undefined,
   count: number
 ): number | null {
-  return saved != null && saved.ayah >= 1 && saved.ayah <= count
+  return saved !== null &&
+    saved !== undefined &&
+    saved.ayah >= 1 &&
+    saved.ayah <= count
     ? saved.ayah
     : null;
 }
@@ -284,6 +287,7 @@ export function saveTadabburDraft(
         stirs: draft.stirs,
       };
     } else {
+      // oxlint-disable-next-line typescript/no-dynamic-delete -- removing one verse draft by key
       delete all[verseKey];
     }
     const key = tadabburDraftKey(surah);

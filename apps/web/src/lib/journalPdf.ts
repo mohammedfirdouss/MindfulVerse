@@ -164,7 +164,10 @@ async function rasterLines(
   const fontSpec = `${opts.size}px ${opts.family}`;
   await loadLatinFace();
   await document.fonts.load(fontSpec, str).catch(() => []);
-  const measure = document.createElement("canvas").getContext("2d")!;
+  const measure = document.createElement("canvas").getContext("2d");
+  if (!measure) {
+    throw new Error("2D canvas is not available");
+  }
   measure.font = fontSpec;
   measure.direction = opts.rtl ? "rtl" : "ltr";
 
@@ -190,7 +193,10 @@ async function rasterLines(
     const canvas = document.createElement("canvas");
     canvas.width = w * RASTER;
     canvas.height = Math.ceil(opts.leading * RASTER);
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("2D canvas is not available");
+    }
     ctx.scale(RASTER, RASTER);
     // An opaque cotton ground: glyphs on a transparent canvas get stem-darkened
     // and print noticeably heavier than the vector text around them.
@@ -262,7 +268,9 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     if (!set) {
       drawable.set(face, (set = new Set(face.getCharacterSet())));
     }
-    return [...s].every((ch) => /\s/u.test(ch) || set.has(ch.codePointAt(0)!));
+    return [...s].every(
+      (ch) => /\s/u.test(ch) || set.has(ch.codePointAt(0) ?? -1)
+    );
   };
 
   let page!: PDFPage;
@@ -514,7 +522,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
 
   // Footers last, once the page count is known.
   const pages = doc.getPages();
-  pages.forEach((p, i) => {
+  for (const [i, p] of pages.entries()) {
     const label = `MindfulVerse · ${i + 1} of ${pages.length}`;
     const w = font.widthOfTextAtSize(label, 8.5);
     p.drawText(label, {
@@ -524,7 +532,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
       x: (PAGE_W - w) / 2,
       y: 32,
     });
-  });
+  }
 
   return doc.save();
 }

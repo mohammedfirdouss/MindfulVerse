@@ -127,18 +127,18 @@ export default function Account() {
     setReminderError(null);
     try {
       if (next) {
-        const { error, welcomed } = await enableReminder(reminderTime);
-        if (error) {
+        const { error: failure, welcomed } = await enableReminder(reminderTime);
+        if (failure) {
           if (notificationsBlocked()) {
             setReminderBlocked(true);
-          } else if (error === "Notifications were not allowed.")
+          } else if (failure === "Notifications were not allowed.")
           // Prompt dismissed without choosing — not blocked, so it can be asked again.
           {
             setReminderError(
               "Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow."
             );
           } else {
-            setReminderError(error);
+            setReminderError(failure);
           }
           return;
         }
@@ -174,9 +174,9 @@ export default function Account() {
     setReminderBusy(true);
     setReminderError(null);
     try {
-      const { error } = await updateReminderTime(time);
-      if (error) {
-        setReminderError(error);
+      const { error: failure } = await updateReminderTime(time);
+      if (failure) {
+        setReminderError(failure);
         return;
       }
       savedTime.current = time;
@@ -201,10 +201,13 @@ export default function Account() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { data, error } = await insforge.auth.signUp({ email, password });
-        if (error) {
+        const { data, error: failure } = await insforge.auth.signUp({
+          email,
+          password,
+        });
+        if (failure) {
           setNotice(null);
-          return setError(error.message);
+          return setError(failure.message);
         }
         if (data?.requireEmailVerification) {
           setPendingVerification(true);
@@ -215,13 +218,13 @@ export default function Account() {
         }
         track({ method: "password", type: "account_signup" });
       } else {
-        const { error } = await insforge.auth.signInWithPassword({
+        const { error: failure } = await insforge.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) {
+        if (failure) {
           setNotice(null);
-          return setError(error.message);
+          return setError(failure.message);
         }
         track({ method: "password", type: "account_signin" });
       }
@@ -241,10 +244,13 @@ export default function Account() {
     setError(null);
     setBusy(true);
     try {
-      const { error } = await insforge.auth.verifyEmail({ email, otp });
-      if (error) {
+      const { error: failure } = await insforge.auth.verifyEmail({
+        email,
+        otp,
+      });
+      if (failure) {
         setNotice(null);
-        return setError(error.message);
+        return setError(failure.message);
       }
       track({ method: "password", type: "account_signup" });
       setPendingVerification(false);
@@ -269,6 +275,7 @@ export default function Account() {
 
   async function resolveSwitch(choice: "merge" | "fresh") {
     if (choice === "fresh") {
+      // oxlint-disable-next-line no-alert -- native confirm is the intended destructive-action prompt
       const sure = window.confirm(
         "Start fresh? This removes the journal entries and progress stored on this device. " +
           "Anything already backed up to the other account stays safe there."
@@ -310,6 +317,7 @@ export default function Account() {
     if (!user) {
       return;
     }
+    // oxlint-disable-next-line no-alert -- native confirm is the intended destructive-action prompt
     const sure = window.confirm(
       "Delete all synced data from your account? Entries on this device are kept."
     );

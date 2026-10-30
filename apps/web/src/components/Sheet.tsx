@@ -68,6 +68,7 @@ export default function Sheet({
 
   return (
     <>
+      {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- pointer-only backdrop; Escape and the close button cover the keyboard */}
       <div className="sheet-backdrop" onClick={onClose} />
       <aside
         className="sheet"
@@ -83,6 +84,7 @@ export default function Sheet({
             {title}
           </p>
           <button
+            type="button"
             ref={closeRef}
             className="sheet-close"
             onClick={onClose}

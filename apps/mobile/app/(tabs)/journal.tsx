@@ -73,6 +73,10 @@ interface Section {
   data: JournalEntry[];
 }
 
+function RowSeparator() {
+  return <View style={{ height: space.md }} />;
+}
+
 export default function Journal() {
   const { colors } = useTheme();
   const { user, loading } = useAccount();
@@ -298,7 +302,7 @@ export default function Journal() {
             </View>
           );
         }}
-        ItemSeparatorComponent={() => <View style={{ height: space.md }} />}
+        ItemSeparatorComponent={RowSeparator}
         renderItem={({ item }) => (
           <EntryCard
             entry={item}

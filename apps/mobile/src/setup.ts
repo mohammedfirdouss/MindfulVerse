@@ -34,6 +34,7 @@ configureAnalytics({
 const afterFreshSession = (cb: () => void) => () => {
   void ensureFreshSession().then(() => {
     try {
+      // oxlint-disable-next-line promise/no-callback-in-promise -- cb is the sync trigger, not a Node-style callback
       cb();
     } catch (error) {
       console.warn("[sync] trigger failed:", error);

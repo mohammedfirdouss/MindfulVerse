@@ -123,7 +123,9 @@ function TadabburPage() {
   }
   const onDraft = useCallback(
     (verseKey: string, d: Draft) => {
-      drafts.current![verseKey] = d;
+      if (drafts.current) {
+        drafts.current[verseKey] = d;
+      }
       saveTadabburDraft(n, verseKey, d);
     },
     [n]
@@ -391,7 +393,7 @@ function TadabburPage() {
           delay={120}
           style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}
         >
-          {resumeAyah == null ? (
+          {resumeAyah === null || resumeAyah === undefined ? (
             <Button title="Begin pondering" onPress={() => begin(0)} />
           ) : (
             <>

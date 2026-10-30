@@ -150,10 +150,15 @@ function EntryCard({
             <span className="soft" style={{ fontSize: ".85rem" }}>
               Delete this reflection?
             </span>
-            <button className="delete-quiet" onClick={() => onDelete(entry.id)}>
+            <button
+              type="button"
+              className="delete-quiet"
+              onClick={() => onDelete(entry.id)}
+            >
               Yes, delete
             </button>
             <button
+              type="button"
               className="link-btn"
               style={{ fontSize: ".85rem" }}
               onClick={() => setConfirming(false)}
@@ -162,7 +167,11 @@ function EntryCard({
             </button>
           </>
         ) : (
-          <button className="delete-quiet" onClick={() => setConfirming(true)}>
+          <button
+            type="button"
+            className="delete-quiet"
+            onClick={() => setConfirming(true)}
+          >
             Delete
           </button>
         )}
@@ -317,6 +326,7 @@ export default function Journal() {
             )}
           <div className="journal-export">
             <button
+              type="button"
               className="btn secondary"
               onClick={() => void download("pdf")}
               disabled={exporting !== null}
@@ -324,6 +334,7 @@ export default function Journal() {
               {exporting === "pdf" ? "Preparing your PDF…" : "Download as PDF"}
             </button>
             <button
+              type="button"
               className="link-btn"
               onClick={() => void download("txt")}
               disabled={exporting !== null}

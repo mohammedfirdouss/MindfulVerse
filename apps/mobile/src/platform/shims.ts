@@ -10,7 +10,8 @@ installLocalStorage();
 
 // Hermes has no crypto.randomUUID; journal.ts addEntry uses it.
 const g = globalThis as { crypto?: { randomUUID?: () => string } };
-const c = (g.crypto ??= {});
+g.crypto ??= {};
+const c = g.crypto;
 if (typeof c.randomUUID !== "function") {
   c.randomUUID = () => Crypto.randomUUID();
 }

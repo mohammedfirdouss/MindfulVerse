@@ -17,4 +17,118 @@ export default defineConfig({
   env: core.env,
   extends: [core, react, vitestUnitTests],
   ignorePatterns: core.ignorePatterns,
+  rules: {
+    // The codebase uses function declarations throughout.
+    "func-style": "off",
+    // Components are written as function declarations, same as above.
+    "react/function-component-definition": "off",
+    // Trailing explanatory comments are used deliberately.
+    "no-inline-comments": "off",
+    // Renaming breaks Expo Router routes; PascalCase component files are the convention.
+    "unicorn/filename-case": "off",
+    // Object keys are ordered for readability, not alphabetically.
+    "sort-keys": "off",
+    // i++ in loops is idiomatic here.
+    "no-plusplus": "off",
+    // Both method and property signatures are used in type declarations.
+    "typescript/method-signature-style": "off",
+    // The code relies on function hoisting.
+    "no-use-before-define": "off",
+    // void is used deliberately for fire-and-forget promises.
+    "no-void": "off",
+    // React Compiler cannot lower try/finally; this is not a code problem.
+    "react/todo": "off",
+    // Nested ternaries are used deliberately for short, flat variant/label picks.
+    "no-nested-ternary": "off",
+    // Empty callbacks are deliberate best-effort swallows (`.catch(() => {})`, no-op defaults).
+    "no-empty-function": "off",
+    // Awaits in loops are deliberately sequential (sync engine, PDF layout, reminder delivery).
+    "no-await-in-loop": "off",
+    // Prefer Promise chains vs async/await is a style call; `.then` is used where it reads better.
+    "promise/always-return": "off",
+    // Node-style callbacks appear only at platform API boundaries (timers, listeners).
+    "promise/prefer-await-to-callbacks": "off",
+    // Wrapping callback APIs in `new Promise` is the only option there.
+    "promise/avoid-new": "off",
+    // Regexes use positional groups; named groups would add noise without catching bugs.
+    "prefer-named-capture-group": "off",
+    // Page components and the sync/reminder pipelines are long by nature; a cap is not a bug signal.
+    complexity: "off",
+    // Inner helpers close over per-render state or are kept next to their only caller.
+    "unicorn/consistent-function-scoping": "off",
+    // Sorts run on fresh copies; toSorted is not available on every target (Hermes, older browsers).
+    "unicorn/no-array-sort": "off",
+    // Responses are built with explicit headers/status in edge functions; Response.json is not on every runtime.
+    "unicorn/prefer-response-static-json": "off",
+    // Metro/Expo needs require() for asset and platform module loading and CommonJS config files.
+    "unicorn/prefer-module": "off",
+    "node/global-require": "off",
+    // Early-return after a callback is the pattern used at platform boundaries.
+    "node/callback-return": "off",
+    // role="status" etc. are used on RN/web views where <output> would change semantics or layout.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // Concise `new Promise((r) => setTimeout(r, ms))` sleeps are used throughout.
+    "no-promise-executor-return": "off",
+    // Indexed access is clearer than destructuring in a handful of spots.
+    "prefer-destructuring": "off",
+    // Bitwise ops are used for hashing/flags.
+    "no-bitwise": "off",
+    // `async` without `await` is used on purpose to satisfy Promise-returning interfaces and mocks
+    // (and to turn throws into rejections); a stable async API is part of the contract.
+    "require-await": "off",
+    // Data-loading effects reset their loading/error state before fetching; that is the intended sync with an external system.
+    "react/set-state-in-effect": "off",
+    // `useRef(new Animated.Value()).current` and latest-value refs are the standard RN patterns used here.
+    "react/refs": "off",
+    // Extra effect deps are intentional re-run triggers (reset keys, route changes).
+    "react/exhaustive-effect-dependencies": "off",
+    // The few eslint-disable react-hooks comments are deliberate and carry reasons.
+    "react/rule-suppression": "off",
+    // Sleep promises name the callback `r`/`done`; the rule's naming is cosmetic.
+    "promise/param-names": "off",
+    // The reminder-verse hash uses charCodeAt and must stay identical across web, mobile and the edge function.
+    "unicorn/prefer-code-point": "off",
+    // Verse ids contain ":" (e.g. "2:255"), which element-by-id lookup handles and a #selector would not without escaping.
+    "unicorn/prefer-query-selector": "off",
+    // Metro/Expo CommonJS config files and ambient .d.ts files declare globals on purpose.
+    "no-implicit-globals": "off",
+    // `(await import("x")).default` is the concise form used for lazy imports.
+    "unicorn/no-await-expression-member": "off",
+    // `const [doneToday] = useState(() => ...)` snapshots and `setXState` names are used on purpose.
+    "react/hook-use-state": "off",
+    // Named imports from node:path/node:url are idiomatic in the .mjs scripts.
+    "unicorn/import-style": "off",
+    // Display names are inferred from the const/function binding for memoized components.
+    "react/display-name": "off",
+  },
+  overrides: [
+    {
+      files: ["apps/promo/**"],
+      rules: {
+        // Remotion scenes draw fake UI; their <label>s are decorative, not real form controls.
+        "jsx-a11y/label-has-associated-control": "off",
+      },
+    },
+    {
+      files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      plugins: ["vitest"],
+      rules: {
+        // vi.mock must precede the imports it affects, so imports follow it.
+        "import/first": "off",
+        // Tests and e2e specs assert on values they just constructed or looked up.
+        "typescript/no-non-null-assertion": "off",
+        // Fake thenables and terse destructuring are fine in test fixtures.
+        "unicorn/no-thenable": "off",
+        "unicorn/no-unreadable-array-destructuring": "off",
+        "no-sequences": "off",
+        "vitest/prefer-called-exactly-once-with": "off",
+        // Mock type parameters are noise in small tests.
+        "vitest/require-mock-type-parameters": "off",
+        // Scenario tests assert several related outcomes at once.
+        "vitest/max-expects": "off",
+        // Test files group cases flatly.
+        "vitest/require-top-level-describe": "off",
+      },
+    },
+  ],
 });

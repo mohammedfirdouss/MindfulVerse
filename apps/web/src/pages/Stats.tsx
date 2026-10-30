@@ -116,6 +116,9 @@ function computeStats(): StatsSnapshot {
       case "journal_save": {
         break;
       }
+      default: {
+        break;
+      }
     }
   }
 
@@ -248,7 +251,7 @@ function AccountRow() {
 }
 
 export default function Stats() {
-  const stats = useMemo(computeStats, []);
+  const stats = useMemo(() => computeStats(), []);
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
 
@@ -359,6 +362,7 @@ export default function Stats() {
               Testing MindfulVerse? Copy your numbers and email them over.
             </p>
             <button
+              type="button"
               className="btn"
               style={{ alignSelf: "flex-start" }}
               onClick={copyStats}
