@@ -138,6 +138,55 @@ describe(tokenInHtml, () => {
     ).toBeFalsy();
   });
 
+  it("rejects a meta tag inside an unclosed script, style or comment", () => {
+    const meta = '<meta name="mindfulverse-verification" content="tok">';
+    expect(tokenInHtml(`<script>var a = '${meta}';`, "tok")).toBeFalsy();
+    expect(tokenInHtml(`<style>\n${meta}`, "tok")).toBeFalsy();
+    expect(tokenInHtml(`<!-- ${meta}`, "tok")).toBeFalsy();
+  });
+
+  it("rejects attribute values that spoof the name attribute", () => {
+    expect(
+      tokenInHtml(
+        '<meta itemprop="x name=mindfulverse-verification" content="tok">',
+        "tok"
+      )
+    ).toBeFalsy();
+    expect(
+      tokenInHtml(
+        `<meta data-x='name="mindfulverse-verification"' content="tok">`,
+        "tok"
+      )
+    ).toBeFalsy();
+    expect(
+      tokenInHtml(
+        '<meta data-x="content=tok" name="mindfulverse-verification">',
+        "tok"
+      )
+    ).toBeFalsy();
+  });
+
+  it.each([
+    '<meta name="mindfulverse-verification" content="tok">',
+    '<meta content="tok" name="mindfulverse-verification">',
+    "<meta name='mindfulverse-verification' content='tok'>",
+    "<meta name=mindfulverse-verification content=tok>",
+    '<meta property="x" name="mindfulverse-verification" id="y" content="tok" />',
+    "<meta name=mindfulverse-verification content=tok />",
+    '<META NAME="MindfulVerse-Verification" CONTENT="tok">',
+  ])("accepts the normal form %s", (tag) => {
+    expect(tokenInHtml(tag, "tok")).toBeTruthy();
+  });
+
+  it("does not let stripped blocks glue text into a tag", () => {
+    expect(
+      tokenInHtml(
+        '<me<!-- x -->ta name="mindfulverse-verification" content="tok">',
+        "tok"
+      )
+    ).toBeFalsy();
+  });
+
   it("rejects an empty token", () => {
     expect(
       tokenInHtml('<meta name="mindfulverse-verification" content="">', "")
@@ -322,6 +371,13 @@ describe(isPrivateAddress, () => {
     "fe80::1",
     "::ffff:10.0.0.1",
     "::ffff:a00:1",
+    "0.1.2.3",
+    "239.255.255.250",
+    "64:ff9b::808:808",
+    "64:ff9b::a00:1",
+    "64:ff9b:1::1",
+    "ff02::1",
+    "ff00::",
     "not-an-ip",
   ])("treats %s as private", (ip) => {
     expect(isPrivateAddress(ip)).toBeTruthy();
