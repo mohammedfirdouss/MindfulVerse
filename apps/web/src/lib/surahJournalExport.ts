@@ -3,7 +3,7 @@ import type { SurahJournal } from "@mindfulverse/core/surahJournal";
 import type { ExportItem, ExportSection } from "./journalExport";
 
 /** The surah page as export sections, in page order: intention, verse by
- *  verse (each entry followed by its follow-up), then the rest. */
+ *  verse (each entry followed by its follow-ups), then the rest. */
 export function surahJournalSections(
   page: SurahJournal,
   surahName: string,
@@ -19,14 +19,17 @@ export function surahJournalSections(
   const verseItems: ExportItem[] = [];
   for (const verse of page.verses) {
     const text = verses.get(verse.verseKey);
-    for (const { entry, followUp } of verse.items) {
+    let first = true;
+    for (const { entry, followUps } of verse.items) {
+      // Verse text once per verse, like the page.
       verseItems.push({
-        arabic: text?.arabic,
+        arabic: first ? text?.arabic : undefined,
         entry,
-        translation: text?.translation,
+        translation: first ? text?.translation : undefined,
         verseLabel: verse.verseKey,
       });
-      if (followUp) {
+      first = false;
+      for (const followUp of followUps) {
         verseItems.push({ entry: followUp });
       }
     }

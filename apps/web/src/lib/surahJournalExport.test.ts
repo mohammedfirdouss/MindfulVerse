@@ -32,17 +32,20 @@ const full: SurahJournal = {
       items: [
         {
           entry: entry("t1", "tadabbur", "94:5"),
-          followUp: entry("f1", "followup", "t1"),
+          followUps: [
+            entry("f1", "followup", "t1"),
+            entry("f1b", "followup", "t1"),
+          ],
           parts: null,
         },
-        { entry: entry("t2", "tadabbur", "94:5"), followUp: null, parts: null },
+        { entry: entry("t2", "tadabbur", "94:5"), followUps: [], parts: null },
       ],
       verseKey: "94:5",
     },
     {
       ayah: 6,
       items: [
-        { entry: entry("t3", "tadabbur", "94:6"), followUp: null, parts: null },
+        { entry: entry("t3", "tadabbur", "94:6"), followUps: [], parts: null },
       ],
       verseKey: "94:6",
     },
@@ -64,6 +67,7 @@ describe(surahJournalSections, () => {
     expect(verseSection.items.map((i) => i.entry.id)).toStrictEqual([
       "t1",
       "f1",
+      "f1b",
       "t2",
       "t3",
     ]);
@@ -77,7 +81,17 @@ describe(surahJournalSections, () => {
       verseLabel: "94:5",
     });
     expect(verseSection.items[1].verseLabel).toBeUndefined();
-    expect(verseSection.items[3].verseLabel).toBe("94:6");
+    expect(verseSection.items[4].verseLabel).toBe("94:6");
+  });
+
+  it("gives verse text only to the first item of each verse", () => {
+    const [, verseSection] = surahJournalSections(full, "Ash-Sharh", verses);
+    const t2 = verseSection.items.find((i) => i.entry.id === "t2");
+    expect(t2?.verseLabel).toBe("94:5");
+    expect(t2?.arabic).toBeUndefined();
+    expect(t2?.translation).toBeUndefined();
+    const t3 = verseSection.items.find((i) => i.entry.id === "t3");
+    expect(t3?.arabic).toBe("ar6");
   });
 
   it("omits empty parts", () => {

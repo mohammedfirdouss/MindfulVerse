@@ -525,6 +525,7 @@ function SurahTadabburPage() {
 
   /** -1 = about screen, 0..count-1 = a verse, count = completion. */
   const [phase, setPhase] = useState(-1);
+  const [, setPageTick] = useState(0);
   const [started, setStarted] = useState(false);
   // Restored from storage; every change is written back (saveTadabburDraft),
   // so leaving never loses words and needs no warning.
@@ -738,7 +739,11 @@ function SurahTadabburPage() {
           </FadeRise>
         )}
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 90}>
-          <IntentionField surah={surahNumber} surahName={name} />
+          <IntentionField
+            surah={surahNumber}
+            surahName={name}
+            onSaved={() => setPageTick((n) => n + 1)}
+          />
         </FadeRise>
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>

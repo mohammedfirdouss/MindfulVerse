@@ -50,7 +50,7 @@ describe(surahJournal, () => {
     ]);
   });
 
-  it("attaches the newest follow-up to its entry", () => {
+  it("attaches all follow-ups oldest first", () => {
     const journal = surahJournal(
       [
         entry("t", 1, "tadabbur", "94:5"),
@@ -59,7 +59,9 @@ describe(surahJournal, () => {
       ],
       94
     );
-    expect(journal.verses[0]?.items[0]?.followUp?.id).toBe("f2");
+    expect(
+      journal.verses[0]?.items[0]?.followUps.map((f) => f.id)
+    ).toStrictEqual(["f1", "f2"]);
   });
 
   it("ignores orphan follow-ups", () => {
@@ -86,7 +88,7 @@ describe(surahJournal, () => {
     const [b, a] = journal.verses[0]?.items ?? [];
     expect(b?.parts).toBeNull();
     expect(a?.parts?.action).toBe("call mum");
-    expect(a?.followUp).toBeNull();
+    expect(a?.followUps).toStrictEqual([]);
   });
 
   it("check-ins on this surah go to also, oldest first", () => {

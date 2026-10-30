@@ -5,7 +5,7 @@ import type { JournalEntry } from "./types";
 export interface SurahJournalItem {
   entry: JournalEntry;
   parts: TadabburParts | null;
-  followUp: JournalEntry | null;
+  followUps: JournalEntry[];
 }
 
 export interface SurahJournalVerse {
@@ -45,12 +45,14 @@ export function surahJournal(
       (e) => e.context?.kind === "intention" && e.context.ref === String(surah)
     ) ?? null;
 
-  // Newest first, so the first follow-up seen for an id is the newest.
-  const followUps = new Map<string, JournalEntry>();
+  // Every follow-up per entry id, oldest first (sorted is newest first).
+  const followUps = new Map<string, JournalEntry[]>();
   for (const e of sorted) {
     const ref = e.context?.ref;
-    if (e.context?.kind === "followup" && ref && !followUps.has(ref)) {
-      followUps.set(ref, e);
+    if (e.context?.kind === "followup" && ref) {
+      const list = followUps.get(ref) ?? [];
+      list.unshift(e);
+      followUps.set(ref, list);
     }
   }
 
@@ -70,7 +72,7 @@ export function surahJournal(
       }
       verse.items.push({
         entry: e,
-        followUp: followUps.get(e.id) ?? null,
+        followUps: followUps.get(e.id) ?? [],
         parts: parseTadabburBody(e.body),
       });
     } else if (e.context?.kind === "checkin") {

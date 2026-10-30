@@ -10,9 +10,11 @@ function currentIntention(surah: number): string | null {
 export default function IntentionField({
   surah,
   surahName,
+  onSaved,
 }: {
   surah: number;
   surahName: string;
+  onSaved?: () => void;
 }) {
   const [saved, setSaved] = useState<string | null>(() =>
     currentIntention(surah)
@@ -34,6 +36,7 @@ export default function IntentionField({
     track({ type: "journal_save", context: "intention" });
     setSaved(currentIntention(surah));
     setEditing(false);
+    onSaved?.();
   }
 
   if (saved !== null && !editing) {

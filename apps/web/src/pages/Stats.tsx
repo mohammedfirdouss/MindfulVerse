@@ -1,4 +1,5 @@
 import { getEvents } from "@mindfulverse/core/analytics";
+import type { FollowUpAnswer } from "@mindfulverse/core/followUps";
 import { getEntries } from "@mindfulverse/core/journal";
 import { currentStreak, totalVisitDays } from "@mindfulverse/core/progress";
 import { getReadView } from "@mindfulverse/core/readingPrefs";
@@ -35,7 +36,7 @@ interface StatsSnapshot {
   readViewSwitches: number;
   followUpsShown: number;
   followUpsAnswered: number;
-  followUpBreakdown: Record<"Yes" | "Partly" | "Not yet", number>;
+  followUpBreakdown: Record<FollowUpAnswer, number>;
   readView: string;
   firstSeen: number | null;
   daysSinceFirstSeen: number | null;
@@ -73,9 +74,14 @@ function computeStats(): StatsSnapshot {
   let versesShared = 0;
   let dhikrCompleted = 0;
   let readViewSwitches = 0;
-  let followUpsShown = 0;
+  // Home remounts per visit; count each verse once per local day.
+  const followUpsSeen = new Set<string>();
   let followUpsAnswered = 0;
-  const followUpBreakdown = { "Not yet": 0, Partly: 0, Yes: 0 };
+  const followUpBreakdown: Record<FollowUpAnswer, number> = {
+    "Not yet": 0,
+    Partly: 0,
+    Yes: 0,
+  };
   const emotions = new Map<string, number>();
 
   for (const { t, e } of events) {
@@ -120,7 +126,7 @@ function computeStats(): StatsSnapshot {
         break;
       }
       case "followup_shown": {
-        followUpsShown++;
+        followUpsSeen.add(`${e.verseKey}|${new Date(t).toDateString()}`);
         break;
       }
       case "followup_answered": {
@@ -166,7 +172,7 @@ function computeStats(): StatsSnapshot {
     versesShared,
     dhikrCompleted,
     readViewSwitches,
-    followUpsShown,
+    followUpsShown: followUpsSeen.size,
     followUpsAnswered,
     followUpBreakdown,
     // The settled preference matters more than switch counts: this is the

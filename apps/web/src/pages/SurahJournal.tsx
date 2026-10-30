@@ -3,6 +3,7 @@ import { parseFollowUpBody } from "@mindfulverse/core/followUps";
 import { getEntries } from "@mindfulverse/core/journal";
 import { surahJournal } from "@mindfulverse/core/surahJournal";
 import type { SurahJournalItem } from "@mindfulverse/core/surahJournal";
+import { onSyncStatus } from "@mindfulverse/core/sync/engine";
 import { TADABBUR_LABELS } from "@mindfulverse/core/tadabburBody";
 import type { TadabburParts } from "@mindfulverse/core/tadabburBody";
 import type { Ayah } from "@mindfulverse/core/types";
@@ -42,7 +43,6 @@ function Parts({ parts }: { parts: TadabburParts }) {
 }
 
 function Item({ item }: { item: SurahJournalItem }) {
-  const followUp = item.followUp ? parseFollowUpBody(item.followUp.body) : null;
   return (
     <div className="sj-item">
       <p className="soft sj-date">{formatDate(item.entry.createdAt)}</p>
@@ -51,11 +51,15 @@ function Item({ item }: { item: SurahJournalItem }) {
       ) : (
         <p className="sj-part">{item.entry.body}</p>
       )}
-      {followUp?.answer && (
-        <p className="soft sj-part">
-          {`A week on: ${followUp.answer}${followUp.note ? ` — ${followUp.note}` : ""}`}
-        </p>
-      )}
+      {item.followUps.map((f) => {
+        const { answer, note } = parseFollowUpBody(f.body);
+        const text = answer ? `${answer}${note ? ` — ${note}` : ""}` : f.body;
+        return (
+          <p key={f.id} className="soft sj-part">
+            {`A week on: ${text}`}
+          </p>
+        );
+      })}
     </div>
   );
 }
@@ -73,9 +77,21 @@ function SurahJournalPage() {
   const [exporting, setExporting] = useState<"pdf" | "txt" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
+  // Entries can land after the first render (cold open, another device).
+  const [entries, setEntries] = useState(() => getEntries());
+  useEffect(
+    () =>
+      onSyncStatus((s) => {
+        if (s === "synced") {
+          setEntries(getEntries());
+        }
+      }),
+    []
+  );
+
   const page = useMemo(
-    () => (valid ? surahJournal(getEntries(), surahNumber) : null),
-    [valid, surahNumber]
+    () => (valid ? surahJournal(entries, surahNumber) : null),
+    [valid, surahNumber, entries]
   );
 
   useEffect(() => {
