@@ -43,6 +43,17 @@ export function Root() {
         fps={UPDATE_FPS}
         width={1080}
         height={1920}
+        defaultProps={{ withNasheed: true }}
+      />
+      {/* For adding a sound from TikTok, Reels or CapCut when posting. */}
+      <Composition
+        id="UpdateJournalSilent"
+        component={UpdateJournal}
+        durationInFrames={UPDATE_DURATION}
+        fps={UPDATE_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: false }}
       />
     </>
   );

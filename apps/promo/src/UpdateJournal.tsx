@@ -710,7 +710,7 @@ function Hook() {
   );
 }
 
-function Close() {
+function Close({ credit }: { credit: boolean }) {
   const f = useCurrentFrame();
   if (f < T.walks) {
     return null;
@@ -777,54 +777,58 @@ function Close() {
           </div>
         </div>
       )}
-      <div
-        style={{
-          ...rise(f, T.credit, 14, 12),
-          bottom: 96,
-          color: C.inkFaint,
-          fontFamily: F.ui,
-          fontSize: 30,
-          fontWeight: 500,
-          left: 96,
-          position: "absolute",
-          right: 96,
-        }}
-      >
-        Music: “Alhamdulilah” by Jawad Syed · CC BY 3.0
-      </div>
+      {credit ? (
+        <div
+          style={{
+            ...rise(f, T.credit, 14, 12),
+            bottom: 96,
+            color: C.inkFaint,
+            fontFamily: F.ui,
+            fontSize: 30,
+            fontWeight: 500,
+            left: 96,
+            position: "absolute",
+            right: 96,
+          }}
+        >
+          Music: “Alhamdulilah” by Jawad Syed · CC BY 3.0
+        </div>
+      ) : null}
     </AbsoluteFill>
   );
 }
 
 const textFace = `@font-face{font-family:OutfitText;font-weight:400;src:url(${staticFile("fonts/outfit-regular.woff2")}) format("woff2");font-display:block}`;
 
-export function UpdateJournal() {
+export function UpdateJournal({ withNasheed }: { withNasheed: boolean }) {
   const { width, height } = useVideoConfig();
   return (
     <AbsoluteFill style={{ background: C.cotton, height, width }}>
       <style>{fontCss + textFace}</style>
       {/* Vocals-only nasheed, CC BY 3.0 (public/audio/CREDITS.md): fade in, settle under the
           story, and fade out over the last two seconds. */}
-      <Audio
-        src={staticFile("audio/alhamdulillah-jawad-syed.m4a")}
-        volume={(f) =>
-          interpolate(
-            f,
-            [0, 24, UPDATE_DURATION - 60, UPDATE_DURATION],
-            [0, 0.8, 0.8, 0],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }
-          )
-        }
-      />
+      {withNasheed ? (
+        <Audio
+          src={staticFile("audio/alhamdulillah-jawad-syed.m4a")}
+          volume={(f) =>
+            interpolate(
+              f,
+              [0, 24, UPDATE_DURATION - 60, UPDATE_DURATION],
+              [0, 0.8, 0.8, 0],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              }
+            )
+          }
+        />
+      ) : null}
       <Band />
       <Hook />
       <Captions />
       <Phone />
       <PdfLift />
-      <Close />
+      <Close credit={withNasheed} />
     </AbsoluteFill>
   );
 }
