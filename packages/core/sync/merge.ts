@@ -154,7 +154,7 @@ export function mergeProgress(
   ])) {
     const a = local.surahTadabbur[key];
     const b = remote.surahTadabbur[key];
-    surahTadabbur[key] = a ? (b ? (a.ayah >= b.ayah ? a : b) : a) : b!;
+    surahTadabbur[key] = a && b ? (a.ayah >= b.ayah ? a : b) : (a ?? b);
   }
   const lastRead = local.lastRead
     ? remote.lastRead

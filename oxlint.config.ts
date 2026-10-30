@@ -83,6 +83,8 @@ export default defineConfig({
       rules: {
         // vi.mock must precede the imports it affects, so imports follow it.
         "import/first": "off",
+        // Tests and e2e specs assert on values they just constructed or looked up.
+        "typescript/no-non-null-assertion": "off",
         // Mock type parameters are noise in small tests.
         "vitest/require-mock-type-parameters": "off",
         // Scenario tests assert several related outcomes at once.

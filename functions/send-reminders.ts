@@ -485,11 +485,13 @@ export default async function handler(req: Request): Promise<Response> {
   const { createAdminClient, createClient } = await import("npm:@insforge/sdk");
   const webpush = (await import("npm:web-push")).default;
 
+  // oxlint-disable typescript/no-non-null-assertion -- deploy-time secrets; web-push validates them
   webpush.setVapidDetails(
     Deno.env.get("VAPID_SUBJECT")!,
     Deno.env.get("VAPID_PUBLIC_KEY")!,
     Deno.env.get("VAPID_PRIVATE_KEY")!
   );
+  // oxlint-enable typescript/no-non-null-assertion
 
   // Transport wiring for deliverReminders(); `db` is whichever client the
   // path runs as (admin for cron, the caller's RLS-scoped client for welcome).
@@ -520,18 +522,17 @@ export default async function handler(req: Request): Promise<Response> {
   const surahCache = new Map<number, Record<string, { translation: string }>>();
   async function verseText(verseKey: string): Promise<string> {
     const [surah, ayah] = verseKey.split(":").map(Number);
-    if (!surahCache.has(surah)) {
+    let table = surahCache.get(surah);
+    if (!table) {
       const res = await fetch(`${SITE_URL}/data/quran/${surah}.json`);
       if (!res.ok) {
         throw new Error(`quran fetch failed: surah ${surah} → ${res.status}`);
       }
       const ayahs: { ayah: number; translation: string }[] = await res.json();
-      surahCache.set(
-        surah,
-        Object.fromEntries(ayahs.map((a) => [String(a.ayah), a]))
-      );
+      table = Object.fromEntries(ayahs.map((a) => [String(a.ayah), a]));
+      surahCache.set(surah, table);
     }
-    return surahCache.get(surah)![String(ayah)]?.translation ?? "";
+    return table[String(ayah)]?.translation ?? "";
   }
 
   async function todaysPayload(
@@ -696,6 +697,7 @@ export default async function handler(req: Request): Promise<Response> {
   const admin = createAdminClient({
     baseUrl: Deno.env.get("INSFORGE_BASE_URL"),
     // Admin API key: reads every user's subscriptions (bypasses RLS).
+    // oxlint-disable-next-line typescript/no-non-null-assertion -- deploy-time secret
     apiKey: Deno.env.get("API_KEY")!,
   });
 
@@ -722,15 +724,18 @@ export default async function handler(req: Request): Promise<Response> {
   async function tadabburFor(
     userId: string
   ): Promise<Record<string, TadabburEntry> | null> {
-    if (!tadabburCache.has(userId)) {
-      const { data } = await admin.database
-        .from("progress")
-        .select("surah_tadabbur")
-        .eq("user_id", userId)
-        .maybeSingle();
-      tadabburCache.set(userId, data?.surah_tadabbur ?? null);
+    const cached = tadabburCache.get(userId);
+    if (cached !== undefined) {
+      return cached;
     }
-    return tadabburCache.get(userId)!;
+    const { data } = await admin.database
+      .from("progress")
+      .select("surah_tadabbur")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const value = data?.surah_tadabbur ?? null;
+    tadabburCache.set(userId, value);
+    return value;
   }
 
   let prepFailed = 0;

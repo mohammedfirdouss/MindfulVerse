@@ -123,7 +123,9 @@ function TadabburPage() {
   }
   const onDraft = useCallback(
     (verseKey: string, d: Draft) => {
-      drafts.current![verseKey] = d;
+      if (drafts.current) {
+        drafts.current[verseKey] = d;
+      }
       saveTadabburDraft(n, verseKey, d);
     },
     [n]

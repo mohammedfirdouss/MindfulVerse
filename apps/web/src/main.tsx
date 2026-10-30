@@ -40,7 +40,12 @@ document.addEventListener("visibilitychange", () => {
 inject(); // Vercel visit analytics — anonymous page views, no cookies
 initSync();
 
-ReactDOM.createRoot(document.querySelector("#root")!).render(
+const rootElement = document.querySelector("#root");
+if (!rootElement) {
+  throw new Error("Missing #root element");
+}
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ErrorBoundary>
       <AccountProvider>
