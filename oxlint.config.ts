@@ -84,10 +84,27 @@ export default defineConfig({
     "react/exhaustive-effect-dependencies": "off",
     // The few eslint-disable react-hooks comments are deliberate and carry reasons.
     "react/rule-suppression": "off",
+    // Sleep promises name the callback `r`/`done`; the rule's naming is cosmetic.
+    "promise/param-names": "off",
+    // The reminder-verse hash uses charCodeAt and must stay identical across web, mobile and the edge function.
+    "unicorn/prefer-code-point": "off",
+    // Verse ids contain ":" (e.g. "2:255"), which element-by-id lookup handles and a #selector would not without escaping.
+    "unicorn/prefer-query-selector": "off",
+    // Metro/Expo CommonJS config files and ambient .d.ts files declare globals on purpose.
+    "no-implicit-globals": "off",
+    // `(await import("x")).default` is the concise form used for lazy imports.
+    "unicorn/no-await-expression-member": "off",
     // Display names are inferred from the const/function binding for memoized components.
     "react/display-name": "off",
   },
   overrides: [
+    {
+      files: ["apps/promo/**"],
+      rules: {
+        // Remotion scenes draw fake UI; their <label>s are decorative, not real form controls.
+        "jsx-a11y/label-has-associated-control": "off",
+      },
+    },
     {
       files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
       plugins: ["vitest"],
@@ -96,6 +113,11 @@ export default defineConfig({
         "import/first": "off",
         // Tests and e2e specs assert on values they just constructed or looked up.
         "typescript/no-non-null-assertion": "off",
+        // Fake thenables and terse destructuring are fine in test fixtures.
+        "unicorn/no-thenable": "off",
+        "unicorn/no-unreadable-array-destructuring": "off",
+        "no-sequences": "off",
+        "vitest/prefer-called-exactly-once-with": "off",
         // Mock type parameters are noise in small tests.
         "vitest/require-mock-type-parameters": "off",
         // Scenario tests assert several related outcomes at once.
