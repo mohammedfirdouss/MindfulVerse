@@ -142,11 +142,11 @@ function main() {
   // Translation: Talal Itani (ClearQuran), CC BY-NC-ND 4.0 — attribution required,
   // verbatim only (NoDerivs), and NON-COMMERCIAL: a commercial-safe translation
   // (or written permission) is a hard blocker before any billing ships. See ROADMAP.
-  const translation = readJSON(path.join(ROOT, "raw-data", "en-itani.json"));
+  const itani = readJSON(path.join(ROOT, "raw-data", "en-itani.json"));
 
   // ---- Build translation lookup keyed by "surah:ayah" ----
   const trByKey = new Map();
-  for (const row of translation.quran) {
+  for (const row of itani.quran) {
     trByKey.set(`${row.chapter}:${row.verse}`, row.text);
   }
 

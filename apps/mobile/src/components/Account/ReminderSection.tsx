@@ -79,18 +79,18 @@ export function ReminderSection() {
     setBusy(true);
     setError(null);
     try {
-      const { error, welcomed } = await enableReminder(reminderTime);
-      if (error) {
+      const { error: failure, welcomed } = await enableReminder(reminderTime);
+      if (failure) {
         if (await permissionBlocked()) {
           setBlocked(true);
-        } else if (error === NOT_ALLOWED)
+        } else if (failure === NOT_ALLOWED)
         // Prompt dismissed or refused once: the OS can still ask again.
         {
           setError(
             "Notifications weren't allowed. Tap Turn on reminder to try again, and choose Allow."
           );
         } else {
-          setError(error);
+          setError(failure);
         }
         return;
       }
@@ -142,9 +142,9 @@ export function ReminderSection() {
     setBusy(true);
     setError(null);
     try {
-      const { error } = await updateReminderTime(reminderTime);
-      if (error) {
-        return setError(error);
+      const { error: failure } = await updateReminderTime(reminderTime);
+      if (failure) {
+        return setError(failure);
       }
       setSavedTime(reminderTime);
       setNotice("New time saved.");

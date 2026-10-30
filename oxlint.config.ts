@@ -80,6 +80,10 @@ export default defineConfig({
     "react/set-state-in-effect": "off",
     // `useRef(new Animated.Value()).current` and latest-value refs are the standard RN patterns used here.
     "react/refs": "off",
+    // Extra effect deps are intentional re-run triggers (reset keys, route changes).
+    "react/exhaustive-effect-dependencies": "off",
+    // The few eslint-disable react-hooks comments are deliberate and carry reasons.
+    "react/rule-suppression": "off",
     // Display names are inferred from the const/function binding for memoized components.
     "react/display-name": "off",
   },
