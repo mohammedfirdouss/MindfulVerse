@@ -13,7 +13,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import "./follow-up.css";
 
 const ANSWERS: FollowUpAnswer[] = ["Yes", "Partly", "Not yet"];
-const ACK_MS = 2600;
+const ACK_HOLD_MS = 2400;
+const ACK_FADE_MS = 600;
 
 type Phase = "ask" | "note" | "kept" | "gone";
 
@@ -28,6 +29,7 @@ export default function FollowUpCard({
   const [phase, setPhase] = useState<Phase>("ask");
   const [answer, setAnswer] = useState<FollowUpAnswer | null>(null);
   const [note, setNote] = useState("");
+  const [fading, setFading] = useState(false);
   const noteId = useId();
   const shown = useRef(false);
   const verseKey = due?.verseKey;
@@ -43,8 +45,15 @@ export default function FollowUpCard({
     if (phase !== "kept") {
       return;
     }
-    const id = window.setTimeout(() => setPhase("gone"), ACK_MS);
-    return () => window.clearTimeout(id);
+    const hold = window.setTimeout(() => setFading(true), ACK_HOLD_MS);
+    const done = window.setTimeout(
+      () => setPhase("gone"),
+      ACK_HOLD_MS + ACK_FADE_MS
+    );
+    return () => {
+      window.clearTimeout(hold);
+      window.clearTimeout(done);
+    };
   }, [phase]);
 
   if (!due || phase === "gone") {
@@ -81,79 +90,83 @@ export default function FollowUpCard({
     setPhase("kept");
   }
 
-  if (phase === "kept") {
-    return (
-      <section
-        aria-label="Follow-up"
-        aria-live="polite"
-        className="card followup leaving"
-      >
-        <p className="soft" style={{ margin: 0 }}>
+  return (
+    <section
+      aria-label="Follow-up"
+      className={`card followup${phase === "kept" ? "" : " fade-rise"}${fading ? " leaving" : ""}`}
+    >
+      <p aria-live="polite" className="followup-sr">
+        {phase === "kept" ? "Kept. May it stay with you." : ""}
+      </p>
+      {phase === "kept" ? (
+        <p aria-hidden="true" className="soft" style={{ margin: 0 }}>
           Kept. May it stay with you.
         </p>
-      </section>
-    );
-  }
-
-  return (
-    <section aria-label="Follow-up" className="card followup fade-rise">
-      <p className="eyebrow">A week on</p>
-      <h2 className="followup-title">{heading}</h2>
-      <p className="soft" style={{ margin: "0 0 4px" }}>
-        You wrote:
-      </p>
-      <p className="followup-quote">“{due.action}”</p>
-
-      {phase === "ask" ? (
-        <>
-          <div className="followup-answers">
-            {ANSWERS.map((a) => (
-              <button
-                key={a}
-                type="button"
-                className="btn secondary"
-                onClick={() => {
-                  setAnswer(a);
-                  setPhase("note");
-                }}
-              >
-                {a}
-              </button>
-            ))}
-          </div>
-          <div className="followup-quiet">
-            <button type="button" className="btn ghost" onClick={skip}>
-              Skip for now
-            </button>
-          </div>
-        </>
       ) : (
         <>
-          <p className="soft" style={{ margin: "0 0 8px" }}>
-            {answer}
+          <p className="eyebrow">A week on</p>
+          <h2 className="followup-title">{heading}</h2>
+          <p className="soft" style={{ margin: "0 0 4px" }}>
+            You wrote:
           </p>
-          <label className="field" htmlFor={noteId}>
-            <span className="field-label">Anything to add? (optional)</span>
-            <textarea
-              id={noteId}
-              className="field-input"
-              rows={3}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </label>
-          <div className="followup-actions">
-            <button type="button" className="btn" onClick={() => finish(note)}>
-              Save
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => finish("")}
-            >
-              Skip
-            </button>
-          </div>
+          <p className="followup-quote">“{due.action}”</p>
+
+          {phase === "ask" ? (
+            <>
+              <div className="followup-answers">
+                {ANSWERS.map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    className="btn secondary"
+                    onClick={() => {
+                      setAnswer(a);
+                      setPhase("note");
+                    }}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+              <div className="followup-quiet">
+                <button type="button" className="btn ghost" onClick={skip}>
+                  Skip for now
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="soft" style={{ margin: "0 0 8px" }}>
+                {answer}
+              </p>
+              <label className="field" htmlFor={noteId}>
+                <span className="field-label">Anything to add? (optional)</span>
+                <textarea
+                  id={noteId}
+                  className="field-input"
+                  rows={3}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </label>
+              <div className="followup-actions">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => finish(note)}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => finish("")}
+                >
+                  Skip
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </section>
