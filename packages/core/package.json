@@ -20,6 +20,7 @@
     "./sync/engine": "./sync/engine.ts",
     "./sync/insforge": "./sync/insforge.ts",
     "./sync/merge": "./sync/merge.ts",
+    "./surahJournal": "./surahJournal.ts",
     "./syncFlags": "./syncFlags.ts",
     "./tadabburBody": "./tadabburBody.ts",
     "./translation": "./translation.ts",
