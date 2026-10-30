@@ -147,7 +147,10 @@ export function resumeAyahFor(
   saved: { ayah: number } | undefined,
   count: number
 ): number | null {
-  return saved != null && saved.ayah >= 1 && saved.ayah <= count
+  return saved !== null &&
+    saved !== undefined &&
+    saved.ayah >= 1 &&
+    saved.ayah <= count
     ? saved.ayah
     : null;
 }

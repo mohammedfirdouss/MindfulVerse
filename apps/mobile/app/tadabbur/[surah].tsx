@@ -391,7 +391,7 @@ function TadabburPage() {
           delay={120}
           style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}
         >
-          {resumeAyah == null ? (
+          {resumeAyah === null || resumeAyah === undefined ? (
             <Button title="Begin pondering" onPress={() => begin(0)} />
           ) : (
             <>

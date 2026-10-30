@@ -55,7 +55,7 @@ function readJSON(expected) {
  * - collapse runs of whitespace but preserve paragraph breaks (\n\n)
  */
 function stripHtml(html) {
-  if (html == null) {
+  if (html === null || html === undefined) {
     return "";
   }
   let s = String(html);
@@ -106,7 +106,7 @@ function ensureDir(dir) {
  * resolved are left as-is rather than dropped.
  */
 function swapEmbeddedTranslations(html, surah, trByKey) {
-  if (html == null) {
+  if (html === null || html === undefined) {
     return html;
   }
   return String(html).replaceAll(

@@ -706,7 +706,10 @@ function SurahTadabburPage() {
   // About screen: background first, then the way in.
   if (phase < 0) {
     const resumeAyah =
-      saved != null && saved.ayah >= 1 && saved.ayah <= count
+      saved !== null &&
+      saved !== undefined &&
+      saved.ayah >= 1 &&
+      saved.ayah <= count
         ? saved.ayah
         : null;
     return (
@@ -737,7 +740,7 @@ function SurahTadabburPage() {
         )}
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            {resumeAyah == null ? (
+            {resumeAyah === null || resumeAyah === undefined ? (
               <button type="button" className="btn" onClick={() => begin(0)}>
                 Begin pondering
               </button>

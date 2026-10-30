@@ -80,7 +80,7 @@ function setSyncOwner(userId: string): void {
 
 /** True when this device already holds a *different* account's data. */
 export function ownerMismatch(stored: string | null, current: string): boolean {
-  return stored != null && stored !== current;
+  return stored !== null && stored !== undefined && stored !== current;
 }
 
 let status: SyncStatus = "idle";

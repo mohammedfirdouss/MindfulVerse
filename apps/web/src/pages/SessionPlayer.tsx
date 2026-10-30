@@ -168,10 +168,11 @@ function SessionFlow({ session }: { session: TadabburSession }) {
 
   // Saved progress, read once when the session opens.
   const saved = useMemo(() => getSessionProgress(session.id), [session.id]);
-  const wasCompleted = saved?.completedAt != null;
+  const wasCompleted =
+    saved?.completedAt !== null && saved?.completedAt !== undefined;
   const stepCount = session.steps.length;
   const resumeStep =
-    !wasCompleted && saved != null && saved.step >= 0
+    !wasCompleted && saved !== null && saved !== undefined && saved.step >= 0
       ? Math.min(saved.step, stepCount - 1)
       : undefined;
 
@@ -226,7 +227,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
                 You’ve sat with this one before.
               </p>
             )}
-            {resumeStep == null ? (
+            {resumeStep === null || resumeStep === undefined ? (
               <div>
                 <button
                   type="button"
