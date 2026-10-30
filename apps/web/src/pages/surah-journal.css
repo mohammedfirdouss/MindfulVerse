@@ -1,0 +1,41 @@
+/* Per-surah journal page: verses with what was written, calm and unadorned. */
+.sj-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sj-quote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.sj-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.sj-date {
+  margin: 0;
+  font-size: 0.85rem;
+}
+.sj-part {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.sj-label {
+  display: block;
+  color: var(--indigo);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+/* Inline links beside a count: a full-height tap target without moving text. */
+.sj-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

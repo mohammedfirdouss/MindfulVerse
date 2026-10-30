@@ -710,6 +710,7 @@ function SurahTadabburPage() {
       saved.ayah <= count
         ? saved.ayah
         : null;
+    const hasPage = !surahJournal(getEntries(), surahNumber).isEmpty;
     return (
       <div className="stack">
         <Link to="/sessions" className="muted back-link">
@@ -765,6 +766,18 @@ function SurahTadabburPage() {
             )}
           </div>
         </FadeRise>
+        {hasPage && (
+          <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 150}>
+            <div>
+              <Link
+                to={`/tadabbur/${surahNumber}/journal`}
+                className="btn ghost"
+              >
+                {`Your page on ${name}`}
+              </Link>
+            </div>
+          </FadeRise>
+        )}
       </div>
     );
   }
@@ -800,6 +813,12 @@ function SurahTadabburPage() {
                 Next surah
               </Link>
             )}
+            <Link
+              to={`/tadabbur/${surahNumber}/journal`}
+              className="btn secondary"
+            >
+              {`See your page on ${name}`}
+            </Link>
             <Link to="/sessions" className="btn secondary">
               Back to tadabbur
             </Link>

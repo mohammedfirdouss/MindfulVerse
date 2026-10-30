@@ -238,7 +238,7 @@ function timeLabel(ms: number): string {
 export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  doc.setTitle("MindfulVerse | Your reflections");
+  doc.setTitle(`MindfulVerse | ${input.title ?? "Your reflections"}`);
   doc.setCreator("MindfulVerse");
   doc.setProducer("MindfulVerse");
 
@@ -390,7 +390,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
     y: y - 23,
   });
   y -= 84;
-  await text("Your reflections", {
+  await text(input.title ?? "Your reflections", {
     color: C.indigoDeep,
     face: bold,
     leading: 36,

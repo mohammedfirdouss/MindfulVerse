@@ -22,6 +22,8 @@ export interface ExportSection {
 export interface ExportInput {
   sections: ExportSection[];
   exportedAt: Date;
+  /** Heading for the document; defaults to "Your reflections". */
+  title?: string;
 }
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/u;
@@ -102,7 +104,10 @@ export function exportedLabel(input: ExportInput): string | null {
 /** Plain prose: headings on their own line, blank lines between, no markup. */
 export function buildJournalText(input: ExportInput): string {
   const exported = exportedLabel(input);
-  const out: string[] = ["MindfulVerse | Your reflections", spanLabel(input)];
+  const out: string[] = [
+    `MindfulVerse | ${input.title ?? "Your reflections"}`,
+    spanLabel(input),
+  ];
   if (exported) {
     out.push(exported);
   }
