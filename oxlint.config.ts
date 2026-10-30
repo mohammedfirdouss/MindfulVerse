@@ -73,6 +73,9 @@ export default defineConfig({
     "prefer-destructuring": "off",
     // Bitwise ops are used for hashing/flags.
     "no-bitwise": "off",
+    // `async` without `await` is used on purpose to satisfy Promise-returning interfaces and mocks
+    // (and to turn throws into rejections); a stable async API is part of the contract.
+    "require-await": "off",
     // Display names are inferred from the const/function binding for memoized components.
     "react/display-name": "off",
   },
