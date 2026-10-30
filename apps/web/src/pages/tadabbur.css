@@ -108,3 +108,30 @@
     transition: none;
   }
 }
+
+/* Optional intention before a surah. */
+.intention {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.intention .tad-input {
+  width: 100%;
+}
+.intention-quote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.intention-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.intention-actions .btn,
+.intention-change {
+  min-height: 44px;
+}

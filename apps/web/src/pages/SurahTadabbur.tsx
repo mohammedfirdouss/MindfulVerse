@@ -6,11 +6,12 @@ import {
   loadSurahs,
   loadTafsirIndex,
 } from "@mindfulverse/core/data";
-import { addEntry } from "@mindfulverse/core/journal";
+import { addEntry, getEntries } from "@mindfulverse/core/journal";
 import {
   getSurahTadabbur,
   recordSurahTadabbur,
 } from "@mindfulverse/core/progress";
+import { surahJournal } from "@mindfulverse/core/surahJournal";
 import { formatTadabburBody } from "@mindfulverse/core/tadabburBody";
 import type {
   Ayah,
@@ -23,6 +24,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { Diamond, DyeRule, TitlePlate } from "../components/Adire";
+import IntentionField from "../components/IntentionField";
 
 import "./tadabbur.css";
 
@@ -734,6 +736,9 @@ function SurahTadabburPage() {
             </div>
           </FadeRise>
         )}
+        <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 90}>
+          <IntentionField surah={surahNumber} surahName={name} />
+        </FadeRise>
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 120}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {resumeAyah === null || resumeAyah === undefined ? (
@@ -766,6 +771,7 @@ function SurahTadabburPage() {
 
   // Completion screen.
   if (phase >= count) {
+    const intention = surahJournal(getEntries(), surahNumber).intention?.body;
     return (
       <div className="stack">
         <FadeRise show={mounted} reduce={reduce}>
@@ -777,6 +783,16 @@ function SurahTadabburPage() {
             </p>
           </div>
         </FadeRise>
+        {intention && (
+          <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 30}>
+            <div className="intention">
+              <p className="eyebrow" style={{ margin: 0 }}>
+                You began with:
+              </p>
+              <blockquote className="intention-quote">{intention}</blockquote>
+            </div>
+          </FadeRise>
+        )}
         <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 60}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {surahNumber < 114 && (
