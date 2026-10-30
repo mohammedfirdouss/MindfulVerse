@@ -76,6 +76,10 @@ export default defineConfig({
     // `async` without `await` is used on purpose to satisfy Promise-returning interfaces and mocks
     // (and to turn throws into rejections); a stable async API is part of the contract.
     "require-await": "off",
+    // Data-loading effects reset their loading/error state before fetching; that is the intended sync with an external system.
+    "react/set-state-in-effect": "off",
+    // `useRef(new Animated.Value()).current` and latest-value refs are the standard RN patterns used here.
+    "react/refs": "off",
     // Display names are inferred from the const/function binding for memoized components.
     "react/display-name": "off",
   },
