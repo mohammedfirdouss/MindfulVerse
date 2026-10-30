@@ -19,6 +19,7 @@ import {
   ReadIcon,
   TadabburIcon,
 } from "../components/Adire";
+import FollowUpCard from "../components/FollowUpCard";
 
 import "./home.css";
 
@@ -216,6 +217,8 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      <FollowUpCard surahNames={surahNames} />
 
       <nav aria-label="Sections" className="home-entries" style={reveal(260)}>
         {navEntries.map((e) => {
