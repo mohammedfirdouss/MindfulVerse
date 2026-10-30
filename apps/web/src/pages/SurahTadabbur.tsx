@@ -11,6 +11,7 @@ import {
   getSurahTadabbur,
   recordSurahTadabbur,
 } from "@mindfulverse/core/progress";
+import { formatTadabburBody } from "@mindfulverse/core/tadabburBody";
 import type {
   Ayah,
   SurahInfo,
@@ -390,18 +391,12 @@ function ReflectionArea({
     if (!canKeep) {
       return;
     }
-    const parts: string[] = [];
-    if (draft.lessons.trim()) {
-      parts.push(`Lessons: ${draft.lessons.trim()}`);
-    }
-    if (draft.stirs.trim()) {
-      parts.push(`Reflection: ${draft.stirs.trim()}`);
-    }
-    if (draft.action.trim()) {
-      parts.push(`Action: ${draft.action.trim()}`);
-    }
     addEntry({
-      body: parts.join("\n\n"),
+      body: formatTadabburBody({
+        action: draft.action,
+        lessons: draft.lessons,
+        reflection: draft.stirs,
+      }),
       context: { kind: "tadabbur", ref: ayah.verseKey },
       prompt: `Tadabbur on ${ayah.verseKey}`,
     });
