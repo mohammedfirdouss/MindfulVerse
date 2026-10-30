@@ -7,6 +7,8 @@
 //   - session completion -> "session_start" vs "session_complete"
 //   - willingness-to-pay  -> "intent_pay_tap"
 
+import type { FollowUpAnswer } from "./followUps";
+
 export type AnalyticsEvent =
   | { type: "app_open" }
   | { type: "session_start"; sessionId: string }
@@ -22,7 +24,10 @@ export type AnalyticsEvent =
   | { type: "account_signin"; method: "password" | "google" }
   | { type: "account_signout" }
   | { type: "sync_done"; ok: boolean }
-  | { type: "reminder_set"; enabled: boolean };
+  | { type: "reminder_set"; enabled: boolean }
+  | { type: "followup_shown"; verseKey: string }
+  | { type: "followup_answered"; answer: FollowUpAnswer }
+  | { type: "followup_skipped" };
 
 interface StoredEvent {
   t: number; // epoch ms
