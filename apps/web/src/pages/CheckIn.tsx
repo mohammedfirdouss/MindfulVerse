@@ -124,6 +124,7 @@ export default function CheckIn() {
     }
     let alive = true;
     const refresh = () => {
+      // oxlint-disable-next-line promise/catch-or-return -- todayVerseKey is pure hashing and cannot reject
       todayVerseKey(accountId).then((k) => alive && setDailyKey(k));
     };
     refresh();
@@ -231,7 +232,6 @@ export default function CheckIn() {
       const id = requestAnimationFrame(() => setDailyMounted(true));
       return () => cancelAnimationFrame(id);
     }
-    return;
   }, [dailyAyah]);
 
   useEffect(() => {
@@ -258,7 +258,6 @@ export default function CheckIn() {
       const id = requestAnimationFrame(() => setEmotionMounted(true));
       return () => cancelAnimationFrame(id);
     }
-    return;
   }, [emotionAyahs]);
 
   const selected = useMemo(

@@ -275,6 +275,7 @@ export default function Account() {
 
   async function resolveSwitch(choice: "merge" | "fresh") {
     if (choice === "fresh") {
+      // oxlint-disable-next-line no-alert -- native confirm is the intended destructive-action prompt
       const sure = window.confirm(
         "Start fresh? This removes the journal entries and progress stored on this device. " +
           "Anything already backed up to the other account stays safe there."
@@ -316,6 +317,7 @@ export default function Account() {
     if (!user) {
       return;
     }
+    // oxlint-disable-next-line no-alert -- native confirm is the intended destructive-action prompt
     const sure = window.confirm(
       "Delete all synced data from your account? Entries on this device are kept."
     );

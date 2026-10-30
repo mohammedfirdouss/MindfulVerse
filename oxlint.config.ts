@@ -94,6 +94,10 @@ export default defineConfig({
     "no-implicit-globals": "off",
     // `(await import("x")).default` is the concise form used for lazy imports.
     "unicorn/no-await-expression-member": "off",
+    // `const [doneToday] = useState(() => ...)` snapshots and `setXState` names are used on purpose.
+    "react/hook-use-state": "off",
+    // Named imports from node:path/node:url are idiomatic in the .mjs scripts.
+    "unicorn/import-style": "off",
     // Display names are inferred from the const/function binding for memoized components.
     "react/display-name": "off",
   },

@@ -54,7 +54,11 @@ export function onSessionChange(cb: Listener): () => void {
   listeners.add(cb);
   return () => listeners.delete(cb);
 }
-const emit = () => listeners.forEach((cb) => cb());
+const emit = () => {
+  for (const cb of listeners) {
+    cb();
+  }
+};
 
 let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 let inflight: Promise<boolean> | null = null;

@@ -522,7 +522,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
 
   // Footers last, once the page count is known.
   const pages = doc.getPages();
-  pages.forEach((p, i) => {
+  for (const [i, p] of pages.entries()) {
     const label = `MindfulVerse · ${i + 1} of ${pages.length}`;
     const w = font.widthOfTextAtSize(label, 8.5);
     p.drawText(label, {
@@ -532,7 +532,7 @@ export async function buildJournalPdf(input: ExportInput): Promise<Uint8Array> {
       x: (PAGE_W - w) / 2,
       y: 32,
     });
-  });
+  }
 
   return doc.save();
 }

@@ -1,7 +1,6 @@
 import { markJournalDirty } from "./syncFlags";
 // Local-only journal (v0 has no accounts or sync). Persists to localStorage.
-import type { JournalEntry } from "./types";
-import type { JournalTombstone } from "./types";
+import type { JournalEntry, JournalTombstone } from "./types";
 
 const KEY = "mindfulverse.journal.v1";
 const TOMBSTONES_KEY = "mindfulverse.journal.deleted.v1";

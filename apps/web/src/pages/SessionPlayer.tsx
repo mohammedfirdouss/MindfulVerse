@@ -164,7 +164,7 @@ export default function SessionPlayer() {
 function SessionFlow({ session }: { session: TadabburSession }) {
   const [phase, setPhase] = useState<number>(-1);
   const [started, setStarted] = useState(false);
-  const reduce = useMemo(prefersReducedMotion, []);
+  const reduce = useMemo(() => prefersReducedMotion(), []);
 
   // Saved progress, read once when the session opens.
   const saved = useMemo(() => getSessionProgress(session.id), [session.id]);
@@ -195,7 +195,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
     }
   }, [phase, stepCount, session.id]);
 
-  function beginSteps(at: number = 0) {
+  function beginSteps(at = 0) {
     if (!started) {
       track({ sessionId: session.id, type: "session_start" });
       setStarted(true);

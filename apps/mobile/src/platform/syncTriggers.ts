@@ -12,6 +12,7 @@ const reachable = (s: NetInfoState) =>
 // NetInfo is async; keep the last known state so isOnline() can be synchronous
 // like navigator.onLine. Optimistic until the first event arrives.
 let online = true;
+// oxlint-disable-next-line import/no-named-as-default-member -- NetInfo default export is the documented API
 NetInfo.addEventListener((s) => {
   online = reachable(s);
 });
@@ -30,6 +31,7 @@ export const nativeSyncTriggers: SyncTriggers = {
   },
   onOnline(cb) {
     let was = online;
+    // oxlint-disable-next-line import/no-named-as-default-member -- NetInfo default export is the documented API
     return NetInfo.addEventListener((s) => {
       const now = reachable(s);
       if (now && !was) {

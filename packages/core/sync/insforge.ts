@@ -7,6 +7,7 @@ import { createClient } from "@insforge/sdk";
 import type { InsForgeClient, InsForgeConfig } from "@insforge/sdk";
 
 /** Live binding: undefined until configureInsforge() runs. */
+// oxlint-disable-next-line import/no-mutable-exports -- live binding set by configureInsforge()
 export let insforge: InsForgeClient;
 
 export function configureInsforge(config: InsForgeConfig): InsForgeClient {

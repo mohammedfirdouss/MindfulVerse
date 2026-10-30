@@ -496,6 +496,7 @@ export default async function handler(req: Request): Promise<Response> {
   // Transport wiring for deliverReminders(); `db` is whichever client the
   // path runs as (admin for cron, the caller's RLS-scoped client for welcome).
   // deno-lint-ignore no-explicit-any
+  // oxlint-disable-next-line typescript/no-explicit-any -- structural stand-in for the SDK query builder
   function sendDeps(db: { database: { from(table: string): any } }): SendDeps {
     return {
       expoAccessToken: Deno.env.get("EXPO_ACCESS_TOKEN") || undefined,

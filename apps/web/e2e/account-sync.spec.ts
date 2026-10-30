@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 // Env-gated smoke test: sign in, write a journal entry, confirm it syncs to
 // a second signed-in device. Skips cleanly when no credentials are supplied
@@ -9,7 +10,7 @@ const PASSWORD = process.env.E2E_PASSWORD;
 
 test.skip(!EMAIL || !PASSWORD, "set E2E_EMAIL/E2E_PASSWORD to run");
 
-async function signIn(page: import("@playwright/test").Page) {
+async function signIn(page: Page) {
   await page.goto("/account");
   await page.getByLabel("Email").fill(EMAIL!);
   await page.getByLabel("Password").fill(PASSWORD!);

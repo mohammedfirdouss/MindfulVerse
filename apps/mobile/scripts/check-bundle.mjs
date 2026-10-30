@@ -6,7 +6,6 @@
 // Run with: npm run check:bundle -w @mindfulverse/mobile
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const root = path.resolve(import.meta.dirname, "..");
 const jsDir = path.join(root, "dist/_expo/static/js/android");

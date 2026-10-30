@@ -97,6 +97,7 @@ export default function Home() {
         }
         const ayah = a[0] ?? null;
         setHero(ayah);
+        // oxlint-disable-next-line promise/no-nesting -- fallback for this one load only
         const surahs = await loadSurahs().catch(() => []);
         if (!active) {
           return;
@@ -125,6 +126,7 @@ export default function Home() {
           transitionDelay: `${delay}ms`,
         };
 
+  // oxlint-disable-next-line react/purity -- the greeting follows the clock on each render
   const hours = new Date().getHours();
   const streak = currentStreak();
   const lastRead = getLastRead();

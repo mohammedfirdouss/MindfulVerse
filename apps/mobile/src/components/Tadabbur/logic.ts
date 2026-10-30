@@ -287,6 +287,7 @@ export function saveTadabburDraft(
         stirs: draft.stirs,
       };
     } else {
+      // oxlint-disable-next-line typescript/no-dynamic-delete -- removing one verse draft by key
       delete all[verseKey];
     }
     const key = tadabburDraftKey(surah);

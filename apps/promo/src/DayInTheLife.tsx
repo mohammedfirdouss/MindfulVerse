@@ -444,11 +444,11 @@ function Page({
 
 function Screens({ f, fps }: { f: number; fps: number }) {
   let i = 0;
-  SHOTS.forEach((s, j) => {
+  for (const [j, s] of SHOTS.entries()) {
     if (f >= s.at) {
       i = j;
     }
-  });
+  }
   const cur = SHOTS[i];
   const prev = SHOTS[i - 1];
   const t = f - cur.at;

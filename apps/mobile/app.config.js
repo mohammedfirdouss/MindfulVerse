@@ -5,6 +5,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+// oxlint-disable-next-line unicorn/no-anonymous-default-export -- Expo reads the exported function by shape
 module.exports = ({ config }) => {
   const local = path.join(__dirname, "google-services.json");
   const googleServicesFile =

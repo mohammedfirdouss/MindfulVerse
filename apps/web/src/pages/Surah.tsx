@@ -92,11 +92,9 @@ function SurahReader() {
   }, [surahNumber]);
 
   useEffect(() => {
-    if (meta) {
-      document.title = `${meta.name} | MindfulVerse`;
-    } else {
-      document.title = "Read | MindfulVerse";
-    }
+    document.title = meta
+      ? `${meta.name} | MindfulVerse`
+      : "Read | MindfulVerse";
   }, [meta]);
 
   // Deep link (?v=n): scroll there once the surah renders, in either view.

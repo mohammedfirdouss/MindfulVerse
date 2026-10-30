@@ -20,7 +20,6 @@ import {
   stat,
 } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const here = import.meta.dirname;
 const src = path.resolve(here, "../../web/public/data");

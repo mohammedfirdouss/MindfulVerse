@@ -337,6 +337,7 @@ export function saveTadabburDraft(
     if (hasText(draft)) {
       all[verseKey] = { ...draft };
     } else {
+      // oxlint-disable-next-line typescript/no-dynamic-delete -- removing one verse draft by key
       delete all[verseKey];
     }
     const key = tadabburDraftKey(surah);

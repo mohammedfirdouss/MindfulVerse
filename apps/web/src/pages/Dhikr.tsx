@@ -316,6 +316,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
   return (
     // The whole screen is the tap target — dhikr is often done with eyes
     // closed, so precision tapping must never be required.
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- whole-screen tap target; the exit button is the keyboard path
     <div
       // click (not pointerdown) so a scroll on a small phone never counts.
       onClick={(e) => {

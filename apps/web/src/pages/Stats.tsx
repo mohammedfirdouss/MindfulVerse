@@ -116,6 +116,9 @@ function computeStats(): StatsSnapshot {
       case "journal_save": {
         break;
       }
+      default: {
+        break;
+      }
     }
   }
 
@@ -248,7 +251,7 @@ function AccountRow() {
 }
 
 export default function Stats() {
-  const stats = useMemo(computeStats, []);
+  const stats = useMemo(() => computeStats(), []);
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
 

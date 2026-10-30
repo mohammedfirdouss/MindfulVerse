@@ -87,7 +87,9 @@ let status: SyncStatus = "idle";
 const listeners = new Set<(s: SyncStatus) => void>();
 function setStatus(s: SyncStatus): void {
   status = s;
-  listeners.forEach((cb) => cb(s));
+  for (const cb of listeners) {
+    cb(s);
+  }
 }
 export function getSyncStatus(): SyncStatus {
   return status;
@@ -273,21 +275,15 @@ export async function syncNow(): Promise<void> {
       surah_tadabbur: mergedProgress.surahTadabbur,
       visits: mergedProgress.visits,
     };
-    if (remoteProgress) {
-      const { error } = await insforge.database
-        .from("progress")
-        .update(row)
-        .eq("user_id", userId);
-      if (error) {
-        setStatus("error");
-        return;
-      }
-    } else {
-      const { error } = await insforge.database.from("progress").insert([row]);
-      if (error) {
-        setStatus("error");
-        return;
-      }
+    const { error } = remoteProgress
+      ? await insforge.database
+          .from("progress")
+          .update(row)
+          .eq("user_id", userId)
+      : await insforge.database.from("progress").insert([row]);
+    if (error) {
+      setStatus("error");
+      return;
     }
 
     if (pushFailed) {
