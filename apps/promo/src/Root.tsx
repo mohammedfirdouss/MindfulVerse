@@ -2,6 +2,7 @@ import { Composition } from "remotion";
 
 import { DAY_DURATION, DAY_FPS, DayInTheLife } from "./DayInTheLife";
 import { DURATION, FPS, HeartPromo } from "./HeartPromo";
+import { SeriesCompositions } from "./SeriesCompositions";
 import { UPDATE_DURATION, UPDATE_FPS, UpdateJournal } from "./UpdateJournal";
 
 export function Root() {
@@ -55,6 +56,7 @@ export function Root() {
         height={1920}
         defaultProps={{ withNasheed: false }}
       />
+      <SeriesCompositions />
     </>
   );
 }
