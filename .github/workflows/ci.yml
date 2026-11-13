@@ -1,30 +1,63 @@
 name: CI
 
+# Every check a contributor is asked to run before handing off, run for them.
+# The e2e suite (apps/web/e2e) is deliberately not here: it is env-gated on
+# E2E_EMAIL/E2E_PASSWORD against a real verified account, and skips without
+# them. See README.md, "Accounts & sync (v1)".
 on:
-  pull_request:
   push:
     branches: [main]
+  pull_request:
 
+# Read-only: nothing here comments, pushes or deploys, and pull_request runs
+# from forks should not be handed a writable token.
+permissions:
+  contents: read
+
+# A new push to the same branch makes the previous run's result irrelevant.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   check:
+    name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+
+      # npm ci, not npm install: it installs exactly what package-lock.json
+      # pins and fails loudly if the lockfile has drifted from package.json.
+      - name: Install dependencies
+        run: npm ci
+
+      # `ultracite check` is both halves of the gate: oxfmt --check and oxlint.
       - name: Lint and format
-        run: npx ultracite check
-      - name: Tests
-        run: npm test
-      - name: Type check and build the web app
-        run: npm run build
-      - name: Type check the Android app
+        run: npm run check
+
+      # Each check runs even if an earlier one failed, so a contributor sees
+      # every problem in one run instead of one per push.
+      - name: Typecheck core
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
+
+      - name: Typecheck mobile
+        if: ${{ !cancelled() }}
         run: npm run typecheck -w @mindfulverse/mobile
+
+      - name: Test
+        if: ${{ !cancelled() }}
+        run: npm test
+
+      - name: Build web
+        if: ${{ !cancelled() }}
+        run: npm run build
