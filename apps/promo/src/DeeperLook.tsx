@@ -38,6 +38,7 @@ function S1Title({ t }: SceneProps) {
 
 function S2Tap({ t }: SceneProps) {
   const open = layout.deeperOpen;
+  const top = layout.deeperTranslation.y - 10;
   const TAP_AT = 70;
   const OPEN_AT = TAP_AT + 12;
   return (
@@ -50,9 +51,9 @@ function S2Tap({ t }: SceneProps) {
         <Touch f={t} at={TAP_AT} rect={open} />
       </StagePhone>
       <Zoom
-        crop={fullWidth(open.y - 70, 110)}
+        crop={fullWidth(top, open.y + open.h + 18 - top)}
         x={ZOOM_X}
-        y={1180}
+        y={1100}
         t={t}
         at={24}
         until={OPEN_AT - 4}
@@ -133,7 +134,7 @@ function S4Open({ t }: SceneProps) {
 }
 
 function S5Commentary({ t }: SceneProps) {
-  const top = layout.deeperLines.y - 14;
+  const top = layout.deeperLines.y - 6;
   const bottom = layout.deeperLastLine.y + layout.deeperLastLine.h + 14;
   return (
     <AbsoluteFill style={{ background: C.cotton }}>

@@ -19,8 +19,10 @@ mkdirSync(OUT, { recursive: true });
 
 // The same fixed Friday morning as capture-three.mjs.
 const NOW = new Date(2026, 10, 13, 9, 30).getTime();
-const SURAH = 94;
-const VERSE = 5;
+const SURAH = 39;
+const VERSE = 53;
+// The commentary opens with the verses it covers; the video shows this many.
+const LAST_LINE = 2;
 const LAYOUT = { viewport: { h: 844, w: 390 } };
 
 const browser = await chromium.launch();
@@ -64,7 +66,7 @@ async function measure(name, locator) {
   return LAYOUT[name];
 }
 
-// ---- The reader at 94:5, with "Deeper look" under the verse ----
+// ---- The reader at the verse, with "Deeper look" under the verse ----
 await page.goto(`${WEB}/read/${SURAH}?v=${VERSE}`);
 await page.waitForLoadState("networkidle").catch(() => {});
 await page.evaluate(() => document.fonts.ready);
@@ -72,6 +74,7 @@ await page.waitForTimeout(2600); // let the deep-link flash fade
 const verse = page.locator("article.verse").nth(VERSE - 1);
 const open = verse.getByRole("button", { name: "Deeper look" });
 await measure("deeperVerse", verse);
+await measure("deeperTranslation", verse.locator(".translation"));
 await measure("deeperOpen", open);
 await shot("deeper-reader");
 
@@ -97,7 +100,7 @@ await shot("deeper-topic-open");
 // ---- The commentary: each quoted verse on its own line ----
 await page.locator(".related-topic").click();
 await page.waitForTimeout(300);
-const first = page.locator(".tafsir p", { hasText: /^\(1\. /u });
+const first = page.locator(".tafsir p").first();
 await first.evaluate((el) => {
   const body = el.closest(".sheet-body");
   body.scrollTop +=
@@ -105,10 +108,7 @@ await first.evaluate((el) => {
 });
 await page.waitForTimeout(400);
 await measure("deeperLines", first);
-await measure(
-  "deeperLastLine",
-  page.locator(".tafsir p", { hasText: /^\(8\. /u })
-);
+await measure("deeperLastLine", page.locator(".tafsir p").nth(LAST_LINE));
 await shot("deeper-commentary");
 
 writeFileSync(
