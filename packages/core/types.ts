@@ -16,6 +16,13 @@ export interface Ayah {
   translation: string; // English (Talal Itani / ClearQuran, CC BY-NC-ND 4.0)
 }
 
+/** Verses the Qur'an gathers under one topic. Served from /data/topics.json.
+ *  From the Quranic Arabic Corpus topic index (corpus.quran.com). */
+export interface VerseTopic {
+  name: string;
+  verses: VerseKey[];
+}
+
 /** Index entry per surah. Served from /data/surahs.json (array of 114). */
 export interface SurahMeta {
   number: number; // 1..114

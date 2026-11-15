@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   commentaryLabel,
   commentaryTitle,
+  deeperLookTitle,
   coveringFor,
   parseVerseParam,
   showsBasmalah,
@@ -34,10 +35,9 @@ describe("commentary helpers (ported from web)", () => {
     expect(commentaryLabel(index, a(3, 1))).toBe(
       "No commentary for this verse"
     );
-    expect(commentaryLabel(index, a(2, 6))).toBe("Read the commentary");
-    expect(commentaryLabel(index, a(2, 7))).toBe(
-      "Read the commentary (with verse 6)"
-    );
+    expect(commentaryLabel(index, a(2, 6))).toBe("Deeper look");
+    expect(commentaryLabel(index, a(2, 7))).toBe("Deeper look");
+    expect(deeperLookTitle(a(2, 7))).toBe("Deeper look · 2:7");
     expect(commentaryTitle(a(2, 6), 6)).toBe("Ibn Kathir · 2:6");
     expect(commentaryTitle(a(2, 7), 6)).toBe(
       "Ibn Kathir · on the passage from 2:6"

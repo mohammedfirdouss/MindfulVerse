@@ -6,7 +6,7 @@ import { useShareFeedback } from "../lib/useShareFeedback";
 import {
   CommentaryBody,
   commentaryLabel,
-  commentaryTitle,
+  deeperLookTitle,
   coveringFor,
 } from "./Commentary";
 import type { Tafsir, TafsirIndex } from "./Commentary";
@@ -41,11 +41,7 @@ export default function VerseSheet({
   return (
     <Sheet
       label={`Verse ${ayah.verseKey}`}
-      title={
-        inCommentary
-          ? commentaryTitle(ayah, covering)
-          : `Verse ${ayah.verseKey}`
-      }
+      title={inCommentary ? deeperLookTitle(ayah) : `Verse ${ayah.verseKey}`}
       onClose={onClose}
     >
       {inCommentary ? (
@@ -60,6 +56,8 @@ export default function VerseSheet({
           </button>
           <CommentaryBody
             ayah={ayah}
+            source={covering}
+            onNavigate={onClose}
             text={tafsir.textFor(ayah, covering)}
             failed={tafsir.failedFor(ayah.surah)}
           />

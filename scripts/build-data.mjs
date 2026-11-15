@@ -10,6 +10,7 @@ const __dirname = import.meta.dirname;
 const ROOT = path.resolve(__dirname, "..");
 const QUL = path.join(ROOT, "QUL copy");
 const OUT = path.join(ROOT, "apps", "web", "public", "data");
+const TOPIC_MAX_VERSES = 40;
 
 /**
  * Resolve the "directory-named-file" quirk: some sources are named e.g.
@@ -274,6 +275,41 @@ function main() {
     theme: r.theme,
   }));
   fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(themes));
+
+  // ---- topics.json ----
+  // Verses grouped by topic, from the Quranic Arabic Corpus topic index (via
+  // QUL). Kept: named topics (not the lowercase sub-entries that only make
+  // sense under a parent) with 2 to TOPIC_MAX_VERSES verses. Topics listing
+  // exactly the same verses are merged under the shortest name.
+  const topicsDb = new Database(
+    resolveFile(path.join(QUL, "Topics and Concepts in Quran", "topics.db")),
+    { readonly: true }
+  );
+  const topicRows = topicsDb
+    .prepare("SELECT name, ayahs FROM topics WHERE ayahs != '' ORDER BY name")
+    .all();
+  topicsDb.close();
+  const topicByVerses = new Map();
+  for (const r of topicRows) {
+    const name = String(r.name).split(/\s+/u).filter(Boolean).join(" ");
+    const verses = String(r.ayahs)
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean);
+    const named = /^\p{Lu}/u.test(name);
+    if (!named || verses.length < 2 || verses.length > TOPIC_MAX_VERSES) {
+      continue;
+    }
+    const key = verses.join(",");
+    const kept = topicByVerses.get(key);
+    if (!kept || name.length < kept.name.length) {
+      topicByVerses.set(key, { name, verses });
+    }
+  }
+  const topics = [...topicByVerses.values()].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+  fs.writeFileSync(path.join(OUT, "topics.json"), JSON.stringify(topics));
 
   // ---- tafsir-index.json ----
   // Which ayahs carry a direct tafsir entry, per surah. Lets the reader show
