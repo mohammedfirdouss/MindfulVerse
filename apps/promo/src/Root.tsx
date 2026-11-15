@@ -1,6 +1,7 @@
 import { Composition } from "remotion";
 
 import { DAY_DURATION, DAY_FPS, DayInTheLife } from "./DayInTheLife";
+import { DEEPER_DURATION, DEEPER_FPS, DeeperLook } from "./DeeperLook";
 import { EXPLAINER_DURATION, EXPLAINER_FPS, Explainer } from "./Explainer";
 import { DURATION, FPS, HeartPromo } from "./HeartPromo";
 import {
@@ -122,6 +123,26 @@ export function Root() {
         component={StartACircle}
         durationInFrames={START_CIRCLE_DURATION}
         fps={START_CIRCLE_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: false }}
+      />
+      {/* Deeper look and the tidier commentary. */}
+      <Composition
+        id="DeeperLook"
+        component={DeeperLook}
+        durationInFrames={DEEPER_DURATION}
+        fps={DEEPER_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: true }}
+      />
+      {/* For adding a sound from TikTok, Reels or CapCut when posting. */}
+      <Composition
+        id="DeeperLookSilent"
+        component={DeeperLook}
+        durationInFrames={DEEPER_DURATION}
+        fps={DEEPER_FPS}
         width={1080}
         height={1920}
         defaultProps={{ withNasheed: false }}
