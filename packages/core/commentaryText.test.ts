@@ -21,6 +21,18 @@ describe(commentaryParagraphs, () => {
     ).toStrictEqual(["He was (59)", "(This is) the truth (60)", "Body."]);
   });
 
+  it("puts each numbered verse on its own line, wherever the list sits", () => {
+    const text =
+      "In the Name of Allah.\n\n(1. By Al-'Asr.)(2. Verily, man is in loss.)(3. Except those who believe.)\n\nBody (see above).";
+    expect(commentaryParagraphs(text)).toStrictEqual([
+      "In the Name of Allah.",
+      "(1. By Al-'Asr.)",
+      "(2. Verily, man is in loss.)",
+      "(3. Except those who believe.)",
+      "Body (see above).",
+    ]);
+  });
+
   it("leaves numbered lists in the body alone", () => {
     const text = "A verse (1)\n\nThey are: (1)a man, (2)an unjust ruler.";
     expect(commentaryParagraphs(text)).toStrictEqual([
@@ -38,6 +50,12 @@ describe(commentaryParagraphs, () => {
       "A verse (1)",
       'He said. However, he did not. "It is so." Allah tells us.',
     ]);
+  });
+
+  it("adds the missing space between two brackets that touch", () => {
+    expect(
+      commentaryParagraphs("V (1)\n\n(He opens his breast.)(6:125) So it is.")
+    ).toStrictEqual(["V (1)", "(He opens his breast.) (6:125) So it is."]);
   });
 
   it("does not touch an apostrophe that may open a name", () => {
