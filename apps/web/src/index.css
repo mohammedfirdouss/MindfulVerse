@@ -502,6 +502,56 @@ p.eyebrow + h1 {
   margin: 1.4em 0 0.5em;
 }
 
+/* --- Deeper look: section headings and the related verses --- */
+.deeper-heading {
+  margin: 0 0 10px;
+  font-family: var(--font-read);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.related {
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.related-topics,
+.related-verses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.related-topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--indigo);
+  font-family: var(--font-read);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.related-verses li {
+  padding: 10px 0 12px 14px;
+  border-left: 2px solid var(--indigo-wash);
+  margin-bottom: 10px;
+}
+.related-verses .translation {
+  margin: 0;
+}
+.related-verses .commentary-open {
+  margin-top: 6px;
+}
+
 /* --- Account: one quiet card, plain boxed inputs, nothing else --- */
 /* The sign-in form sits on the page itself: no card around it. */
 .auth-card,

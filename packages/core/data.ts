@@ -14,6 +14,7 @@ import type {
   TadabburSession,
   EmotionMap,
   Divisions,
+  VerseTopic,
 } from "./types";
 
 /** Resolves a data-root-relative path to its parsed JSON, or rejects. */
@@ -102,6 +103,9 @@ export const loadEmotions = () => getJson<EmotionMap>("emotions.json");
 
 /** Juz / hizb / quarter / sajdah boundaries (a few KB). */
 export const loadDivisions = () => getJson<Divisions>("divisions.json");
+
+/** Topics and the verses under each (~80KB), read when a verse is opened. */
+export const loadVerseTopics = () => getJson<VerseTopic[]>("topics.json");
 
 /** Parse "2:255" -> { surah: 2, ayah: 255 }. */
 export function parseVerseKey(vk: string): { surah: number; ayah: number } {

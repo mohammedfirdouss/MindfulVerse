@@ -8,22 +8,43 @@ import { useShareVerse } from "../../share";
 import { space, useTheme } from "../../theme";
 import { ArabicText, Sheet, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
-import { commentaryLabel, commentaryTitle, coveringFor } from "./commentary";
+import {
+  commentaryLabel,
+  commentaryTitle,
+  coveringFor,
+  deeperLookTitle,
+} from "./commentary";
 import type { TafsirIndex } from "./commentary";
+import { RelatedVerses, SectionHeading } from "./RelatedVerses";
 import type { Tafsir } from "./useTafsir";
 
 /** Web's CommentaryBody: the verse, then Ibn Kathir's paragraphs. */
 export function CommentaryBody({
   ayah,
+  source,
   text,
   failed,
+  onClose,
 }: {
   ayah: Ayah;
+  /** The verse whose Ibn Kathir entry covers this one. */
+  source: number;
+  /** Closes the sheet before a related verse opens. */
+  onClose: () => void;
   text: string | null;
   failed: boolean;
 }) {
   const { colors } = useTheme();
+  const router = useRouter();
   const paragraphs = commentaryParagraphs(text);
+
+  function openVerse(a: Ayah) {
+    onClose();
+    router.push({
+      params: { surah: String(a.surah), v: String(a.ayah) },
+      pathname: "/read/[surah]",
+    });
+  }
   return (
     <View style={{ gap: space.md }}>
       <ArabicText
@@ -36,6 +57,8 @@ export function CommentaryBody({
       >
         {ayah.arabic}
       </ArabicText>
+      <RelatedVerses ayah={ayah} onOpenVerse={openVerse} />
+      <SectionHeading>{commentaryTitle(ayah, source)}</SectionHeading>
       {failed ? (
         <Text variant="muted">
           The commentary isn’t available offline yet. Try again when you’re
@@ -84,12 +107,14 @@ export function CommentarySheet({
   return (
     <Sheet
       scroll
-      label={`Commentary on verse ${ayah.verseKey}`}
-      title={commentaryTitle(ayah, covering)}
+      label={`Deeper look at verse ${ayah.verseKey}`}
+      title={deeperLookTitle(ayah)}
       onClose={onClose}
     >
       <CommentaryBody
         ayah={ayah}
+        source={covering}
+        onClose={onClose}
         text={tafsir.textFor(ayah, covering)}
         failed={tafsir.failedFor(ayah.surah)}
       />
@@ -136,11 +161,7 @@ export function VerseSheet({
     <Sheet
       scroll
       label={`Verse ${ayah.verseKey}`}
-      title={
-        inCommentary
-          ? commentaryTitle(ayah, covering)
-          : `Verse ${ayah.verseKey}`
-      }
+      title={inCommentary ? deeperLookTitle(ayah) : `Verse ${ayah.verseKey}`}
       onClose={onClose}
     >
       {inCommentary ? (
@@ -151,6 +172,8 @@ export function VerseSheet({
           />
           <CommentaryBody
             ayah={ayah}
+            source={covering}
+            onClose={onClose}
             text={tafsir.textFor(ayah, covering)}
             failed={tafsir.failedFor(ayah.surah)}
           />

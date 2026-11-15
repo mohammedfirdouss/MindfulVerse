@@ -29,9 +29,11 @@ export function commentaryLabel(index: TafsirIndex | null, a: Ayah): string {
   if (c === null) {
     return "No commentary for this verse";
   }
-  return c === a.ayah
-    ? "Read the commentary"
-    : `Read the commentary (with verse ${c})`;
+  return "Deeper look";
+}
+
+export function deeperLookTitle(a: Ayah): string {
+  return `Deeper look · ${a.surah}:${a.ayah}`;
 }
 
 export function commentaryTitle(a: Ayah, source: number): string {

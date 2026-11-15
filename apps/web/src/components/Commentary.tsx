@@ -4,6 +4,7 @@ import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
 import { useCallback, useEffect, useState } from "react";
 
 import { coveringAyah } from "../lib/tafsirCovering";
+import RelatedVerses from "./RelatedVerses";
 import Sheet from "./Sheet";
 
 /** Per-surah list of ayahs that carry a direct Ibn Kathir entry. */
@@ -25,9 +26,11 @@ export function commentaryLabel(index: TafsirIndex | null, a: Ayah): string {
   if (c === null) {
     return "No commentary for this verse";
   }
-  return c === a.ayah
-    ? "Read the commentary"
-    : `Read the commentary (with verse ${c})`;
+  return "Deeper look";
+}
+
+export function deeperLookTitle(a: Ayah): string {
+  return `Deeper look · ${a.surah}:${a.ayah}`;
 }
 
 export function commentaryTitle(a: Ayah, source: number): string {
@@ -65,10 +68,16 @@ export type Tafsir = ReturnType<typeof useTafsir>;
 
 export function CommentaryBody({
   ayah,
+  source,
   text,
   failed,
+  onNavigate,
 }: {
   ayah: Ayah;
+  /** The verse whose Ibn Kathir entry covers this one. */
+  source: number;
+  /** Called when a related verse is followed, so the sheet can close. */
+  onNavigate: () => void;
   /** null while the tafsir file is still downloading. */
   text: string | null;
   failed: boolean;
@@ -90,6 +99,8 @@ export function CommentaryBody({
       >
         {ayah.arabic}
       </p>
+      <RelatedVerses ayah={ayah} onNavigate={onNavigate} />
+      <h3 className="deeper-heading">{commentaryTitle(ayah, source)}</h3>
       {failed ? (
         <p className="muted">
           The commentary isn’t available offline yet. Try again when you’re
@@ -134,12 +145,14 @@ export function CommentarySheet({
   }
   return (
     <Sheet
-      label={`Commentary on verse ${ayah.verseKey}`}
-      title={commentaryTitle(ayah, covering)}
+      label={`Deeper look at verse ${ayah.verseKey}`}
+      title={deeperLookTitle(ayah)}
       onClose={onClose}
     >
       <CommentaryBody
         ayah={ayah}
+        source={covering}
+        onNavigate={onClose}
         text={tafsir.textFor(ayah, covering)}
         failed={tafsir.failedFor(ayah.surah)}
       />

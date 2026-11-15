@@ -21,6 +21,7 @@
     "./progress": "./progress.ts",
     "./sessionDraft": "./sessionDraft.ts",
     "./readingPrefs": "./readingPrefs.ts",
+    "./relatedVerses": "./relatedVerses.ts",
     "./rhythm": "./rhythm.ts",
     "./surahNames": "./surahNames.ts",
     "./sync/auth": "./sync/auth.tsx",
