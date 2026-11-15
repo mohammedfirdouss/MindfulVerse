@@ -10,8 +10,19 @@ const VERSE_END = /(\(\d{1,3}\))(?=[^\s.,;:)\]])/gu;
 // after the full stop is left alone, since it may open a name ('Ali).
 const RUN_ON = /([a-z][.?!]"?)(?=[A-Z])/gu;
 
+// Some entries list the verses the other way, number first, each in its own
+// brackets and run together: `(1. By Al-'Asr.)(2. Verily, man is in loss.)`.
+const NUMBERED_VERSE_END = /\)(?=\(\d{1,3}\. )/gu;
+
+// Two brackets that touch: `(with Him)(18)`, `(Malik)(of everything)`.
+const TOUCHING_BRACKETS = /\)(?=\()/gu;
+
 function splitVerses(opening: string): string[] {
   return opening.replaceAll(VERSE_END, "$1\n\n").split("\n\n");
+}
+
+function splitNumberedVerses(paragraph: string): string[] {
+  return paragraph.replaceAll(NUMBERED_VERSE_END, ")\n\n").split("\n\n");
 }
 
 /** The entry as paragraphs: one per quoted verse, then the commentary. */
@@ -20,6 +31,9 @@ export function commentaryParagraphs(
 ): string[] {
   const [opening = "", ...rest] = (text ?? "").split("\n\n");
   return [...splitVerses(opening), ...rest]
-    .map((p) => p.trim().replaceAll(RUN_ON, "$1 "))
+    .flatMap(splitNumberedVerses)
+    .map((p) =>
+      p.trim().replaceAll(RUN_ON, "$1 ").replaceAll(TOUCHING_BRACKETS, ") ")
+    )
     .filter(Boolean);
 }
