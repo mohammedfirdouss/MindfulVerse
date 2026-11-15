@@ -1,4 +1,5 @@
-// "Other verses on this topic" for the Deeper look on a verse.
+// "Mentioned elsewhere" in the Deeper look on a verse: the topics a verse
+// falls under in the topic index, and the other verses under each.
 import type { VerseKey, VerseTopic } from "./types";
 
 /** A topic the verse belongs to, with the other verses under it. */
@@ -7,7 +8,7 @@ export interface RelatedTopic {
   verses: VerseKey[];
 }
 
-export const MAX_RELATED_TOPICS = 3;
+export const MAX_RELATED_TOPICS = 2;
 
 /** The verse's topics, narrowest first, each without the verse itself. */
 export function relatedTopics(

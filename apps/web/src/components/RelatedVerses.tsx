@@ -127,8 +127,8 @@ export default function RelatedVerses({
     return null;
   }
   return (
-    <section className="related" aria-label="Other verses on this">
-      <h3 className="deeper-heading">Other verses on this</h3>
+    <section className="related" aria-label="Mentioned elsewhere">
+      <h3 className="deeper-heading">Mentioned elsewhere</h3>
       <ul className="related-topics">
         {topics.map((t) => (
           <TopicRow

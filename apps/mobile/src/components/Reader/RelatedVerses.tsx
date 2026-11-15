@@ -147,7 +147,7 @@ export function RelatedVerses({
         paddingBottom: space.md,
       }}
     >
-      <SectionHeading>Other verses on this</SectionHeading>
+      <SectionHeading>Mentioned elsewhere</SectionHeading>
       {topics.map((t) => (
         <TopicRow
           key={t.name}

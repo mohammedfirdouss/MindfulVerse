@@ -16,14 +16,15 @@ const topics = [
 
 describe(relatedTopics, () => {
   it("lists the verse's topics, narrowest first, without the verse", () => {
-    expect(relatedTopics(topics, "94:5")).toStrictEqual([
+    expect(relatedTopics(topics, "94:5", 3)).toStrictEqual([
       { name: "Ease", verses: ["94:6", "65:7"] },
       { name: "Hardship", verses: ["7:94", "94:6"] },
       { name: "World", verses: ["2:85", "2:86", "18:103"] },
     ]);
   });
 
-  it("keeps at most the asked number of topics", () => {
+  it("keeps at most two topics unless asked otherwise", () => {
+    expect(relatedTopics(topics, "94:5")).toHaveLength(2);
     expect(relatedTopics(topics, "94:5", 1)).toHaveLength(1);
   });
 

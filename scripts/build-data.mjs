@@ -10,7 +10,7 @@ const __dirname = import.meta.dirname;
 const ROOT = path.resolve(__dirname, "..");
 const QUL = path.join(ROOT, "QUL copy");
 const OUT = path.join(ROOT, "apps", "web", "public", "data");
-const TOPIC_MAX_VERSES = 40;
+const TOPIC_MAX_VERSES = 15;
 
 /**
  * Resolve the "directory-named-file" quirk: some sources are named e.g.
