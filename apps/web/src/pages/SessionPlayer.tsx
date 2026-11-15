@@ -1,4 +1,5 @@
 import { track } from "@mindfulverse/core/analytics";
+import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import {
   loadSessions,
   loadAyahsByKeys,
@@ -434,10 +435,7 @@ type TafsirStatus =
  *  never rewritten. Keeps a session feeling guided rather than like homework. */
 function TafsirExcerpt({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
-  const paragraphs = text
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const paragraphs = commentaryParagraphs(text);
 
   // Take whole paragraphs until ~700 chars; always at least one.
   let excerptCount = 0;

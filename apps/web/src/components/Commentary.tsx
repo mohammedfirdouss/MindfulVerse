@@ -1,3 +1,4 @@
+import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import { loadSurahTafsir } from "@mindfulverse/core/data";
 import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
 import { useCallback, useEffect, useState } from "react";
@@ -72,10 +73,7 @@ export function CommentaryBody({
   text: string | null;
   failed: boolean;
 }) {
-  const paragraphs = (text ?? "")
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const paragraphs = commentaryParagraphs(text);
   return (
     <>
       <p

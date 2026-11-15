@@ -1,3 +1,4 @@
+import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 // Web's SessionPlayer TafsirDisclosure: Ibn Kathir for the step's verses, read
 // on first open. Long entries show their opening paragraphs verbatim with the
 // rest one tap away, so a session stays guided rather than like homework.
@@ -5,7 +6,6 @@ import { loadSurahTafsir, parseVerseKey } from "@mindfulverse/core/data";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { splitParagraphs } from "../../text";
 import { radius, space, useTheme } from "../../theme";
 import { Diamond, Text } from "../../ui";
 import { ActionLink } from "../Reader/ActionLink";
@@ -28,7 +28,7 @@ type TafsirStatus =
 
 function TafsirExcerpt({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
-  const paragraphs = splitParagraphs(text);
+  const paragraphs = commentaryParagraphs(text);
   const count = excerptCount(paragraphs);
   const truncated = count < paragraphs.length;
   const shown = expanded ? paragraphs : paragraphs.slice(0, count);

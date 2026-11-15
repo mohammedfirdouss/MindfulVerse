@@ -1,3 +1,4 @@
+import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
 // Collapsible Ibn Kathir commentary for one verse (web's VerseCommentary):
 // the surah's tafsir file is read on first open; a passage's commentary is
@@ -7,7 +8,6 @@ import { memo, useState } from "react";
 import type { ReactNode } from "react";
 import { View } from "react-native";
 
-import { splitParagraphs } from "../../text";
 import { radius, space, useTheme } from "../../theme";
 import { Text } from "../../ui";
 import { ActionLink } from "../Reader/ActionLink";
@@ -53,7 +53,7 @@ export const VerseCommentary = memo(
 
     const direct = covering === ayah.ayah;
     const text = tafsir ? (tafsir[String(covering)] ?? "") : null;
-    const paragraphs = splitParagraphs(text);
+    const paragraphs = commentaryParagraphs(text);
 
     function toggle() {
       const next = !open;

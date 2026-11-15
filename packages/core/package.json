@@ -9,6 +9,7 @@
     "./analytics": "./analytics.ts",
     "./circleSurah": "./circleSurah.ts",
     "./circles": "./circles.ts",
+    "./commentaryText": "./commentaryText.ts",
     "./brand": "./brand.ts",
     "./dailyVerse": "./dailyVerse.ts",
     "./data": "./data.ts",
