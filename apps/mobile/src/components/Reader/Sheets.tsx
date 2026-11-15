@@ -1,10 +1,10 @@
+import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import type { Ayah } from "@mindfulverse/core/types";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 import { useShareVerse } from "../../share";
-import { splitParagraphs } from "../../text";
 import { space, useTheme } from "../../theme";
 import { ArabicText, Sheet, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
@@ -23,7 +23,7 @@ export function CommentaryBody({
   failed: boolean;
 }) {
   const { colors } = useTheme();
-  const paragraphs = splitParagraphs(text);
+  const paragraphs = commentaryParagraphs(text);
   return (
     <View style={{ gap: space.md }}>
       <ArabicText

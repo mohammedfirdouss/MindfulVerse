@@ -1,4 +1,5 @@
 import { track } from "@mindfulverse/core/analytics";
+import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import {
   loadSurahAyahs,
   loadSurahInfo,
@@ -162,10 +163,7 @@ function VerseCommentary({
 
   const direct = covering === ayah.ayah;
   const text = tafsir ? (tafsir[String(covering)] ?? "") : null;
-  const paragraphs = (text ?? "")
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const paragraphs = commentaryParagraphs(text);
 
   function toggle() {
     const next = !open;
