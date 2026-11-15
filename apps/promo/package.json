@@ -21,7 +21,10 @@
     "render:circle": "remotion render src/index.ts StartACircle out/start-a-circle.mp4",
     "render:circle:silent": "remotion render src/index.ts StartACircleSilent out/start-a-circle-silent.mp4",
     "render:explainer": "remotion render src/index.ts Explainer out/explainer.mp4",
-    "render:explainer:silent": "remotion render src/index.ts ExplainerSilent out/explainer-silent.mp4"
+    "render:explainer:silent": "remotion render src/index.ts ExplainerSilent out/explainer-silent.mp4",
+    "capture:deeper": "node scripts/capture-deeper.mjs",
+    "render:deeper": "remotion render src/index.ts DeeperLook out/deeper-look.mp4",
+    "render:deeper:silent": "remotion render src/index.ts DeeperLookSilent out/deeper-look-silent.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.534",
