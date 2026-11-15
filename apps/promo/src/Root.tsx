@@ -1,6 +1,7 @@
 import { Composition } from "remotion";
 
 import { DAY_DURATION, DAY_FPS, DayInTheLife } from "./DayInTheLife";
+import { EXPLAINER_DURATION, EXPLAINER_FPS, Explainer } from "./Explainer";
 import { DURATION, FPS, HeartPromo } from "./HeartPromo";
 import {
   ONE_SURAH_DURATION,
@@ -121,6 +122,26 @@ export function Root() {
         component={StartACircle}
         durationInFrames={START_CIRCLE_DURATION}
         fps={START_CIRCLE_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: false }}
+      />
+      {/* What the app is, in a minute. */}
+      <Composition
+        id="Explainer"
+        component={Explainer}
+        durationInFrames={EXPLAINER_DURATION}
+        fps={EXPLAINER_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: true }}
+      />
+      {/* No music: a voiceover is recorded over this one. */}
+      <Composition
+        id="ExplainerSilent"
+        component={Explainer}
+        durationInFrames={EXPLAINER_DURATION}
+        fps={EXPLAINER_FPS}
         width={1080}
         height={1920}
         defaultProps={{ withNasheed: false }}

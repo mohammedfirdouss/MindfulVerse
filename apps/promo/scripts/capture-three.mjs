@@ -1,5 +1,5 @@
-// Captures the screens for three promos: OneSurahOneWeek, StandLoop and
-// StartACircle. Every journal entry, circle, name and account
+// Captures the screens for four promos: OneSurahOneWeek, StandLoop,
+// StartACircle and Explainer. Every journal entry, circle, name and account
 // here is invented test data. Every request that is not for the local preview
 // is answered by page.route, so nothing reaches the real backend.
 //
@@ -304,6 +304,25 @@ async function blur(page) {
   await page.waitForTimeout(400);
   await measure("followupNote", card);
   await shot(page, "home-followup-yes");
+  await ctx.close();
+}
+
+// ---- The same week-old device: the surah's own journal page ----
+{
+  const { ctx, page } = await open({
+    seed: seedOf({
+      extra: {
+        "mindfulverse.surahTadabbur.v1": JSON.stringify(WEEK_OLD_PROGRESS),
+      },
+      journal: WEEK_OLD_JOURNAL,
+    }),
+  });
+  await page.goto(`${WEB}/tadabbur/${SURAH}/journal`);
+  await page.getByRole("heading", { name: "Your page on Ash-Sharh" }).waitFor();
+  await settle(page, 1600);
+  await measure("journalHeading", page.getByRole("heading", { level: 1 }));
+  await measure("journalItem", page.locator(".sj-item"));
+  await shot(page, "surah-journal");
   await ctx.close();
 }
 

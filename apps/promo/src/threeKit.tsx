@@ -1,4 +1,4 @@
-// Pieces shared by OneSurahOneWeek, StandLoop and StartACircle: captions, a
+// Pieces shared by OneSurahOneWeek, StandLoop, StartACircle and Explainer: captions, a
 // magnified card over a capture, typing over a measured field, the scene
 // stack with overlapping cuts, the nasheed and the closing card. Screens come
 // from scripts/capture-three.mjs (public/screens/three).
@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode } from "react";
 import {
   AbsoluteFill,
   Audio,
+  Sequence,
   interpolate,
   staticFile,
   useCurrentFrame,
@@ -102,15 +103,22 @@ export function Caption({
 
 /** The translation credit, under the phone, whenever verse English shows.
  *  Put it before a phone that slides in, so the phone passes over it. */
-export function VerseCredit() {
+export function VerseCredit({
+  top = 1850,
+  opacity = 1,
+}: {
+  top?: number;
+  opacity?: number;
+}) {
   return (
     <Credit
       style={{
         left: 0,
+        opacity,
         position: "absolute",
         right: 0,
         textAlign: "center",
-        top: 1850,
+        top,
       }}
     >
       {TRANSLATION_CREDIT}
@@ -118,16 +126,21 @@ export function VerseCredit() {
   );
 }
 
-/** A phone at the portrait position; enters from below or the right. */
+const STAGE = { width: PHONE_W, x: PHONE_X, y: PHONE_Y };
+
+/** A phone at the portrait position (or `place`); enters from below or the
+ *  right. */
 export function StagePhone({
   t,
   from = "none",
   dim = 0,
+  place = STAGE,
   children,
 }: {
   t: number;
   from?: "below" | "right" | "none";
   dim?: number;
+  place?: { x: number; y: number; width: number };
   children: ReactNode;
 }) {
   const p = from === "none" ? 1 : prog(t, 0, 22, ease.drawer);
@@ -135,9 +148,9 @@ export function StagePhone({
   const dy = from === "below" ? (1 - p) * 420 : 0;
   return (
     <Phone
-      x={PHONE_X}
-      y={PHONE_Y}
-      width={PHONE_W}
+      x={place.x}
+      y={place.y}
+      width={place.width}
       style={{ transform: `translate(${dx}px, ${dy}px)` }}
     >
       {children}
@@ -165,6 +178,7 @@ export function Zoom({
   y,
   t,
   at,
+  until = 9999,
   children,
 }: {
   crop: Rect;
@@ -173,9 +187,12 @@ export function Zoom({
   y: number;
   t: number;
   at: number;
+  until?: number;
   children: ReactNode;
 }) {
-  const p = prog(t, at, at + 18, ease.drawer);
+  const p =
+    prog(t, at, at + 18, ease.drawer) *
+    (1 - prog(t, until, until + 10, ease.inOut));
   return (
     <div
       style={{
@@ -366,18 +383,44 @@ export function SceneStack({
   );
 }
 
-/** The nasheed once through (it runs 46 s), faded in and out. */
+/** The track runs 46 s. */
+const TRACK = 1382;
+const XFADE = 60;
+const level = (pts: number[], vals: number[]) => (f: number) =>
+  interpolate(f, pts, vals, {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+/** The nasheed, faded in and out. A video longer than the track gets a
+ *  second pass that crossfades in under the end of the first, as in
+ *  WhatsNew. */
 export function Nasheed({ duration }: { duration: number }) {
+  if (duration <= TRACK) {
+    return (
+      <Audio
+        src={NASHEED}
+        volume={level([0, 30, duration - 60, duration], [0, 0.8, 0.8, 0])}
+      />
+    );
+  }
+  const second = TRACK - XFADE;
+  const tail = duration - second;
   return (
-    <Audio
-      src={NASHEED}
-      volume={(f) =>
-        interpolate(f, [0, 30, duration - 60, duration], [0, 0.8, 0.8, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      }
-    />
+    <>
+      <Sequence durationInFrames={TRACK}>
+        <Audio
+          src={NASHEED}
+          volume={level([0, 30, TRACK - XFADE, TRACK], [0, 0.8, 0.8, 0])}
+        />
+      </Sequence>
+      <Sequence from={second} durationInFrames={tail}>
+        <Audio
+          src={NASHEED}
+          volume={level([0, XFADE, tail - 60, tail], [0, 0.8, 0.8, 0])}
+        />
+      </Sequence>
+    </>
   );
 }
 
@@ -398,7 +441,7 @@ export function EndCard({
   t: number;
   credit: boolean;
   headline: string;
-  lines: { text: string; link?: boolean }[];
+  lines: { text: string; link?: boolean; size?: number }[];
 }) {
   return (
     <AbsoluteFill style={{ background: C.cotton }}>
@@ -436,7 +479,7 @@ export function EndCard({
               ...rise(t, 44 + i * 8, 16),
               color: line.link ? C.indigo : C.inkSoft,
               fontFamily: line.link ? F.ui : F.text,
-              fontSize: 54,
+              fontSize: line.size ?? 54,
               fontWeight: line.link ? 600 : 400,
             }}
           >

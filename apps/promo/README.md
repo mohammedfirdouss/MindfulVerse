@@ -53,3 +53,15 @@ npm run render:circle:silent -w @mindfulverse/promo     # out/start-a-circle-sil
 ```
 
 Credits: the translation credit ("English translation by Talal Itani (ClearQuran)") is on screen whenever English verse text shows. The versions with the nasheed carry "Nasheed: “Alhamdulilah” by Jawad Syed, CC BY 3.0" on the closing card, and any caption or post should carry it too. The nasheed plays once through with a fade in and out.
+
+## Explainer (61 s, 9:16, with nasheed; `ExplainerSilent` has no music)
+
+What MindfulVerse is, in a minute: most of us read a surah and move on; the app helps you stay with one. It walks the three steps (pick a surah, go verse by verse with Ibn Kathir, write what it says to you and one thing you will do), the follow-up a week later, the surah's own journal page, reading with friends in a circle, and closes on "Every word from a real source. No AI.", "Free. No ads." and the end card. Scene lengths live in `LENGTHS` in `src/Explainer.tsx`.
+
+It reuses `src/threeKit.tsx` and the screens from `scripts/capture-three.mjs`, which also captures the journal page (`surah-journal.png`). The silent version is made for a voiceover: the phone sits higher than in the other videos and nothing but the translation credit is in the bottom 12% of the frame. In the nasheed version the 46 s track plays twice, crossfaded over two seconds, and fades out on the end card, which carries the nasheed credit.
+
+```bash
+npm run capture:three -w @mindfulverse/promo             # needs the web preview, as above
+npm run render:explainer -w @mindfulverse/promo          # out/explainer.mp4
+npm run render:explainer:silent -w @mindfulverse/promo   # out/explainer-silent.mp4
+```

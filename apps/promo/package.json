@@ -19,7 +19,9 @@
     "render:stand": "remotion render src/index.ts StandLoop out/stand-loop-landscape.mp4",
     "render:stand:vertical": "remotion render src/index.ts StandLoopVertical out/stand-loop-vertical.mp4",
     "render:circle": "remotion render src/index.ts StartACircle out/start-a-circle.mp4",
-    "render:circle:silent": "remotion render src/index.ts StartACircleSilent out/start-a-circle-silent.mp4"
+    "render:circle:silent": "remotion render src/index.ts StartACircleSilent out/start-a-circle-silent.mp4",
+    "render:explainer": "remotion render src/index.ts Explainer out/explainer.mp4",
+    "render:explainer:silent": "remotion render src/index.ts ExplainerSilent out/explainer-silent.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.534",
