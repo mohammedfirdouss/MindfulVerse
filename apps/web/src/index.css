@@ -551,6 +551,20 @@ p.eyebrow + h1 {
   color: var(--indigo);
 }
 
+/* --- Deeper look: the short explanation --- */
+.brief {
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.brief .tafsir p:last-child {
+  margin-bottom: 0;
+}
+.brief-credit {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+}
+
 /* --- Deeper look: section headings and the related verses --- */
 .deeper-heading {
   margin: 0 0 10px;

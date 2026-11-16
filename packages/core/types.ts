@@ -25,6 +25,11 @@ export type WordCell = string | [number, ...string[]];
  *  with their permission and never edited. */
 export type SurahWords = Record<string, WordCell[]>;
 
+/** Al-Mukhtasar's short explanation per ayah. Served from
+ *  /data/brief/{surah}.json, keyed by ayah number (string). A number points to
+ *  the earlier ayah this one is explained together with. */
+export type SurahBrief = Record<string, string | number>;
+
 /** Verses the Qur'an gathers under one topic. Served from /data/topics.json.
  *  From the Quranic Arabic Corpus topic index (corpus.quran.com). */
 export interface VerseTopic {

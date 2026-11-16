@@ -9,6 +9,7 @@ import type {
   Ayah,
   SurahInfo,
   SurahMeta,
+  SurahBrief,
   SurahTafsir,
   SurahWords,
   Theme,
@@ -104,6 +105,10 @@ export const loadEmotions = () => getJson<EmotionMap>("emotions.json");
 
 /** Juz / hizb / quarter / sajdah boundaries (a few KB). */
 export const loadDivisions = () => getJson<Divisions>("divisions.json");
+
+/** Al-Mukhtasar's short explanations for one surah (up to ~110KB). */
+export const loadSurahBrief = (surah: number) =>
+  getJson<SurahBrief>(`brief/${surah}.json`);
 
 /** Word meanings for one surah (up to ~80KB), read when a verse is opened. */
 export const loadSurahWords = (surah: number) =>

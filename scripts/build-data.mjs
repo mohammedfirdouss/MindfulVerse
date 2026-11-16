@@ -368,6 +368,39 @@ function main() {
   }
   console.log(`word meanings written: ${wordCount}`);
 
+  // ---- brief/{surah}.json ----
+  // Al-Mukhtasar: a short explanation of every verse, from the Tafsir Center
+  // for Quranic Studies (via QUL). A verse holds its text, or the number of
+  // the earlier verse it is explained together with. Only markup and stray
+  // spacing are removed; the words are never edited.
+  const briefSource = readJSON(
+    path.join(QUL, "Tafsirs", "en-al-mukhtasar.json")
+  );
+  ensureDir(path.join(OUT, "brief"));
+  let briefCount = 0;
+  for (const n of surahNumbers) {
+    const out = {};
+    for (const a of bySurah.get(n)) {
+      const entry = briefSource[a.verseKey];
+      if (typeof entry === "string") {
+        const [s, v] = entry.split(":").map(Number);
+        if (s !== n || !(v < a.ayah)) {
+          throw new Error(`Unexpected shared explanation at ${a.verseKey}`);
+        }
+        out[String(a.ayah)] = v;
+        continue;
+      }
+      const text = stripHtml(entry?.text);
+      if (!text) {
+        throw new Error(`No short explanation for ${a.verseKey}`);
+      }
+      out[String(a.ayah)] = text;
+      briefCount++;
+    }
+    fs.writeFileSync(path.join(OUT, "brief", `${n}.json`), JSON.stringify(out));
+  }
+  console.log(`short explanations:    ${briefCount}`);
+
   // ---- tafsir-index.json ----
   // Which ayahs carry a direct tafsir entry, per surah. Lets the reader show
   // accurate commentary links without eagerly downloading megabytes of tafsir.

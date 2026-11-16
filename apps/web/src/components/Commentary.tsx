@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { coveringAyah } from "../lib/tafsirCovering";
 import RelatedVerses from "./RelatedVerses";
 import Sheet from "./Sheet";
+import VerseBrief from "./VerseBrief";
 import VerseWords from "./VerseWords";
 
 /** Per-surah list of ayahs that carry a direct Ibn Kathir entry. */
@@ -87,6 +88,7 @@ export function CommentaryBody({
   return (
     <>
       <VerseWords ayah={ayah} />
+      <VerseBrief ayah={ayah} />
       <RelatedVerses ayah={ayah} onNavigate={onNavigate} />
       <h3 className="deeper-heading">{commentaryTitle(ayah, source)}</h3>
       {failed ? (

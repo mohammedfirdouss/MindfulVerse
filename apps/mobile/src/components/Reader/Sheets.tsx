@@ -17,6 +17,7 @@ import {
 import type { TafsirIndex } from "./commentary";
 import { RelatedVerses, SectionHeading } from "./RelatedVerses";
 import type { Tafsir } from "./useTafsir";
+import { VerseBrief } from "./VerseBrief";
 import { VerseWords } from "./VerseWords";
 
 /** Web's CommentaryBody: the verse, then Ibn Kathir's paragraphs. */
@@ -48,6 +49,7 @@ export function CommentaryBody({
   return (
     <View style={{ gap: space.md }}>
       <VerseWords ayah={ayah} />
+      <VerseBrief ayah={ayah} />
       <RelatedVerses ayah={ayah} onOpenVerse={openVerse} />
       <SectionHeading>{commentaryTitle(ayah, source)}</SectionHeading>
       {failed ? (
