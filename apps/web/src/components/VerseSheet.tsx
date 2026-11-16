@@ -33,7 +33,6 @@ export default function VerseSheet({
     if (covering === null) {
       return;
     }
-    tafsir.request(ayah.surah);
     setShowCommentary(true);
   }
 
@@ -58,6 +57,7 @@ export default function VerseSheet({
             ayah={ayah}
             source={covering}
             onNavigate={onClose}
+            onExpand={() => tafsir.request(ayah.surah)}
             text={tafsir.textFor(ayah, covering)}
             failed={tafsir.failedFor(ayah.surah)}
           />

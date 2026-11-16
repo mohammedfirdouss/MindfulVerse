@@ -81,6 +81,7 @@ await shot("deeper-reader");
 // ---- The Deeper look sheet ----
 await open.click();
 await page.locator(".related-topic").waitFor();
+await page.getByRole("button", { name: "Read the full commentary" }).click();
 await page.locator(".tafsir p").nth(3).waitFor();
 await page.waitForTimeout(700);
 await measure("deeperSheet", page.locator(".sheet"));

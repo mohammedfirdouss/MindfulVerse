@@ -16,6 +16,11 @@ import {
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
+import {
+  WORD_MEANINGS_BOOK,
+  WORD_MEANINGS_BOOK_URL,
+  WORD_MEANINGS_CREDIT,
+} from "@mindfulverse/core/wordByWord";
 // Home (web: apps/web/src/pages/Home.tsx): greeting, streak, the surah journal
 // first, a due follow-up, the verse of the day, a few themes, then the places
 // to go with more time.
@@ -284,6 +289,23 @@ export default function Home() {
           style={{ color: colors.indigo, fontSize: 13.6, lineHeight: 20 }}
         >
           Talal Itani (ClearQuran)
+        </Text>
+      </Text>
+      {/* The authors' condition for using their word meanings. */}
+      <Text
+        variant="muted"
+        style={{ fontSize: 13.6, lineHeight: 20, textAlign: "center" }}
+      >
+        {WORD_MEANINGS_CREDIT}
+        {" · "}
+        <Text
+          accessibilityRole="link"
+          onPress={() =>
+            void Linking.openURL(WORD_MEANINGS_BOOK_URL).catch(() => {})
+          }
+          style={{ color: colors.indigo, fontSize: 13.6, lineHeight: 20 }}
+        >
+          {WORD_MEANINGS_BOOK}
         </Text>
       </Text>
     </Screen>
