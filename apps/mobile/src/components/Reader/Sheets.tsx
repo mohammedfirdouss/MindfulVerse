@@ -1,11 +1,11 @@
 import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import type { Ayah } from "@mindfulverse/core/types";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useState } from "react";
+import { Pressable, View } from "react-native";
 
 import { useShareVerse } from "../../share";
-import { space } from "../../theme";
+import { fonts, space, useTheme } from "../../theme";
 import { ArabicText, Sheet, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
 import {
@@ -27,8 +27,11 @@ export function CommentaryBody({
   text,
   failed,
   onClose,
+  onExpand,
 }: {
   ayah: Ayah;
+  /** Called when the commentary is unfolded, to load it on first need. */
+  onExpand: () => void;
   /** The verse whose Ibn Kathir entry covers this one. */
   source: number;
   /** Closes the sheet before a related verse opens. */
@@ -37,7 +40,17 @@ export function CommentaryBody({
   failed: boolean;
 }) {
   const router = useRouter();
+  const { colors } = useTheme();
+  // Folded until asked for: it is long, and its file is the largest to read.
+  const [open, setOpen] = useState(false);
   const paragraphs = commentaryParagraphs(text);
+
+  function toggle() {
+    if (!open) {
+      onExpand();
+    }
+    setOpen(!open);
+  }
 
   function openVerse(a: Ayah) {
     onClose();
@@ -52,27 +65,48 @@ export function CommentaryBody({
       <VerseBrief ayah={ayah} />
       <RelatedVerses ayah={ayah} onOpenVerse={openVerse} />
       <SectionHeading>{commentaryTitle(ayah, source)}</SectionHeading>
-      {failed ? (
-        <Text variant="muted">
-          The commentary isn’t available offline yet. Try again when you’re
-          connected.
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        onPress={toggle}
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          gap: space.md,
+          justifyContent: "space-between",
+          minHeight: 44,
+        }}
+      >
+        <Text
+          style={{ color: colors.kola, flex: 1, fontFamily: fonts.readMedium }}
+        >
+          {open ? "Hide the commentary" : "Read the full commentary"}
         </Text>
-      ) : text === null ? (
-        <Text variant="muted">Opening the commentary…</Text>
-      ) : (
-        <>
-          {paragraphs.map((p, i) => (
-            <Text key={i} variant="soft">
-              {p}
-            </Text>
-          ))}
-          <Text variant="muted" style={{ fontSize: 13.5, lineHeight: 20 }}>
-            Verse quotations inside the commentary follow its classical English
-            edition, which differs from the ClearQuran translation shown in the
-            reader.
+        <Text style={{ color: colors.kola }}>{open ? "−" : "+"}</Text>
+      </Pressable>
+      {open ? (
+        failed ? (
+          <Text variant="muted">
+            The commentary isn’t available offline yet. Try again when you’re
+            connected.
           </Text>
-        </>
-      )}
+        ) : text === null ? (
+          <Text variant="muted">Opening the commentary…</Text>
+        ) : (
+          <>
+            {paragraphs.map((p, i) => (
+              <Text key={i} variant="soft">
+                {p}
+              </Text>
+            ))}
+            <Text variant="muted" style={{ fontSize: 13.5, lineHeight: 20 }}>
+              Verse quotations inside the commentary follow its classical
+              English edition, which differs from the ClearQuran translation
+              shown in the reader.
+            </Text>
+          </>
+        )
+      ) : null}
     </View>
   );
 }
@@ -90,10 +124,6 @@ export function CommentarySheet({
   onClose: () => void;
 }) {
   const covering = coveringFor(index, ayah);
-  const { request } = tafsir;
-  useEffect(() => {
-    request(ayah.surah);
-  }, [request, ayah.surah]);
   if (covering === null) {
     return null;
   }
@@ -108,6 +138,7 @@ export function CommentarySheet({
         ayah={ayah}
         source={covering}
         onClose={onClose}
+        onExpand={() => tafsir.request(ayah.surah)}
         text={tafsir.textFor(ayah, covering)}
         failed={tafsir.failedFor(ayah.surah)}
       />
@@ -137,7 +168,6 @@ export function VerseSheet({
     if (covering === null) {
       return;
     }
-    tafsir.request(ayah.surah);
     setShowCommentary(true);
   }
 
@@ -167,6 +197,7 @@ export function VerseSheet({
             ayah={ayah}
             source={covering}
             onClose={onClose}
+            onExpand={() => tafsir.request(ayah.surah)}
             text={tafsir.textFor(ayah, covering)}
             failed={tafsir.failedFor(ayah.surah)}
           />

@@ -1,7 +1,7 @@
 import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import { loadSurahTafsir } from "@mindfulverse/core/data";
 import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useId, useState } from "react";
 
 import { coveringAyah } from "../lib/tafsirCovering";
 import RelatedVerses from "./RelatedVerses";
@@ -74,8 +74,11 @@ export function CommentaryBody({
   text,
   failed,
   onNavigate,
+  onExpand,
 }: {
   ayah: Ayah;
+  /** Called when the commentary is unfolded, to fetch it on first need. */
+  onExpand: () => void;
   /** The verse whose Ibn Kathir entry covers this one. */
   source: number;
   /** Called when a related verse is followed, so the sheet can close. */
@@ -84,32 +87,55 @@ export function CommentaryBody({
   text: string | null;
   failed: boolean;
 }) {
+  // Folded until asked for: it is long, and its file is the largest download.
+  const [open, setOpen] = useState(false);
+  const bodyId = useId();
   const paragraphs = commentaryParagraphs(text);
+
+  function toggle() {
+    if (!open) {
+      onExpand();
+    }
+    setOpen(!open);
+  }
+
+  const body = failed ? (
+    <p className="muted">
+      The commentary isn’t available offline yet. Try again when you’re
+      connected.
+    </p>
+  ) : text === null ? (
+    <p className="muted">Opening the commentary…</p>
+  ) : (
+    <div className="tafsir">
+      {paragraphs.map((p, i) => (
+        <p key={i}>{p}</p>
+      ))}
+      <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
+        Verse quotations inside the commentary follow its classical English
+        edition, which differs from the ClearQuran translation shown in the
+        reader.
+      </p>
+    </div>
+  );
+
   return (
     <>
       <VerseWords ayah={ayah} />
       <VerseBrief ayah={ayah} />
       <RelatedVerses ayah={ayah} onNavigate={onNavigate} />
       <h3 className="deeper-heading">{commentaryTitle(ayah, source)}</h3>
-      {failed ? (
-        <p className="muted">
-          The commentary isn’t available offline yet. Try again when you’re
-          connected.
-        </p>
-      ) : text === null ? (
-        <p className="muted">Opening the commentary…</p>
-      ) : (
-        <div className="tafsir">
-          {paragraphs.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
-          <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
-            Verse quotations inside the commentary follow its classical English
-            edition, which differs from the ClearQuran translation shown in the
-            reader.
-          </p>
-        </div>
-      )}
+      <button
+        type="button"
+        className="related-topic"
+        aria-expanded={open}
+        aria-controls={bodyId}
+        onClick={toggle}
+      >
+        <span>{open ? "Hide the commentary" : "Read the full commentary"}</span>
+        <span aria-hidden="true">{open ? "−" : "+"}</span>
+      </button>
+      <div id={bodyId}>{open ? body : null}</div>
     </>
   );
 }
@@ -126,10 +152,6 @@ export function CommentarySheet({
   onClose: () => void;
 }) {
   const covering = coveringFor(index, ayah);
-  const { request } = tafsir;
-  useEffect(() => {
-    request(ayah.surah);
-  }, [request, ayah.surah]);
   if (covering === null) {
     return null;
   }
@@ -143,6 +165,7 @@ export function CommentarySheet({
         ayah={ayah}
         source={covering}
         onNavigate={onClose}
+        onExpand={() => tafsir.request(ayah.surah)}
         text={tafsir.textFor(ayah, covering)}
         failed={tafsir.failedFor(ayah.surah)}
       />
