@@ -79,6 +79,8 @@ The Qur'anic datasets come from the [Quranic Universal Library](https://qul.tart
 
 The English translation is [ClearQuran](https://www.clearquran.com) by Talal Itani, used under the CC BY-NC-ND 4.0 licence. The Arabic typeface is the KFGQPC Uthmanic Hafs script from the King Fahd Glorious Qur'an Printing Complex in Madinah.
 
+The English word meanings are from [The Glorious Qur'an Word-for-Word Translation](https://amzn.to/3NVyXoB) by Dr. Shehnaz Shaikh and Ms. Kausar Khatri. They are shown exactly as the authors wrote them, with their kind permission for this free app. That permission is for MindfulVerse only, so please ask the authors before reusing them.
+
 ## Accounts and sync
 
 You don't need to sign in. The whole app works signed out, offline, on your device. An account only backs up your journal and progress, so they follow you to another device. [InsForge](https://insforge.dev) provides sign in and the database. There is no other server.

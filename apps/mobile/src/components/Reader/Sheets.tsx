@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 import { useShareVerse } from "../../share";
-import { space, useTheme } from "../../theme";
+import { space } from "../../theme";
 import { ArabicText, Sheet, Text } from "../../ui";
 import { ActionLink } from "./ActionLink";
 import {
@@ -17,6 +17,7 @@ import {
 import type { TafsirIndex } from "./commentary";
 import { RelatedVerses, SectionHeading } from "./RelatedVerses";
 import type { Tafsir } from "./useTafsir";
+import { VerseWords } from "./VerseWords";
 
 /** Web's CommentaryBody: the verse, then Ibn Kathir's paragraphs. */
 export function CommentaryBody({
@@ -34,7 +35,6 @@ export function CommentaryBody({
   text: string | null;
   failed: boolean;
 }) {
-  const { colors } = useTheme();
   const router = useRouter();
   const paragraphs = commentaryParagraphs(text);
 
@@ -47,16 +47,7 @@ export function CommentaryBody({
   }
   return (
     <View style={{ gap: space.md }}>
-      <ArabicText
-        scale={0.74}
-        style={{
-          borderBottomColor: colors.line,
-          borderBottomWidth: 1,
-          paddingBottom: space.md,
-        }}
-      >
-        {ayah.arabic}
-      </ArabicText>
+      <VerseWords ayah={ayah} />
       <RelatedVerses ayah={ayah} onOpenVerse={openVerse} />
       <SectionHeading>{commentaryTitle(ayah, source)}</SectionHeading>
       {failed ? (

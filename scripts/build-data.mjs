@@ -12,6 +12,22 @@ const QUL = path.join(ROOT, "QUL copy");
 const OUT = path.join(ROOT, "apps", "web", "public", "data");
 const TOPIC_MAX_VERSES = 15;
 
+// Word by word: the verses where one meaning covers two Arabic words, or one
+// Arabic word carries two meanings. Keyed by verse, then by the position of
+// the cell: [Arabic words it spans, meanings it holds]. Every other word pairs
+// one to one. The meanings themselves are never edited.
+const WORD_GROUPS = {
+  "13:37": { 7: [2, 1] },
+  "15:7": { 0: [1, 2] },
+  "27:20": { 3: [1, 2] },
+  "2:181": { 2: [2, 1] },
+  "36:22": { 0: [1, 2] },
+  "37:130": { 2: [2, 1] },
+  "8:6": { 3: [2, 1] },
+};
+// Marks that sit between words in the Arabic text and are not words.
+const NOT_A_WORD = new Set(["۞"]);
+
 /**
  * Resolve the "directory-named-file" quirk: some sources are named e.g.
  * `foo.json` but are actually a directory containing `foo.json` inside.
@@ -310,6 +326,47 @@ function main() {
     a.name.localeCompare(b.name)
   );
   fs.writeFileSync(path.join(OUT, "topics.json"), JSON.stringify(topics));
+
+  // ---- words/{surah}.json ----
+  // English word meanings by Dr. Shehnaz Shaikh and Ms. Kausar Khatri, as
+  // published on quranwbw.com, used with the authors' permission and copied
+  // exactly. A cell is a plain meaning for one Arabic word, or
+  // [Arabic words spanned, ...meanings] for the few that do not pair 1:1.
+  const wordSource = readJSON(
+    path.join(QUL, "Word by word", "quranwbw-english.json")
+  );
+  ensureDir(path.join(OUT, "words"));
+  let wordCount = 0;
+  for (const n of surahNumbers) {
+    const out = {};
+    for (const a of bySurah.get(n)) {
+      const meanings = wordSource[n]?.[a.ayah]?.[0];
+      if (!Array.isArray(meanings)) {
+        throw new TypeError(`No word meanings for ${a.verseKey}`);
+      }
+      const arabic = a.arabic.split(/\s+/u).filter((w) => !NOT_A_WORD.has(w));
+      const groups = WORD_GROUPS[a.verseKey] ?? {};
+      const cells = [];
+      let used = 0;
+      let spanned = 0;
+      while (used < meanings.length) {
+        const [span, take] = groups[cells.length] ?? [1, 1];
+        const mine = meanings.slice(used, used + take);
+        cells.push(span === 1 && take === 1 ? mine[0] : [span, ...mine]);
+        used += take;
+        spanned += span;
+      }
+      if (spanned !== arabic.length) {
+        throw new Error(
+          `Word meanings do not line up with the Arabic in ${a.verseKey}`
+        );
+      }
+      wordCount += meanings.length;
+      out[String(a.ayah)] = cells;
+    }
+    fs.writeFileSync(path.join(OUT, "words", `${n}.json`), JSON.stringify(out));
+  }
+  console.log(`word meanings written: ${wordCount}`);
 
   // ---- tafsir-index.json ----
   // Which ayahs carry a direct tafsir entry, per surah. Lets the reader show

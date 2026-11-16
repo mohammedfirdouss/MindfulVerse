@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { coveringAyah } from "../lib/tafsirCovering";
 import RelatedVerses from "./RelatedVerses";
 import Sheet from "./Sheet";
+import VerseWords from "./VerseWords";
 
 /** Per-surah list of ayahs that carry a direct Ibn Kathir entry. */
 export type TafsirIndex = Record<string, number[]>;
@@ -85,20 +86,7 @@ export function CommentaryBody({
   const paragraphs = commentaryParagraphs(text);
   return (
     <>
-      <p
-        className="arabic"
-        lang="ar"
-        dir="rtl"
-        style={{
-          borderBottom: "1px solid var(--line)",
-          fontSize: "1.4rem",
-          lineHeight: 1.9,
-          margin: "0 0 14px",
-          paddingBottom: 14,
-        }}
-      >
-        {ayah.arabic}
-      </p>
+      <VerseWords ayah={ayah} />
       <RelatedVerses ayah={ayah} onNavigate={onNavigate} />
       <h3 className="deeper-heading">{commentaryTitle(ayah, source)}</h3>
       {failed ? (

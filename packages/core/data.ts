@@ -10,6 +10,7 @@ import type {
   SurahInfo,
   SurahMeta,
   SurahTafsir,
+  SurahWords,
   Theme,
   TadabburSession,
   EmotionMap,
@@ -103,6 +104,10 @@ export const loadEmotions = () => getJson<EmotionMap>("emotions.json");
 
 /** Juz / hizb / quarter / sajdah boundaries (a few KB). */
 export const loadDivisions = () => getJson<Divisions>("divisions.json");
+
+/** Word meanings for one surah (up to ~80KB), read when a verse is opened. */
+export const loadSurahWords = (surah: number) =>
+  getJson<SurahWords>(`words/${surah}.json`);
 
 /** Topics and the verses under each (~80KB), read when a verse is opened. */
 export const loadVerseTopics = () => getJson<VerseTopic[]>("topics.json");

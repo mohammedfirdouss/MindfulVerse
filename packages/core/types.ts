@@ -16,6 +16,15 @@ export interface Ayah {
   translation: string; // English (Talal Itani / ClearQuran, CC BY-NC-ND 4.0)
 }
 
+/** One Arabic word's English meaning, or [Arabic words spanned, ...meanings]
+ *  for the few cells that do not pair one to one. */
+export type WordCell = string | [number, ...string[]];
+
+/** Word meanings per ayah. Served from /data/words/{surah}.json, keyed by
+ *  ayah number (string). By Dr. Shehnaz Shaikh and Ms. Kausar Khatri, used
+ *  with their permission and never edited. */
+export type SurahWords = Record<string, WordCell[]>;
+
 /** Verses the Qur'an gathers under one topic. Served from /data/topics.json.
  *  From the Quranic Arabic Corpus topic index (corpus.quran.com). */
 export interface VerseTopic {

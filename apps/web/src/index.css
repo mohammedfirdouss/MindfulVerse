@@ -502,6 +502,55 @@ p.eyebrow + h1 {
   margin: 1.4em 0 0.5em;
 }
 
+/* --- Deeper look: the verse word by word --- */
+.verse-words,
+.verse-words-plain {
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.verse-words-plain {
+  font-size: 1.4rem;
+  line-height: 1.9;
+}
+.wbw {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.wbw-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  text-align: center;
+}
+.wbw-ar {
+  font-family: var(--font-arabic);
+  font-size: 1.55rem;
+  line-height: 1.9;
+  color: var(--indigo-deep);
+}
+.wbw-en {
+  max-width: 9.5rem;
+  font-family: var(--font-read);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+.wbw-credit {
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+}
+.wbw-credit a {
+  display: block;
+  width: fit-content;
+  color: var(--indigo);
+}
+
 /* --- Deeper look: section headings and the related verses --- */
 .deeper-heading {
   margin: 0 0 10px;

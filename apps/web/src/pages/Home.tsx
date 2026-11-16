@@ -16,6 +16,11 @@ import {
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import { TRANSLATION_SOURCE_URL } from "@mindfulverse/core/translation";
 import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
+import {
+  WORD_MEANINGS_BOOK,
+  WORD_MEANINGS_BOOK_URL,
+  WORD_MEANINGS_CREDIT,
+} from "@mindfulverse/core/wordByWord";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -440,6 +445,18 @@ export default function Home() {
           </a>
           {" · "}
           <Link to="/developers">For developers</Link>
+        </p>
+        {/* The authors' condition for using their word meanings. */}
+        <p className="muted home-attribution">
+          {WORD_MEANINGS_CREDIT}
+          {" · "}
+          <a
+            href={WORD_MEANINGS_BOOK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {WORD_MEANINGS_BOOK}
+          </a>
         </p>
       </footer>
     </div>
