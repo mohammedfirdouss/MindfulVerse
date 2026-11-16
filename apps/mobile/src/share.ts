@@ -1,4 +1,6 @@
 import { track } from "@mindfulverse/core/analytics";
+import { loadSurahs } from "@mindfulverse/core/data";
+import { surahNameInTime, verseShareText } from "@mindfulverse/core/shareText";
 import type { Ayah } from "@mindfulverse/core/types";
 // Verse sharing for every screen (Check-in, Reader, Tadabbur): web's
 // lib/share.ts on the native share sheet. Same text, the same `share_verse`
@@ -13,14 +15,6 @@ import type { Ayah } from "@mindfulverse/core/types";
 // There is no clipboard fallback (no expo-clipboard), so "copied" never shows.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Platform, Share } from "react-native";
-
-/** Web's lib/share.ts verseText, verbatim, so a verse shared from either app
- *  reads the same in WhatsApp. */
-export function verseShareText(
-  a: Pick<Ayah, "arabic" | "translation" | "surah" | "ayah">
-): string {
-  return `${a.arabic}\n\n“${a.translation}”\n\n— Qur’an ${a.surah}:${a.ayah}\n\nvia MindfulVerse`;
-}
 
 export type ShareOutcome = "shared" | "unconfirmed" | "failed";
 
@@ -41,7 +35,8 @@ export async function shareVerse(
 ): Promise<ShareOutcome> {
   track({ type: "share_verse", verseKey: ayah.verseKey, where });
   try {
-    const r = await Share.share({ message: verseShareText(ayah) });
+    const name = await surahNameInTime(ayah.surah, loadSurahs());
+    const r = await Share.share({ message: verseShareText(ayah, name) });
     return shareOutcome(r.action, Platform.OS);
   } catch {
     return "failed";

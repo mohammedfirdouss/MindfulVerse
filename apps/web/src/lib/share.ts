@@ -1,11 +1,9 @@
 // Share a verse — the v0 distribution loop. Uses the Web Share API where
 // available (mobile, straight into WhatsApp), falls back to clipboard.
 import { track } from "@mindfulverse/core/analytics";
+import { loadSurahs } from "@mindfulverse/core/data";
+import { surahNameInTime, verseShareText } from "@mindfulverse/core/shareText";
 import type { Ayah } from "@mindfulverse/core/types";
-
-function verseText(ayah: Ayah): string {
-  return `${ayah.arabic}\n\n“${ayah.translation}”\n\n— Qur’an ${ayah.surah}:${ayah.ayah}\n\nvia MindfulVerse`;
-}
 
 /** Returns "shared" | "copied" | "cancelled" | "failed" so the caller can
  *  confirm in the UI — "cancelled" (share sheet dismissed) confirms nothing. */
@@ -13,7 +11,10 @@ export async function shareVerse(
   ayah: Ayah,
   where: string
 ): Promise<"shared" | "copied" | "cancelled" | "failed"> {
-  const text = verseText(ayah);
+  const text = verseShareText(
+    ayah,
+    await surahNameInTime(ayah.surah, loadSurahs())
+  );
   track({ type: "share_verse", verseKey: ayah.verseKey, where });
   try {
     if (navigator.share) {

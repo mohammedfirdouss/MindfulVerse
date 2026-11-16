@@ -1,4 +1,4 @@
-// The share text (web's lib/share.ts verseText) and the feedback rule.
+// The share sheet's feedback rule (the text itself is core's shareText).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rn = vi.hoisted(() => ({
@@ -26,7 +26,9 @@ vi.mock(import("@mindfulverse/core/analytics"), () => ({
   track: (e: unknown) => rn.tracked.push(e),
 }));
 
-import { shareOutcome, shareVerse, verseShareText } from "./share";
+import { verseShareText } from "@mindfulverse/core/shareText";
+
+import { shareOutcome, shareVerse } from "./share";
 
 const ayah = {
   arabic: "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
@@ -39,14 +41,6 @@ const ayah = {
 beforeEach(() => {
   rn.os = "ios";
   rn.tracked.length = 0;
-});
-
-describe(verseShareText, () => {
-  it("matches web's shared-verse format", () => {
-    expect(verseShareText(ayah)).toBe(
-      "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا\n\n“So with hardship comes ease.”\n\n— Qur’an 94:5\n\nvia MindfulVerse"
-    );
-  });
 });
 
 describe(shareOutcome, () => {

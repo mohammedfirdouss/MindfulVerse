@@ -23,6 +23,7 @@
     "./readingPrefs": "./readingPrefs.ts",
     "./relatedVerses": "./relatedVerses.ts",
     "./rhythm": "./rhythm.ts",
+    "./shareText": "./shareText.ts",
     "./surahNames": "./surahNames.ts",
     "./sync/auth": "./sync/auth.tsx",
     "./sync/engine": "./sync/engine.ts",
