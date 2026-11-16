@@ -24,7 +24,10 @@
     "render:explainer:silent": "remotion render src/index.ts ExplainerSilent out/explainer-silent.mp4",
     "capture:deeper": "node scripts/capture-deeper.mjs",
     "render:deeper": "remotion render src/index.ts DeeperLook out/deeper-look.mp4",
-    "render:deeper:silent": "remotion render src/index.ts DeeperLookSilent out/deeper-look-silent.mp4"
+    "render:deeper:silent": "remotion render src/index.ts DeeperLookSilent out/deeper-look-silent.mp4",
+    "capture:words": "node scripts/capture-words.mjs",
+    "render:words": "remotion render src/index.ts WordByWord out/word-by-word.mp4",
+    "render:words:silent": "remotion render src/index.ts WordByWordSilent out/word-by-word-silent.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.534",
