@@ -16,6 +16,7 @@ import {
   StartACircle,
 } from "./StartACircle";
 import { WHATS_NEW_DURATION, WHATS_NEW_FPS, WhatsNew } from "./WhatsNew";
+import { WORDS_DURATION, WORDS_FPS, WordByWord } from "./WordByWord";
 
 export function Root() {
   return (
@@ -143,6 +144,26 @@ export function Root() {
         component={DeeperLook}
         durationInFrames={DEEPER_DURATION}
         fps={DEEPER_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: false }}
+      />
+      {/* Word by word, on the longest verse. */}
+      <Composition
+        id="WordByWord"
+        component={WordByWord}
+        durationInFrames={WORDS_DURATION}
+        fps={WORDS_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: true }}
+      />
+      {/* For adding a sound from TikTok, Reels or CapCut when posting. */}
+      <Composition
+        id="WordByWordSilent"
+        component={WordByWord}
+        durationInFrames={WORDS_DURATION}
+        fps={WORDS_FPS}
         width={1080}
         height={1920}
         defaultProps={{ withNasheed: false }}
