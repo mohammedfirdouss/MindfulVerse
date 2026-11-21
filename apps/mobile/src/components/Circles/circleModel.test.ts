@@ -203,11 +203,12 @@ describe(nextStep, () => {
 
 describe(readTogetherLine, () => {
   it("lists finished surahs, not the current one", () => {
+    const week = 7 * 24 * 60 * 60 * 1000;
     const history = [
-      { endedAt: 2, startedAt: 1, surah: 1 },
-      { endedAt: 4, startedAt: 3, surah: 18 },
-      { endedAt: 6, startedAt: 5, surah: 103 },
-      { endedAt: null, startedAt: 7, surah: 18 },
+      { endedAt: week, startedAt: 0, surah: 1 },
+      { endedAt: 2 * week, startedAt: week, surah: 18 },
+      { endedAt: 3 * week, startedAt: 2 * week, surah: 103 },
+      { endedAt: null, startedAt: 3 * week, surah: 18 },
     ];
     expect(readTogetherLine(history, 18, surahs)).toBe(
       "Read together: Al-Fatihah, Al-'Asr"

@@ -139,6 +139,37 @@ describe("weekly portion", () => {
   });
 });
 
+describe("next week's verses never skip any", () => {
+  const passages = [
+    { from: 1, theme: "Opening", to: 6 },
+    { from: 7, theme: "The cave", to: 12 },
+    { from: 20, theme: "Later", to: 25 },
+  ];
+
+  it("finishes a passage the portion stopped inside", () => {
+    expect(
+      nextPassage(passages, { surah: 18, verse: 10, verseEnd: null })
+    ).toStrictEqual({ from: 11, theme: "The cave", to: 12 });
+  });
+
+  it("covers a gap in the passage data", () => {
+    expect(
+      nextPassage(passages, { surah: 18, verse: 7, verseEnd: 12 })
+    ).toStrictEqual({ from: 13, theme: "", to: 19 });
+  });
+
+  it("runs to the end of the surah when its length is known", () => {
+    const end = { surah: 18, verse: 20, verseEnd: 25 };
+    expect(nextPassage(passages, end, 30)).toStrictEqual({
+      from: 26,
+      theme: "",
+      to: 30,
+    });
+    expect(nextPassage(passages, end)).toBeNull();
+    expect(nextPassage(passages, { ...end, verseEnd: 30 }, 30)).toBeNull();
+  });
+});
+
 describe("passages", () => {
   const themes = [
     { ayahFrom: 1, ayahTo: 6, id: 1, surah: 18, theme: "Opening" },
@@ -167,9 +198,10 @@ describe("passages", () => {
     expect(
       nextPassage(passages, { ...week, verse: null, verseEnd: null })
     ).toBeNull();
+    // A focus verse inside a passage moves on to the rest of that passage.
     expect(
-      nextPassage(passages, { ...week, verse: 4, verseEnd: null })?.from
-    ).toBe(7);
+      nextPassage(passages, { ...week, verse: 4, verseEnd: null })
+    ).toMatchObject({ from: 5, to: 6 });
   });
 
   it("labels the portion", () => {
@@ -328,6 +360,18 @@ describe("surahs read together", () => {
     }));
     expect(history).toHaveLength(3);
     expect(finishedSurahs(history)).toStrictEqual([94, 18]);
+  });
+
+  it("leaves out a surah the circle moved away from within three days", () => {
+    const day = 24 * 60 * 60 * 1000;
+    expect(
+      finishedSurahs([
+        { endedAt: 5000, startedAt: 0, surah: 18 },
+        { endedAt: 2 * day, startedAt: 5000, surah: 36 },
+        { endedAt: 10 * day, startedAt: 2 * day, surah: 67 },
+        { endedAt: null, startedAt: 10 * day, surah: 94 },
+      ])
+    ).toStrictEqual([67]);
   });
 
   it("is empty on errors or a bad code", async () => {

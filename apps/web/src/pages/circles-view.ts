@@ -70,7 +70,7 @@ export function portionValue(p: PortionOf): string {
 export function passageOptionLabel(p: Passage): string {
   const range =
     p.from === p.to ? `Verse ${p.from}` : `Verses ${p.from} to ${p.to}`;
-  return `${range}: ${p.theme}`;
+  return p.theme ? `${range}: ${p.theme}` : range;
 }
 
 const PORTION = /^(\d{1,3})(?:-(\d{1,3}))?$/u;

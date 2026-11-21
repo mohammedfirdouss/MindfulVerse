@@ -99,7 +99,11 @@ export function OwnedCircle({
   const [error, setError] = useState<string | null>(null);
   const [moving, setMoving] = useState(false);
   const onHome = joinedCodes[0] === circle.code;
-  const { next, atLast } = nextStep(passages.get(circle.surah) ?? [], circle);
+  const { next, atLast } = nextStep(
+    passages.get(circle.surah) ?? [],
+    circle,
+    surahs.get(circle.surah)?.ayahCount
+  );
 
   async function moveOn(p: Passage) {
     setMoving(true);

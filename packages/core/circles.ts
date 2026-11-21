@@ -841,12 +841,19 @@ export async function fetchCircleHistory(
   }
 }
 
-/** Surahs the circle has finished, oldest first, each once. */
+/** A surah the circle moved away from sooner than this was a correction,
+ *  not a surah read together. */
+export const MIN_READ_TOGETHER_MS = 3 * 24 * 60 * 60 * 1000;
+
+/** Surahs the circle has finished, oldest first, each once. A surah left
+ *  within three days doesn't count, so fixing a wrong pick isn't listed. */
 export function finishedSurahs(history: CircleHistoryEntry[]): number[] {
   const seen = new Set<number>();
   const out: number[] = [];
   for (const h of history) {
-    if (h.endedAt !== null && !seen.has(h.surah)) {
+    const lasted =
+      h.endedAt !== null && h.endedAt - h.startedAt >= MIN_READ_TOGETHER_MS;
+    if (lasted && !seen.has(h.surah)) {
       seen.add(h.surah);
       out.push(h.surah);
     }

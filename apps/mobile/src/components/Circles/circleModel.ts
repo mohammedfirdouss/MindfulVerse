@@ -118,7 +118,7 @@ export function passageValue(p: Passage): string {
 export function passageOptionLabel(p: Passage): string {
   const range =
     p.from === p.to ? `Verse ${p.from}` : `Verses ${p.from} to ${p.to}`;
-  return `${range}: ${p.theme}`;
+  return p.theme ? `${range}: ${p.theme}` : range;
 }
 
 export interface PortionChoice {
@@ -193,9 +193,10 @@ export function checkPortion(
  *  is the last one. Neither for a whole-surah circle. */
 export function nextStep(
   passages: Passage[],
-  circle: Pick<Circle, "surah" | "verse"> & { verseEnd: number | null }
+  circle: Pick<Circle, "surah" | "verse"> & { verseEnd: number | null },
+  verseCount?: number
 ): { next: Passage | null; atLast: boolean } {
-  const next = nextPassage(passages, circle);
+  const next = nextPassage(passages, circle, verseCount);
   return {
     atLast: circle.verse !== null && next === null && passages.length > 0,
     next,

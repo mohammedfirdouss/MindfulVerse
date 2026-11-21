@@ -345,7 +345,11 @@ function OwnedCircle({
   const [error, setError] = useState<string | null>(null);
   const surahName = nameOf(surahs, circle.surah);
   const surahPassageList = passages.get(circle.surah) ?? [];
-  const next = nextPassage(surahPassageList, circle);
+  const next = nextPassage(
+    surahPassageList,
+    circle,
+    surahs.get(circle.surah)?.ayahCount
+  );
   const atLastPassage =
     circle.verse !== null && next === null && surahPassageList.length > 0;
   const onHome = joinedCodes[0] === circle.code;

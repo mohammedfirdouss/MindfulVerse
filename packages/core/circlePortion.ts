@@ -55,18 +55,30 @@ export function currentPassage(
   );
 }
 
-/** The passage after this week's: after the current one when it matches a
- *  passage, else the first that starts after the portion. Null at the end of
- *  the surah or when the circle reads the whole surah. */
+/** Next week's verses: they always start right after this week's, so no
+ *  verse is skipped. That's the next passage when one starts there; the rest
+ *  of a passage the portion stopped inside; or, where the passage data has a
+ *  gap, the verses up to the next passage (or the end of the surah), with no
+ *  theme. Null at the end of the surah or for a whole-surah circle. */
 export function nextPassage(
   passages: Passage[],
-  p: PortionLike
+  p: PortionLike,
+  verseCount?: number
 ): Passage | null {
   if (p.verse === null) {
     return null;
   }
-  const last = p.verseEnd ?? p.verse;
-  return passages.find((x) => x.from > last) ?? null;
+  const start = (p.verseEnd ?? p.verse) + 1;
+  const within = passages.find((x) => x.from <= start && x.to >= start);
+  if (within) {
+    return within.from === start ? within : { ...within, from: start };
+  }
+  const after = passages.find((x) => x.from > start);
+  const end = after ? after.from - 1 : verseCount;
+  if (end === undefined || end < start) {
+    return after ?? null;
+  }
+  return { from: start, theme: "", to: end };
 }
 
 /** The same three questions the surah page asks, for talking it through
