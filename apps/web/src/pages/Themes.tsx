@@ -134,7 +134,10 @@ export default function Themes() {
         </p>
       ) : (
         <>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <ul
+            className="wide-grid"
+            style={{ listStyle: "none", margin: 0, padding: 0 }}
+          >
             {shown.map((g) => (
               <li
                 key={g.theme}

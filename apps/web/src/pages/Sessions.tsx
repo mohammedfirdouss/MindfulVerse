@@ -67,7 +67,10 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
           No surah matches that.
         </p>
       ) : (
-        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        <ul
+          className="wide-grid"
+          style={{ listStyle: "none", margin: 0, padding: 0 }}
+        >
           {visible.map((s) => {
             const progress = progressBySurah[String(s.number)];
             return (

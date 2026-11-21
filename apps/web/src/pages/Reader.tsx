@@ -148,7 +148,7 @@ export default function Reader() {
           {filtered.length === 0 ? (
             <p className="muted">No surahs match “{query}”.</p>
           ) : (
-            <ul className="index-list">
+            <ul className="index-list wide-grid">
               {filtered.map((s) => {
                 const place = revelationPlace(s.number);
                 const arabic = arabicSurahName(s.number);
@@ -196,7 +196,7 @@ export default function Reader() {
       )}
 
       {tab === "juz" && !juzFailed && juzList.length > 0 && (
-        <ul className="index-list">
+        <ul className="index-list wide-grid">
           {juzList.map((j) => {
             const [fs, fa] = j.first.split(":").map(Number);
             const [ls, la] = j.last.split(":").map(Number);
