@@ -9,7 +9,9 @@ vi.stubGlobal("localStorage", {
 
 import { getInstallId, localDay, recordActiveDay } from "./activeDays";
 import type { ActiveDayRow } from "./activeDays";
-import { joinCircle } from "./circles";
+import { joinCircle, setCircleMemberCall } from "./circles";
+
+setCircleMemberCall(async () => null);
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
@@ -76,6 +78,7 @@ describe(recordActiveDay, () => {
       surah: 18,
       updatedAt: 0,
       verse: 10,
+      verseEnd: null,
     });
     const send = vi.fn(async (_row: ActiveDayRow) => null);
     await recordActiveDay("web", morning, send);

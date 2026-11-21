@@ -92,7 +92,13 @@ function CircleForm({
   // verse, say) as its own choice, so editing never drops it silently.
   const keepsOwn =
     values.portion !== "" &&
-    !surahPassageList.some((p) => portionValue({ verse: p.from, verseEnd: p.to === p.from ? null : p.to }) === values.portion);
+    !surahPassageList.some(
+      (p) =>
+        portionValue({
+          verse: p.from,
+          verseEnd: p.to === p.from ? null : p.to,
+        }) === values.portion
+    );
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -247,16 +253,90 @@ function ShareActions({
   );
 }
 
+/** What a circle does together: this week's portion, how many are in it,
+ *  what they've read, questions for when they meet, and a QR code to join. */
+function CircleTogether({
+  circle,
+  surahs,
+  passages,
+  showCount,
+}: {
+  circle: Circle;
+  surahs: SurahMap;
+  passages: PassageMap;
+  showCount: boolean;
+}) {
+  const [showQr, setShowQr] = useState(false);
+  const [finished, setFinished] = useState<number[]>([]);
+  const passage = currentPassage(passages.get(circle.surah) ?? [], circle);
+  const url = circleShareUrl(window.location.origin, circle.code);
+
+  useEffect(() => {
+    let active = true;
+    void fetchCircleHistory(circle.code).then((history) => {
+      if (active) {
+        setFinished(finishedSurahs(history).filter((n) => n !== circle.surah));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [circle.code, circle.surah]);
+
+  return (
+    <div className="circle-together">
+      {passage && <p className="soft circle-theme">{passage.theme}</p>}
+      {showCount && <CircleCount code={circle.code} name={circle.name} />}
+      {finished.length > 0 && (
+        <p className="circle-count">
+          Read together: {finished.map((n) => nameOf(surahs, n)).join(", ")}
+        </p>
+      )}
+      <details className="circle-discuss">
+        <summary>Questions for when you meet</summary>
+        <ol>
+          {DISCUSSION_QUESTIONS.map((q) => (
+            <li key={q}>{q}</li>
+          ))}
+        </ol>
+        <Link to={circleStartPath(circle)} className="circle-quiet">
+          Read and reflect on your own first
+        </Link>
+      </details>
+      <div className="circle-actions">
+        <button
+          type="button"
+          className="circle-quiet"
+          aria-expanded={showQr}
+          onClick={() => setShowQr((v) => !v)}
+        >
+          {showQr ? "Hide QR code" : "Show QR code"}
+        </button>
+      </div>
+      {showQr && (
+        <figure className="circle-qr-figure">
+          <CircleQr url={url} label={`QR code to join ${circle.name}`} />
+          <figcaption className="soft">
+            Scan with a phone camera to join {circle.name}.
+          </figcaption>
+        </figure>
+      )}
+    </div>
+  );
+}
+
 function OwnedCircle({
   circle,
   surahs,
-  joinedCode,
+  passages,
+  joinedCodes,
   onSaved,
   onDeleted,
 }: {
   circle: Circle;
   surahs: SurahMap;
-  joinedCode: string | null;
+  passages: PassageMap;
+  joinedCodes: string[];
   onSaved: (circle: Circle) => void;
   onDeleted: (code: string) => void;
 }) {
@@ -264,6 +344,11 @@ function OwnedCircle({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const surahName = nameOf(surahs, circle.surah);
+  const surahPassageList = passages.get(circle.surah) ?? [];
+  const next = nextPassage(surahPassageList, circle);
+  const atLastPassage =
+    circle.verse !== null && next === null && surahPassageList.length > 0;
+  const onHome = joinedCodes[0] === circle.code;
 
   async function save(draft: CircleDraft): Promise<string | null> {
     const result = await updateCircle(circle.code, draft);
@@ -273,6 +358,25 @@ function OwnedCircle({
     onSaved(result.value);
     setMode("view");
     return null;
+  }
+
+  async function moveOn(p: Passage) {
+    setBusy(true);
+    setError(null);
+    const result = await updateCircle(circle.code, {
+      verse: p.from,
+      verseEnd: p.to === p.from ? null : p.to,
+    });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error.message);
+      return;
+    }
+    onSaved(result.value);
+  }
+
+  function showOnHome() {
+    setError(joinCircle(circle) ? null : FULL_NOTE);
   }
 
   async function remove() {
@@ -294,6 +398,7 @@ function OwnedCircle({
         <CircleForm
           initial={circle}
           surahs={surahs}
+          passages={passages}
           submitLabel="Save changes"
           onSubmit={save}
           onCancel={() => setMode("view")}
@@ -308,7 +413,30 @@ function OwnedCircle({
       <p className="soft circle-item-line">
         {circleSummary(circle, surahName)}
       </p>
-      {joinedCode !== circle.code && <CircleCount code={circle.code} />}
+      <CircleTogether
+        circle={circle}
+        surahs={surahs}
+        passages={passages}
+        showCount={!joinedCodes.includes(circle.code)}
+      />
+      {next && (
+        <div className="circle-actions">
+          <button
+            type="button"
+            className="btn secondary"
+            disabled={busy}
+            onClick={() => void moveOn(next)}
+          >
+            {busy ? "Moving…" : "Move to next week’s verses"}
+          </button>
+          <span className="soft circle-next">{passageOptionLabel(next)}</span>
+        </div>
+      )}
+      {atLastPassage && (
+        <p className="soft circle-next">
+          That’s the last passage. Choose the next surah with Edit.
+        </p>
+      )}
       <ShareActions circle={circle} surahName={surahName} />
       {mode === "confirm-delete" ? (
         <div className="notice-wash stack">
@@ -341,12 +469,8 @@ function OwnedCircle({
           >
             Edit
           </button>
-          {joinedCode !== circle.code && (
-            <button
-              type="button"
-              className="circle-quiet"
-              onClick={() => joinCircle(circle)}
-            >
+          {!onHome && (
+            <button type="button" className="circle-quiet" onClick={showOnHome}>
               Show on Home
             </button>
           )}
@@ -368,42 +492,69 @@ function OwnedCircle({
   );
 }
 
-function JoinedCircle({
-  circle,
+function JoinedCircles({
+  circles,
   surahs,
+  passages,
 }: {
-  circle: Circle;
+  circles: Circle[];
   surahs: SurahMap;
+  passages: PassageMap;
 }) {
-  const surahName = nameOf(surahs, circle.surah);
   return (
-    <section aria-labelledby="circles-joined" className="card circle-joined">
-      <p className="eyebrow">Your circle</p>
-      <h2 id="circles-joined" className="circle-item-name">
-        {circle.name}
+    <section aria-labelledby="circles-joined" className="stack">
+      <h2 id="circles-joined" className="circles-heading circles-heading-first">
+        {circles.length === 1 ? "Your circle" : "Your circles"}
       </h2>
-      <p className="soft circle-item-line">
-        {circleSummary(circle, surahName)}
-      </p>
-      <CircleCount code={circle.code} />
-      <div className="circle-actions">
-        <Link to="/" className="btn secondary">
-          Open on Home
-        </Link>
-        <button type="button" className="circle-quiet" onClick={leaveCircle}>
-          Leave circle
-        </button>
-      </div>
+      {circles.map((circle, i) => (
+        <article key={circle.code} className="card circle-joined">
+          {i === 0 && circles.length > 1 && <p className="eyebrow">On Home</p>}
+          <h3 className="circle-item-name">{circle.name}</h3>
+          <p className="soft circle-item-line">
+            {circleSummary(circle, nameOf(surahs, circle.surah))}
+          </p>
+          <CircleTogether
+            circle={circle}
+            surahs={surahs}
+            passages={passages}
+            showCount
+          />
+          <div className="circle-actions">
+            {i === 0 ? (
+              <Link to="/" className="btn secondary">
+                Open on Home
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => joinCircle(circle)}
+              >
+                Show on Home
+              </button>
+            )}
+            <button
+              type="button"
+              className="circle-quiet"
+              onClick={() => leaveCircle(circle.code)}
+            >
+              Leave circle
+            </button>
+          </div>
+        </article>
+      ))}
     </section>
   );
 }
 
 function MyCircles({
   surahs,
-  joinedCode,
+  passages,
+  joinedCodes,
 }: {
   surahs: SurahMap;
-  joinedCode: string | null;
+  passages: PassageMap;
+  joinedCodes: string[];
 }) {
   const [circles, setCircles] = useState<Circle[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -428,6 +579,9 @@ function MyCircles({
   }, []);
 
   async function create(draft: CircleDraft): Promise<string | null> {
+    if (circlesFull()) {
+      return FULL_NOTE;
+    }
     const result = await createCircle(draft);
     if (!result.ok) {
       return result.error.message;
@@ -462,14 +616,20 @@ function MyCircles({
         {created ? (
           <div className="notice-wash stack" role="status">
             <p>
-              <strong>{created.name}</strong> is ready. Anyone with the link can
-              join.
+              <strong>{created.name}</strong> is ready. Anyone with the link or
+              the QR code can join.
             </p>
             <ShareActions
               circle={created}
               surahName={nameOf(surahs, created.surah)}
               showLink
             />
+            <figure className="circle-qr-figure">
+              <CircleQr
+                url={circleShareUrl(window.location.origin, created.code)}
+                label={`QR code to join ${created.name}`}
+              />
+            </figure>
             <button
               type="button"
               className="circle-quiet"
@@ -483,6 +643,7 @@ function MyCircles({
             key={formKey}
             initial={null}
             surahs={surahs}
+            passages={passages}
             submitLabel="Start circle"
             onSubmit={create}
           />
@@ -491,7 +652,7 @@ function MyCircles({
 
       <section aria-labelledby="circles-mine" className="stack">
         <h2 id="circles-mine" className="circles-heading">
-          Your circles
+          Circles you started
         </h2>
         {loadError && (
           <p className="form-error" role="alert">
@@ -507,7 +668,8 @@ function MyCircles({
                 key={c.code}
                 circle={c}
                 surahs={surahs}
-                joinedCode={joinedCode}
+                passages={passages}
+                joinedCodes={joinedCodes}
                 onSaved={saved}
                 onDeleted={deleted}
               />
@@ -522,7 +684,8 @@ function MyCircles({
 export default function Circles() {
   const { user, loading } = useAccount();
   const [surahs, setSurahs] = useState<SurahMap>(new Map());
-  const [joined, setJoined] = useState<Circle | null>(getJoinedCircle);
+  const [passages, setPassages] = useState<PassageMap>(new Map());
+  const [joined, setJoined] = useState<Circle[]>(getJoinedCircles);
 
   useEffect(() => {
     document.title = "Circles | MindfulVerse";
@@ -537,22 +700,42 @@ export default function Circles() {
         }
       })
       .catch(() => {});
+    loadThemes()
+      .then((themes) => {
+        if (!active) {
+          return;
+        }
+        const bySurah: PassageMap = new Map();
+        for (let n = 1; n <= 114; n += 1) {
+          bySurah.set(n, surahPassages(themes, n));
+        }
+        setPassages(bySurah);
+      })
+      .catch(() => {});
     return () => {
       active = false;
     };
   }, []);
 
   useEffect(() => {
-    const off = onJoinedCircleChange(setJoined);
-    void refreshJoinedCircle().then(setJoined);
+    const off = onJoinedCircleChange(() => setJoined(getJoinedCircles()));
+    void refreshJoinedCircles().then(setJoined);
     return off;
   }, []);
+
+  const joinedCodes = joined.map((c) => c.code);
 
   let body: JSX.Element;
   if (loading) {
     body = <p className="soft">Loading…</p>;
   } else if (user) {
-    body = <MyCircles surahs={surahs} joinedCode={joined?.code ?? null} />;
+    body = (
+      <MyCircles
+        surahs={surahs}
+        passages={passages}
+        joinedCodes={joinedCodes}
+      />
+    );
   } else {
     body = (
       <section aria-label="Start a circle" className="stack">
@@ -572,7 +755,9 @@ export default function Circles() {
         <h1>Circles</h1>
         <p className="soft circles-intro">{PRIVACY_LINE}</p>
       </header>
-      {joined && <JoinedCircle circle={joined} surahs={surahs} />}
+      {joined.length > 0 && (
+        <JoinedCircles circles={joined} surahs={surahs} passages={passages} />
+      )}
       {body}
     </div>
   );

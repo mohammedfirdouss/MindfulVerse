@@ -1,6 +1,6 @@
 // QR codes for circle invites, drawn by the apps as one SVG path so web and
 // Android render the same image.
-import qrcode from "qrcode-generator";
+import makeQr from "qrcode-generator";
 
 export interface QrPath {
   /** Modules per side, not counting the quiet zone. */
@@ -11,7 +11,7 @@ export interface QrPath {
 
 /** Medium error correction: still scans when the screen is a little dirty. */
 export function qrPath(text: string): QrPath {
-  const qr = qrcode(0, "M");
+  const qr = makeQr(0, "M");
   qr.addData(text);
   qr.make();
   const size = qr.getModuleCount();

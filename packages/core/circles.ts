@@ -302,7 +302,9 @@ function checkPortion(
   endIn: number | null | undefined
 ): Portion | null {
   const verse =
-    verseIn === null || verseIn === undefined ? null : parseVerseNumber(verseIn);
+    verseIn === null || verseIn === undefined
+      ? null
+      : parseVerseNumber(verseIn);
   const end =
     endIn === null || endIn === undefined ? null : parseVerseNumber(endIn);
   const badVerse = verse === null && verseIn !== null && verseIn !== undefined;
@@ -570,8 +572,7 @@ export function isCircleJoined(code: string): boolean {
 export function circlesFull(code?: string): boolean {
   const list = readList();
   return (
-    list.length >= MAX_JOINED_CIRCLES &&
-    !list.some((c) => c.code === code)
+    list.length >= MAX_JOINED_CIRCLES && !list.some((c) => c.code === code)
   );
 }
 
@@ -704,7 +705,9 @@ export function setCircleMemberCall(call: CircleMemberCall): () => void {
 
 function readTouched(): Record<string, string> {
   try {
-    const parsed = JSON.parse(localStorage.getItem(TOUCHED_KEY) ?? "{}") as unknown;
+    const parsed = JSON.parse(
+      localStorage.getItem(TOUCHED_KEY) ?? "{}"
+    ) as unknown;
     return parsed && typeof parsed === "object"
       ? (parsed as Record<string, string>)
       : {};
@@ -752,12 +755,13 @@ export async function touchCircleMembership(
 async function sendLeave(code: string): Promise<void> {
   const call = memberCall;
   try {
-    const touched = readTouched();
-    delete touched[code];
-    localStorage.setItem(TOUCHED_KEY, JSON.stringify(touched));
+    const kept = Object.fromEntries(
+      Object.entries(readTouched()).filter(([c]) => c !== code)
+    );
+    localStorage.setItem(TOUCHED_KEY, JSON.stringify(kept));
     await call("circle_leave", { p_code: code, p_install_id: getInstallId() });
   } catch {
-    // Not reached: the member drops out of the count after 30 days anyway.
+    // If this never arrives, the member drops out of the count after 30 days.
   }
 }
 
@@ -1004,7 +1008,9 @@ export function circleMembersLine(
       ? Math.floor(reflected)
       : null;
   if (shownMembers === null) {
-    return shownReflected === null ? null : circleCountLine(name, shownReflected);
+    return shownReflected === null
+      ? null
+      : circleCountLine(name, shownReflected);
   }
   const who = name === null ? "people in this circle" : `in ${name}`;
   const base = `${shownMembers} ${who}`;

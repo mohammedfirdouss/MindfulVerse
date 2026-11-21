@@ -54,11 +54,7 @@ describe("circle share link", () => {
 
   it("names a range in the share message", () => {
     expect(
-      circleShareMessage(
-        { name: "F", verse: 7, verseEnd: 12 },
-        "Al-Kahf",
-        "u"
-      )
+      circleShareMessage({ name: "F", verse: 7, verseEnd: 12 }, "Al-Kahf", "u")
     ).toContain("Read Al-Kahf, verses 7 to 12, with");
   });
 });

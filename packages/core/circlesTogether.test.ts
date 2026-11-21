@@ -8,6 +8,12 @@ vi.stubGlobal("localStorage", {
 });
 
 import {
+  currentPassage,
+  nextPassage,
+  portionLabel,
+  surahPassages,
+} from "./circlePortion";
+import {
   circleFromRow,
   circleMembersLine,
   circlesFull,
@@ -32,12 +38,6 @@ import type {
   CircleMemberCall,
   CircleResult,
 } from "./circles";
-import {
-  currentPassage,
-  nextPassage,
-  portionLabel,
-  surahPassages,
-} from "./circlePortion";
 import { qrPath } from "./qr";
 
 const base: Circle = {
@@ -81,9 +81,10 @@ describe("weekly portion", () => {
       verse: 7,
       verseEnd: null,
     });
-    expect(circleFromRow({ ...row, verse: null, verse_end: 3 })).toMatchObject(
-      { verse: null, verseEnd: null }
-    );
+    expect(circleFromRow({ ...row, verse: null, verse_end: 3 })).toMatchObject({
+      verse: null,
+      verseEnd: null,
+    });
   });
 
   it("sends a range, and treats a one-verse range as a focus verse", async () => {
@@ -126,7 +127,11 @@ describe("weekly portion", () => {
       data: [],
       error: null,
     }));
-    await updateCircle("abc234", { verse: 13, verseEnd: 17 }, fakeApi({ update }));
+    await updateCircle(
+      "abc234",
+      { verse: 13, verseEnd: 17 },
+      fakeApi({ update })
+    );
     expect(update).toHaveBeenCalledWith("abc234", {
       verse: 13,
       verse_end: 17,
@@ -156,16 +161,24 @@ describe("passages", () => {
     const week = { surah: 18, verse: 7, verseEnd: 12 };
     expect(currentPassage(passages, week)?.theme).toBe("The cave");
     expect(nextPassage(passages, week)?.from).toBe(13);
-    expect(nextPassage(passages, { ...week, verse: 13, verseEnd: 17 })).toBeNull();
-    expect(nextPassage(passages, { ...week, verse: null, verseEnd: null })).toBeNull();
-    expect(nextPassage(passages, { ...week, verse: 4, verseEnd: null })?.from).toBe(7);
+    expect(
+      nextPassage(passages, { ...week, verse: 13, verseEnd: 17 })
+    ).toBeNull();
+    expect(
+      nextPassage(passages, { ...week, verse: null, verseEnd: null })
+    ).toBeNull();
+    expect(
+      nextPassage(passages, { ...week, verse: 4, verseEnd: null })?.from
+    ).toBe(7);
   });
 
   it("labels the portion", () => {
     expect(portionLabel({ surah: 18, verse: 7, verseEnd: 12 })).toBe(
       "verses 7 to 12"
     );
-    expect(portionLabel({ surah: 18, verse: 7, verseEnd: null })).toBe("verse 7");
+    expect(portionLabel({ surah: 18, verse: 7, verseEnd: null })).toBe(
+      "verse 7"
+    );
     expect(portionLabel({ surah: 18, verse: null, verseEnd: null })).toBeNull();
   });
 });
@@ -298,8 +311,16 @@ describe("surahs read together", () => {
   it("reads the history and lists finished surahs once", async () => {
     const history = await fetchCircleHistory("abc234", async () => ({
       data: [
-        { ended_at: "2026-10-01T00:00:00Z", started_at: "2026-09-01T00:00:00Z", surah: 94 },
-        { ended_at: "2026-11-01T00:00:00Z", started_at: "2026-10-01T00:00:00Z", surah: 18 },
+        {
+          ended_at: "2026-10-01T00:00:00Z",
+          started_at: "2026-09-01T00:00:00Z",
+          surah: 94,
+        },
+        {
+          ended_at: "2026-11-01T00:00:00Z",
+          started_at: "2026-10-01T00:00:00Z",
+          surah: 18,
+        },
         { ended_at: null, started_at: "2026-11-01T00:00:00Z", surah: 67 },
         { started_at: "bad", surah: 2 },
       ],
@@ -319,7 +340,9 @@ describe("surahs read together", () => {
 
 describe(qrPath, () => {
   it("draws a square code with the three finder patterns", () => {
-    const { path, size } = qrPath("https://mindfulverse.vercel.app/circle/abc234");
+    const { path, size } = qrPath(
+      "https://mindfulverse.vercel.app/circle/abc234"
+    );
     expect(size).toBeGreaterThanOrEqual(25);
     expect(path.startsWith("M0 0h7v1h-7z")).toBeTruthy();
     expect(path).toContain(`M${size - 7} 0h7v1h-7z`);

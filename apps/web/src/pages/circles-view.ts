@@ -68,7 +68,8 @@ export function portionValue(p: PortionOf): string {
 
 /** "Verses 7 to 12: Story of the Companions of the Cave". */
 export function passageOptionLabel(p: Passage): string {
-  const range = p.from === p.to ? `Verse ${p.from}` : `Verses ${p.from} to ${p.to}`;
+  const range =
+    p.from === p.to ? `Verse ${p.from}` : `Verses ${p.from} to ${p.to}`;
   return `${range}: ${p.theme}`;
 }
 
