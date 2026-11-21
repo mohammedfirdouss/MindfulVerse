@@ -44,18 +44,24 @@ describe(circleCountText, () => {
   const circle = { name: "Friday group" };
 
   it("shows nothing without a circle or a count", () => {
-    expect(circleCountText(null, 5)).toBeNull();
-    expect(circleCountText(circle, null)).toBeNull();
+    expect(circleCountText(null, 5, 5)).toBeNull();
+    expect(circleCountText(circle, null, null)).toBeNull();
   });
 
   it("never singles out one person", () => {
-    expect(circleCountText(circle, 0)).toBeNull();
-    expect(circleCountText(circle, 1)).toBeNull();
+    expect(circleCountText(circle, 1, 0)).toBeNull();
+    expect(circleCountText(circle, null, 1)).toBeNull();
   });
 
   it("names the circle, not the people", () => {
-    expect(circleCountText(circle, 2)).toBe(
+    expect(circleCountText(circle, null, 2)).toBe(
       "2 in Friday group reflected this week."
+    );
+    expect(circleCountText(circle, 5, 3)).toBe(
+      "5 in Friday group · 3 reflected this week."
+    );
+    expect(circleCountText(circle, 5, 1, false)).toBe(
+      "5 people in this circle."
     );
   });
 });

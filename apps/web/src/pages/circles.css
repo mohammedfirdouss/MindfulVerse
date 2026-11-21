@@ -14,9 +14,6 @@
 .circle-form {
   max-width: 420px;
 }
-.circle-verse-input {
-  max-width: 160px;
-}
 .circle-actions {
   display: flex;
   flex-wrap: wrap;
@@ -62,7 +59,7 @@
 }
 .circle-quiet {
   min-height: 44px;
-  padding: 0 4px;
+  padding: 0;
   background: none;
   border: none;
   font: inherit;
@@ -74,4 +71,75 @@
 }
 .circle-quiet-danger {
   color: var(--kola);
+}
+.circles-heading-first {
+  margin-top: 8px;
+}
+.circle-together {
+  display: grid;
+  gap: 10px;
+}
+.circle-theme {
+  margin: 0;
+  font-style: italic;
+  line-height: 1.5;
+}
+.circle-next {
+  margin: 0;
+  font-size: 0.92rem;
+}
+.circle-discuss {
+  padding: 0;
+}
+.circle-discuss summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--indigo);
+}
+.circle-discuss ol {
+  margin: 4px 0 8px;
+  padding-left: 1.3em;
+  display: grid;
+  gap: 6px;
+  line-height: 1.5;
+}
+/* Inline margins only, so the parent's stack spacing still separates it. */
+.circle-qr-figure {
+  margin-inline: 0;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.circle-qr {
+  width: 168px;
+  height: auto;
+  border-radius: 10px;
+}
+.circle-qr-figure figcaption {
+  font-size: 0.92rem;
+}
+.circle-card {
+  display: grid;
+  gap: 10px;
+}
+.circle-card .eyebrow {
+  margin: 0;
+}
+.circle-next-row {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.circle-quiet-row {
+  gap: 0 20px;
+}
+.circle-share .btn {
+  padding: 8px 14px;
+  font-size: 0.92rem;
+}
+.circle-share .circle-actions {
+  gap: 8px;
 }

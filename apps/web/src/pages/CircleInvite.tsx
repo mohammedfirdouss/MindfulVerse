@@ -1,7 +1,9 @@
 import {
+  circlesFull,
   fetchCircle,
   joinCircle,
   leaveCircle,
+  MAX_JOINED_CIRCLES,
   parseCircleLink,
 } from "@mindfulverse/core/circles";
 import type { CircleError } from "@mindfulverse/core/circles";
@@ -41,6 +43,13 @@ export default function CircleInvite() {
         setError(result.error);
         return;
       }
+      if (circlesFull(result.value.code)) {
+        setError({
+          kind: "invalid",
+          message: `You’re already in ${MAX_JOINED_CIRCLES} circles. Leave one on the Circles page, then open this link again.`,
+        });
+        return;
+      }
       joinCircle(result.value);
       navigate(circleStartPath(result.value), { replace: true });
     });
@@ -64,7 +73,12 @@ export default function CircleInvite() {
         {error.message}
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {error.kind !== "not-found" && (
+        {error.kind === "invalid" && (
+          <Link to="/circles" className="btn">
+            Go to Circles
+          </Link>
+        )}
+        {error.kind !== "not-found" && error.kind !== "invalid" && (
           <button
             type="button"
             className="btn"

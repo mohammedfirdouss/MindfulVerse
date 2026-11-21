@@ -1,5 +1,5 @@
 import { track } from "@mindfulverse/core/analytics";
-import { getJoinedCircle, leaveCircle } from "@mindfulverse/core/circles";
+import { leaveCircle } from "@mindfulverse/core/circles";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import {
   getSyncStatus,
@@ -344,10 +344,9 @@ export default function Account() {
         return;
       }
       // A deleted circle no longer exists for anyone, this device included.
-      const joined = getJoinedCircle()?.code;
       const deleted = (circles.data ?? []) as { code: string }[];
-      if (joined && deleted.some((c) => c.code === joined)) {
-        leaveCircle();
+      for (const c of deleted) {
+        leaveCircle(c.code);
       }
       setError(null);
       await signOut();

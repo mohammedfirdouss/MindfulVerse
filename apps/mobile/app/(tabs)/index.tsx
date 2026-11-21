@@ -1,5 +1,6 @@
 import {
   getJoinedCircle,
+  getJoinedCircles,
   onJoinedCircleChange,
   refreshJoinedCircle,
 } from "@mindfulverse/core/circles";
@@ -90,6 +91,9 @@ export default function Home() {
   const reduce = useReducedMotion();
   const [local, setLocal] = useState<Local>(readLocal);
   const [joined, setJoined] = useState<Circle | null>(getJoinedCircle);
+  const [joinedCount, setJoinedCount] = useState(
+    () => getJoinedCircles().length
+  );
   const [verseKey, setVerseKey] = useState<string | null>(null);
   const [hero, setHero] = useState<Ayah | null>(null);
   const [heroError, setHeroError] = useState(false);
@@ -100,12 +104,20 @@ export default function Home() {
     [surahs]
   );
 
-  useEffect(() => onJoinedCircleChange(setJoined), []);
+  useEffect(
+    () =>
+      onJoinedCircleChange((primary) => {
+        setJoined(primary);
+        setJoinedCount(getJoinedCircles().length);
+      }),
+    []
+  );
 
   useFocusEffect(
     useCallback(() => {
       setLocal(readLocal());
       setJoined(getJoinedCircle());
+      setJoinedCount(getJoinedCircles().length);
       // The owner may have moved the circle on to another surah or verse.
       // Asked at most once every two minutes per circle.
       const joinedCode = getJoinedCircle()?.code;
@@ -187,6 +199,7 @@ export default function Home() {
         lead={chooseLead(deeper, circleSurah, joined)}
         surahs={surahs}
         surahNames={surahNames}
+        joinedCount={joinedCount}
         reduce={reduce}
       />
       {circleCount ? (

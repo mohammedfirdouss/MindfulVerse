@@ -1,11 +1,11 @@
-import { circleCountLine } from "@mindfulverse/core/circles";
+import { circleMembersLine } from "@mindfulverse/core/circles";
 
-import { useCircleWeekCount } from "../lib/useCircleWeekCount";
+import { useCircleCounts } from "../lib/useCircleWeekCount";
 
 import "./week.css";
 
-/** "<N> in <name> reflected this week", or "<N> people…" with no name.
- *  Nothing below two. */
+/** "5 in Friday friends · 3 reflected this week", or "5 people in this
+ *  circle" with no name. Each number shows only at two or more. */
 export default function CircleCount({
   code,
   name,
@@ -15,8 +15,8 @@ export default function CircleCount({
   name?: string;
   className?: string;
 }) {
-  const count = useCircleWeekCount(code);
-  const line = count === null ? null : circleCountLine(name ?? null, count);
+  const { members, reflected } = useCircleCounts(code);
+  const line = circleMembersLine(name ?? null, members, reflected);
   if (line === null) {
     return null;
   }

@@ -1,15 +1,20 @@
-// /circles: start a circle and share its link, look after the circles you
-// started, and see or leave the circle this device has joined. Starting one
-// needs an account so it stays yours to change; joining never does.
+// /circles (web: pages/Circles.tsx): every circle once, the ones this device
+// joined first (the first is the one Home leads with), then the ones the
+// person started; and below them a way to start one. Starting needs an
+// account so it stays yours to change; joining never does.
+import { surahPassages } from "@mindfulverse/core/circlePortion";
+import type { Passage } from "@mindfulverse/core/circlePortion";
 import {
+  circleError,
+  circlesFull,
   createCircle,
-  getJoinedCircle,
-  leaveCircle,
+  getJoinedCircles,
   listMyCircles,
   onJoinedCircleChange,
+  refreshJoinedCircles,
 } from "@mindfulverse/core/circles";
 import type { Circle } from "@mindfulverse/core/circles";
-import { loadSurahs } from "@mindfulverse/core/data";
+import { loadSurahs, loadThemes } from "@mindfulverse/core/data";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import type { SurahMeta } from "@mindfulverse/core/types";
 import { router } from "expo-router";
@@ -17,19 +22,20 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { FormError } from "../../src/components/Account/parts";
+import { CircleCard } from "../../src/components/Circles/CircleCard";
 import { CircleForm } from "../../src/components/Circles/CircleForm";
 import {
-  circleSummary,
+  circleEntries,
+  CREATED_LINE,
+  FULL_NOTE,
   PRIVACY_LINE,
   SIGNED_OUT_LINE,
+  startView,
 } from "../../src/components/Circles/circleModel";
-import {
-  CircleLinkBlock,
-  OwnedCircle,
-} from "../../src/components/Circles/OwnedCircle";
-import { useCircleCountLine } from "../../src/components/Circles/useCircleCount";
-import { fonts, space, useTheme } from "../../src/theme";
+import { space, useTheme } from "../../src/theme";
 import { Button, Card, Screen, Text } from "../../src/ui";
+
+const SURAH_COUNT = 114;
 
 type MineState =
   | { status: "loading" }
@@ -44,19 +50,38 @@ export default function Circles() {
     () => new Map(surahList.map((s) => [s.number, s])),
     [surahList]
   );
-  const [joined, setJoined] = useState<Circle | null>(getJoinedCircle);
+  const [passages, setPassages] = useState<Map<number, Passage[]>>(
+    () => new Map()
+  );
+  const [joined, setJoined] = useState<Circle[]>(getJoinedCircles);
   const [mine, setMine] = useState<MineState>({ status: "loading" });
-  const [created, setCreated] = useState<Circle | null>(null);
+  const [created, setCreated] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const userId = user?.id ?? null;
-  const joinedCount = useCircleCountLine(joined, { named: false });
 
-  useEffect(() => onJoinedCircleChange(setJoined), []);
+  useEffect(() => {
+    const off = onJoinedCircleChange(() => setJoined(getJoinedCircles()));
+    void refreshJoinedCircles().then(setJoined);
+    return off;
+  }, []);
 
   useEffect(() => {
     let alive = true;
     loadSurahs()
       .then((list) => alive && setSurahList(list))
+      .catch(() => {});
+    loadThemes()
+      .then((themes) => {
+        if (!alive) {
+          return;
+        }
+        const bySurah = new Map<number, Passage[]>();
+        for (let n = 1; n <= SURAH_COUNT; n += 1) {
+          bySurah.set(n, surahPassages(themes, n));
+        }
+        setPassages(bySurah);
+      })
       .catch(() => {});
     return () => {
       alive = false;
@@ -84,184 +109,109 @@ export default function Circles() {
       m.status === "ready" ? { circles: next(m.circles), status: "ready" } : m
     );
 
+  const owned = userId && mine.status === "ready" ? mine.circles : [];
+  const entries = circleEntries(joined, owned);
+  const start = startView({
+    accountLoading,
+    count: entries.length,
+    formOpen,
+    ownedLoaded: mine.status !== "loading",
+    signedIn: userId !== null,
+  });
+  const ownedLoading = userId !== null && mine.status === "loading";
+
   return (
     <Screen edges="bottom">
       <Text variant="soft">{PRIVACY_LINE}</Text>
 
-      {joined ? (
-        <Card accessibilityLabel="Your circle">
-          <View style={{ gap: 2 }}>
-            <Text variant="eyebrow">Your circle</Text>
-            <Text style={{ fontFamily: fonts.readSemiBold }}>
-              {joined.name}
-            </Text>
-            <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
-              {circleSummary(joined, surahs)}
-            </Text>
-          </View>
-          {joinedCount ? (
-            <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
-              {joinedCount}
-            </Text>
-          ) : null}
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}
-          >
-            <Button
-              title="Open on Home"
-              kind="secondary"
-              onPress={() => router.navigate("/")}
-            />
-            <Button
-              kind="ghost"
-              title="Leave circle"
-              onPress={() => leaveCircle()}
-            />
-          </View>
-        </Card>
+      {created ? (
+        <View accessibilityLiveRegion="polite">
+          <Text>{CREATED_LINE}</Text>
+        </View>
       ) : null}
 
-      {accountLoading ? <ActivityIndicator color={colors.indigo} /> : null}
-
-      {!accountLoading && !userId ? (
-        <Card>
-          <Text variant="h2">Start a circle</Text>
-          <Text variant="soft">{SIGNED_OUT_LINE}</Text>
-          <View style={{ alignItems: "flex-start" }}>
-            <Button
-              title="Sign in"
-              onPress={() => router.navigate("/account")}
-            />
-          </View>
-        </Card>
+      {userId && mine.status === "error" ? (
+        <View style={{ alignItems: "flex-start", gap: space.sm }}>
+          <FormError message={mine.message} />
+          <Button
+            kind="secondary"
+            title="Try again"
+            onPress={() => void loadMine()}
+          />
+        </View>
       ) : null}
 
-      {userId ? (
-        <>
-          <Card>
-            <Text variant="h2">Start a circle</Text>
-            {created ? (
-              <View style={{ gap: space.md }}>
-                <Text style={{ fontFamily: fonts.readSemiBold }}>
-                  {`“${created.name}” is ready. Anyone with the link can join.`}
-                </Text>
-                <CircleLinkBlock circle={created} surahs={surahs} />
-                <View style={{ alignItems: "flex-start" }}>
-                  <Button
-                    kind="ghost"
-                    title="Start another circle"
-                    onPress={() => {
-                      setCreated(null);
-                      setFormKey((k) => k + 1);
-                    }}
-                  />
-                </View>
-              </View>
-            ) : (
-              <CircleForm
-                key={formKey}
-                surahs={surahList}
-                submitTitle="Start circle"
-                onSubmit={async (draft) => {
-                  const result = await createCircle(draft);
-                  if (result.ok) {
-                    setCreated(result.value);
-                    replaceMine((cs) => [result.value, ...cs]);
-                  }
-                  return result;
-                }}
-              />
-            )}
-          </Card>
-
-          <View style={{ gap: space.md }}>
-            {showMineHeading(mine, created) ? (
-              <Text variant="h2">Your circles</Text>
-            ) : null}
-            <MineList
-              mine={mine}
+      {entries.length > 0 ? (
+        <View style={{ gap: space.md }}>
+          {entries.map((entry) => (
+            <CircleCard
+              key={entry.circle.code}
+              entry={entry}
               surahs={surahs}
               surahList={surahList}
-              joinedCode={joined?.code ?? null}
-              createdCode={created?.code ?? null}
-              onRetry={() => void loadMine()}
-              onChanged={(c) =>
-                replaceMine((cs) => [c, ...cs.filter((x) => x.code !== c.code)])
+              passages={passages}
+              showOnHomeLabel={entries.length > 1}
+              initialQr={entry.circle.code === created}
+              onSaved={(c) =>
+                replaceMine((cs) => cs.map((x) => (x.code === c.code ? c : x)))
               }
-              onDeleted={(code) => {
-                replaceMine((cs) => cs.filter((x) => x.code !== code));
-                if (created?.code === code) {
-                  setCreated(null);
-                }
-              }}
+              onDeleted={(code) =>
+                replaceMine((cs) => cs.filter((x) => x.code !== code))
+              }
             />
-          </View>
-        </>
+          ))}
+        </View>
+      ) : null}
+
+      {accountLoading || ownedLoading ? (
+        <ActivityIndicator color={colors.indigo} />
+      ) : null}
+
+      {start === "signed-out" ? (
+        <View style={{ alignItems: "flex-start", gap: space.sm }}>
+          <Text variant="soft">{SIGNED_OUT_LINE}</Text>
+          <Button title="Sign in" onPress={() => router.navigate("/account")} />
+        </View>
+      ) : null}
+
+      {start === "form" ? (
+        <Card>
+          <Text variant="h2">Start a circle</Text>
+          <CircleForm
+            key={formKey}
+            surahs={surahList}
+            passages={passages}
+            submitTitle="Start circle"
+            onCancel={entries.length > 0 ? () => setFormOpen(false) : undefined}
+            onSubmit={async (draft) => {
+              if (circlesFull()) {
+                return {
+                  error: { ...circleError("invalid"), message: FULL_NOTE },
+                  ok: false,
+                };
+              }
+              const result = await createCircle(draft);
+              if (result.ok) {
+                replaceMine((cs) => [result.value, ...cs]);
+                setCreated(result.value.code);
+                setFormOpen(false);
+                setFormKey((k) => k + 1);
+              }
+              return result;
+            }}
+          />
+        </Card>
+      ) : null}
+
+      {start === "button" ? (
+        <View style={{ alignItems: "flex-start" }}>
+          <Button
+            kind="secondary"
+            title="Start a circle"
+            onPress={() => setFormOpen(true)}
+          />
+        </View>
       ) : null}
     </Screen>
-  );
-}
-
-/** Hidden while the only circle is the one just started, shown above. */
-function showMineHeading(mine: MineState, created: Circle | null): boolean {
-  return !(
-    created &&
-    mine.status === "ready" &&
-    mine.circles.every((c) => c.code === created.code)
-  );
-}
-
-function MineList({
-  mine,
-  surahs,
-  surahList,
-  joinedCode,
-  createdCode,
-  onRetry,
-  onChanged,
-  onDeleted,
-}: {
-  mine: MineState;
-  surahs: Map<number, SurahMeta>;
-  surahList: SurahMeta[];
-  joinedCode: string | null;
-  createdCode: string | null;
-  onRetry: () => void;
-  onChanged: (circle: Circle) => void;
-  onDeleted: (code: string) => void;
-}) {
-  const { colors } = useTheme();
-  if (mine.status === "loading") {
-    return <ActivityIndicator color={colors.indigo} />;
-  }
-  if (mine.status === "error") {
-    return (
-      <View style={{ alignItems: "flex-start", gap: space.sm }}>
-        <FormError message={mine.message} />
-        <Button kind="secondary" title="Try again" onPress={onRetry} />
-      </View>
-    );
-  }
-  const listed = mine.circles.filter((c) => c.code !== createdCode);
-  if (listed.length === 0) {
-    if (createdCode) {
-      return null;
-    }
-    return <Text variant="muted">None yet.</Text>;
-  }
-  return (
-    <>
-      {listed.map((c) => (
-        <OwnedCircle
-          key={c.code}
-          circle={c}
-          surahs={surahs}
-          surahList={surahList}
-          joinedCode={joinedCode}
-          onChanged={onChanged}
-          onDeleted={onDeleted}
-        />
-      ))}
-    </>
   );
 }

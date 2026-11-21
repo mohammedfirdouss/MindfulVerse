@@ -120,18 +120,15 @@ export function notificationsBlocked(p: PermissionInfo | null): boolean {
   return !!p && p.status === "denied" && !p.canAskAgain;
 }
 
-/** True when the circle joined on this device is among the rows a delete
- *  returned, so this device should leave it. */
-export function joinedCircleDeleted(
-  joinedCode: string | null,
-  deleted: unknown
-): boolean {
-  if (joinedCode === null || !Array.isArray(deleted)) {
-    return false;
+/** The codes in the rows a circles delete returned, so this device can
+ *  leave every one it had joined. Empty for anything malformed. */
+export function deletedCircleCodes(deleted: unknown): string[] {
+  if (!Array.isArray(deleted)) {
+    return [];
   }
-  return deleted.some(
-    (row) => (row as { code?: unknown } | null)?.code === joinedCode
-  );
+  return deleted
+    .map((row) => (row as { code?: unknown } | null)?.code)
+    .filter((code): code is string => typeof code === "string");
 }
 
 const FEEDBACK_EMAIL = "mohammedfirdous682@gmail.com";

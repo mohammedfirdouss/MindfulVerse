@@ -1,14 +1,23 @@
-import { fetchCircleWeekCount } from "@mindfulverse/core/circles";
+import {
+  fetchCircleMemberCount,
+  fetchCircleWeekCount,
+} from "@mindfulverse/core/circles";
 import { useEffect, useState } from "react";
 
 interface Fetched {
   code: string;
-  count: number | null;
+  members: number | null;
+  reflected: number | null;
 }
 
-/** The circle's weekly reflection count, refetched when the page becomes
- *  visible. Null while loading, on error, or without a code. */
-export function useCircleWeekCount(code: string | null): number | null {
+export interface CircleCounts {
+  members: number | null;
+  reflected: number | null;
+}
+
+/** The circle's member count and weekly reflection count, refetched when the
+ *  page becomes visible. Nulls while loading, on error, or without a code. */
+export function useCircleCounts(code: string | null): CircleCounts {
   const [fetched, setFetched] = useState<Fetched | null>(null);
 
   useEffect(() => {
@@ -17,9 +26,12 @@ export function useCircleWeekCount(code: string | null): number | null {
     }
     let active = true;
     const load = () => {
-      void fetchCircleWeekCount(code).then((count) => {
+      void Promise.all([
+        fetchCircleMemberCount(code),
+        fetchCircleWeekCount(code),
+      ]).then(([members, reflected]) => {
         if (active) {
-          setFetched({ code, count });
+          setFetched({ code, members, reflected });
         }
       });
     };
@@ -36,5 +48,7 @@ export function useCircleWeekCount(code: string | null): number | null {
     };
   }, [code]);
 
-  return fetched && fetched.code === code ? fetched.count : null;
+  return fetched && fetched.code === code
+    ? { members: fetched.members, reflected: fetched.reflected }
+    : { members: null, reflected: null };
 }

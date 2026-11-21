@@ -1,5 +1,5 @@
 import { track } from "@mindfulverse/core/analytics";
-import { getJoinedCircle, leaveCircle } from "@mindfulverse/core/circles";
+import { leaveCircle } from "@mindfulverse/core/circles";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import {
   getSyncStatus,
@@ -17,7 +17,7 @@ import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
 import { AuthForm } from "../../src/components/Account/AuthForm";
 import type { AuthMode } from "../../src/components/Account/AuthForm";
 import {
-  joinedCircleDeleted,
+  deletedCircleCodes,
   NETWORK_ERROR,
 } from "../../src/components/Account/logic";
 import {
@@ -155,11 +155,10 @@ export default function Account() {
         unregisterPush(userId), // every device's reminder for this account
       ]);
       // A deleted circle is gone for everyone, this device included.
-      if (
-        !circles.error &&
-        joinedCircleDeleted(getJoinedCircle()?.code ?? null, circles.data)
-      ) {
-        leaveCircle();
+      if (!circles.error) {
+        for (const code of deletedCircleCodes(circles.data)) {
+          leaveCircle(code);
+        }
       }
       if (circles.error || results.some((r) => r.error)) {
         setNotice(null);
