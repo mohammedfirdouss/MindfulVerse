@@ -124,9 +124,10 @@ export default function Privacy() {
 
       <h2>Children</h2>
       <p>
-        MindfulVerse is not made for children under 13, and we do not knowingly
-        collect their data. If you think a child has made an account, write to
-        us and we will delete it.
+        Children can use MindfulVerse without an account; nothing about them
+        leaves the device. Accounts are for people 13 and over, or with a
+        parent’s permission. If you think a child under 13 has made an account
+        without one, write to us and we will delete it.
       </p>
 
       <h2>Questions</h2>
