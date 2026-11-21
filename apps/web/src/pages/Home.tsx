@@ -16,6 +16,7 @@ import {
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
 import { useAccount } from "@mindfulverse/core/sync/auth";
+import { onSyncStatus } from "@mindfulverse/core/sync/engine";
 import { TRANSLATION_SOURCE_URL } from "@mindfulverse/core/translation";
 import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
 import {
@@ -248,6 +249,17 @@ export default function Home() {
   const [hero, setHero] = useState<Ayah | null>(null);
   const [surahs, setSurahs] = useState<Map<number, SurahMeta>>(new Map());
   const [mounted, setMounted] = useState(false);
+  // Re-render when a sync lands, so the streak counts days from every device.
+  const [, setSynced] = useState(0);
+  useEffect(
+    () =>
+      onSyncStatus((s) => {
+        if (s === "synced") {
+          setSynced((n) => n + 1);
+        }
+      }),
+    []
+  );
   const [joined, setJoined] = useState<Circle | null>(getJoinedCircle);
   const reduced = usePrefersReducedMotion();
   const surahNames = useMemo(

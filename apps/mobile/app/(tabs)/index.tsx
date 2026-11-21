@@ -16,6 +16,7 @@ import {
 } from "@mindfulverse/core/progress";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import { useAccount } from "@mindfulverse/core/sync/auth";
+import { onSyncStatus } from "@mindfulverse/core/sync/engine";
 import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
 import {
   WORD_MEANINGS_BOOK,
@@ -102,6 +103,17 @@ export default function Home() {
   const surahNames = useMemo(
     () => new Map([...surahs].map(([n, s]) => [n, s.name])),
     [surahs]
+  );
+
+  // A sync brings in days from other devices: re-read the streak and week.
+  useEffect(
+    () =>
+      onSyncStatus((s) => {
+        if (s === "synced") {
+          setLocal(readLocal());
+        }
+      }),
+    []
   );
 
   useEffect(
