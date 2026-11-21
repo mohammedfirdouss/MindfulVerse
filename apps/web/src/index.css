@@ -566,14 +566,13 @@ p.eyebrow + h1 {
 }
 
 /* --- Deeper look: section headings and the related verses --- */
+/* Same quiet label as .eyebrow: sentence case, no tracking. */
 .deeper-heading {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-family: var(--font-read);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--indigo);
 }
 .related {
   margin: 0 0 18px;

@@ -8,6 +8,8 @@ import type { SurahMeta, TadabburSession } from "@mindfulverse/core/types";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { Diamond } from "../components/Adire";
+
 type SessionsStatus =
   | { kind: "loading" }
   | { kind: "error" }
@@ -65,7 +67,10 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
           No surah matches that.
         </p>
       ) : (
-        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        <ul
+          className="wide-grid"
+          style={{ listStyle: "none", margin: 0, padding: 0 }}
+        >
           {visible.map((s) => {
             const progress = progressBySurah[String(s.number)];
             return (
@@ -81,11 +86,11 @@ function SurahPicker({ surahs }: { surahs: SurahMeta[] }) {
                     padding: "10px 0",
                   }}
                 >
-                  <span className="roundel">{s.number}</span>
+                  <Diamond n={s.number} outline />
                   <span style={{ fontWeight: 500 }}>{s.name}</span>
                   <span className="muted" style={{ marginLeft: "auto" }}>
                     {s.ayahCount} verses
-                    {progress ? ` · verse ${progress.ayah}` : ""}
+                    {progress ? `, at verse ${progress.ayah}` : ""}
                   </span>
                 </Link>
               </li>
@@ -172,7 +177,7 @@ export default function Sessions() {
                 Continue
               </p>
               <p style={{ fontWeight: 500, margin: 0 }}>
-                {latestName} · verse {latest.ayah}
+                {latestName}, verse {latest.ayah}
               </p>
             </div>
           </Link>

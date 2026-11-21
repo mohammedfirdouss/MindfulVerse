@@ -41,9 +41,7 @@ export default function ReadingText({
             {headings && (
               <h2 className="reading-surah-name">
                 {surahNames?.get(g.surah) ?? `Surah ${g.surah}`}
-                {from > 1 && (
-                  <span className="muted"> · from verse {from}</span>
-                )}
+                {from > 1 && <span className="muted">, from verse {from}</span>}
               </h2>
             )}
             {from === 1 && g.surah !== 1 && g.surah !== 9 && (

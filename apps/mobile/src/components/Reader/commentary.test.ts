@@ -37,10 +37,10 @@ describe("commentary helpers (ported from web)", () => {
     );
     expect(commentaryLabel(index, a(2, 6))).toBe("Deeper look");
     expect(commentaryLabel(index, a(2, 7))).toBe("Deeper look");
-    expect(deeperLookTitle(a(2, 7))).toBe("Deeper look · 2:7");
-    expect(commentaryTitle(a(2, 6), 6)).toBe("Ibn Kathir · 2:6");
+    expect(deeperLookTitle(a(2, 7))).toBe("Deeper look at 2:7");
+    expect(commentaryTitle(a(2, 6), 6)).toBe("Ibn Kathir on 2:6");
     expect(commentaryTitle(a(2, 7), 6)).toBe(
-      "Ibn Kathir · on the passage from 2:6"
+      "Ibn Kathir on the passage from 2:6"
     );
   });
 

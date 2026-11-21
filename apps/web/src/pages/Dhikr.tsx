@@ -22,7 +22,7 @@ interface DhikrSet {
 
 const SETS: DhikrSet[] = [
   {
-    desc: "Glorify, praise, and magnify — the remembrance taught after every prayer.",
+    desc: "Glorify, praise and magnify: the remembrance taught after every prayer.",
     id: "tasbih",
     items: [
       {

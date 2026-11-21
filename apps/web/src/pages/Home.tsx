@@ -447,13 +447,11 @@ export default function Home() {
           >
             Talal Itani (ClearQuran)
           </a>
-          {" · "}
-          <Link to="/developers">For developers</Link>
+          .
         </p>
         {/* The authors' condition for using their word meanings. */}
         <p className="muted home-attribution">
-          {WORD_MEANINGS_CREDIT}
-          {" · "}
+          {WORD_MEANINGS_CREDIT}, from{" "}
           <a
             href={WORD_MEANINGS_BOOK_URL}
             target="_blank"
@@ -461,6 +459,10 @@ export default function Home() {
           >
             {WORD_MEANINGS_BOOK}
           </a>
+          .
+        </p>
+        <p className="muted home-attribution">
+          <Link to="/developers">For developers</Link>
         </p>
       </footer>
     </div>

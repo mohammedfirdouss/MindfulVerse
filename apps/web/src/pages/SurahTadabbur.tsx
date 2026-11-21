@@ -30,6 +30,7 @@ import IntentionField from "../components/IntentionField";
 import { coveringAyah } from "../lib/tafsirCovering";
 
 import "./tadabbur.css";
+import "./surah-journal.css";
 
 // Motion helpers — transform + opacity only, under 400ms (same approach as
 // SessionPlayer). Reduced motion: content simply appears.
@@ -191,8 +192,8 @@ function VerseCommentary({
         <div className="card tafsir stack">
           <p className="eyebrow" style={{ margin: 0 }}>
             {direct
-              ? `Ibn Kathir · ${ayah.verseKey}`
-              : `Ibn Kathir · with verse ${covering}`}
+              ? `Ibn Kathir on ${ayah.verseKey}`
+              : `Ibn Kathir on the passage from verse ${covering}`}
           </p>
           {text === null ? (
             <p className="muted" style={{ margin: 0 }}>
@@ -698,10 +699,7 @@ function SurahTadabburPage() {
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
             <TitlePlate surah={surahNumber} name={name} />
-            <p
-              className="muted"
-              style={{ margin: "10px 0 0", textAlign: "center" }}
-            >
+            <p className="muted" style={{ margin: "10px 0 0" }}>
               {count} {count === 1 ? "verse" : "verses"}, one at a time.
             </p>
           </div>
@@ -752,10 +750,7 @@ function SurahTadabburPage() {
         {hasPage && (
           <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 150}>
             <div>
-              <Link
-                to={`/tadabbur/${surahNumber}/journal`}
-                className="btn ghost"
-              >
+              <Link to={`/tadabbur/${surahNumber}/journal`} className="sj-link">
                 {`Your page on ${name}`}
               </Link>
             </div>

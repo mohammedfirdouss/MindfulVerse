@@ -284,8 +284,7 @@ function JuzReader() {
                 </Link>
                 {sec.ayahs[0].ayah > 1 && (
                   <span className="muted">
-                    {" "}
-                    · from verse {sec.ayahs[0].ayah}
+                    , from verse {sec.ayahs[0].ayah}
                   </span>
                 )}
               </h2>

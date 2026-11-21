@@ -155,6 +155,10 @@ const tabs = [
 
 /** A section can own a second route prefix: surah tadabbur lives under
  *  /tadabbur but belongs to the Tadabbur item, which links to /sessions. */
+/** Pages of lists and choices, which use the extra room on a wide screen.
+ *  Reading pages keep a comfortable line length. */
+const WIDE_PATHS = new Set(["/", "/read", "/sessions", "/themes"]);
+
 function ownsPath(also: string | undefined, pathname: string): boolean {
   return (
     also !== undefined && (pathname === also || pathname.startsWith(`${also}/`))
@@ -247,7 +251,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </button>
       </nav>
 
-      <main id="main-content" className="container" tabIndex={-1}>
+      <main
+        id="main-content"
+        className={WIDE_PATHS.has(pathname) ? "wide container" : "container"}
+        tabIndex={-1}
+      >
         {children}
       </main>
       <InstallPrompt />

@@ -36,11 +36,11 @@ describe(relatedTopics, () => {
 describe("labels", () => {
   it("counts the other verses", () => {
     expect(relatedTopicLabel({ name: "Hardship", verses: ["7:94"] })).toBe(
-      "Hardship · 1 other verse"
+      "Hardship, in 1 other verse"
     );
     expect(
       relatedTopicLabel({ name: "Hardship", verses: ["7:94", "94:6"] })
-    ).toBe("Hardship · 2 other verses");
+    ).toBe("Hardship, in 2 other verses");
   });
 
   it("names the surah when it is known", () => {

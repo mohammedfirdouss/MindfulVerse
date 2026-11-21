@@ -30,10 +30,10 @@ export function relatedTopics(
     .slice(0, max);
 }
 
-/** "Hardship · 9 other verses". */
+/** "Hardship, in 9 other verses". */
 export function relatedTopicLabel(topic: RelatedTopic): string {
   const n = topic.verses.length;
-  return `${topic.name} · ${n} other ${n === 1 ? "verse" : "verses"}`;
+  return `${topic.name}, in ${n} other ${n === 1 ? "verse" : "verses"}`;
 }
 
 /** "Al-A'raf 7:94", or just the key while surah names are unknown. */

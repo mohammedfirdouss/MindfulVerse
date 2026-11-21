@@ -206,7 +206,6 @@ function SessionFlow({ session }: { session: TadabburSession }) {
         <BackLink to="/sessions">Tadabbur</BackLink>
         <FadeRise show={mounted} reduce={reduce}>
           <div className="stack">
-            <p className="eyebrow">{session.theme}</p>
             <h1>{session.title}</h1>
             <p className="soft">{session.intro}</p>
             <p className="muted" style={{ margin: 0 }}>

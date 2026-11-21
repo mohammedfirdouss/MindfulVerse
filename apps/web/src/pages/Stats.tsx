@@ -226,7 +226,12 @@ function AccountLine() {
   return (
     <p className="soft stats-account">
       {user.email}
-      {label === "" ? "" : ` · ${label}`}
+      {label !== "" && (
+        <>
+          <br />
+          {label}
+        </>
+      )}
     </p>
   );
 }
@@ -236,16 +241,30 @@ const plural = (n: number, one: string, many: string): string =>
 
 /** The rows shown, in order. Everything else stays in the copied summary. */
 function rows(s: StatsSnapshot): [string, string][] {
-  return [
-    ["Days returning", plural(s.streak, "day", "days")],
+  const list: [string, string][] = [
+    ["Days in a row", plural(s.streak, "day", "days")],
     ["Days opened", String(s.appOpenDays)],
     ["Journal entries", String(s.journalCount)],
     ["Surahs begun", String(s.surahTadabburStarted)],
-    ["Sessions completed", `${s.sessionsCompleted} of ${s.sessionsStarted}`],
-    ["Follow-ups answered", `${s.followUpsAnswered} of ${s.followUpsShown}`],
-    ["Check-ins", String(s.checkinViews)],
-    ["Verses shared", String(s.versesShared)],
   ];
+  // "0 of 0" says nothing, so these wait until there is something to count.
+  if (s.sessionsStarted > 0) {
+    list.push([
+      "Sessions completed",
+      `${s.sessionsCompleted} of ${s.sessionsStarted}`,
+    ]);
+  }
+  if (s.followUpsShown > 0) {
+    list.push([
+      "Follow-ups answered",
+      `${s.followUpsAnswered} of ${s.followUpsShown}`,
+    ]);
+  }
+  list.push(
+    ["Check-ins", String(s.checkinViews)],
+    ["Verses shared", String(s.versesShared)]
+  );
+  return list;
 }
 
 export default function Stats() {

@@ -39,8 +39,8 @@ function groupByTheme(rows: Theme[]): ThemeGroup[] {
 
 function rangeLabel(r: Theme): string {
   return r.ayahFrom === r.ayahTo
-    ? `Surah ${r.surah} · ${r.ayahFrom}`
-    : `Surah ${r.surah} · ${r.ayahFrom}–${r.ayahTo}`;
+    ? `Surah ${r.surah}, verse ${r.ayahFrom}`
+    : `Surah ${r.surah}, verses ${r.ayahFrom} to ${r.ayahTo}`;
 }
 
 export default function Themes() {
@@ -134,7 +134,10 @@ export default function Themes() {
         </p>
       ) : (
         <>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <ul
+            className="wide-grid"
+            style={{ listStyle: "none", margin: 0, padding: 0 }}
+          >
             {shown.map((g) => (
               <li
                 key={g.theme}
