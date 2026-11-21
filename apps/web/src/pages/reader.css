@@ -273,11 +273,9 @@
 }
 .display-choice-label {
   margin: 0 0 8px;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
 }
 .display-choice .reading-controls {
   gap: 0;

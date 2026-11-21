@@ -903,10 +903,8 @@ p.eyebrow + h1 {
 }
 .cloth-eyebrow {
   margin: 0 0 4px;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
   color: var(--on-cloth-accent);
 }
 .cloth a {
