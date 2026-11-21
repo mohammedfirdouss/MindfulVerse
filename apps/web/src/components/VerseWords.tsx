@@ -1,6 +1,7 @@
 import { loadSurahWords } from "@mindfulverse/core/data";
 import type { Ayah } from "@mindfulverse/core/types";
 import {
+  FIRST_WORDS,
   WORD_MEANINGS_BOOK_URL,
   WORD_MEANINGS_CREDIT,
   pairWords,
@@ -13,10 +14,12 @@ import { useEffect, useState } from "react";
  *  read, the verse shows as plain Arabic. */
 export default function VerseWords({ ayah }: { ayah: Ayah }) {
   const [pairs, setPairs] = useState<WordPair[] | null>(null);
+  const [allWords, setAllWords] = useState(false);
 
   useEffect(() => {
     let live = true;
     setPairs(null);
+    setAllWords(false);
     const load = async () => {
       try {
         const words = await loadSurahWords(ayah.surah);
@@ -40,10 +43,12 @@ export default function VerseWords({ ayah }: { ayah: Ayah }) {
       </p>
     );
   }
+  const shown = allWords ? pairs : pairs.slice(0, FIRST_WORDS);
+  const hidden = pairs.length - shown.length;
   return (
     <section className="verse-words" aria-label="Word by word">
       <ol className="wbw" dir="rtl">
-        {pairs.map((p, i) => (
+        {shown.map((p, i) => (
           <li key={i} className="wbw-cell">
             <span className="wbw-ar" lang="ar">
               {p.arabic}
@@ -56,6 +61,15 @@ export default function VerseWords({ ayah }: { ayah: Ayah }) {
           </li>
         ))}
       </ol>
+      {hidden > 0 && (
+        <button
+          type="button"
+          className="wbw-more"
+          onClick={() => setAllWords(true)}
+        >
+          Show all {pairs.length} words
+        </button>
+      )}
       <p className="muted wbw-credit">
         {WORD_MEANINGS_CREDIT}
         <a
