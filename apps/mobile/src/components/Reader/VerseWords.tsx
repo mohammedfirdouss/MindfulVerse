@@ -1,13 +1,14 @@
 import { loadSurahWords } from "@mindfulverse/core/data";
 import type { Ayah } from "@mindfulverse/core/types";
 import {
+  FIRST_WORDS,
   WORD_MEANINGS_BOOK_URL,
   WORD_MEANINGS_CREDIT,
   pairWords,
 } from "@mindfulverse/core/wordByWord";
 import type { WordPair } from "@mindfulverse/core/wordByWord";
 import { useEffect, useState } from "react";
-import { Linking, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 
 import { space, useTheme } from "../../theme";
 import { ArabicText, Text } from "../../ui";
@@ -18,10 +19,12 @@ import { ArabicText, Text } from "../../ui";
 export function VerseWords({ ayah }: { ayah: Ayah }) {
   const { colors } = useTheme();
   const [pairs, setPairs] = useState<WordPair[] | null>(null);
+  const [allWords, setAllWords] = useState(false);
 
   useEffect(() => {
     let live = true;
     setPairs(null);
+    setAllWords(false);
     const load = async () => {
       try {
         const words = await loadSurahWords(ayah.surah);
@@ -50,6 +53,8 @@ export function VerseWords({ ayah }: { ayah: Ayah }) {
       </ArabicText>
     );
   }
+  const shown = allWords ? pairs : pairs.slice(0, FIRST_WORDS);
+  const hidden = pairs.length - shown.length;
   return (
     <View accessibilityLabel="Word by word" style={[frame, { gap: space.md }]}>
       <View
@@ -60,7 +65,7 @@ export function VerseWords({ ayah }: { ayah: Ayah }) {
           rowGap: 14,
         }}
       >
-        {pairs.map((p, i) => (
+        {shown.map((p, i) => (
           <View
             key={i}
             accessible
@@ -87,6 +92,28 @@ export function VerseWords({ ayah }: { ayah: Ayah }) {
           </View>
         ))}
       </View>
+      {hidden > 0 && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setAllWords(true)}
+          hitSlop={8}
+          style={{
+            alignSelf: "flex-start",
+            minHeight: 44,
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: colors.indigo,
+              fontSize: 15,
+              textDecorationLine: "underline",
+            }}
+          >
+            Show all {pairs.length} words
+          </Text>
+        </Pressable>
+      )}
       <Text variant="muted" style={{ fontSize: 13, lineHeight: 19 }}>
         {WORD_MEANINGS_CREDIT}
         {"\n"}

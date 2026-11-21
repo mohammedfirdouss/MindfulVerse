@@ -43,3 +43,7 @@ export function pairWords(
   }
   return at === words.length ? pairs : null;
 }
+
+/** Long verses show this many words first, with a way to show the rest, so
+ *  the Deeper look sheet isn't all words before the explanation. */
+export const FIRST_WORDS = 12;
