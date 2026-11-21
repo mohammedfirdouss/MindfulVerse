@@ -199,7 +199,6 @@ export default function SessionPlayer() {
 }
 
 function SessionFlow({ session }: { session: TadabburSession }) {
-  const { colors } = useTheme();
   const reduce = useReducedMotion();
   const surahNames = useSurahNames();
   const [arabicScale] = useState(() => scaleFor(getSizeKey()));
@@ -242,15 +241,7 @@ function SessionFlow({ session }: { session: TadabburSession }) {
             {stepCountLabel(stepCount)}, at your own pace.
           </Text>
           {wasCompleted ? (
-            <Text variant="muted">
-              <Text
-                importantForAccessibility="no"
-                style={{ color: colors.indigo }}
-              >
-                ✦{" "}
-              </Text>
-              You’ve sat with this one before.
-            </Text>
+            <Text variant="muted">You’ve sat with this one before.</Text>
           ) : null}
         </FadeRise>
         <FadeRise

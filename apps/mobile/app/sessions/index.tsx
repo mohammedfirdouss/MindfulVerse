@@ -2,15 +2,13 @@
 // theme. Port of the "By theme" half of web's pages/Sessions.tsx.
 import { loadSessions } from "@mindfulverse/core/data";
 import { getAllSessionProgress } from "@mindfulverse/core/progress";
+import { sessionStatusText } from "@mindfulverse/core/sessionStatus";
 import type { TadabburSession } from "@mindfulverse/core/types";
 import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
-import {
-  sessionRows,
-  stepCountLabel,
-} from "../../src/components/Sessions/logic";
+import { sessionRows } from "../../src/components/Sessions/logic";
 import type { SessionRow } from "../../src/components/Sessions/logic";
 import { fonts, space, useTheme } from "../../src/theme";
 import { Button, Card, LinkPressable, Screen, Text } from "../../src/ui";
@@ -21,35 +19,26 @@ type Status =
   | { kind: "error" }
   | { kind: "ready"; sessions: TadabburSession[] };
 
-function StateLabel({ row }: { row: SessionRow }) {
-  const { colors } = useTheme();
-  if (row.state === "completed") {
-    return (
-      <Text variant="muted" style={{ color: colors.indigo }}>
-        <Text importantForAccessibility="no">✦ </Text>Completed
-      </Text>
-    );
-  }
-  if (row.state === "inProgress") {
-    return (
-      <Text variant="muted" style={{ color: colors.kola }}>
-        Continue
-      </Text>
-    );
-  }
-  return (
-    <Text variant="muted">{stepCountLabel(row.session.steps.length)}</Text>
-  );
-}
+const KIND = {
+  completed: "done",
+  inProgress: "progress",
+  new: "new",
+} as const;
 
 function stateWords(row: SessionRow): string {
-  if (row.state === "completed") {
-    return "Completed";
-  }
-  if (row.state === "inProgress") {
-    return "In progress";
-  }
-  return stepCountLabel(row.session.steps.length);
+  return sessionStatusText(KIND[row.state], row.step, row.session.steps.length);
+}
+
+function StateLabel({ row }: { row: SessionRow }) {
+  const { colors } = useTheme();
+  return (
+    <Text
+      variant="muted"
+      style={row.state === "inProgress" ? { color: colors.indigo } : undefined}
+    >
+      {stateWords(row)}
+    </Text>
+  );
 }
 
 function Row({ row, first }: { row: SessionRow; first: boolean }) {
