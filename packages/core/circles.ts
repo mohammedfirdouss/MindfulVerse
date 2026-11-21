@@ -1,9 +1,11 @@
 // Circles: a named group reading one surah together. The server holds only the
-// name, surah and optional focus verse (migrations/20261108120000_circles.sql);
-// reflection text never leaves the device through here: a kept reflection
-// sends only the install id, circle code and local date, for an anonymous
-// weekly count. Membership is device-local: one joined circle, cached so Home
-// works offline.
+// name, surah and optional portion (a focus verse, or verse..verseEnd for the
+// week); see migrations/20261108120000_circles.sql and
+// 20261121100000_circles-portion-members-history.sql. Reflection text never
+// leaves the device through here: a kept reflection sends only the install id,
+// circle code and local date, for an anonymous weekly count, and membership is
+// counted by install id alone. A device can be in up to three circles; the
+// first is the one Home leads with. All of it is cached so Home works offline.
 import { clearCircleSurah, parseSurahNumber } from "./circleSurah";
 import { getInstallId, localDay } from "./installId";
 import { onEntryAdded } from "./journal";
@@ -20,6 +22,9 @@ export interface Circle {
   name: string;
   surah: number;
   verse: number | null;
+  /** Last verse of this week's portion; null for a single focus verse or the
+   *  whole surah. Only set alongside verse, and never before it. */
+  verseEnd: number | null;
   /** Epoch ms of the owner's last change. */
   updatedAt: number;
 }
@@ -28,6 +33,7 @@ export interface CircleDraft {
   name: string;
   surah: number;
   verse?: number | null;
+  verseEnd?: number | null;
 }
 
 export type CirclePatch = Partial<CircleDraft>;
@@ -72,7 +78,7 @@ const SURAH_DIGITS = /^\d{1,3}$/u;
 const BYTE_RANGE = 256;
 const MAX_CREATE_ATTEMPTS = 3;
 const LIST_LIMIT = 50;
-const COLUMNS = "code, name, surah, verse, updated_at";
+const COLUMNS = "code, name, surah, verse, verse_end, updated_at";
 
 export function isCircleCode(raw: unknown): raw is string {
   return typeof raw === "string" && CODE_PATTERN.test(raw);
@@ -170,6 +176,7 @@ export interface CircleRow {
   name: string;
   surah: number;
   verse: number | null;
+  verse_end?: number | null;
   updated_at: string;
 }
 
@@ -178,6 +185,7 @@ export interface CircleInsert {
   name: string;
   surah: number;
   verse: number | null;
+  verse_end: number | null;
 }
 
 export type CircleUpdate = Partial<Omit<CircleInsert, "code">>;
@@ -230,12 +238,15 @@ export function circleFromRow(row: unknown): Circle | null {
     return null;
   }
   const updatedAt = Date.parse(String(r?.updated_at ?? ""));
+  const verse = parseVerseNumber(r?.verse);
+  const end = parseVerseNumber(r?.verse_end);
   return {
     code,
     name,
     surah,
     updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
-    verse: parseVerseNumber(r?.verse),
+    verse,
+    verseEnd: verse !== null && end !== null && end >= verse ? end : null,
   };
 }
 
@@ -282,21 +293,40 @@ function firstCircle(data: CircleRow[] | null): CircleResult<Circle> {
   return circle ? { ok: true, value: circle } : fail(circleError("not-found"));
 }
 
+type Portion = Pick<CircleInsert, "verse" | "verse_end">;
+
+/** A focus verse, or a verse..verseEnd range; null when either is malformed
+ *  or the range runs backwards. Absent means the whole surah. */
+function checkPortion(
+  verseIn: number | null | undefined,
+  endIn: number | null | undefined
+): Portion | null {
+  const verse =
+    verseIn === null || verseIn === undefined ? null : parseVerseNumber(verseIn);
+  const end =
+    endIn === null || endIn === undefined ? null : parseVerseNumber(endIn);
+  const badVerse = verse === null && verseIn !== null && verseIn !== undefined;
+  const badEnd = end === null && endIn !== null && endIn !== undefined;
+  if (badVerse || badEnd) {
+    return null;
+  }
+  if (end !== null && (verse === null || end < verse)) {
+    return null;
+  }
+  // A one-verse range is just a focus verse.
+  return { verse, verse_end: end === verse ? null : end };
+}
+
 function validateDraft(
   draft: CircleDraft
 ): CircleResult<Omit<CircleInsert, "code">> {
   const name = normalizeName(draft.name);
   const surah = parseSurahNumber(draft.surah);
-  const verse =
-    draft.verse === null || draft.verse === undefined
-      ? null
-      : parseVerseNumber(draft.verse);
-  const badVerse =
-    verse === null && draft.verse !== null && draft.verse !== undefined;
-  if (name === null || surah === null || badVerse) {
+  const portion = checkPortion(draft.verse, draft.verseEnd);
+  if (name === null || surah === null || portion === null) {
     return fail(circleError("invalid"));
   }
-  return { ok: true, value: { name, surah, verse } };
+  return { ok: true, value: { name, surah, ...portion } };
 }
 
 /** Signed-in only. Retries with a fresh code if the code is taken, and joins
@@ -357,12 +387,14 @@ export async function updateCircle(
     }
     update.surah = surah;
   }
-  if (patch.verse !== undefined) {
-    const verse = patch.verse === null ? null : parseVerseNumber(patch.verse);
-    if (patch.verse !== null && verse === null) {
+  if (patch.verse !== undefined || patch.verseEnd !== undefined) {
+    // The portion moves as one: a new start without an end clears the end.
+    const portion = checkPortion(patch.verse, patch.verseEnd);
+    if (portion === null) {
       return fail(circleError("invalid"));
     }
-    update.verse = verse;
+    update.verse = portion.verse;
+    update.verse_end = portion.verse_end;
   }
   try {
     const { data, error } = await api.update(code, update);
@@ -370,7 +402,7 @@ export async function updateCircle(
       return fail(toCircleError(error));
     }
     const result = firstCircle(data);
-    if (result.ok && getJoinedCircle()?.code === code) {
+    if (result.ok) {
       writeJoined(result.value);
     }
     return result;
@@ -395,9 +427,7 @@ export async function deleteCircle(
     if (!data?.length) {
       return fail(circleError("not-found"));
     }
-    if (getJoinedCircle()?.code === code) {
-      leaveCircle();
-    }
+    leaveCircle(code);
     return { ok: true, value: null };
   } catch (error) {
     return fail(toCircleError(error));
@@ -443,18 +473,27 @@ export async function fetchCircle(
 
 // ---- Device-local membership ----
 
-const JOINED_KEY = "mindfulverse.circle.v1";
+/** One device can be in this many circles at once. */
+export const MAX_JOINED_CIRCLES = 3;
+
+// v2 holds every joined circle, the one Home leads with first. v1 held a
+// single circle and is moved into v2 the first time it's read.
+const JOINED_KEY = "mindfulverse.circles.v2";
+const OLD_JOINED_KEY = "mindfulverse.circle.v1";
 
 type Listener = (circle: Circle | null) => void;
 const listeners = new Set<Listener>();
 
-function notify(circle: Circle | null): void {
+function notify(): void {
+  const primary = getJoinedCircle();
   for (const listener of listeners) {
-    listener(circle);
+    listener(primary);
   }
 }
 
-/** Called after join, leave or a refresh that changed the cached circle. */
+/** Called after a join, leave, reorder or a refresh that changed a cached
+ *  circle, with the circle Home leads with (or null). Read the whole list
+ *  with getJoinedCircles(). */
 export function onJoinedCircleChange(listener: Listener): () => void {
   listeners.add(listener);
   return () => {
@@ -462,57 +501,127 @@ export function onJoinedCircleChange(listener: Listener): () => void {
   };
 }
 
-export function getJoinedCircle(): Circle | null {
+function fromStored(raw: unknown): Circle | null {
+  const parsed = raw as Partial<Circle> | null;
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+  return circleFromRow({
+    ...parsed,
+    updated_at: new Date(Number(parsed.updatedAt) || 0).toISOString(),
+    verse_end: parsed.verseEnd,
+  });
+}
+
+function readList(): Circle[] {
   try {
     const raw = localStorage.getItem(JOINED_KEY);
-    if (!raw) {
-      return null;
+    if (raw !== null) {
+      const parsed = JSON.parse(raw) as unknown;
+      const list = Array.isArray(parsed) ? parsed : [];
+      return list
+        .map(fromStored)
+        .filter((c): c is Circle => c !== null)
+        .slice(0, MAX_JOINED_CIRCLES);
     }
-    const parsed = JSON.parse(raw) as Partial<Circle>;
-    return circleFromRow({
-      ...parsed,
-      updated_at: new Date(Number(parsed.updatedAt) || 0).toISOString(),
-    });
+    const old = localStorage.getItem(OLD_JOINED_KEY);
+    if (old === null) {
+      return [];
+    }
+    const migrated = fromStored(JSON.parse(old) as unknown);
+    const list = migrated ? [migrated] : [];
+    localStorage.setItem(JOINED_KEY, JSON.stringify(list));
+    localStorage.removeItem(OLD_JOINED_KEY);
+    return list;
   } catch {
-    return null;
+    return [];
   }
 }
 
-function writeJoined(circle: Circle): Circle | null {
-  const valid = circleFromRow({
-    ...circle,
-    updated_at: new Date(circle.updatedAt).toISOString(),
-  });
-  if (!valid) {
-    return null;
-  }
+function writeList(list: Circle[]): boolean {
   try {
-    localStorage.setItem(JOINED_KEY, JSON.stringify(valid));
+    localStorage.setItem(JOINED_KEY, JSON.stringify(list));
   } catch {
-    return null;
+    return false;
   }
-  notify(valid);
-  return valid;
+  notify();
+  return true;
 }
 
-/** Replaces any joined circle (and any old numeric circle surah) on this
- *  device. Returns false for a malformed circle. */
+function toStored(circle: Circle): Circle | null {
+  return fromStored(circle);
+}
+
+/** Every circle this device is in; the first is the one Home leads with. */
+export function getJoinedCircles(): Circle[] {
+  return readList();
+}
+
+/** The circle Home leads with, or null. */
+export function getJoinedCircle(): Circle | null {
+  return readList()[0] ?? null;
+}
+
+export function isCircleJoined(code: string): boolean {
+  return readList().some((c) => c.code === code);
+}
+
+/** True when joining this circle needs another to be left first. */
+export function circlesFull(code?: string): boolean {
+  const list = readList();
+  return (
+    list.length >= MAX_JOINED_CIRCLES &&
+    !list.some((c) => c.code === code)
+  );
+}
+
+/** Updates a joined circle's cached copy in place; a no-op for any other. */
+function writeJoined(circle: Circle): void {
+  const valid = toStored(circle);
+  if (!valid) {
+    return;
+  }
+  const list = readList();
+  const at = list.findIndex((c) => c.code === valid.code);
+  if (at === -1) {
+    return;
+  }
+  list[at] = valid;
+  writeList(list);
+}
+
+/** Joins a circle on this device, or brings an already joined one to the
+ *  front so Home leads with it. Returns false for a malformed circle or when
+ *  the device is already in MAX_JOINED_CIRCLES others. */
 export function joinCircle(circle: Circle): boolean {
-  if (!writeJoined(circle)) {
+  const valid = toStored(circle);
+  if (!valid) {
+    return false;
+  }
+  const list = readList();
+  const rest = list.filter((c) => c.code !== valid.code);
+  if (rest.length >= MAX_JOINED_CIRCLES) {
+    return false;
+  }
+  if (!writeList([valid, ...rest])) {
     return false;
   }
   // A named circle replaces an old numeric circle link.
   clearCircleSurah();
+  void touchCircleMembership(valid.code);
   return true;
 }
 
-export function leaveCircle(): void {
-  try {
-    localStorage.removeItem(JOINED_KEY);
-  } catch {
+/** Leaves one circle (the one Home leads with, by default). */
+export function leaveCircle(code?: string): void {
+  const list = readList();
+  const target = code ?? list[0]?.code;
+  if (!target || !list.some((c) => c.code === target)) {
     return;
   }
-  notify(null);
+  if (writeList(list.filter((c) => c.code !== target))) {
+    void sendLeave(target);
+  }
 }
 
 function sameCircle(a: Circle, b: Circle): boolean {
@@ -520,12 +629,33 @@ function sameCircle(a: Circle, b: Circle): boolean {
     a.name === b.name &&
     a.surah === b.surah &&
     a.verse === b.verse &&
+    a.verseEnd === b.verseEnd &&
     a.updatedAt === b.updatedAt
   );
 }
 
-/** Refetches the joined circle. Clears membership and resolves null when the
- *  circle is gone; keeps the cached copy when offline or on any other error. */
+async function refreshOne(
+  cached: Circle,
+  fetcher: (code: string) => Promise<CircleResult<Circle>>
+): Promise<Circle | null> {
+  const result = await fetcher(cached.code);
+  if (result.ok) {
+    if (isCircleJoined(cached.code) && !sameCircle(cached, result.value)) {
+      writeJoined(result.value);
+    }
+    void touchCircleMembership(cached.code);
+    return result.value;
+  }
+  if (result.error.kind === "not-found") {
+    leaveCircle(cached.code);
+    return null;
+  }
+  return cached;
+}
+
+/** Refetches the circle Home leads with. Leaves it and resolves the next one
+ *  (or null) when it's gone; keeps the cached copy when offline or on any
+ *  other error. */
 export async function refreshJoinedCircle(
   fetcher: (code: string) => Promise<CircleResult<Circle>> = fetchCircle
 ): Promise<Circle | null> {
@@ -533,24 +663,191 @@ export async function refreshJoinedCircle(
   if (!cached) {
     return null;
   }
-  const result = await fetcher(cached.code);
-  if (result.ok) {
-    if (getJoinedCircle()?.code !== cached.code) {
-      return getJoinedCircle();
-    }
-    if (!sameCircle(cached, result.value)) {
-      writeJoined(result.value);
-    }
-    return result.value;
+  const fresh = await refreshOne(cached, fetcher);
+  return fresh === null || !isCircleJoined(cached.code)
+    ? getJoinedCircle()
+    : (getJoinedCircle() ?? fresh);
+}
+
+/** Refetches every joined circle; resolves the list as it stands after. */
+export async function refreshJoinedCircles(
+  fetcher: (code: string) => Promise<CircleResult<Circle>> = fetchCircle
+): Promise<Circle[]> {
+  await Promise.all(readList().map((c) => refreshOne(c, fetcher)));
+  return readList();
+}
+
+// ---- Anonymous member count ----
+
+export type CircleMemberCall = (
+  fn: "circle_touch" | "circle_leave",
+  args: { p_code: string; p_install_id: string }
+) => Promise<unknown>;
+
+const TOUCHED_KEY = "mindfulverse.circleTouched.v1";
+
+const callMemberRpc: CircleMemberCall = async (fn, args) => {
+  const { error } = await insforge.database.rpc(fn, args);
+  return error;
+};
+
+let memberCall: CircleMemberCall = callMemberRpc;
+
+/** Swaps the join and leave calls that joinCircle and leaveCircle make in the
+ *  background; for tests. Returns a function that restores the real ones. */
+export function setCircleMemberCall(call: CircleMemberCall): () => void {
+  memberCall = call;
+  return () => {
+    memberCall = callMemberRpc;
+  };
+}
+
+function readTouched(): Record<string, string> {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(TOUCHED_KEY) ?? "{}") as unknown;
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
   }
-  if (
-    result.error.kind === "not-found" &&
-    getJoinedCircle()?.code === cached.code
-  ) {
-    leaveCircle();
+}
+
+/** Tells the server this device is in the circle, at most once per circle and
+ *  local day. Sends only the install id and code. Never rejects. */
+export async function touchCircleMembership(
+  code: string,
+  now: Date = new Date(),
+  call: CircleMemberCall = memberCall
+): Promise<boolean> {
+  try {
+    if (!isCircleCode(code)) {
+      return false;
+    }
+    const day = localDay(now);
+    const touched = readTouched();
+    if (touched[code] === day) {
+      return false;
+    }
+    const error = await call("circle_touch", {
+      p_code: code,
+      p_install_id: getInstallId(),
+    });
+    if (!error) {
+      // Keep only circles still joined, so the record stays small.
+      const kept: Record<string, string> = { [code]: day };
+      for (const c of readList()) {
+        if (c.code !== code && touched[c.code]) {
+          kept[c.code] = touched[c.code] ?? "";
+        }
+      }
+      localStorage.setItem(TOUCHED_KEY, JSON.stringify(kept));
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function sendLeave(code: string): Promise<void> {
+  const call = memberCall;
+  try {
+    const touched = readTouched();
+    delete touched[code];
+    localStorage.setItem(TOUCHED_KEY, JSON.stringify(touched));
+    await call("circle_leave", { p_code: code, p_install_id: getInstallId() });
+  } catch {
+    // Not reached: the member drops out of the count after 30 days anyway.
+  }
+}
+
+export type FetchCount = (
+  fn: "circle_member_count" | "circle_week_count",
+  code: string
+) => Promise<ApiResponse<unknown>>;
+
+const fetchCountFromInsforge: FetchCount = async (fn, code) =>
+  await insforge.database.rpc(fn, { p_code: code });
+
+/** Devices in the circle that opened the app in the last 30 days. Null on any
+ *  error. */
+export async function fetchCircleMemberCount(
+  code: string,
+  fetcher: FetchCount = fetchCountFromInsforge
+): Promise<number | null> {
+  if (!isCircleCode(code)) {
     return null;
   }
-  return cached;
+  try {
+    const { data, error } = await fetcher("circle_member_count", code);
+    return error ? null : countFrom(data, "circle_member_count");
+  } catch {
+    return null;
+  }
+}
+
+// ---- Surahs read together ----
+
+export interface CircleHistoryEntry {
+  surah: number;
+  /** Epoch ms. */
+  startedAt: number;
+  /** Epoch ms, or null for the surah the circle is reading now. */
+  endedAt: number | null;
+}
+
+export type FetchHistory = (code: string) => Promise<ApiResponse<unknown>>;
+
+const fetchHistoryFromInsforge: FetchHistory = async (code) =>
+  await insforge.database.rpc("circle_history", { p_code: code });
+
+export function historyFromRows(data: unknown): CircleHistoryEntry[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const out: CircleHistoryEntry[] = [];
+  for (const row of data as Record<string, unknown>[]) {
+    const surah = parseSurahNumber(row?.surah);
+    const startedAt = Date.parse(String(row?.started_at ?? ""));
+    const ended = row?.ended_at ? Date.parse(String(row.ended_at)) : Number.NaN;
+    if (surah !== null && Number.isFinite(startedAt)) {
+      out.push({
+        endedAt: Number.isFinite(ended) ? ended : null,
+        startedAt,
+        surah,
+      });
+    }
+  }
+  return out;
+}
+
+/** The surahs a circle has read, oldest first. Empty on any error. */
+export async function fetchCircleHistory(
+  code: string,
+  fetcher: FetchHistory = fetchHistoryFromInsforge
+): Promise<CircleHistoryEntry[]> {
+  if (!isCircleCode(code)) {
+    return [];
+  }
+  try {
+    const { data, error } = await fetcher(code);
+    return error ? [] : historyFromRows(data);
+  } catch {
+    return [];
+  }
+}
+
+/** Surahs the circle has finished, oldest first, each once. */
+export function finishedSurahs(history: CircleHistoryEntry[]): number[] {
+  const seen = new Set<number>();
+  const out: number[] = [];
+  for (const h of history) {
+    if (h.endedAt !== null && !seen.has(h.surah)) {
+      seen.add(h.surah);
+      out.push(h.surah);
+    }
+  }
+  return out;
 }
 
 // ---- Anonymous weekly count ----
@@ -582,32 +879,52 @@ const sendReflectionToInsforge: SendCircleReflection = async (row) => {
 const fetchWeekCountFromInsforge: FetchWeekCount = async (code) =>
   await insforge.database.rpc("circle_week_count", { p_code: code });
 
-/** Sends today's row for the joined circle, once per circle and local day.
- *  A no-op outside a circle. Resolves to whether a row was attempted; never
+function readSent(): string[] {
+  try {
+    const raw = localStorage.getItem(LAST_REFLECTION_KEY);
+    if (!raw) {
+      return [];
+    }
+    // v1 stored one "code:day" string; now a list, one per joined circle.
+    if (!raw.startsWith("[")) {
+      return [raw];
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Sends today's row for each joined circle, once per circle and local day.
+ *  A no-op outside a circle. Resolves to whether any row was attempted; never
  *  rejects. */
 export async function recordCircleReflection(
   now: Date = new Date(),
   send: SendCircleReflection = sendReflectionToInsforge
 ): Promise<boolean> {
   try {
-    const code = getJoinedCircle()?.code;
-    if (!code) {
-      return false;
-    }
     const day = localDay(now);
-    const sentKey = `${code}:${day}`;
-    if (localStorage.getItem(LAST_REFLECTION_KEY) === sentKey) {
-      return false;
+    const codes = readList().map((c) => c.code);
+    const sent = new Set(readSent().filter((k) => k.endsWith(`:${day}`)));
+    let attempted = false;
+    for (const code of codes) {
+      const key = `${code}:${day}`;
+      if (sent.has(key)) {
+        continue;
+      }
+      attempted = true;
+      const error = await send({
+        circle_code: code,
+        day,
+        install_id: getInstallId(),
+      });
+      if (!error || isDuplicate(error)) {
+        sent.add(key);
+      }
     }
-    const error = await send({
-      circle_code: code,
-      day,
-      install_id: getInstallId(),
-    });
-    if (!error || isDuplicate(error)) {
-      localStorage.setItem(LAST_REFLECTION_KEY, sentKey);
-    }
-    return true;
+    localStorage.setItem(LAST_REFLECTION_KEY, JSON.stringify([...sent]));
+    return attempted;
   } catch {
     return false;
   }
@@ -632,10 +949,9 @@ export function wireCircleReflections(
   return unwireReflections;
 }
 
-function countFrom(data: unknown): number | null {
+function countFrom(data: unknown, key: string): number | null {
   const value = Array.isArray(data)
-    ? (data[0] as { circle_week_count?: unknown } | undefined)
-        ?.circle_week_count
+    ? (data[0] as Record<string, unknown> | undefined)?.[key]
     : data;
   const n = typeof value === "string" ? Number(value) : value;
   return typeof n === "number" && Number.isInteger(n) && n >= 0 ? n : null;
@@ -652,7 +968,7 @@ export async function fetchCircleWeekCount(
   }
   try {
     const { data, error } = await fetcher(code);
-    return error ? null : countFrom(data);
+    return error ? null : countFrom(data, "circle_week_count");
   } catch {
     return null;
   }
@@ -667,4 +983,32 @@ export function circleCountLine(name: string | null, n: number): string | null {
   }
   const who = name === null ? "people" : `in ${name}`;
   return `${Math.floor(n)} ${who} reflected this week.`;
+}
+
+/** "5 in Friday friends · 3 reflected this week", "5 people in this circle",
+ *  or just the reflection line. Each number shows only at 2 or more, so no one
+ *  is singled out; null when neither does. */
+export function circleMembersLine(
+  name: string | null,
+  members: number | null,
+  reflected: number | null
+): string | null {
+  const shownMembers =
+    members !== null && Number.isFinite(members) && members >= MIN_SHOWN_COUNT
+      ? Math.floor(members)
+      : null;
+  const shownReflected =
+    reflected !== null &&
+    Number.isFinite(reflected) &&
+    reflected >= MIN_SHOWN_COUNT
+      ? Math.floor(reflected)
+      : null;
+  if (shownMembers === null) {
+    return shownReflected === null ? null : circleCountLine(name, shownReflected);
+  }
+  const who = name === null ? "people in this circle" : `in ${name}`;
+  const base = `${shownMembers} ${who}`;
+  return shownReflected === null
+    ? `${base}.`
+    : `${base} · ${shownReflected} reflected this week.`;
 }
