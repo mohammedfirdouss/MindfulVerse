@@ -1,20 +1,21 @@
 # MindfulVerse
 
-A quiet app for pondering the Qur'an. Sit with one surah verse by verse with Ibn Kathir's commentary, keep a private journal for it, and get asked a week later whether you did what you wrote. Read it with friends in a circle, each in your own words.
+A quiet app for pondering the Qur'an. Sit with one surah verse by verse, look deeper at any verse with its word meanings and a short explanation, keep a private journal, and get asked a week later whether you did what you wrote. Read a surah with friends in a circle, a few verses each week, each in your own words.
 
-It works in the browser and on Android, needs no sign up, and works offline. It is free, with no ads.
+It works in the browser, on phones and on desktop, and as an Android app. It needs no sign up and works offline. It is free, with no ads.
 
 Live at [mindfulverse.vercel.app](https://mindfulverse.vercel.app)
 
 ## Features
 
 - **Surah journal.** Begin with a surah: its background, then verse by verse with Ibn Kathir, and a page that keeps everything you wrote on it.
+- **Deeper look.** Under any verse: each Arabic word with its English meaning, "In short" (a short explanation from Al-Mukhtasar), other verses on the same subject, and Ibn Kathir's full commentary.
 - **A week later.** Write what you will do; seven days on, Home asks how it went.
-- **Circles.** Name a circle, pick a surah, share the link. Anyone can join without an account; reflections stay private, and the circle only sees an anonymous weekly count.
+- **Circles.** Read a surah with friends, a few verses each week. Share a link, a WhatsApp message or a QR code; anyone can join without an account. The circle sees how many are reading and reflected this week, never who, plus questions for when you meet and the surahs read together. Be in up to three circles.
 - **Tadabbur sessions.** Short guided reflections: a few verses on one theme.
 - **Daily verse.** A verse for today and a place to write about it, with an optional daily reminder.
 - **Read and search.** All 114 surahs with Arabic, English translation and commentary; search the translation or browse by theme.
-- **Your rhythm.** Days of returning, and how many days this week you kept a reflection. Private, on your device.
+- **Your rhythm.** Days of returning, and how many days this week you kept a reflection. Private, and it follows you across devices when you sign in.
 - **Accounts and sync.** Optional sign in backs up your journal across devices.
 - **For developers.** A free daily verse API for your own site, at `/developers`.
 
@@ -22,13 +23,17 @@ All Qur'an text, translation, and commentary are shown exactly as they are. The 
 
 ## Screenshots
 
-| Home | A surah, verse by verse | Reader |
-| --- | --- | --- |
-| ![Home](docs/screenshots/home.png) | ![A surah, verse by verse](docs/screenshots/surah.png) | ![Reader](docs/screenshots/reader.png) |
+![Home on a desktop: your surah beside today's verse](docs/screenshots/desktop.png)
 
-| Tadabbur | Circles | Daily check-in |
+| Home | A surah, verse by verse | Deeper look |
 | --- | --- | --- |
-| ![Tadabbur](docs/screenshots/sessions.png) | ![Circles](docs/screenshots/circles.png) | ![Daily check-in](docs/screenshots/checkin.png) |
+| ![Home](docs/screenshots/home.png) | ![A surah, verse by verse](docs/screenshots/surah.png) | ![Deeper look](docs/screenshots/deeper.png) |
+
+| Circles | Your reflections | Reader |
+| --- | --- | --- |
+| ![Circles](docs/screenshots/circles.png) | ![Your reflections](docs/screenshots/journal.png) | ![Reader](docs/screenshots/reader.png) |
+
+The screenshots use invented test data. To take them again, build and preview the web app, then run `node scripts/capture-readme.mjs`.
 
 ## Run it
 
@@ -62,11 +67,15 @@ packages/core/        code shared by web and Android: data, journal,
                       progress, circles, sync and accounts
 apps/web/             the web app: pages, components and the service worker
 apps/mobile/          the Android app, built with Expo
-apps/web/public/data/ the Qur'an, commentary, themes and sessions as JSON
+apps/promo/           the promo videos, made with Remotion from captures
+                      of the running app
+apps/web/public/data/ the Qur'an, translation, commentary, short
+                      explanations, word meanings, themes and sessions
 functions/            InsForge server functions (reminders, daily verse API)
 migrations/           InsForge database changes
 scripts/              build scripts for the app data, logo files and server
-                      functions, and retention.sql for the launch numbers
+                      functions, the README screenshots, and retention.sql
+                      for the launch numbers
 ```
 
 The shared code never calls browser or phone features directly. Each app sets it up once when it starts, by calling `configureInsforge`, `configureData`, `configureSyncTriggers` and `configureAnalytics`.
@@ -109,6 +118,7 @@ How sync works:
 
 - The translation writes the divine name as "God". It is shown word for word, as its licence requires.
 - Ibn Kathir wrote his commentary on passages, so some verses share a note with the verse next to them.
+- Long verses show their first 12 words in Deeper look, with a button to show the rest.
 - Recitation audio and more languages are planned for later. MindfulVerse is free, with no paid plan. See `ROADMAP.md`.
 
 ## Licence
