@@ -1,5 +1,6 @@
 // Pure logic for Home's lead card and "Or ponder a theme" (web:
 // apps/web/src/pages/Home.tsx). No React Native imports, so vitest runs it.
+import { portionLabel } from "@mindfulverse/core/circlePortion";
 import type { Circle } from "@mindfulverse/core/circles";
 import {
   parseSurahNumber,
@@ -15,17 +16,24 @@ export const BEGIN_LINE = "Ponder it verse by verse, with Ibn Kathir.";
 
 export const CIRCLE_EYEBROW = "Your circle is reading";
 export const namedEyebrow = (name: string): string => `${name} is reading`;
-export const focusLine = (verse: number): string => `Focus: verse ${verse}`;
+/** "This week: verses 7 to 12", or "This week: verse 10". */
+export const weekLine = (verse: number, verseEnd: number | null): string =>
+  `This week: ${portionLabel({ surah: 0, verse, verseEnd })}`;
 
-/** The named-circle card's one line: the focus verse when the circle has one,
- *  else the intro. Never both. */
-export function namedLine(verse: number | null): string {
-  return verse === null ? BEGIN_LINE : focusLine(verse);
+/** The named-circle card's one line: this week's verses when the circle has
+ *  them, else the intro. Never both. */
+export function namedLine(
+  verse: number | null,
+  verseEnd: number | null = null
+): string {
+  return verse === null ? BEGIN_LINE : weekLine(verse, verseEnd);
 }
 
 export const CONTINUE_EYEBROW = "Your surah";
 export const RESUME_ACTION = "Resume";
-export const YOUR_CIRCLE_LINK = "Your circle";
+/** "Your circle", or "Your circles" when the device is in more than one. */
+export const yourCircleLink = (joinedCount: number): string =>
+  joinedCount > 1 ? "Your circles" : "Your circle";
 
 /** Where the surah in progress stands, under "Continue Al-Kahf". */
 export function whereYouAre(
@@ -49,7 +57,13 @@ export function namedAction(surahTitle: string, verse: number | null): string {
 /** What Home's lead card offers, most specific first. */
 export type Lead =
   | { kind: "continue"; surah: number; ayah: number }
-  | { kind: "named"; name: string; surah: number; verse: number | null }
+  | {
+      kind: "named";
+      name: string;
+      surah: number;
+      verse: number | null;
+      verseEnd: number | null;
+    }
   | { kind: "circle"; surah: number }
   | { kind: "starters"; surahs: readonly number[] };
 
@@ -59,7 +73,7 @@ export type Lead =
 export function chooseLead(
   deeper: VersePos | null,
   circleSurah: unknown,
-  joined: Pick<Circle, "name" | "surah" | "verse"> | null = null
+  joined: Pick<Circle, "name" | "surah" | "verse" | "verseEnd"> | null = null
 ): Lead {
   if (deeper) {
     return { ayah: deeper.ayah, kind: "continue", surah: deeper.surah };
@@ -70,6 +84,7 @@ export function chooseLead(
       name: joined.name,
       surah: joined.surah,
       verse: joined.verse,
+      verseEnd: joined.verseEnd,
     };
   }
   const circle = parseSurahNumber(circleSurah);
