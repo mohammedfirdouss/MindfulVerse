@@ -214,9 +214,6 @@ function SessionFlow({ session }: { session: TadabburSession }) {
             </p>
             {wasCompleted && (
               <p className="muted" style={{ margin: 0 }}>
-                <span aria-hidden="true" style={{ color: "var(--indigo)" }}>
-                  ✦
-                </span>{" "}
                 You’ve sat with this one before.
               </p>
             )}

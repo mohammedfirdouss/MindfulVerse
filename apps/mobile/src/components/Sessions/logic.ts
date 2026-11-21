@@ -8,6 +8,8 @@ export type SessionState = "completed" | "inProgress" | "new";
 export interface SessionRow {
   session: TadabburSession;
   state: SessionState;
+  /** The furthest step reached, counting from 0; null before beginning. */
+  step: number | null;
 }
 
 const EXCERPT_CHARS = 700;
@@ -33,7 +35,11 @@ export function sessionRows(
     new: 1,
   };
   return sessions
-    .map((session) => ({ session, state: sessionState(progress[session.id]) }))
+    .map((session) => ({
+      session,
+      state: sessionState(progress[session.id]),
+      step: progress[session.id]?.step ?? null,
+    }))
     .toSorted((a, b) => rank[a.state] - rank[b.state]);
 }
 

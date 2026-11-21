@@ -4,6 +4,7 @@ import {
   getLocalProgress,
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
+import { sessionStatusText } from "@mindfulverse/core/sessionStatus";
 import type { SurahMeta, TadabburSession } from "@mindfulverse/core/types";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -238,14 +239,14 @@ export default function Sessions() {
                     p?.completedAt !== null && p?.completedAt !== undefined;
                   const inProgress =
                     !completed && p !== null && p !== undefined && p.step >= 0;
-                  return { completed, inProgress, s };
+                  return { completed, inProgress, s, step: p?.step ?? null };
                 })
                 .sort(
                   (a, b) =>
                     Number(b.inProgress) - Number(a.inProgress) ||
                     Number(a.completed) - Number(b.completed)
                 )
-                .map(({ s, completed, inProgress }) => (
+                .map(({ s, completed, inProgress, step }) => (
                   <li key={s.id}>
                     <Link
                       to={`/sessions/${s.id}`}
@@ -261,18 +262,16 @@ export default function Sessions() {
                       <span style={{ fontWeight: 500 }}>{s.theme}</span>
                       <span
                         className="muted"
-                        style={{ marginLeft: "auto", whiteSpace: "nowrap" }}
+                        style={{
+                          marginLeft: "auto",
+                          whiteSpace: "nowrap",
+                          ...(inProgress ? { color: "var(--indigo)" } : {}),
+                        }}
                       >
-                        {completed ? (
-                          <span style={{ color: "var(--indigo)" }}>
-                            <span aria-hidden="true">✦</span> Completed
-                          </span>
-                        ) : inProgress ? (
-                          <span style={{ color: "var(--kola)" }}>Continue</span>
-                        ) : (
-                          `${s.steps.length} ${
-                            s.steps.length === 1 ? "step" : "steps"
-                          }`
+                        {sessionStatusText(
+                          completed ? "done" : inProgress ? "progress" : "new",
+                          step,
+                          s.steps.length
                         )}
                       </span>
                     </Link>

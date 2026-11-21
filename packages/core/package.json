@@ -21,6 +21,7 @@
     "./journal": "./journal.ts",
     "./journalGroups": "./journalGroups.ts",
     "./progress": "./progress.ts",
+    "./sessionStatus": "./sessionStatus.ts",
     "./qr": "./qr.ts",
     "./sessionDraft": "./sessionDraft.ts",
     "./readingPrefs": "./readingPrefs.ts",
