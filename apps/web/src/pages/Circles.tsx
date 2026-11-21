@@ -629,6 +629,9 @@ function MyCircles({
                 url={circleShareUrl(window.location.origin, created.code)}
                 label={`QR code to join ${created.name}`}
               />
+              <figcaption className="soft">
+                Scan with a phone camera to join {created.name}.
+              </figcaption>
             </figure>
             <button
               type="button"

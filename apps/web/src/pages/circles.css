@@ -59,7 +59,7 @@
 }
 .circle-quiet {
   min-height: 44px;
-  padding: 0 4px;
+  padding: 0;
   background: none;
   border: none;
   font: inherit;
@@ -108,14 +108,15 @@
   gap: 6px;
   line-height: 1.5;
 }
+/* Inline margins only, so the parent's stack spacing still separates it. */
 .circle-qr-figure {
-  margin: 0;
+  margin-inline: 0;
   display: grid;
   justify-items: start;
   gap: 8px;
 }
 .circle-qr {
-  width: min(220px, 70vw);
+  width: 168px;
   height: auto;
   border-radius: 10px;
 }
