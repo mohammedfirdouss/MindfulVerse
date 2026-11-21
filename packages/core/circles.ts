@@ -996,7 +996,7 @@ export function circleCountLine(name: string | null, n: number): string | null {
   return `${Math.floor(n)} ${who} reflected this week.`;
 }
 
-/** "5 in Friday friends · 3 reflected this week", "5 people in this circle",
+/** "5 in Friday friends, 3 reflected this week", "5 people in this circle",
  *  or just the reflection line. Each number shows only at 2 or more, so no one
  *  is singled out; null when neither does. */
 export function circleMembersLine(
@@ -1023,5 +1023,5 @@ export function circleMembersLine(
   const base = `${shownMembers} ${who}`;
   return shownReflected === null
     ? `${base}.`
-    : `${base} · ${shownReflected} reflected this week.`;
+    : `${base}, ${shownReflected} reflected this week.`;
 }

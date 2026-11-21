@@ -46,9 +46,9 @@ describe("circle share link", () => {
 
   it("summarises the surah and portion", () => {
     expect(circleSummary({ verse: null }, "Al-Kahf")).toBe("Al-Kahf");
-    expect(circleSummary({ verse: 10 }, "Al-Kahf")).toBe("Al-Kahf · verse 10");
+    expect(circleSummary({ verse: 10 }, "Al-Kahf")).toBe("Al-Kahf, verse 10");
     expect(circleSummary({ verse: 7, verseEnd: 12 }, "Al-Kahf")).toBe(
-      "Al-Kahf · verses 7 to 12"
+      "Al-Kahf, verses 7 to 12"
     );
   });
 

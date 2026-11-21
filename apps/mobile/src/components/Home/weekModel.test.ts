@@ -58,7 +58,7 @@ describe(circleCountText, () => {
       "2 in Friday group reflected this week."
     );
     expect(circleCountText(circle, 5, 3)).toBe(
-      "5 in Friday group · 3 reflected this week."
+      "5 in Friday group, 3 reflected this week."
     );
     expect(circleCountText(circle, 5, 1, false)).toBe(
       "5 people in this circle."

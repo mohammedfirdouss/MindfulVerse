@@ -51,14 +51,14 @@ export function surahLabel(
   return surahs.get(surah)?.name ?? `Surah ${surah}`;
 }
 
-/** "Al-Kahf", "Al-Kahf · verse 10" or "Al-Kahf · verses 7 to 12". */
+/** "Al-Kahf", "Al-Kahf, verse 10" or "Al-Kahf, verses 7 to 12". */
 export function circleSummary(
   circle: Pick<Circle, "surah"> & PortionOf,
   surahs: Map<number, SurahMeta>
 ): string {
   const name = surahLabel(circle.surah, surahs);
   const label = labelOf(circle);
-  return label === null ? name : `${name} · ${label}`;
+  return label === null ? name : `${name}, ${label}`;
 }
 
 /** The message that goes into the share sheet, link last so chat apps

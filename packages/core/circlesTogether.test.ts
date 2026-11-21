@@ -325,7 +325,7 @@ describe("member count", () => {
 
   it("shows each number only at two or more", () => {
     expect(circleMembersLine("Friday friends", 5, 3)).toBe(
-      "5 in Friday friends · 3 reflected this week."
+      "5 in Friday friends, 3 reflected this week."
     );
     expect(circleMembersLine("Friday friends", 5, 1)).toBe(
       "5 in Friday friends."

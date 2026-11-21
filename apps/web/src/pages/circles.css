@@ -6,6 +6,10 @@
   margin: 8px 0 0;
   line-height: 1.55;
 }
+/* Room between the page intro and the first circle. */
+.circles > header + * {
+  margin-top: 24px;
+}
 .circles-heading {
   font-size: 1.15rem;
   font-weight: 600;
@@ -142,4 +146,20 @@
 }
 .circle-share .circle-actions {
   gap: 8px;
+}
+
+/* Wide screens: circles side by side, two to a row. */
+@media (min-width: 1200px) {
+  .wide .circles {
+    max-width: none;
+  }
+  .wide .circle-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+  }
+  .wide .circle-list.stack > * {
+    margin: 0;
+  }
 }

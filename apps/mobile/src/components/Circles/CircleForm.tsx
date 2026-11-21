@@ -52,7 +52,7 @@ export function CircleForm({
   const surahPassages = surah === null ? [] : (passages.get(surah) ?? []);
   let surahText = "Choose a surah";
   if (meta) {
-    surahText = `${meta.name} · ${meta.ayahCount} verses`;
+    surahText = `${meta.name}, ${meta.ayahCount} verses`;
   } else if (surahs.length === 0) {
     surahText = "Gathering the surahs…";
   }

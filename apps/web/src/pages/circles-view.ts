@@ -42,13 +42,13 @@ export function whatsappUrl(message: string): string {
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
-/** "Al-Kahf · verse 10", "Al-Kahf · verses 7 to 12". */
+/** "Al-Kahf, verse 10", "Al-Kahf, verses 7 to 12". */
 export function circleSummary(
   circle: { verse: number | null; verseEnd?: number | null },
   surahName: string
 ): string {
   const label = portionOf(circle);
-  return label === null ? surahName : `${surahName} · ${label}`;
+  return label === null ? surahName : `${surahName}, ${label}`;
 }
 
 export interface CircleFormValues {
