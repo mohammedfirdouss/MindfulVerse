@@ -56,7 +56,7 @@ export const SurahRow = memo(({ surah }: { surah: SurahMeta }) => {
           {surah.name}
         </Text>
         <Text variant="muted" style={{ fontSize: 14, lineHeight: 20 }}>
-          {place ? `${place} · ` : ""}
+          {place ? `${place}, ` : ""}
           {ayahs}
         </Text>
       </View>

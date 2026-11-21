@@ -78,11 +78,15 @@ export function CommentaryBody({
         }}
       >
         <Text
-          style={{ color: colors.kola, flex: 1, fontFamily: fonts.readMedium }}
+          style={{
+            color: colors.indigo,
+            flex: 1,
+            fontFamily: fonts.readMedium,
+          }}
         >
           {open ? "Hide the commentary" : "Read the full commentary"}
         </Text>
-        <Text style={{ color: colors.kola }}>{open ? "−" : "+"}</Text>
+        <Text style={{ color: colors.indigo }}>{open ? "−" : "+"}</Text>
       </Pressable>
       {open ? (
         failed ? (

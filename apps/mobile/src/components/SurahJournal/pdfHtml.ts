@@ -127,7 +127,7 @@ export function buildSurahJournalHtml(
     parts.push(`<section><h2>${escapeHtml(section.title)}</h2>`);
     for (const { entry, verseLabel, translation, arabic } of section.items) {
       parts.push(
-        `<div class="item"><p class="date"><b>${escapeHtml(dayLabel(entry.createdAt))}</b><span>&nbsp;&nbsp;·&nbsp;&nbsp;${escapeHtml(timeLabel(entry.createdAt))}</span></p>`
+        `<div class="item"><p class="date"><b>${escapeHtml(dayLabel(entry.createdAt))}</b><span>, ${escapeHtml(timeLabel(entry.createdAt))}</span></p>`
       );
       if (verseLabel) {
         parts.push('<div class="verse">');

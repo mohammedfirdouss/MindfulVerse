@@ -22,7 +22,7 @@ export function ActionLink({
       {({ pressed }) => (
         <Text
           style={{
-            color: disabled ? colors.inkFaint : colors.kola,
+            color: disabled ? colors.inkFaint : colors.indigo,
             fontFamily: fonts.read,
             fontSize: 16,
             lineHeight: 24,

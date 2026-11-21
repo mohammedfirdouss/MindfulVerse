@@ -64,11 +64,15 @@ function TopicRow({
         }}
       >
         <Text
-          style={{ color: colors.kola, flex: 1, fontFamily: fonts.readMedium }}
+          style={{
+            color: colors.indigo,
+            flex: 1,
+            fontFamily: fonts.readMedium,
+          }}
         >
           {relatedTopicLabel(topic)}
         </Text>
-        <Text style={{ color: colors.kola }}>{open ? "−" : "+"}</Text>
+        <Text style={{ color: colors.indigo }}>{open ? "−" : "+"}</Text>
       </Pressable>
       {verses.kind === "loading" ? <Text variant="muted">Opening…</Text> : null}
       {verses.kind === "failed" ? (

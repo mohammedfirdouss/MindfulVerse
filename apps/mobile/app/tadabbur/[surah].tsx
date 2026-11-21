@@ -540,7 +540,7 @@ function TadabburPage() {
               <Diamond label={a.ayah} />
             </View>
             <Text variant="eyebrow">
-              {name} · {a.verseKey}
+              {name}, {a.verseKey}
             </Text>
             <View
               style={{ backgroundColor: colors.indigoWash, flex: 1, height: 2 }}

@@ -578,7 +578,7 @@ function SurahTadabburPage() {
 
   useEffect(() => {
     document.title = validSurah
-      ? `${name} · Tadabbur | MindfulVerse`
+      ? `Tadabbur on ${name} | MindfulVerse`
       : "Tadabbur | MindfulVerse";
   }, [validSurah, name]);
 
@@ -824,7 +824,7 @@ function SurahTadabburPage() {
             <div className="verse-head">
               <Diamond n={a.ayah} />
               <span className="eyebrow">
-                {name} · {a.verseKey}
+                {name}, {a.verseKey}
               </span>
               <span className="rule" />
             </div>

@@ -400,7 +400,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
             margin: "10px 0 2px",
           }}
         >
-          {interstitial.translit} · {interstitial.count} ✓
+          {interstitial.translit}, {interstitial.count} times
         </p>
         <p className="muted">and now…</p>
       </div>
@@ -461,7 +461,7 @@ function Practice({ set, onExit }: { set: DhikrSet; onExit: () => void }) {
       <p className="eyebrow">
         {set.title}
         {set.items.length > 1
-          ? ` · ${itemIndex + 1} of ${set.items.length}`
+          ? `, ${itemIndex + 1} of ${set.items.length}`
           : ""}
       </p>
 
