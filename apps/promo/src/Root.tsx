@@ -9,6 +9,7 @@ import {
   ONE_SURAH_FPS,
   OneSurahOneWeek,
 } from "./OneSurahOneWeek";
+import { ReadTogether, TOGETHER_DURATION, TOGETHER_FPS } from "./ReadTogether";
 import { STAND_DURATION, STAND_FPS, StandLoop } from "./StandLoop";
 import {
   START_CIRCLE_DURATION,
@@ -143,6 +144,26 @@ export function Root() {
         component={DeeperLook}
         durationInFrames={DEEPER_DURATION}
         fps={DEEPER_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: false }}
+      />
+      {/* Read together: weekly verses, counts, questions, QR, In short. */}
+      <Composition
+        id="ReadTogether"
+        component={ReadTogether}
+        durationInFrames={TOGETHER_DURATION}
+        fps={TOGETHER_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: true }}
+      />
+      {/* For adding a sound from TikTok, Reels or CapCut when posting. */}
+      <Composition
+        id="ReadTogetherSilent"
+        component={ReadTogether}
+        durationInFrames={TOGETHER_DURATION}
+        fps={TOGETHER_FPS}
         width={1080}
         height={1920}
         defaultProps={{ withNasheed: false }}
