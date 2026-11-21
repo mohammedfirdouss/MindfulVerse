@@ -1,7 +1,21 @@
 // Pure logic for the Circles screen and the circle link route. No React Native
 // imports, so vitest runs it.
-import { circlePath, parseCircleLink } from "@mindfulverse/core/circles";
-import type { Circle, CircleResult } from "@mindfulverse/core/circles";
+import {
+  finishedSurahs,
+  nextPassage,
+  portionLabel,
+} from "@mindfulverse/core/circlePortion";
+import type { Passage } from "@mindfulverse/core/circlePortion";
+import {
+  circlePath,
+  MAX_JOINED_CIRCLES,
+  parseCircleLink,
+} from "@mindfulverse/core/circles";
+import type {
+  Circle,
+  CircleHistoryEntry,
+  CircleResult,
+} from "@mindfulverse/core/circles";
 import type { SurahMeta } from "@mindfulverse/core/types";
 
 export const WEB_ORIGIN = "https://mindfulverse.vercel.app";
