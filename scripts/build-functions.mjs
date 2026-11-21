@@ -5,7 +5,11 @@ import { build } from "esbuild";
 
 await build({
   bundle: true,
-  entryPoints: ["functions/daily-verse.ts", "functions/api-keys.ts"],
+  entryPoints: [
+    "functions/daily-verse.ts",
+    "functions/api-keys.ts",
+    "functions/delete-account.ts",
+  ],
   external: ["npm:*"],
   format: "esm",
   outdir: "functions/dist",

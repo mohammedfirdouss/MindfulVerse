@@ -474,7 +474,10 @@ export default function Home() {
           .
         </p>
         <p className="muted home-attribution">
-          <Link to="/developers">For developers</Link>
+          <span className="home-links">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/developers">For developers</Link>
+          </span>
         </p>
       </footer>
     </div>

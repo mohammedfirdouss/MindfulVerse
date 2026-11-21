@@ -1,6 +1,8 @@
 import { track } from "@mindfulverse/core/analytics";
 import { leaveCircle } from "@mindfulverse/core/circles";
+import { SITE_ORIGIN } from "@mindfulverse/core/shareText";
 import { useAccount } from "@mindfulverse/core/sync/auth";
+import { deleteAccount } from "@mindfulverse/core/sync/deleteAccount";
 import {
   getSyncStatus,
   onSyncStatus,
@@ -12,7 +14,13 @@ import { insforge } from "@mindfulverse/core/sync/insforge";
 // whole app works signed-out; an account only backs up the journal and
 // progress across devices, and enables the daily verse reminder.
 import { useEffect, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  View,
+} from "react-native";
 
 import { AuthForm } from "../../src/components/Account/AuthForm";
 import type { AuthMode } from "../../src/components/Account/AuthForm";
@@ -128,9 +136,9 @@ export default function Account() {
 
   async function deleteMyData(userId: string) {
     const sure = await confirm(
-      "Delete synced data?",
-      "This device keeps its entries.",
-      "Delete"
+      "Delete your account?",
+      "This deletes your email and sign-in, your synced journal and progress, your reminders and any circles you started. It can't be undone. This device keeps its entries.",
+      "Delete account"
     );
     if (!sure) {
       return;
@@ -172,7 +180,17 @@ export default function Account() {
       setBusy(false);
       return;
     }
+    // Then the account itself: the email and sign-in.
+    if (!(await deleteAccount())) {
+      setNotice(null);
+      setError(
+        "Your synced data is deleted, but the account couldn't be. Please try again."
+      );
+      setBusy(false);
+      return;
+    }
     await signOut();
+    setNotice("Your account is deleted. Entries on this device stay here.");
   }
 
   const header = (
@@ -234,11 +252,11 @@ export default function Account() {
                   onPress={() => void signOut()}
                 />
                 <LinkButton
-                  title="Delete my data"
+                  title="Delete account"
                   danger
                   disabled={busy}
                   onPress={() => void deleteMyData(user.id)}
-                  hint="Asks for confirmation, then deletes your synced data and signs you out"
+                  hint="Asks for confirmation, then deletes your account and synced data and signs you out"
                 />
               </View>
             </Section>
@@ -262,6 +280,13 @@ export default function Account() {
           We anonymously count days the app is opened. Your writing stays on
           this device unless you sync.
         </Small>
+        <LinkButton
+          title="Privacy"
+          onPress={() =>
+            void Linking.openURL(`${SITE_ORIGIN}/privacy`).catch(() => {})
+          }
+          hint="Opens the privacy policy in your browser"
+        />
       </Screen>
     </KeyboardAvoidingView>
   );
