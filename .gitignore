@@ -40,3 +40,6 @@ docs/superpowers/
 # tsc artifacts from vite.config.ts (see tsconfig.node.json)
 .ts-out-node
 *.tsbuildinfo
+
+# macOS screenshots dropped into the repo folder
+/Screenshot *.png
