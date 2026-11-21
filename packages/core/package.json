@@ -7,6 +7,7 @@
   "exports": {
     "./activeDays": "./activeDays.ts",
     "./analytics": "./analytics.ts",
+    "./circlePortion": "./circlePortion.ts",
     "./circleSurah": "./circleSurah.ts",
     "./circles": "./circles.ts",
     "./commentaryText": "./commentaryText.ts",
@@ -20,6 +21,7 @@
     "./journal": "./journal.ts",
     "./journalGroups": "./journalGroups.ts",
     "./progress": "./progress.ts",
+    "./qr": "./qr.ts",
     "./sessionDraft": "./sessionDraft.ts",
     "./readingPrefs": "./readingPrefs.ts",
     "./relatedVerses": "./relatedVerses.ts",
