@@ -1,15 +1,22 @@
-// /circles: start a circle and share its link, look after the circles you
-// started, and see or leave the circle this device has joined. Starting one
-// needs an account so it stays yours to change; joining never does.
+// /circles: start a circle and share its link or QR code, look after the
+// circles you started, and see or leave the circles this device has joined
+// (up to three; the first is the one Home leads with). Starting one needs an
+// account so it stays yours to change; joining never does.
+import { surahPassages } from "@mindfulverse/core/circlePortion";
+import type { Passage } from "@mindfulverse/core/circlePortion";
 import {
+  circleError,
+  circlesFull,
   createCircle,
-  getJoinedCircle,
+  getJoinedCircles,
+  joinCircle,
   leaveCircle,
   listMyCircles,
   onJoinedCircleChange,
+  refreshJoinedCircles,
 } from "@mindfulverse/core/circles";
 import type { Circle } from "@mindfulverse/core/circles";
-import { loadSurahs } from "@mindfulverse/core/data";
+import { loadSurahs, loadThemes } from "@mindfulverse/core/data";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import type { SurahMeta } from "@mindfulverse/core/types";
 import { router } from "expo-router";
@@ -20,16 +27,24 @@ import { FormError } from "../../src/components/Account/parts";
 import { CircleForm } from "../../src/components/Circles/CircleForm";
 import {
   circleSummary,
+  createdLine,
+  FULL_NOTE,
+  joinedHeading,
   PRIVACY_LINE,
   SIGNED_OUT_LINE,
 } from "../../src/components/Circles/circleModel";
 import {
+  CircleTogether,
+  QrFigure,
+} from "../../src/components/Circles/CircleTogether";
+import {
   CircleLinkBlock,
   OwnedCircle,
 } from "../../src/components/Circles/OwnedCircle";
-import { useCircleCountLine } from "../../src/components/Circles/useCircleCount";
 import { fonts, space, useTheme } from "../../src/theme";
 import { Button, Card, Screen, Text } from "../../src/ui";
+
+const SURAH_COUNT = 114;
 
 type MineState =
   | { status: "loading" }
@@ -44,19 +59,38 @@ export default function Circles() {
     () => new Map(surahList.map((s) => [s.number, s])),
     [surahList]
   );
-  const [joined, setJoined] = useState<Circle | null>(getJoinedCircle);
+  const [passages, setPassages] = useState<Map<number, Passage[]>>(
+    () => new Map()
+  );
+  const [joined, setJoined] = useState<Circle[]>(getJoinedCircles);
   const [mine, setMine] = useState<MineState>({ status: "loading" });
   const [created, setCreated] = useState<Circle | null>(null);
   const [formKey, setFormKey] = useState(0);
   const userId = user?.id ?? null;
-  const joinedCount = useCircleCountLine(joined, { named: false });
+  const joinedCodes = joined.map((c) => c.code);
 
-  useEffect(() => onJoinedCircleChange(setJoined), []);
+  useEffect(() => {
+    const off = onJoinedCircleChange(() => setJoined(getJoinedCircles()));
+    void refreshJoinedCircles().then(setJoined);
+    return off;
+  }, []);
 
   useEffect(() => {
     let alive = true;
     loadSurahs()
       .then((list) => alive && setSurahList(list))
+      .catch(() => {});
+    loadThemes()
+      .then((themes) => {
+        if (!alive) {
+          return;
+        }
+        const bySurah = new Map<number, Passage[]>();
+        for (let n = 1; n <= SURAH_COUNT; n += 1) {
+          bySurah.set(n, surahPassages(themes, n));
+        }
+        setPassages(bySurah);
+      })
       .catch(() => {});
     return () => {
       alive = false;
@@ -88,37 +122,20 @@ export default function Circles() {
     <Screen edges="bottom">
       <Text variant="soft">{PRIVACY_LINE}</Text>
 
-      {joined ? (
-        <Card accessibilityLabel="Your circle">
-          <View style={{ gap: 2 }}>
-            <Text variant="eyebrow">Your circle</Text>
-            <Text style={{ fontFamily: fonts.readSemiBold }}>
-              {joined.name}
-            </Text>
-            <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
-              {circleSummary(joined, surahs)}
-            </Text>
-          </View>
-          {joinedCount ? (
-            <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
-              {joinedCount}
-            </Text>
-          ) : null}
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}
-          >
-            <Button
-              title="Open on Home"
-              kind="secondary"
-              onPress={() => router.navigate("/")}
+      {joined.length > 0 ? (
+        <View style={{ gap: space.md }}>
+          <Text variant="h2">{joinedHeading(joined.length)}</Text>
+          {joined.map((circle, i) => (
+            <JoinedCircle
+              key={circle.code}
+              circle={circle}
+              first={i === 0}
+              several={joined.length > 1}
+              surahs={surahs}
+              passages={passages}
             />
-            <Button
-              kind="ghost"
-              title="Leave circle"
-              onPress={() => leaveCircle()}
-            />
-          </View>
-        </Card>
+          ))}
+        </View>
       ) : null}
 
       {accountLoading ? <ActivityIndicator color={colors.indigo} /> : null}
@@ -143,9 +160,10 @@ export default function Circles() {
             {created ? (
               <View style={{ gap: space.md }}>
                 <Text style={{ fontFamily: fonts.readSemiBold }}>
-                  {`“${created.name}” is ready. Anyone with the link can join.`}
+                  {createdLine(created.name)}
                 </Text>
                 <CircleLinkBlock circle={created} surahs={surahs} />
+                <QrFigure circle={created} />
                 <View style={{ alignItems: "flex-start" }}>
                   <Button
                     kind="ghost"
@@ -161,8 +179,15 @@ export default function Circles() {
               <CircleForm
                 key={formKey}
                 surahs={surahList}
+                passages={passages}
                 submitTitle="Start circle"
                 onSubmit={async (draft) => {
+                  if (circlesFull()) {
+                    return {
+                      error: { ...circleError("invalid"), message: FULL_NOTE },
+                      ok: false,
+                    };
+                  }
                   const result = await createCircle(draft);
                   if (result.ok) {
                     setCreated(result.value);
@@ -176,13 +201,14 @@ export default function Circles() {
 
           <View style={{ gap: space.md }}>
             {showMineHeading(mine, created) ? (
-              <Text variant="h2">Your circles</Text>
+              <Text variant="h2">Circles you started</Text>
             ) : null}
             <MineList
               mine={mine}
               surahs={surahs}
               surahList={surahList}
-              joinedCode={joined?.code ?? null}
+              passages={passages}
+              joinedCodes={joinedCodes}
               createdCode={created?.code ?? null}
               onRetry={() => void loadMine()}
               onChanged={(c) =>
@@ -215,7 +241,8 @@ function MineList({
   mine,
   surahs,
   surahList,
-  joinedCode,
+  passages,
+  joinedCodes,
   createdCode,
   onRetry,
   onChanged,
@@ -224,7 +251,8 @@ function MineList({
   mine: MineState;
   surahs: Map<number, SurahMeta>;
   surahList: SurahMeta[];
-  joinedCode: string | null;
+  passages: Map<number, Passage[]>;
+  joinedCodes: string[];
   createdCode: string | null;
   onRetry: () => void;
   onChanged: (circle: Circle) => void;
@@ -257,11 +285,66 @@ function MineList({
           circle={c}
           surahs={surahs}
           surahList={surahList}
-          joinedCode={joinedCode}
+          passages={passages}
+          joinedCodes={joinedCodes}
           onChanged={onChanged}
           onDeleted={onDeleted}
         />
       ))}
     </>
+  );
+}
+
+/** One circle this device is in: what it reads, what it does together, and
+ *  Home or leave. */
+function JoinedCircle({
+  circle,
+  first,
+  several,
+  surahs,
+  passages,
+}: {
+  circle: Circle;
+  first: boolean;
+  several: boolean;
+  surahs: Map<number, SurahMeta>;
+  passages: Map<number, Passage[]>;
+}) {
+  return (
+    <Card accessibilityLabel={circle.name}>
+      <View style={{ gap: 2 }}>
+        {first && several ? <Text variant="eyebrow">On Home</Text> : null}
+        <Text style={{ fontFamily: fonts.readSemiBold }}>{circle.name}</Text>
+        <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
+          {circleSummary(circle, surahs)}
+        </Text>
+      </View>
+      <CircleTogether
+        circle={circle}
+        surahs={surahs}
+        passages={passages}
+        showCount
+      />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
+        {first ? (
+          <Button
+            title="Open on Home"
+            kind="secondary"
+            onPress={() => router.navigate("/")}
+          />
+        ) : (
+          <Button
+            title="Show on Home"
+            kind="secondary"
+            onPress={() => joinCircle(circle)}
+          />
+        )}
+        <Button
+          kind="ghost"
+          title="Leave circle"
+          onPress={() => leaveCircle(circle.code)}
+        />
+      </View>
+    </Card>
   );
 }
