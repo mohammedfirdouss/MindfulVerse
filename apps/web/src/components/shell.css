@@ -230,13 +230,21 @@
   }
   /* The surah card and today's verse share a row, so they match in width
      and height. */
-  .wide .home > .home-lead {
+  /* The streak stays under the greeting, as on phones. */
+  .wide .home > .home-streak {
+    grid-column: 1 / -1;
     grid-row: 2;
+  }
+  .wide .home > .home-lead {
+    grid-row: 3;
     align-self: stretch;
+    /* Matches the verse card, but a very long verse doesn't leave the
+       surah card as a tall empty block. */
+    max-height: 560px;
   }
   .wide .home > .home-verse {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
     align-self: stretch;
     margin: 22px 0 18px;
   }
