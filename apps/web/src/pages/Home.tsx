@@ -1,5 +1,7 @@
+import { portionLabel } from "@mindfulverse/core/circlePortion";
 import {
   getJoinedCircle,
+  getJoinedCircles,
   onJoinedCircleChange,
   refreshJoinedCircle,
 } from "@mindfulverse/core/circles";
@@ -178,7 +180,9 @@ function SurahLead({
         <p className="cloth-eyebrow">{eyebrow}</p>
         <h2 className="home-lead-title">{name}</h2>
         <p className="cloth-soft home-lead-line">
-          {focus.verse === null ? LEAD_LINE : `Focus: verse ${focus.verse}`}
+          {focus.verse === null
+            ? LEAD_LINE
+            : `This week: ${portionLabel({ ...joined, verse: focus.verse })}`}
         </p>
         <div className="home-lead-actions">
           <Link to={begin.to} className="btn cloth-btn">
@@ -188,7 +192,7 @@ function SurahLead({
             Choose another surah
           </Link>
           <Link to="/circles" className="home-lead-quiet">
-            Your circle
+            {getJoinedCircles().length > 1 ? "Your circles" : "Your circle"}
           </Link>
         </div>
       </section>

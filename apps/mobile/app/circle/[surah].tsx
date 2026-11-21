@@ -4,8 +4,10 @@
 // to this route with the code as the param. The https link only opens the app
 // once the website serves assetlinks.json for this package (app.json has the
 // intent filter); until then it opens the website. Old numeric links
-// (/circle/94) still just remember the surah. Anything else goes Home.
+// (/circle/94) still just remember the surah. A device already in three other
+// circles is asked to leave one first. Anything else goes Home.
 import {
+  circlesFull,
   fetchCircle,
   joinCircle,
   leaveCircle,
@@ -21,6 +23,7 @@ import { Button, Text } from "../../src/ui";
 
 const deps = {
   fetch: fetchCircle,
+  full: circlesFull,
   join: joinCircle,
   leave: leaveCircle,
   setSurah: setCircleSurah,
@@ -32,6 +35,7 @@ export default function CircleLink() {
   const [failure, setFailure] = useState<{
     message: string;
     retry: boolean;
+    full: boolean;
   } | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -43,7 +47,15 @@ export default function CircleLink() {
         return;
       }
       if (target.kind === "failed") {
-        setFailure({ message: target.message, retry: target.retry });
+        setFailure({
+          full: false,
+          message: target.message,
+          retry: target.retry,
+        });
+        return;
+      }
+      if (target.kind === "full") {
+        setFailure({ full: true, message: target.message, retry: false });
         return;
       }
       if (target.kind === "home") {
@@ -83,6 +95,12 @@ export default function CircleLink() {
           >
             {failure.message}
           </Text>
+          {failure.full ? (
+            <Button
+              title="Go to Circles"
+              onPress={() => router.replace("/circles")}
+            />
+          ) : null}
           {failure.retry ? (
             <Button
               title="Try again"

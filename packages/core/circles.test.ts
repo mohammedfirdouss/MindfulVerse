@@ -26,12 +26,14 @@ import {
   parseCircleLink,
   recordCircleReflection,
   refreshJoinedCircle,
+  setCircleMemberCall,
   updateCircle,
   wireCircleReflections,
 } from "./circles";
 import type {
   Circle,
   CircleApi,
+  CircleMemberCall,
   CircleReflectionRow,
   CircleResult,
   CircleRow,
@@ -48,6 +50,7 @@ const circle: Circle = {
   surah: 18,
   updatedAt: Date.parse("2026-11-08T10:00:00.000Z"),
   verse: 10,
+  verseEnd: null,
 };
 
 const row: CircleRow = {
@@ -70,8 +73,12 @@ function fakeApi(overrides: Partial<CircleApi> = {}): CircleApi {
   };
 }
 
+const memberCall = vi.fn<CircleMemberCall>(async () => null);
+setCircleMemberCall(memberCall);
+
 beforeEach(() => {
   store.clear();
+  memberCall.mockClear();
 });
 
 describe(normalizeName, () => {
@@ -267,7 +274,11 @@ describe(updateCircle, () => {
       { surah: 36, verse: null },
       fakeApi({ update })
     );
-    expect(update).toHaveBeenCalledWith("abc234", { surah: 36, verse: null });
+    expect(update).toHaveBeenCalledWith("abc234", {
+      surah: 36,
+      verse: null,
+      verse_end: null,
+    });
     expect(result.ok).toBeTruthy();
     expect(getJoinedCircle()).toMatchObject({ surah: 36, verse: null });
   });

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  deletedCircleCodes,
   feedbackMailto,
   formatTime,
-  joinedCircleDeleted,
   normalizeOtp,
   notificationsBlocked,
   parseTime,
@@ -133,16 +133,15 @@ describe(feedbackMailto, () => {
   });
 });
 
-describe(joinedCircleDeleted, () => {
-  it("is true when the joined circle was one of the deleted ones", () => {
+describe(deletedCircleCodes, () => {
+  it("lists every deleted circle's code", () => {
     expect(
-      joinedCircleDeleted("abc234", [{ code: "zzz999" }, { code: "abc234" }])
-    ).toBeTruthy();
+      deletedCircleCodes([{ code: "zzz999" }, { code: "abc234" }])
+    ).toStrictEqual(["zzz999", "abc234"]);
   });
 
-  it("is false for someone else's circle, no circle or no rows", () => {
-    expect(joinedCircleDeleted("abc234", [{ code: "zzz999" }])).toBeFalsy();
-    expect(joinedCircleDeleted(null, [{ code: "abc234" }])).toBeFalsy();
-    expect(joinedCircleDeleted("abc234", null)).toBeFalsy();
+  it("skips rows without a code and anything that isn't a list", () => {
+    expect(deletedCircleCodes([null, { code: 4 }, {}])).toStrictEqual([]);
+    expect(deletedCircleCodes(null)).toStrictEqual([]);
   });
 });

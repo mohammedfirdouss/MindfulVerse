@@ -5,10 +5,11 @@ import {
   BEGIN_LINE,
   chooseLead,
   continueTitle,
-  focusLine,
   namedAction,
   namedEyebrow,
   namedLine,
+  weekLine,
+  yourCircleLink,
   starterLabel,
   surahName,
   themePicks,
@@ -82,7 +83,12 @@ describe(chooseLead, () => {
     expect(chooseLead(null, 94)).toStrictEqual({ kind: "circle", surah: 94 });
   });
 
-  const joined = { name: "Friday friends", surah: 18, verse: 10 };
+  const joined = {
+    name: "Friday friends",
+    surah: 18,
+    verse: 7,
+    verseEnd: 12,
+  };
 
   it("continues a surah in progress before the joined circle", () => {
     expect(chooseLead(deeper, 94, joined).kind).toBe("continue");
@@ -93,7 +99,8 @@ describe(chooseLead, () => {
       kind: "named",
       name: "Friday friends",
       surah: 18,
-      verse: 10,
+      verse: 7,
+      verseEnd: 12,
     });
   });
 
@@ -117,7 +124,8 @@ describe(chooseLead, () => {
 describe("named circle copy", () => {
   it("names the circle and its focus", () => {
     expect(namedEyebrow("Friday friends")).toBe("Friday friends is reading");
-    expect(focusLine(10)).toBe("Focus: verse 10");
+    expect(weekLine(10, null)).toBe("This week: verse 10");
+    expect(weekLine(7, 12)).toBe("This week: verses 7 to 12");
   });
 
   it("goes to the focus verse when there is one", () => {
@@ -169,8 +177,16 @@ describe(whereYouAre, () => {
 });
 
 describe(namedLine, () => {
-  it("shows the focus verse or the intro, never both", () => {
-    expect(namedLine(10)).toBe("Focus: verse 10");
+  it("shows this week's verses or the intro, never both", () => {
+    expect(namedLine(10)).toBe("This week: verse 10");
+    expect(namedLine(7, 12)).toBe("This week: verses 7 to 12");
     expect(namedLine(null)).toBe(BEGIN_LINE);
+  });
+});
+
+describe(yourCircleLink, () => {
+  it("counts the circles", () => {
+    expect(yourCircleLink(1)).toBe("Your circle");
+    expect(yourCircleLink(3)).toBe("Your circles");
   });
 });
