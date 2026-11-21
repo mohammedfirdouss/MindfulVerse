@@ -5,6 +5,8 @@ import {
   circleShareMessage,
   circleShareUrl,
   circleSummary,
+  passageOptionLabel,
+  portionValue,
   whatsappUrl,
 } from "./circles-view";
 
@@ -42,47 +44,81 @@ describe("circle share link", () => {
     expect(whatsappUrl("a b\n&")).toBe("https://wa.me/?text=a%20b%0A%26");
   });
 
-  it("summarises the surah and focus", () => {
+  it("summarises the surah and portion", () => {
     expect(circleSummary({ verse: null }, "Al-Kahf")).toBe("Al-Kahf");
     expect(circleSummary({ verse: 10 }, "Al-Kahf")).toBe("Al-Kahf · verse 10");
+    expect(circleSummary({ verse: 7, verseEnd: 12 }, "Al-Kahf")).toBe(
+      "Al-Kahf · verses 7 to 12"
+    );
+  });
+
+  it("names a range in the share message", () => {
+    expect(
+      circleShareMessage(
+        { name: "F", verse: 7, verseEnd: 12 },
+        "Al-Kahf",
+        "u"
+      )
+    ).toContain("Read Al-Kahf, verses 7 to 12, with");
   });
 });
 
 describe("circle form check", () => {
-  it("accepts a name and surah with no verse", () => {
+  it("accepts a name and surah for the whole surah", () => {
     expect(
       checkCircleForm(
-        { name: "  Friday  friends ", surah: "18", verse: "" },
+        { name: "  Friday  friends ", portion: "", surah: "18" },
         verseCount
       )
     ).toStrictEqual({
-      draft: { name: "Friday friends", surah: 18, verse: null },
+      draft: { name: "Friday friends", surah: 18, verse: null, verseEnd: null },
       ok: true,
     });
   });
 
   it("needs a name and a surah", () => {
     expect(
-      checkCircleForm({ name: "  ", surah: "18", verse: "" }, verseCount).ok
+      checkCircleForm({ name: "  ", portion: "", surah: "18" }, verseCount).ok
     ).toBeFalsy();
     expect(
-      checkCircleForm({ name: "A", surah: "", verse: "" }, verseCount).ok
+      checkCircleForm({ name: "A", portion: "", surah: "" }, verseCount).ok
     ).toBeFalsy();
   });
 
-  it("checks the verse against the surah's length", () => {
+  it("reads a focus verse or a range, inside the surah", () => {
     expect(
-      checkCircleForm({ name: "A", surah: "18", verse: "110" }, verseCount)
-    ).toStrictEqual({ draft: { name: "A", surah: 18, verse: 110 }, ok: true });
-    expect(
-      checkCircleForm({ name: "A", surah: "108", verse: "4" }, verseCount)
+      checkCircleForm({ name: "A", portion: "110", surah: "18" }, verseCount)
     ).toStrictEqual({
-      message:
-        "This surah has 3 verses. Choose a verse from 1 to 3, or leave it empty.",
-      ok: false,
+      draft: { name: "A", surah: 18, verse: 110, verseEnd: null },
+      ok: true,
     });
     expect(
-      checkCircleForm({ name: "A", surah: "18", verse: "2.5" }, verseCount).ok
-    ).toBeFalsy();
+      checkCircleForm({ name: "A", portion: "7-12", surah: "18" }, verseCount)
+    ).toStrictEqual({
+      draft: { name: "A", surah: 18, verse: 7, verseEnd: 12 },
+      ok: true,
+    });
+    for (const portion of ["4", "1-4", "9-7", "2.5", "x"]) {
+      expect(
+        checkCircleForm({ name: "A", portion, surah: "108" }, verseCount).ok
+      ).toBeFalsy();
+    }
+  });
+});
+
+describe("portion values", () => {
+  it("round-trips a circle's portion", () => {
+    expect(portionValue({ verse: null, verseEnd: null })).toBe("");
+    expect(portionValue({ verse: 7, verseEnd: null })).toBe("7");
+    expect(portionValue({ verse: 7, verseEnd: 12 })).toBe("7-12");
+  });
+
+  it("labels a passage", () => {
+    expect(passageOptionLabel({ from: 7, theme: "The cave", to: 12 })).toBe(
+      "Verses 7 to 12: The cave"
+    );
+    expect(passageOptionLabel({ from: 3, theme: "One", to: 3 })).toBe(
+      "Verse 3: One"
+    );
   });
 });

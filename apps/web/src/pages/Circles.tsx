@@ -1,17 +1,28 @@
 import {
+  currentPassage,
+  DISCUSSION_QUESTIONS,
+  nextPassage,
+  surahPassages,
+} from "@mindfulverse/core/circlePortion";
+import type { Passage } from "@mindfulverse/core/circlePortion";
+import {
   CIRCLE_NAME_MAX,
+  circlesFull,
   createCircle,
   deleteCircle,
-  getJoinedCircle,
+  fetchCircleHistory,
+  finishedSurahs,
+  getJoinedCircles,
   joinCircle,
   leaveCircle,
   listMyCircles,
+  MAX_JOINED_CIRCLES,
   onJoinedCircleChange,
-  refreshJoinedCircle,
+  refreshJoinedCircles,
   updateCircle,
 } from "@mindfulverse/core/circles";
 import type { Circle, CircleDraft } from "@mindfulverse/core/circles";
-import { loadSurahs } from "@mindfulverse/core/data";
+import { loadSurahs, loadThemes } from "@mindfulverse/core/data";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import type { SurahMeta } from "@mindfulverse/core/types";
 import { useEffect, useId, useRef, useState } from "react";
@@ -19,20 +30,26 @@ import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 
 import CircleCount from "../components/CircleCount";
+import CircleQr from "../components/CircleQr";
 import {
   checkCircleForm,
   circleShareMessage,
   circleShareUrl,
   circleSummary,
+  passageOptionLabel,
+  portionValue,
   PRIVACY_LINE,
   whatsappUrl,
 } from "./circles-view";
 import type { CircleFormValues } from "./circles-view";
-import { surahLabel } from "./home-lead";
+import { circleStartPath, surahLabel } from "./home-lead";
 
 import "./circles.css";
 
 type SurahMap = Map<number, SurahMeta>;
+type PassageMap = Map<number, Passage[]>;
+
+const FULL_NOTE = `You can be in up to ${MAX_JOINED_CIRCLES} circles. Leave one to add this one.`;
 
 const COPIED_MS = 2000;
 const DEFAULT_SURAH = 18;
@@ -44,20 +61,22 @@ function nameOf(surahs: SurahMap, surah: number): string {
 function toValues(circle: Circle | null): CircleFormValues {
   return {
     name: circle?.name ?? "",
+    portion: circle ? portionValue(circle) : "",
     surah: String(circle?.surah ?? DEFAULT_SURAH),
-    verse: circle && circle.verse !== null ? String(circle.verse) : "",
   };
 }
 
 function CircleForm({
   initial,
   surahs,
+  passages,
   submitLabel,
   onSubmit,
   onCancel,
 }: {
   initial: Circle | null;
   surahs: SurahMap;
+  passages: PassageMap;
   submitLabel: string;
   onSubmit: (draft: CircleDraft) => Promise<string | null>;
   onCancel?: () => void;
@@ -68,7 +87,12 @@ function CircleForm({
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const count = surahs.get(Number(values.surah))?.ayahCount;
+  const surahPassageList = passages.get(Number(values.surah)) ?? [];
+  // Keep a portion that isn't one of the surah's passages (an older focus
+  // verse, say) as its own choice, so editing never drops it silently.
+  const keepsOwn =
+    values.portion !== "" &&
+    !surahPassageList.some((p) => portionValue({ verse: p.from, verseEnd: p.to === p.from ? null : p.to }) === values.portion);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -108,7 +132,9 @@ function CircleForm({
           className="field-input"
           value={values.surah}
           disabled={surahs.size === 0}
-          onChange={(e) => set("surah")(e.target.value)}
+          onChange={(e) =>
+            setValues((v) => ({ ...v, portion: "", surah: e.target.value }))
+          }
         >
           {surahs.size === 0 ? (
             <option value={values.surah}>Loading surahs…</option>
@@ -121,19 +147,34 @@ function CircleForm({
           )}
         </select>
       </label>
-      <label className="field" htmlFor={`${id}-verse`}>
-        <span className="field-label">Focus verse (optional)</span>
-        <input
-          id={`${id}-verse`}
-          className="field-input circle-verse-input"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={count}
-          value={values.verse}
-          placeholder={count ? `1 to ${count}` : ""}
-          onChange={(e) => set("verse")(e.target.value)}
-        />
+      <label className="field" htmlFor={`${id}-portion`}>
+        <span className="field-label">This week</span>
+        <select
+          id={`${id}-portion`}
+          className="field-input"
+          value={values.portion}
+          onChange={(e) => set("portion")(e.target.value)}
+        >
+          <option value="">The whole surah</option>
+          {keepsOwn && (
+            <option value={values.portion}>
+              {values.portion.includes("-")
+                ? `Verses ${values.portion.replace("-", " to ")}`
+                : `From verse ${values.portion}`}
+            </option>
+          )}
+          {surahPassageList.map((p) => (
+            <option
+              key={`${p.from}-${p.to}`}
+              value={portionValue({
+                verse: p.from,
+                verseEnd: p.to === p.from ? null : p.to,
+              })}
+            >
+              {passageOptionLabel(p)}
+            </option>
+          ))}
+        </select>
       </label>
       {error && (
         <p className="form-error" role="alert">
