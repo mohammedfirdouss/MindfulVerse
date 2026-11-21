@@ -1,0 +1,20 @@
+/* Privacy: one readable column of plain prose. */
+.privacy {
+  max-width: 62ch;
+  line-height: 1.6;
+}
+.privacy header p {
+  margin: 6px 0 0;
+}
+.privacy h2 {
+  font-size: 1.15rem;
+  margin-top: 28px;
+}
+.privacy ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+}
+.privacy a {
+  color: var(--indigo);
+}

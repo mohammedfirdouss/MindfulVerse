@@ -17,6 +17,7 @@ const Account = lazy(() => import("./pages/Account"));
 const CircleInvite = lazy(() => import("./pages/CircleInvite"));
 const Circles = lazy(() => import("./pages/Circles"));
 const Developers = lazy(() => import("./pages/Developers"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const Dhikr = lazy(() => import("./pages/Dhikr"));
 const Juz = lazy(() => import("./pages/Juz"));
 const Search = lazy(() => import("./pages/Search"));
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/themes" element={<Themes />} />
           <Route path="/dhikr" element={<Dhikr />} />
           <Route path="/developers" element={<Developers />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/account" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

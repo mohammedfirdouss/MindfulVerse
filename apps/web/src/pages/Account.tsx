@@ -1,6 +1,7 @@
 import { track } from "@mindfulverse/core/analytics";
 import { leaveCircle } from "@mindfulverse/core/circles";
 import { useAccount } from "@mindfulverse/core/sync/auth";
+import { deleteAccount } from "@mindfulverse/core/sync/deleteAccount";
 import {
   getSyncStatus,
   onSyncStatus,
@@ -313,7 +314,7 @@ export default function Account() {
     }
     // oxlint-disable-next-line no-alert -- native confirm is the intended destructive-action prompt
     const sure = window.confirm(
-      "Delete your synced data and any circles you started? This device keeps its entries."
+      "Delete your account? This deletes your email and sign-in, your synced journal and progress, your reminders and any circles you started. It can't be undone. This device keeps its entries."
     );
     if (!sure) {
       return;
@@ -348,8 +349,17 @@ export default function Account() {
       for (const c of deleted) {
         leaveCircle(c.code);
       }
+      // Then the account itself: the email and sign-in.
+      if (!(await deleteAccount())) {
+        setNotice(null);
+        setError(
+          "Your synced data is deleted, but the account couldn't be. Please try again."
+        );
+        return;
+      }
       setError(null);
       await signOut();
+      setNotice("Your account is deleted. Entries on this device stay here.");
     } finally {
       setBusy(false);
     }
@@ -583,11 +593,20 @@ export default function Account() {
               onClick={deleteMyData}
               disabled={busy}
             >
-              Delete my data
+              Delete account
             </button>
           </div>
 
-          <FeedbackLink subject="About my MindfulVerse account" />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 20px" }}>
+            <FeedbackLink subject="About my MindfulVerse account" />
+            <Link
+              to="/privacy"
+              className="soft"
+              style={{ fontSize: ".9rem", textDecoration: "underline" }}
+            >
+              Privacy
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="auth-card stack">

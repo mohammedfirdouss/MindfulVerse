@@ -29,6 +29,7 @@
     "./shareText": "./shareText.ts",
     "./surahNames": "./surahNames.ts",
     "./sync/auth": "./sync/auth.tsx",
+    "./sync/deleteAccount": "./sync/deleteAccount.ts",
     "./sync/engine": "./sync/engine.ts",
     "./sync/insforge": "./sync/insforge.ts",
     "./sync/merge": "./sync/merge.ts",
