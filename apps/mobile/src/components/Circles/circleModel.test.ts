@@ -5,15 +5,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   checkPortion,
+  circleEntries,
   circleSummary,
-  createdLine,
+  CREATED_LINE,
+  deleteLine,
   filterSurahs,
   fittingVerse,
   INVITE_FULL_NOTE,
   inviteMessage,
   inviteUrl,
-  joinedHeading,
-  nextStep,
   passageOptionLabel,
   portionChoiceLabel,
   portionChoices,
@@ -21,6 +21,7 @@ import {
   PRIVACY_LINE,
   readTogetherLine,
   resolveCircleLink,
+  startView,
 } from "./circleModel";
 import type { LinkDeps } from "./circleModel";
 
@@ -98,11 +99,10 @@ describe("range in the invite", () => {
 
 describe("circle copy", () => {
   it("matches the web wording", () => {
-    expect(createdLine("F")).toBe(
-      "“F” is ready. Anyone with the link or the QR code can join."
+    expect(CREATED_LINE).toBe(
+      "Your circle is ready. Share the link or the QR code below."
     );
-    expect(joinedHeading(1)).toBe("Your circle");
-    expect(joinedHeading(2)).toBe("Your circles");
+    expect(deleteLine("F")).toBe("Delete F? Members keep their reflections.");
     expect(INVITE_FULL_NOTE).toBe(
       "You’re already in 3 circles. Leave one on the Circles page, then open this link again."
     );
@@ -181,23 +181,56 @@ describe(checkPortion, () => {
   });
 });
 
-describe(nextStep, () => {
-  it("moves to the passage after this week's", () => {
-    expect(
-      nextStep(passages, { surah: 18, verse: 1, verseEnd: 8 })
-    ).toStrictEqual({ atLast: false, next: passages[1] });
+describe(circleEntries, () => {
+  const other: Circle = { ...circle, code: "xyz789", name: "Sisters" };
+  const third: Circle = { ...circle, code: "def456", name: "Neighbours" };
+
+  it("lists joined circles first, then the ones you started, each once", () => {
+    const fresh = { ...circle, name: "Friday friends (renamed)" };
+    const entries = circleEntries([other, circle], [third, fresh]);
+    expect(entries.map((e) => e.circle.code)).toStrictEqual([
+      "xyz789",
+      "abc234",
+      "def456",
+    ]);
+    expect(entries[1]?.circle.name).toBe("Friday friends (renamed)");
+    expect(entries.map((e) => [e.owned, e.joined, e.onHome])).toStrictEqual([
+      [false, true, true],
+      [true, true, false],
+      [true, false, false],
+    ]);
   });
 
-  it("says so at the last passage, and offers nothing for the whole surah", () => {
-    expect(
-      nextStep(passages, { surah: 18, verse: 27, verseEnd: null })
-    ).toStrictEqual({ atLast: true, next: null });
-    expect(
-      nextStep(passages, { surah: 18, verse: null, verseEnd: null })
-    ).toStrictEqual({ atLast: false, next: null });
-    expect(nextStep([], { surah: 18, verse: 5, verseEnd: null })).toStrictEqual(
-      { atLast: false, next: null }
-    );
+  it("puts nothing on Home when nothing is joined", () => {
+    expect(circleEntries([], [circle])).toStrictEqual([
+      { circle, joined: false, onHome: false, owned: true },
+    ]);
+    expect(circleEntries([], [])).toStrictEqual([]);
+  });
+});
+
+describe(startView, () => {
+  const base = {
+    accountLoading: false,
+    count: 1,
+    formOpen: false,
+    ownedLoaded: true,
+    signedIn: true,
+  };
+
+  it("waits for the account, and asks to sign in when signed out", () => {
+    expect(startView({ ...base, accountLoading: true })).toBe("none");
+    expect(startView({ ...base, signedIn: false })).toBe("signed-out");
+  });
+
+  it("shows the form straight away only when there are no circles", () => {
+    expect(startView(base)).toBe("button");
+    expect(startView({ ...base, count: 0 })).toBe("form");
+    expect(startView({ ...base, formOpen: true })).toBe("form");
+  });
+
+  it("doesn't flash the form while your circles load", () => {
+    expect(startView({ ...base, count: 0, ownedLoaded: false })).toBe("none");
   });
 });
 

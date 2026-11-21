@@ -1,7 +1,7 @@
 // Pure logic for the Circles screen and the circle link route (web:
 // apps/web/src/pages/circles-view.ts). No React Native imports, so vitest
 // runs it.
-import { nextPassage, portionLabel } from "@mindfulverse/core/circlePortion";
+import { portionLabel } from "@mindfulverse/core/circlePortion";
 import type { Passage } from "@mindfulverse/core/circlePortion";
 import {
   circlePath,
@@ -27,8 +27,8 @@ export const SIGNED_OUT_LINE =
 export const FULL_NOTE = `You can be in up to ${MAX_JOINED_CIRCLES} circles. Leave one to add this one.`;
 /** Shown by an invite link when the device is already in three others. */
 export const INVITE_FULL_NOTE = `You’re already in ${MAX_JOINED_CIRCLES} circles. Leave one on the Circles page, then open this link again.`;
-export const LAST_PASSAGE_NOTE =
-  "That’s the last passage. Choose the next surah with Edit.";
+export const CREATED_LINE =
+  "Your circle is ready. Share the link or the QR code below.";
 export const PORTION_ERROR = "Choose this week’s verses again for this surah.";
 export const WHOLE_SURAH = "The whole surah";
 
@@ -79,11 +79,6 @@ export function inviteMessage(
   return `Read ${name}${focus} with “${circle.name}” on MindfulVerse.\n${inviteUrl(circle.code)}`;
 }
 
-/** The line shown once a circle is started. */
-export function createdLine(name: string): string {
-  return `“${name}” is ready. Anyone with the link or the QR code can join.`;
-}
-
 export function qrLabel(name: string): string {
   return `QR code to join ${name}`;
 }
@@ -92,8 +87,73 @@ export function qrCaption(name: string): string {
   return `Scan with a phone camera to join ${name}.`;
 }
 
-export function joinedHeading(count: number): string {
-  return count === 1 ? "Your circle" : "Your circles";
+/** The owner's delete confirm. */
+export function deleteLine(name: string): string {
+  return `Delete ${name}? Members keep their reflections.`;
+}
+
+export interface CircleEntry {
+  circle: Circle;
+  owned: boolean;
+  joined: boolean;
+  /** The circle Home leads with: the first one this device joined. */
+  onHome: boolean;
+}
+
+/** Each circle once: the ones this device joined first (Home's first), then
+ *  the rest the person started. A joined circle they own uses the owner's
+ *  fresh copy. */
+export function circleEntries(
+  joined: Circle[],
+  owned: Circle[]
+): CircleEntry[] {
+  const byCode = new Map(owned.map((c) => [c.code, c]));
+  const joinedCodes = new Set(joined.map((c) => c.code));
+  const entries: CircleEntry[] = joined.map((c, i) => ({
+    circle: byCode.get(c.code) ?? c,
+    joined: true,
+    onHome: i === 0,
+    owned: byCode.has(c.code),
+  }));
+  for (const c of owned) {
+    if (!joinedCodes.has(c.code)) {
+      entries.push({ circle: c, joined: false, onHome: false, owned: true });
+    }
+  }
+  return entries;
+}
+
+export type StartView = "none" | "signed-out" | "form" | "button";
+
+/** What sits below the cards: nothing while the account or the person's own
+ *  circles load, a sign-in prompt, the start form (open, or straight away
+ *  when there are no circles), or the button that opens it. */
+export function startView({
+  accountLoading,
+  signedIn,
+  ownedLoaded,
+  formOpen,
+  count,
+}: {
+  accountLoading: boolean;
+  signedIn: boolean;
+  ownedLoaded: boolean;
+  formOpen: boolean;
+  count: number;
+}): StartView {
+  if (accountLoading) {
+    return "none";
+  }
+  if (!signedIn) {
+    return "signed-out";
+  }
+  if (formOpen) {
+    return "form";
+  }
+  if (!ownedLoaded) {
+    return "none";
+  }
+  return count === 0 ? "form" : "button";
 }
 
 // ---- This week's portion ----
@@ -187,20 +247,6 @@ export function checkPortion(
     return { message: PORTION_ERROR, ok: false };
   }
   return { ok: true, verse, verseEnd: end === verse ? null : end };
-}
-
-/** What the owner can move on to: the next passage, or the note that this
- *  is the last one. Neither for a whole-surah circle. */
-export function nextStep(
-  passages: Passage[],
-  circle: Pick<Circle, "surah" | "verse"> & { verseEnd: number | null },
-  verseCount?: number
-): { next: Passage | null; atLast: boolean } {
-  const next = nextPassage(passages, circle, verseCount);
-  return {
-    atLast: circle.verse !== null && next === null && passages.length > 0,
-    next,
-  };
 }
 
 /** "Read together: Al-Fatihah, Al-'Asr", leaving out the surah being read
