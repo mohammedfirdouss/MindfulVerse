@@ -235,6 +235,11 @@
     grid-column: 1 / -1;
     grid-row: 2;
   }
+  /* No streak yet: the greeting takes its row too, so nothing else can slip
+     in above the cards. */
+  .wide .home:not(:has(> .home-streak)) > header {
+    grid-row: 1 / 3;
+  }
   .wide .home > .home-lead {
     grid-row: 3;
     align-self: stretch;
