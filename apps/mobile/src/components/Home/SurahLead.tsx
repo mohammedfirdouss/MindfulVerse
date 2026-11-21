@@ -1,6 +1,6 @@
 // Home's lead card (web: apps/web/src/pages/Home.tsx): the surah journal comes
 // first. Continue the surah in progress, begin the surah your circle is
-// reading (at its focus verse when it has one), or begin with a short one.
+// reading (at this week's verses when it has them), or begin with a short one.
 import type { SurahMeta } from "@mindfulverse/core/types";
 import { router } from "expo-router";
 import type { Href } from "expo-router";
@@ -24,7 +24,7 @@ import {
   starterLabel,
   surahName,
   whereYouAre,
-  YOUR_CIRCLE_LINK,
+  yourCircleLink,
 } from "./leadModel";
 import type { Lead } from "./leadModel";
 
@@ -40,18 +40,26 @@ export function SurahLead({
   lead,
   surahs,
   surahNames,
+  joinedCount,
   reduce,
 }: {
   lead: Lead;
   surahs: Map<number, SurahMeta>;
   surahNames: Map<number, string>;
+  /** How many circles this device is in, for "Your circle(s)". */
+  joinedCount: number;
   reduce: boolean;
 }) {
   return (
     <FadeRise reduce={reduce} style={{ marginTop: 6 }}>
       <AdireCloth style={{ paddingHorizontal: 20, paddingVertical: 18 }}>
         <View style={{ alignItems: "flex-start", gap: 14 }}>
-          <LeadBody lead={lead} surahs={surahs} surahNames={surahNames} />
+          <LeadBody
+            lead={lead}
+            surahs={surahs}
+            surahNames={surahNames}
+            joinedCount={joinedCount}
+          />
         </View>
       </AdireCloth>
     </FadeRise>
@@ -62,10 +70,12 @@ function LeadBody({
   lead,
   surahs,
   surahNames,
+  joinedCount,
 }: {
   lead: Lead;
   surahs: Map<number, SurahMeta>;
   surahNames: Map<number, string>;
+  joinedCount: number;
 }) {
   const cloth = useOnCloth();
   if (lead.kind === "continue") {
@@ -104,7 +114,7 @@ function LeadBody({
             {name}
           </Text>
         </View>
-        <LeadLine>{namedLine(verse)}</LeadLine>
+        <LeadLine>{namedLine(verse, lead.verseEnd)}</LeadLine>
         <Button
           kind="cloth"
           title={namedAction(name, verse)}
@@ -112,7 +122,7 @@ function LeadBody({
         />
         <View>
           <QuietLink title="Choose another surah" href="/tadabbur" />
-          <QuietLink title={YOUR_CIRCLE_LINK} href="/circles" />
+          <QuietLink title={yourCircleLink(joinedCount)} href="/circles" />
         </View>
       </>
     );
