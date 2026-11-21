@@ -1,5 +1,7 @@
-// One circle the signed-in person started: its link, Share, edit in place,
-// and delete behind an inline confirm.
+// One circle the signed-in person started: this week's verses and what the
+// circle does together, moving on to next week's passage, its link, Share,
+// edit in place, and delete behind an inline confirm.
+import type { Passage } from "@mindfulverse/core/circlePortion";
 import {
   deleteCircle,
   joinCircle,
@@ -14,8 +16,16 @@ import { fonts, space, useTheme } from "../../theme";
 import { Button, Card, Text } from "../../ui";
 import { FormError } from "../Account/parts";
 import { CircleForm } from "./CircleForm";
-import { circleSummary, inviteMessage, inviteUrl } from "./circleModel";
-import { useCircleCountLine } from "./useCircleCount";
+import {
+  circleSummary,
+  FULL_NOTE,
+  inviteMessage,
+  inviteUrl,
+  LAST_PASSAGE_NOTE,
+  nextStep,
+  passageOptionLabel,
+} from "./circleModel";
+import { CircleTogether } from "./CircleTogether";
 
 type Mode = "view" | "edit" | "confirm-delete";
 
@@ -70,14 +80,16 @@ export function OwnedCircle({
   circle,
   surahs,
   surahList,
-  joinedCode,
+  passages,
+  joinedCodes,
   onChanged,
   onDeleted,
 }: {
   circle: Circle;
   surahs: Map<number, SurahMeta>;
   surahList: SurahMeta[];
-  joinedCode: string | null;
+  passages: Map<number, Passage[]>;
+  joinedCodes: string[];
   onChanged: (circle: Circle) => void;
   onDeleted: (code: string) => void;
 }) {
@@ -85,11 +97,28 @@ export function OwnedCircle({
   const [mode, setMode] = useState<Mode>("view");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isJoined = joinedCode === circle.code;
-  // The joined circle's card at the top of the screen already shows its count.
-  const countLine = useCircleCountLine(isJoined ? null : circle, {
-    named: false,
-  });
+  const [moving, setMoving] = useState(false);
+  const onHome = joinedCodes[0] === circle.code;
+  const { next, atLast } = nextStep(passages.get(circle.surah) ?? [], circle);
+
+  async function moveOn(p: Passage) {
+    setMoving(true);
+    setError(null);
+    const result = await updateCircle(circle.code, {
+      verse: p.from,
+      verseEnd: p.to === p.from ? null : p.to,
+    });
+    setMoving(false);
+    if (result.ok) {
+      onChanged(result.value);
+      return;
+    }
+    setError(result.error.message);
+  }
+
+  function showOnHome() {
+    setError(joinCircle(circle) ? null : FULL_NOTE);
+  }
 
   async function remove() {
     setBusy(true);
@@ -108,6 +137,7 @@ export function OwnedCircle({
       <Card>
         <CircleForm
           surahs={surahList}
+          passages={passages}
           initial={circle}
           submitTitle="Save changes"
           onCancel={() => setMode("view")}
@@ -131,12 +161,31 @@ export function OwnedCircle({
         <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
           {circleSummary(circle, surahs)}
         </Text>
-        {countLine ? (
-          <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
-            {countLine}
-          </Text>
-        ) : null}
       </View>
+      <CircleTogether
+        circle={circle}
+        surahs={surahs}
+        passages={passages}
+        showCount={!joinedCodes.includes(circle.code)}
+      />
+      {next ? (
+        <View style={{ alignItems: "flex-start", gap: space.xs }}>
+          <Button
+            kind="secondary"
+            title="Move to next week’s verses"
+            busy={moving}
+            onPress={() => void moveOn(next)}
+          />
+          <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
+            {passageOptionLabel(next)}
+          </Text>
+        </View>
+      ) : null}
+      {atLast ? (
+        <Text variant="soft" style={{ fontSize: 15.5, lineHeight: 22 }}>
+          {LAST_PASSAGE_NOTE}
+        </Text>
+      ) : null}
       <CircleLinkBlock circle={circle} surahs={surahs} />
       {mode === "confirm-delete" ? (
         <View style={{ gap: space.sm }}>
@@ -167,12 +216,8 @@ export function OwnedCircle({
       ) : (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
           <Button kind="ghost" title="Edit" onPress={() => setMode("edit")} />
-          {isJoined ? null : (
-            <Button
-              kind="ghost"
-              title="Show on Home"
-              onPress={() => joinCircle(circle)}
-            />
+          {onHome ? null : (
+            <Button kind="ghost" title="Show on Home" onPress={showOnHome} />
           )}
           <Button
             kind="ghost"
