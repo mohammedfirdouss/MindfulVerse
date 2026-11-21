@@ -48,7 +48,7 @@ export function toSections(
         entry,
         // Under its own surah's heading the name would only repeat.
         verseLabel:
-          g.surah === surah ? ref : name ? `${name} · ${ref}` : `Qur’an ${ref}`,
+          g.surah === surah ? ref : name ? `${name} ${ref}` : `Qur’an ${ref}`,
         translation: verse?.translation,
         arabic: verse?.arabic,
       };
@@ -86,7 +86,7 @@ export function spanLabel(input: ExportInput): string {
   const first = formatDay(new Date(Math.min(...times)));
   const last = formatDay(new Date(Math.max(...times)));
   // One day's worth: each entry already carries its date.
-  return first === last ? count : `${count} · ${first} – ${last}`;
+  return first === last ? count : `${count}, ${first} to ${last}`;
 }
 
 /** "Exported …", only when it adds something the entry dates don't say. */

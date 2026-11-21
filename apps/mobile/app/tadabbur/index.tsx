@@ -22,7 +22,7 @@ const readPondered = () => getLocalProgress().surahTadabbur;
 const PickerRow = memo(
   ({ surah, pondered }: { surah: SurahMeta; pondered: number | null }) => {
     const { colors } = useTheme();
-    const detail = `${surah.ayahCount} verses${pondered === null ? "" : ` · verse ${pondered}`}`;
+    const detail = `${surah.ayahCount} verses${pondered === null ? "" : `, at verse ${pondered}`}`;
     return (
       <LinkPressable
         href={{

@@ -176,7 +176,7 @@ function computeStats(): StatsSnapshot {
 
 function followUpNote(s: StatsSnapshot): string {
   const b = s.followUpBreakdown;
-  return `Yes ${b.Yes} · Partly ${b.Partly} · Not yet ${b["Not yet"]}`;
+  return `Yes ${b.Yes}, Partly ${b.Partly}, Not yet ${b["Not yet"]}`;
 }
 
 function summaryText(s: StatsSnapshot): string {
@@ -196,7 +196,7 @@ function summaryText(s: StatsSnapshot): string {
     `Sessions: ${s.sessionsStarted} started, ${s.sessionsCompleted} completed${
       s.completionPct === null ? "" : ` (${s.completionPct}%)`
     }`,
-    `Check-ins: ${s.checkinViews} · emotions: ${emotions}`,
+    `Check-ins: ${s.checkinViews}, emotions: ${emotions}`,
     `Journal entries: ${s.journalCount}`,
     `Verses shared: ${s.versesShared}`,
     `Dhikr completed: ${s.dhikrCompleted}`,

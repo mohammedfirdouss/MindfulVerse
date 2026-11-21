@@ -152,7 +152,7 @@ export function Section({
           style={{ fontFamily: fonts.readSemiBold }}
         >
           {title}
-          {aside ? <Text variant="soft">{` · ${aside}`}</Text> : null}
+          {aside ? <Text variant="soft">{` (${aside})`}</Text> : null}
         </Text>
       ) : null}
       {children}

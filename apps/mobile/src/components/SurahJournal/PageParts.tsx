@@ -83,7 +83,7 @@ export function VerseItem({ item }: { item: SurahJournalItem }) {
 export function AlsoItem({ entry }: { entry: JournalEntry }) {
   return (
     <ItemFrame
-      date={`${entry.context?.ref ?? ""} · ${formatDate(entry.createdAt)}`}
+      date={`${entry.context?.ref ?? ""}, ${formatDate(entry.createdAt)}`}
     >
       <Text selectable>{entry.body}</Text>
     </ItemFrame>

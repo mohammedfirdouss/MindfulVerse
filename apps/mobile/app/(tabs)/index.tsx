@@ -322,7 +322,7 @@ export default function Home() {
         style={{ fontSize: 13.6, lineHeight: 20, textAlign: "center" }}
       >
         {WORD_MEANINGS_CREDIT}
-        {" · "}
+        {"\n"}
         <Text
           accessibilityRole="link"
           onPress={() =>
