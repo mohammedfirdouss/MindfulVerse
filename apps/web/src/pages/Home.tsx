@@ -268,7 +268,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    document.title = "MindfulVerse";
+    document.title = "MindfulVerse: Quranic Contemplation";
   }, []);
 
   useEffect(() => {
