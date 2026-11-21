@@ -195,9 +195,9 @@ describe(nextStep, () => {
     expect(
       nextStep(passages, { surah: 18, verse: null, verseEnd: null })
     ).toStrictEqual({ atLast: false, next: null });
-    expect(
-      nextStep([], { surah: 18, verse: 5, verseEnd: null })
-    ).toStrictEqual({ atLast: false, next: null });
+    expect(nextStep([], { surah: 18, verse: 5, verseEnd: null })).toStrictEqual(
+      { atLast: false, next: null }
+    );
   });
 });
 
