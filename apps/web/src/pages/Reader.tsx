@@ -160,7 +160,7 @@ export default function Reader() {
                         <span className="sr-only">Surah {s.number}, </span>
                         <span className="row-title">{s.name}</span>
                         <span className="row-meta">
-                          {place ? `${place} · ` : ""}
+                          {place ? `${place}, ` : ""}
                           {s.ayahCount} {s.ayahCount === 1 ? "verse" : "verses"}
                         </span>
                       </span>

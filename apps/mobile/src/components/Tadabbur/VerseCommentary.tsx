@@ -95,8 +95,8 @@ export const VerseCommentary = memo(
           >
             <Text variant="eyebrow">
               {direct
-                ? `Ibn Kathir · ${ayah.verseKey}`
-                : `Ibn Kathir · with verse ${covering}`}
+                ? `Ibn Kathir on ${ayah.verseKey}`
+                : `Ibn Kathir on the passage from verse ${covering}`}
             </Text>
             {text === null ? (
               <Text variant="muted" accessibilityLiveRegion="polite">

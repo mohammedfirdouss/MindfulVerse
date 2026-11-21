@@ -39,8 +39,8 @@ function groupByTheme(rows: Theme[]): ThemeGroup[] {
 
 function rangeLabel(r: Theme): string {
   return r.ayahFrom === r.ayahTo
-    ? `Surah ${r.surah} · ${r.ayahFrom}`
-    : `Surah ${r.surah} · ${r.ayahFrom}–${r.ayahTo}`;
+    ? `Surah ${r.surah}, verse ${r.ayahFrom}`
+    : `Surah ${r.surah}, verses ${r.ayahFrom} to ${r.ayahTo}`;
 }
 
 export default function Themes() {

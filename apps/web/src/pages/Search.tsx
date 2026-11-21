@@ -107,10 +107,11 @@ function highlight(snippet: string, term: string): ReactNode[] {
       <mark
         key={i}
         style={{
-          background: "var(--kola)",
+          background: "var(--indigo-wash)",
           borderRadius: 3,
-          color: "var(--cotton)",
-          padding: "0 3px",
+          color: "inherit",
+          fontWeight: 600,
+          padding: "0 2px",
         }}
       >
         {part}

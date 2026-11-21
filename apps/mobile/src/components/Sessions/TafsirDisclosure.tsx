@@ -158,7 +158,7 @@ export function TafsirDisclosure({
                       />
                     </View>
                     <Text variant="eyebrow">
-                      Ibn Kathir · {verseLabel(e.verseKey, surahNames)}
+                      Ibn Kathir on {verseLabel(e.verseKey, surahNames)}
                       {e.source === parseVerseKey(e.verseKey).ayah
                         ? ""
                         : ` (with verse ${e.source})`}

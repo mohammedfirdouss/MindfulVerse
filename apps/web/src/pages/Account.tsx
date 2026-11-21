@@ -459,7 +459,7 @@ export default function Account() {
             <div>
               <div style={{ fontWeight: 600 }}>
                 Daily verse reminder
-                {reminderOn && <span className="soft"> · On</span>}
+                {reminderOn && <span className="soft"> (on)</span>}
               </div>
             </div>
             {pushSupport() === "needs-install" && (

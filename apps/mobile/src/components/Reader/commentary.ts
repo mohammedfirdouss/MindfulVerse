@@ -33,13 +33,13 @@ export function commentaryLabel(index: TafsirIndex | null, a: Ayah): string {
 }
 
 export function deeperLookTitle(a: Ayah): string {
-  return `Deeper look · ${a.surah}:${a.ayah}`;
+  return `Deeper look at ${a.surah}:${a.ayah}`;
 }
 
 export function commentaryTitle(a: Ayah, source: number): string {
   return source === a.ayah
-    ? `Ibn Kathir · ${a.surah}:${a.ayah}`
-    : `Ibn Kathir · on the passage from ${a.surah}:${source}`;
+    ? `Ibn Kathir on ${a.surah}:${a.ayah}`
+    : `Ibn Kathir on the passage from ${a.surah}:${source}`;
 }
 
 /** A `?v=` param as an ayah number, or null when absent/invalid. */

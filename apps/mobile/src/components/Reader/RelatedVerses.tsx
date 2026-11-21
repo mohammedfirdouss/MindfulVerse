@@ -167,13 +167,11 @@ export function SectionHeading({ children }: { children: string }) {
     <Text
       accessibilityRole="header"
       style={{
-        color: colors.inkFaint,
+        color: colors.indigo,
         fontFamily: fonts.readSemiBold,
-        fontSize: 13,
-        letterSpacing: 0.5,
-        lineHeight: 18,
+        fontSize: 13.6,
+        lineHeight: 19,
         marginBottom: 6,
-        textTransform: "uppercase",
       }}
     >
       {children}

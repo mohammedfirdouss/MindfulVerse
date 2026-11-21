@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import BackLink from "../components/BackLink";
+import EntryBody from "../components/EntryBody";
 import { buildJournalText, formatDate, saveFile } from "../lib/journalExport";
 import { surahJournalSections } from "../lib/surahJournalExport";
 
@@ -55,7 +56,7 @@ function Item({ item }: { item: SurahJournalItem }) {
       )}
       {item.followUps.map((f) => {
         const { answer, note } = parseFollowUpBody(f.body);
-        const text = answer ? `${answer}${note ? ` — ${note}` : ""}` : f.body;
+        const text = answer ? `${answer}${note ? `. ${note}` : ""}` : f.body;
         return (
           <p key={f.id} className="soft sj-part">
             {`A week on: ${text}`}
@@ -189,7 +190,6 @@ function SurahJournalPage() {
     <div className="stack">
       <BackLink to="/journal">Your reflections</BackLink>
       <header>
-        <p className="eyebrow">{name}</p>
         <h1>{`Your page on ${name}`}</h1>
       </header>
 
@@ -263,9 +263,9 @@ function SurahJournalPage() {
               {page.also.map((e) => (
                 <div key={e.id} className="sj-item">
                   <p className="soft sj-date">
-                    {`${e.context?.ref ?? ""} · ${formatDate(e.createdAt)}`}
+                    {`${e.context?.ref ?? ""}, ${formatDate(e.createdAt)}`}
                   </p>
-                  <p className="sj-part">{e.body}</p>
+                  <EntryBody body={e.body} />
                 </div>
               ))}
             </section>

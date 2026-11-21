@@ -18,6 +18,7 @@ import type { Ayah, JournalEntry } from "@mindfulverse/core/types";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import EntryBody from "../components/EntryBody";
 import {
   buildJournalText,
   formatDate,
@@ -114,7 +115,7 @@ function EntryCard({
       ? entry.context.ref
       : null;
   return (
-    <div className="card stack">
+    <div className="journal-entry stack">
       <div className="muted" style={{ fontSize: ".8rem" }}>
         {formatDate(entry.createdAt)}
       </div>
@@ -127,7 +128,7 @@ function EntryCard({
       <div style={{ color: "var(--ink-soft)", fontStyle: "italic" }}>
         {entry.prompt}
       </div>
-      <div style={{ whiteSpace: "pre-wrap" }}>{entry.body}</div>
+      <EntryBody body={entry.body} />
       <div
         style={{
           alignItems: "baseline",
@@ -357,19 +358,17 @@ export default function Journal() {
               {g.entries.length === 1
                 ? "1 reflection"
                 : `${g.entries.length} reflections`}
-              {g.surah && (
-                <>
-                  {" · "}
-                  <Link to={`/tadabbur/${g.surah}`} className="sj-link">
-                    Continue this surah’s tadabbur
-                  </Link>
-                  {" · "}
-                  <Link to={`/tadabbur/${g.surah}/journal`} className="sj-link">
-                    Your page on this surah
-                  </Link>
-                </>
-              )}
             </p>
+            {g.surah && (
+              <div className="journal-group-links">
+                <Link to={`/tadabbur/${g.surah}`} className="sj-link">
+                  Continue reading
+                </Link>
+                <Link to={`/tadabbur/${g.surah}/journal`} className="sj-link">
+                  Your page on this surah
+                </Link>
+              </div>
+            )}
           </header>
           {g.entries.map((e) => (
             <EntryCard
