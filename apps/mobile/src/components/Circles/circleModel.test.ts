@@ -81,9 +81,9 @@ describe(inviteMessage, () => {
 
 describe(circleSummary, () => {
   it("shows the surah and portion", () => {
-    expect(circleSummary(circle, surahs)).toBe("Al-Kahf · verse 10");
+    expect(circleSummary(circle, surahs)).toBe("Al-Kahf, verse 10");
     expect(circleSummary({ ...circle, verse: 7, verseEnd: 12 }, surahs)).toBe(
-      "Al-Kahf · verses 7 to 12"
+      "Al-Kahf, verses 7 to 12"
     );
     expect(circleSummary({ surah: 94, verse: null }, surahs)).toBe("Surah 94");
   });

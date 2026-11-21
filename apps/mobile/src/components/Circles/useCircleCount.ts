@@ -1,4 +1,4 @@
-// The anonymous "5 in <circle> · 3 reflected this week." line (no name where
+// The anonymous "5 in <circle>, 3 reflected this week." line (no name where
 // the circle is already named above it), fetched when the screen gains focus,
 // at most once every two minutes per circle; in between the last answer is
 // shown. Null while loading, on error, or when neither count reaches two.
