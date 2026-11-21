@@ -89,9 +89,7 @@
   font-size: 0.92rem;
 }
 .circle-discuss {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 4px 14px;
+  padding: 0;
 }
 .circle-discuss summary {
   min-height: 44px;
@@ -122,4 +120,26 @@
 }
 .circle-qr-figure figcaption {
   font-size: 0.92rem;
+}
+.circle-card {
+  display: grid;
+  gap: 10px;
+}
+.circle-card .eyebrow {
+  margin: 0;
+}
+.circle-next-row {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.circle-quiet-row {
+  gap: 0 20px;
+}
+.circle-share .btn {
+  padding: 8px 14px;
+  font-size: 0.92rem;
+}
+.circle-share .circle-actions {
+  gap: 8px;
 }
