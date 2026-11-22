@@ -12,9 +12,11 @@ import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
 import { checkedInToday } from "@mindfulverse/core/journal";
 import {
   currentStreak,
+  daysAway,
   getLastRead,
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
+import { streakLine } from "@mindfulverse/core/streakLine";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import { onSyncStatus } from "@mindfulverse/core/sync/engine";
 import { TRANSLATION_SOURCE_URL } from "@mindfulverse/core/translation";
@@ -343,6 +345,7 @@ export default function Home() {
   // oxlint-disable-next-line react/purity -- the greeting follows the clock on each render
   const hours = new Date().getHours();
   const streak = currentStreak();
+  const returning = streakLine(streak, daysAway());
   const lastRead = getLastRead();
   const doneToday = checkedInToday();
   const surahName = hero ? (surahs.get(hero.surah)?.name ?? "") : "";
@@ -365,17 +368,19 @@ export default function Home() {
         <h1 className="home-greeting">{greeting(hours)}</h1>
       </header>
 
-      {streak >= 2 && (
+      {returning && (
         <p className="home-streak soft" style={reveal(60)}>
-          <span className="home-beads" aria-hidden="true">
-            {Array.from({ length: 7 }, (_, i) => (
-              <i
-                key={i}
-                className={i < Math.min(streak, 7) ? "on" : undefined}
-              />
-            ))}
-          </span>
-          Day {streak} of returning to the Qur’an
+          {streak >= 2 && (
+            <span className="home-beads" aria-hidden="true">
+              {Array.from({ length: 7 }, (_, i) => (
+                <i
+                  key={i}
+                  className={i < Math.min(streak, 7) ? "on" : undefined}
+                />
+              ))}
+            </span>
+          )}
+          {returning}
         </p>
       )}
 

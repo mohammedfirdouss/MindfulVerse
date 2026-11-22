@@ -11,6 +11,7 @@ import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
 import { checkedInToday, getEntries } from "@mindfulverse/core/journal";
 import {
   currentStreak,
+  daysAway,
   getLastRead,
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
@@ -81,6 +82,7 @@ function readLocal(): Local {
     lastRead: getLastRead(),
     rhythm: rhythmView(getEntries(), new Date()),
     scale: scaleFor(getSizeKey()),
+    away: daysAway(),
     streak: currentStreak(),
   };
 }
@@ -179,6 +181,7 @@ export default function Home() {
   }, [verseKey]);
 
   const {
+    away,
     hour,
     streak,
     lastRead,
@@ -188,7 +191,7 @@ export default function Home() {
     rhythm,
     scale,
   } = local;
-  const returning = streakLine(streak);
+  const returning = streakLine(streak, away);
   const tadabburHref = deeper
     ? ({
         params: { surah: String(deeper.surah), v: String(deeper.ayah) },
