@@ -1,14 +1,14 @@
 // "Passage by passage": a 9:16 update in nine scenes, about 45 seconds.
 // Surah Yusuf as an unbroken wall, then its map of 22 titled passages, a tap
 // on "They told their father that Yusuf was eaten by a wolf", the reader
-// landing on that passage's heading, then the maps of two long surahs,
+// landing on that passage's first verse, then the maps of two long surahs,
 // Al-A'raf and Al-Ma'idah. Every screen is a capture of the running app
 // (scripts/capture-passages.mjs); only the taps and rings are drawn on top.
 import type { ReactNode } from "react";
 import { AbsoluteFill } from "remotion";
 
 import layout from "../public/screens/three/passages-layout.json";
-import { C, Fonts, Screen, Touch, prog } from "./kit";
+import { C, Fonts, Screen, Touch, VH, ease, prog } from "./kit";
 import {
   Caption,
   EndCard,
@@ -44,14 +44,21 @@ function S1Title({ t }: SceneProps) {
   );
 }
 
+/** The tall Reading view capture (app px) and how far the scene glides. */
+const WALL_HEIGHT = 2400;
+const WALL_TRAVEL = WALL_HEIGHT - VH;
+
 function S2Wall({ t }: SceneProps) {
+  // One slow, steady glide from the title plate down through the Arabic, as
+  // if scrolling a surah that keeps going.
+  const y = -WALL_TRAVEL * prog(t, 12, 118, ease.inOut);
   return (
     <AbsoluteFill style={{ background: C.cotton }}>
       <Caption t={t} from={0} to={999}>
         111 verses.
       </Caption>
       <StagePhone t={t} from="below">
-        <Screen src={shot("passages-wall")} />
+        <Screen src={shot("passages-wall")} y={y} />
       </StagePhone>
     </AbsoluteFill>
   );
@@ -128,9 +135,8 @@ function S5Tap({ t }: SceneProps) {
 }
 
 function S6Read({ t }: SceneProps) {
-  const heading = layout.passagesHeading;
   const verse = layout.passagesFirstVerse;
-  const top = heading.y - 6;
+  const top = verse.y - 6;
   const bottom = verse.y + verse.h + 6;
   return (
     <AbsoluteFill style={{ background: C.cotton }}>

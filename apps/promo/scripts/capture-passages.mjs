@@ -22,20 +22,20 @@ const NOW = new Date(2026, 10, 20, 9, 30).getTime();
 const SURAH = 12;
 /** "They told their father that Yusuf was eaten by a wolf", verses 16 to 18. */
 const WOLF = 16;
-/** Where the wall of text is shown from, in the Reading view. */
-const WALL_VERSE = 4;
+/** Height of the tall Reading view capture the video scrolls through. */
+const WALL_HEIGHT = 2400;
 
 const LAYOUT = { viewport: { h: 844, w: 390 } };
 const browser = await chromium.launch();
 
-async function open(view) {
+async function open(view, height = 844) {
   const ctx = await browser.newContext({
     deviceScaleFactor: 3,
     hasTouch: true,
     isMobile: true,
     reducedMotion: "reduce",
     serviceWorkers: "block",
-    viewport: { height: 844, width: 390 },
+    viewport: { height, width: 390 },
   });
   await ctx.clock.setFixedTime(NOW);
   await ctx.route(
@@ -87,11 +87,22 @@ async function measure(page, name, locator) {
   return LAYOUT[name];
 }
 
-// ---- 1. The surah as one unbroken wall, in the Reading view ----
+// ---- 1. The surah as one unbroken wall, in the Reading view. Captured
+// several screens tall from the title plate, so the video can glide down it.
 {
-  const { ctx, page } = await open("reading");
-  await page.goto(`${WEB}/read/${SURAH}?v=${WALL_VERSE}`);
+  const { ctx, page } = await open("reading", WALL_HEIGHT);
+  await page.goto(`${WEB}/read/${SURAH}`);
   await settle(page, 2200);
+  await page.evaluate(() => {
+    const plate = document.querySelector(".surah-plate");
+    window.scrollBy(0, plate.getBoundingClientRect().top - 12);
+  });
+  await page.waitForTimeout(400);
+  // The bottom tab bar would sit in the middle of the tall capture.
+  await page.addStyleTag({
+    content: "nav, .bottom-nav { display: none !important; }",
+  });
+  await page.waitForTimeout(200);
   await shot(page, "passages-wall");
   await ctx.close();
 }
@@ -127,7 +138,6 @@ async function measure(page, name, locator) {
 
   await wolf.click();
   await page.waitForTimeout(1500);
-  await measure(page, "passagesHeading", page.locator(`#p${WOLF}`));
   await measure(page, "passagesFirstVerse", page.locator(`#v${WOLF}`));
   await shot(page, "passages-landed");
   await ctx.close();
