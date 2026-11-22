@@ -888,6 +888,9 @@ select.field-input:disabled {
 @media (max-width: 640px) {
   .reading-text {
     text-align: start;
+    /* Tighter on a phone, where 2.15 reads as loose; the marks above and
+       below the letters still clear the next line. */
+    line-height: 1.85;
   }
 }
 .rv {
