@@ -1,96 +1,73 @@
 # Roadmap
 
-A **prioritized menu, not a to-do list.** Having the data is not a reason to build.
+A menu, not a to-do list. Having the data is not a reason to build.
 
-## Positioning (2026-11-07)
+## What MindfulVerse is
 
-Quran.com is where you read. **MindfulVerse is where you sit with one surah, write the way a tadabbur journal asks you to, and get asked a week later whether you did what you wrote — all from real sources, never AI.**
+Quran.com is where you read. **MindfulVerse is where you sit with one surah, write what it means to you, and get asked a week later whether you did what you wrote.** Everything comes from real sources, never AI. Free for everyone, with no ads and no paywall.
 
-Most competing tadabbur apps (Tadabbur, ReflectQ, TadabburAI, Ask Quran) generate text with AI; Quran.com notes + QuranReflect is the free, trusted alternative. The daily verse and mood picker are what everyone has, so the app leads with the surah journal and keeps those second.
-
-## The launch test (2026-11-07) — rules written before testers arrive
+## The launch test
 
 |  |  |
 | --- | --- |
-| **Who** | 50+ installs from 3+ Qur'an study circles (Nigeria + diaspora), via the design partner and circle teachers |
-| **Platforms** | Android app (Play internal → closed testing) + web app for iPhone. No paid Apple account until the bar is met |
-| **Language** | English only. Hausa / Yoruba come next, starting with a licensed translation |
-| **Bar** | Day-7 return ≥ 30% over 4 weeks |
-| **Second signal** | ≥ 20% of people who kept an action answer its week-later follow-up |
-| **Below 15%** | Stop building. Interview 5 testers who left; fix the first session |
-| **15–30%** | Keep the scope; change one thing at a time |
-| **Measured by** | Anonymous "active today" signal (random install id + date + platform, write-only table `active_days`) — query in `scripts/retention.sql` |
-| **Before launch** | Design partner walks the full Ash-Sharh flow; the first circle's teacher reviews hand-written prompts, session intros and emotion pairings (no endorsement claimed) |
+| **Who** | 50+ installs from 3+ Qur'an study circles (Nigeria and diaspora) |
+| **Where** | Android app (Play testing) and the web app for iPhone |
+| **Pass** | 30% or more come back on day 7, over 4 weeks |
+| **Also watch** | 20% or more answer their week-later follow-up |
+| **Below 15%** | Stop building. Talk to 5 people who left and fix the first session |
+| **Measured by** | The anonymous `active_days` signal (`scripts/retention.sql`) |
 
-## The v0 gate — cleared (2026-09-15)
+## Now
 
-|  |  |
-| --- | --- |
-| **Bar** | Day-7 return ≥ 25–30% on 50+ non-friend users within ~4 weeks |
-| **Outcome** | Cleared — v1 (accounts, sync, reminders) built and shipped 2026-09-15 |
-| **Measured by** | Vercel Analytics (visits) + testers' `/stats` copies (behavior) |
-| **Pricing** | Free for everyone, decided 2026-11-07. No subscription or paywall is planned (see v1 row 3) |
+1. **Get the testers.** 50 people from real study circles. This is the actual bottleneck.
+2. **Ship the Android build** with the latest changes, then Play closed testing.
+3. **Move to mindfulverse.app.** Register the domain, then update the links.
 
-## v0 — shipped (live at mindfulverse.vercel.app)
+## Next, in order
 
-| Feature | Notes |
-| --- | --- |
-| Reader (114 surahs) | Arabic (Uthmanic Hafs) + Itani/ClearQuran + Ibn Kathir, lazy-loaded, passage-grouped commentary, Arabic-only view toggle |
-| Daily check-in | Rotating vetted verse of the day (139-verse pool), neutral emotion picker (12 × 5 vetted verses) |
-| Tadabbur sessions | 20 sessions, verbatim assembly, progress + resume, tafsir excerpts |
-| Dhikr & breath | 8 sets, breathing circle, tap counting, wake lock, adaptive sizing |
-| Journal | Saved on the device first (cloud sync came in v1), verse/session attribution, export, backup nudge |
-| Search + topics browse | Translation search; verses-by-topic index into the reader |
-| Modern English translation | Talal Itani / ClearQuran (CC BY-NC-ND — non-commercial, which fits a free app; attribution required) |
-| User-controlled dark theme | Default light, user toggle; never follows OS |
-| Growth & measurement | Share-a-verse, OG preview card, PWA install prompt, `/stats`, WhatsApp feedback link, analytics |
-| Identity | West African indigo, adire band, Outfit + Literata + KFGQPC Hafs, offline PWA |
-
-## v1 — shipped 2026-09-15 (accounts, sync, reminders)
-
-| Priority | Feature | Status | Why | Effort | Depends on |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Accounts (email/OAuth) | **Shipped** | Identity for sync | Medium | Backend (first server component) |
-| 2 | Journal cloud sync | **Shipped** | The #1 trust gap — localStorage is fragile | Medium | Accounts |
-| 3 | Subscription billing | **Dropped** (2026-11-07) | MindfulVerse stays free; the $3/month willingness-to-pay question was removed. If charging is ever reconsidered, the Itani translation's non-commercial licence must be cleared first | — | — |
-| 4 | Push notifications / daily reminder | **Shipped** | Biggest retention lever a PWA lacks | Medium | Backend |
-| 5 | React Native app | **Built** (Android); not on the Play Store yet | Store presence, reliable notifications, better offline | High | v1 validated on web |
-
-## Shipped since v1 (October to November 2026)
-
-| Feature | Notes |
-| --- | --- |
-| Surah journal | Home begins with a surah: its background, then verse by verse with Ibn Kathir, and a page that keeps everything written on it. Web and Android |
-| Week-later follow-up | "What will you do?" on surah tadabbur and theme sessions; seven days on, Home asks how it went |
-| Circles | Anyone signed in can start a named circle and share a link. Joining needs no account, journals stay private, and the circle sees only an anonymous weekly count of two or more |
-| Rhythm | Day count of returning, plus a private line for how many days this week a reflection was kept |
-| Android app | Surah journal, theme sessions, search, circles, journal export and reminders, sharing the core with the web app |
-| Daily verse API | Free, keyed, non-commercial API for other sites, at `/developers` |
-| Launch measurement | Anonymous `active_days` signal on web and Android |
-
-## v2 — deepen (pull by priority once v1 is stable)
-
-| Priority | Feature | Unlocked by | Effort | Blocker / note |
+| # | What | Why | Uses | Effort |
 | --- | --- | --- | --- | --- |
-| 1 | New sessions on a cadence (2/week) | Themes + tafsir data | Low (authoring) | None — strongest retention play |
-| 2 | Richer topic ontology (2,512 topics) | `topics.db` (unused) | Low | Enriches the existing verses-by-topic page; pipeline step + UI |
-| 3 | Recitation audio + word highlighting | Timestamp data (4 reciters) | High | **Licensing first** — audio is on Tarteel's CDN, not ours |
-| 4 | Related-wording links in reader | Similar-ayahs dataset | Low | Lexical matches — label "related wording," not "related meaning" |
+| 1 | **Passage titles in the reader** | A surah opens as a short map of titled passages, so you know what each part is about before you read. Our answer to ScrollQuran, joined to reflection | Ayah themes (2,098 passages, already shipped for Themes and Circles) | Low |
+| 2 | **Type your own feeling in Check-in** | People rarely feel exactly one of 12 words. What they type is matched on the phone to the approved feelings; nothing leaves the device | Emotions list plus a word list | Low |
+| 3 | **New sessions, two a week** | The strongest reason to come back | Themes and tafsir | Low (writing) |
+| 4 | **Khatm plan** | Finish the Qur'an in 30 days (a juz a day) or 7 days (a manzil a day), with a gentle daily marker | Juz (shipped) and manzil (in QUL) | Low |
+| 5 | **More topics** | The index shows 499 named topics. About 840 have 2 or more verses; the rest were left out for having more than 15, which a topic page needs a way to handle | Topics | Low |
+| 6 | **Related wording** | Verses with near-identical wording, labelled "similar wording", not "similar meaning" | Similar ayahs (1,162 entries) | Low |
 
-## Later / niche
+## Later
 
-| Feature | Audience | Note |
+| What | For | Note |
 | --- | --- | --- |
-| Hausa / Yoruba | Nigeria growth base | **Next after the launch test.** Start with a licensed Hausa translation; tafsir data in those languages still unsourced |
-| Arabic tafsirs (Uthaymeen, Saadi) | Arabic readers | Data already in hand |
-| Mutashabihat pairs | Memorizers | Narrow but loyal audience |
-| Page-accurate mushaf view | Traditionalists | Heavy; layouts + fonts in hand |
-| Scholar-vetted emotion guidance | All | Needs a named scholar's endorsement — upgrade from the neutral sets |
+| Hausa and Yoruba | The Nigerian base | Next after the launch test. Needs a licensed translation first |
+| Scholar-reviewed feelings | Everyone | A named scholar reviews new feelings and verse pairings |
+| Arabic tafsirs (Sa'di, Ibn Uthaymeen) | Arabic readers | Data in hand |
+| Mutashabihat practice | People memorising | 2,232 entries in hand. Narrow but loyal audience |
+| Mushaf page view | Traditional readers | Layouts and fonts in hand. Heavy |
+| Recitation with word highlighting | Everyone | **Licence first.** The audio is on Tarteel's servers, not ours |
 
-## Not blocked by anything (do regardless)
+## QUL data: what we use
 
-| Task | Why it matters |
+| Dataset | Status |
 | --- | --- |
-| Distribution — 50 honest non-friend testers | The entire experiment; the actual bottleneck |
-| Day-3 / day-7 tester follow-ups | Where the retention data comes from |
-| Written evaluation memo before data arrives | So the numbers get judged by pre-committed rules, not mood |
+| Quran text and metadata | Used: reader, search, juz, hizb, quarters |
+| Ibn Kathir | Used: reader and Deeper look |
+| Al-Mukhtasar | Used: short explanations |
+| Surah info (English) | Used: surah introductions |
+| Word by word | Used: Deeper look, with Dr Shehnaz's permission |
+| Ayah themes | Used: Themes page and Circles portions. **Next: reader titles** |
+| Topics | Partly used: 499 shown. The file has 2,512 rows, but only about 840 are named topics with 2 or more verses |
+| Manzil | Not used. **Next: 7-day khatm** |
+| Similar ayahs | Not used. **Next: related wording** |
+| Ruku | Not used. Ayah themes split surahs more finely and have titles, so they come first |
+| Mutashabihat | Not used. Later |
+| Sa'di and Ibn Uthaymeen tafsirs (Arabic) | Not used. Later |
+| Mushaf layouts and fonts | Not used. Later |
+| Recitation and timing | Not used. Licence first |
+| Surah info (Urdu), Albanian tafsir | Not planned |
+
+## Shipped
+
+- **v0 (2026-09):** reader with Arabic, ClearQuran and Ibn Kathir; daily check-in; 20 tadabbur sessions; dhikr; journal; search; offline web app.
+- **v1 (2026-09-15):** accounts, journal sync, daily reminders, Android app (built, not yet on the Play Store).
+- **Since (Oct to Nov 2026):** surah journal on Home, week-later follow-up, Circles with QR invites, rhythm and a gentle streak, word by word, daily verse API, privacy policy and full account deletion.
+- **Dropped:** subscriptions. MindfulVerse stays free.
