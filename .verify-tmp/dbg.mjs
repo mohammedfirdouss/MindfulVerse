@@ -1,0 +1,11 @@
+import { chromium } from "playwright";
+const BASE = process.env.BASE;
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ serviceWorkers: "block" });
+const page = await ctx.newPage();
+page.on("request", (r) => { if (!r.url().startsWith(BASE)) console.log("REQ", r.method(), r.url()); });
+page.on("console", (m) => console.log("CONSOLE", m.type(), m.text().slice(0, 200)));
+await page.goto(`${BASE}/account`);
+await page.waitForTimeout(4000);
+console.log((await page.locator("body").innerText()).slice(0, 600));
+await browser.close();
