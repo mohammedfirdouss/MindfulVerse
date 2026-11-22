@@ -47,15 +47,20 @@ function S1Title({ t }: SceneProps) {
 /** The tall Reading view capture (app px) and how far the scene glides. */
 const WALL_HEIGHT = 2400;
 const WALL_TRAVEL = WALL_HEIGHT - VH;
+const YUSUF_VERSES = 111;
 
 function S2Wall({ t }: SceneProps) {
   // One slow, steady glide from the title plate down through the Arabic, as
-  // if scrolling a surah that keeps going.
-  const y = -WALL_TRAVEL * prog(t, 12, 118, ease.inOut);
+  // if scrolling a surah that keeps going, while the count climbs to 111.
+  const glide = prog(t, 12, 112, ease.inOut);
+  const y = -WALL_TRAVEL * glide;
+  const count = Math.round(1 + (YUSUF_VERSES - 1) * glide);
   return (
     <AbsoluteFill style={{ background: C.cotton }}>
       <Caption t={t} from={0} to={999}>
-        111 verses.
+        <span style={{ fontVariantNumeric: "tabular-nums" }}>{count}</span>{" "}
+        {count === 1 ? "verse" : "verses"}
+        {count === YUSUF_VERSES ? "." : "…"}
       </Caption>
       <StagePhone t={t} from="below">
         <Screen src={shot("passages-wall")} y={y} />
