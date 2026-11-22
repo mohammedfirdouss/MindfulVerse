@@ -14,3 +14,13 @@
 .journal-empty .btn {
   margin-top: 14px;
 }
+.journal-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 14px;
+}
+.journal-empty-actions .btn {
+  margin-top: 0;
+}
