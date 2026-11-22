@@ -7,6 +7,7 @@ import {
 import { getEntries, deleteEntry } from "@mindfulverse/core/journal";
 import { groupEntries } from "@mindfulverse/core/journalGroups";
 import type { JournalGroup } from "@mindfulverse/core/journalGroups";
+import { latestSurahTadabbur } from "@mindfulverse/core/progress";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import {
   getSyncStatus,
@@ -32,15 +33,29 @@ import "./surah-journal.css";
 
 const VERSE_KEY_RE = /^\d{1,3}:\d{1,3}$/u;
 
-/** Empty state: two quiet lines under the heading and one way to begin. */
+/** Empty state: two quiet lines under the heading and two ways to begin:
+ *  today's verse, or the surah they were pondering (a fresh one if none). */
 function EmptyJournal() {
+  const deeper = latestSurahTadabbur();
   return (
     <div className="journal-empty">
       <p className="journal-empty-lead">Nothing here yet.</p>
-      <p className="soft">When a verse stops you, write it down.</p>
-      <Link to="/checkin" className="btn secondary">
-        Reflect on today’s verse
-      </Link>
+      <p className="soft">
+        When a verse stops you, write it down. Your reflections gather here, by
+        surah and by day.
+      </p>
+      <div className="journal-empty-actions">
+        <Link to="/checkin" className="btn secondary">
+          Reflect on today’s verse
+        </Link>
+        {deeper ? (
+          <Link to={`/tadabbur/${deeper.surah}?v=${deeper.ayah}`}>
+            Carry on with your surah
+          </Link>
+        ) : (
+          <Link to="/sessions">Ponder a surah</Link>
+        )}
+      </div>
     </div>
   );
 }
@@ -296,7 +311,8 @@ export default function Journal() {
     <div className="stack">
       <header>
         <h1>Your reflections</h1>
-        {user && syncLabel !== "" && (
+        {/* "Backed up" over an empty journal says nothing yet. */}
+        {user && syncLabel !== "" && entries.length > 0 && (
           <p className="muted" style={{ marginTop: 0 }}>
             {syncLabel}
           </p>

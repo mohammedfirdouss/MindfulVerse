@@ -6,6 +6,7 @@ import {
 import { deleteEntry, getEntries } from "@mindfulverse/core/journal";
 import { groupEntries } from "@mindfulverse/core/journalGroups";
 import type { JournalGroup } from "@mindfulverse/core/journalGroups";
+import { latestSurahTadabbur } from "@mindfulverse/core/progress";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import {
   getSyncStatus,
@@ -21,6 +22,7 @@ import { Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SectionList, Share, View } from "react-native";
 
+import { LinkButton } from "../../src/components/Account/parts";
 import { EntryCard } from "../../src/components/Journal/EntryCard";
 import {
   buildJournalText,
@@ -31,19 +33,40 @@ import {
 import { space, useTheme } from "../../src/theme";
 import { Button, LinkPressable, Screen, Text } from "../../src/ui";
 
-/** Empty state: two quiet lines and one way to begin. */
+/** Empty state: two quiet lines and two ways to begin: today's verse, or
+ *  the surah they were pondering (a fresh one if none). */
 function EmptyJournal() {
+  const deeper = latestSurahTadabbur();
   return (
     <View style={{ alignItems: "flex-start", gap: 4 }}>
       <Text variant="body" style={{ fontSize: 18 }}>
         Nothing here yet.
       </Text>
-      <Text variant="soft">When a verse stops you, write it down.</Text>
+      <Text variant="soft">
+        When a verse stops you, write it down. Your reflections gather here, by
+        surah and by day.
+      </Text>
       <Button
         kind="secondary"
         title="Reflect on today’s verse"
         style={{ marginTop: 14 }}
         onPress={() => router.push("/checkin")}
+      />
+      <LinkButton
+        title={deeper ? "Carry on with your surah" : "Ponder a surah"}
+        hint={
+          deeper
+            ? "Opens the surah you were pondering, at your verse"
+            : "Opens the list of surahs to ponder"
+        }
+        onPress={() =>
+          deeper
+            ? router.push({
+                params: { surah: String(deeper.surah), v: String(deeper.ayah) },
+                pathname: "/tadabbur/[surah]",
+              })
+            : router.push("/sessions")
+        }
       />
     </View>
   );
@@ -214,7 +237,9 @@ export default function Journal() {
     <View style={{ gap: space.md, marginBottom: space.md }}>
       <View>
         <Text variant="h1">Your reflections</Text>
-        {user ? <Text variant="muted">Backed up to your account.</Text> : null}
+        {user && entries.length > 0 ? (
+          <Text variant="muted">Backed up to your account.</Text>
+        ) : null}
       </View>
       {entries.length > 0 ? (
         <View style={{ gap: space.md }}>
