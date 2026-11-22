@@ -1,7 +1,7 @@
 // Captures the screens for the Passages promo on Surah Yusuf: the surah as an
 // unbroken wall in the Reading view, the reader with its folded passage map,
 // the map open, the map scrolled to "eaten by a wolf", and the reader after
-// tapping it, then Al-Baqarah's and Al-Kahf's maps. No account is used; every request that is not for the local
+// tapping it, then Al-A'raf's and Al-Ma'idah's maps. No account is used; every request that is not for the local
 // preview is answered or dropped by ctx.route, so nothing reaches the backend.
 //
 // Needs the web preview (stop it afterwards):
@@ -133,10 +133,10 @@ async function measure(page, name, locator) {
   await ctx.close();
 }
 
-// ---- 6. Long surahs: Al-Baqarah and Al-Kahf, map open ----
-for (const [surah, name] of [
-  [2, "passages-baqarah"],
-  [18, "passages-kahf"],
+// ---- 6. Long surahs: Al-A'raf and Al-Ma'idah, map open ----
+for (const [surah, name, key] of [
+  [7, "passages-araf", "passagesArafList"],
+  [5, "passages-maidah", "passagesMaidahList"],
 ]) {
   const { ctx, page } = await open("translation");
   await page.goto(`${WEB}/read/${surah}`);
@@ -148,6 +148,7 @@ for (const [surah, name] of [
     window.scrollBy(0, s.getBoundingClientRect().top - 12);
   });
   await page.waitForTimeout(400);
+  await measure(page, key, page.locator(".passage-map ol"));
   await shot(page, name);
   await ctx.close();
 }

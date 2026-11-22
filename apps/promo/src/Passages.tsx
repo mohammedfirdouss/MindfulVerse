@@ -1,8 +1,10 @@
-// "Passage by passage": a 9:16 update in eight scenes. Surah Yusuf as an
-// unbroken wall, then its map of 22 titled passages, a tap on "They told
-// their father that Yusuf was eaten by a wolf", the reader landing on that
-// passage's heading, and the maps of two long surahs, Al-Baqarah and Al-Kahf. Every screen is a capture of the running app
+// "Passage by passage": a 9:16 update in nine scenes, about 45 seconds.
+// Surah Yusuf as an unbroken wall, then its map of 22 titled passages, a tap
+// on "They told their father that Yusuf was eaten by a wolf", the reader
+// landing on that passage's heading, then the maps of two long surahs,
+// Al-A'raf and Al-Ma'idah. Every screen is a capture of the running app
 // (scripts/capture-passages.mjs); only the taps and rings are drawn on top.
+import type { ReactNode } from "react";
 import { AbsoluteFill } from "remotion";
 
 import layout from "../public/screens/three/passages-layout.json";
@@ -28,14 +30,8 @@ import type { Scene, SceneProps } from "./threeKit";
 
 export const PASSAGES_FPS = 30;
 
-/** Scene lengths in frames, storyboard scenes 1 to 8. */
-const LENGTHS = [96, 105, 120, 150, 120, 120, 135, 150] as const;
-
-/** Two phones side by side, for the long-surah scene. */
-const PAIR_W = 450;
-const PAIR_GAP = 40;
-const PAIR_X = (1080 - PAIR_W * 2 - PAIR_GAP) / 2;
-const PAIR_Y = 560;
+/** Scene lengths in frames, storyboard scenes 1 to 9 (1,350 frames, 45 s). */
+const LENGTHS = [105, 120, 150, 180, 135, 165, 165, 165, 165] as const;
 export const PASSAGES_DURATION = totalOf(LENGTHS);
 
 function S1Title({ t }: SceneProps) {
@@ -152,32 +148,56 @@ function S6Read({ t }: SceneProps) {
   );
 }
 
-function S7Long({ t }: SceneProps) {
+/** A long surah's map: the phone, then its first titles magnified. */
+function LongSurah({
+  t,
+  caption,
+  screen,
+  list,
+}: {
+  t: number;
+  caption: ReactNode;
+  screen: string;
+  list: { y: number };
+}) {
   return (
     <AbsoluteFill style={{ background: C.cotton }}>
       <Caption t={t} from={0} to={999}>
-        {/* A non-breaking hyphen keeps Al-Baqarah on one line. */}
-        Every surah, even Al‑Baqarah.
+        {caption}
       </Caption>
-      <StagePhone
-        t={t}
-        from="below"
-        place={{ width: PAIR_W, x: PAIR_X, y: PAIR_Y }}
-      >
-        <Screen src={shot("passages-baqarah")} />
+      <StagePhone t={t} from="below" dim={prog(t, 34, 48) * 0.25}>
+        <Screen src={shot(screen)} />
       </StagePhone>
-      <StagePhone
-        t={t - 10}
-        from="below"
-        place={{ width: PAIR_W, x: PAIR_X + PAIR_W + PAIR_GAP, y: PAIR_Y }}
-      >
-        <Screen src={shot("passages-kahf")} />
-      </StagePhone>
+      <Zoom crop={fullWidth(list.y - 50, 330)} x={ZOOM_X} y={900} t={t} at={40}>
+        <Screen src={shot(screen)} />
+      </Zoom>
     </AbsoluteFill>
   );
 }
 
-function S8End({ t, credit }: SceneProps) {
+function S7Araf({ t }: SceneProps) {
+  return (
+    <LongSurah
+      t={t}
+      screen="passages-araf"
+      list={layout.passagesArafList}
+      caption={<>Every surah. Al‑A’raf: 206 verses, 39 passages.</>}
+    />
+  );
+}
+
+function S8Maidah({ t }: SceneProps) {
+  return (
+    <LongSurah
+      t={t}
+      screen="passages-maidah"
+      list={layout.passagesMaidahList}
+      caption={<>Al‑Ma’idah: 120 verses, 37 passages.</>}
+    />
+  );
+}
+
+function S9End({ t, credit }: SceneProps) {
   return (
     <EndCard
       t={t}
@@ -198,8 +218,9 @@ const SCENES: Scene[] = [
   S4Titles,
   S5Tap,
   S6Read,
-  S7Long,
-  S8End,
+  S7Araf,
+  S8Maidah,
+  S9End,
 ];
 
 export function Passages({ withNasheed }: { withNasheed: boolean }) {
