@@ -20,17 +20,14 @@ import {
 } from "@mindfulverse/core/readingPrefs";
 import type { ReadView } from "@mindfulverse/core/readingPrefs";
 import type { Ayah, SurahMeta } from "@mindfulverse/core/types";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { DyeRule, TitlePlate } from "../components/Adire";
 import BackLink from "../components/BackLink";
 import { CommentarySheet, useTafsir } from "../components/Commentary";
 import type { TafsirIndex } from "../components/Commentary";
-import PassageMap, {
-  PASSAGE_CREDIT,
-  PassageHeading,
-} from "../components/PassageMap";
+import PassageMap from "../components/PassageMap";
 import ReaderTools from "../components/ReaderTools";
 import ReadingText, { BASMALAH } from "../components/ReadingText";
 import VerseBlock from "../components/VerseBlock";
@@ -194,27 +191,14 @@ function SurahReader() {
     setFlashKey(`${surahNumber}:${n}`);
   }
 
-  // Every verse belongs to a passage on screen: stretches the source leaves
+  // Every verse belongs to a passage in the map: stretches the source leaves
   // out appear as untitled passages instead of running on under the title
-  // before them.
+  // before them. The titles live only in the folded map, never between
+  // verses.
   const shownPassages = coveredPassages(
     passages,
     meta?.ayahCount ?? ayahs.length
   );
-
-  // In the verse-by-verse view, land on the passage's heading so its title is
-  // in sight; the reading view has no headings, so go to the verse.
-  function goToPassage(from: number) {
-    const heading =
-      view === "reading" ? null : document.getElementById(`p${from}`);
-    if (!heading) {
-      goToVerse(from);
-      return;
-    }
-    heading.scrollIntoView({ behavior: "smooth", block: "start" });
-    recordLastRead(surahNumber, from);
-    setFlashKey(`${surahNumber}:${from}`);
-  }
 
   return (
     <div style={{ ["--read-scale" as string]: String(scaleFor(sizeKey)) }}>
@@ -241,7 +225,7 @@ function SurahReader() {
       )}
 
       {status === "ready" && ayahs.length > 0 && (
-        <PassageMap passages={shownPassages} onJump={goToPassage} />
+        <PassageMap passages={shownPassages} onJump={goToVerse} />
       )}
 
       {status === "loading" && <p className="muted">Loading…</p>}
@@ -278,27 +262,17 @@ function SurahReader() {
                   </p>
                 </div>
               )}
-              {ayahs.map((a) => {
-                const starts = shownPassages.find((p) => p.from === a.ayah);
-                return (
-                  <Fragment key={a.verseKey}>
-                    {starts && <PassageHeading passage={starts} />}
-                    <VerseBlock
-                      ayah={a}
-                      id={`v${a.ayah}`}
-                      index={index}
-                      onCommentary={setOpenAyah}
-                      flash={flashKey === a.verseKey}
-                    />
-                  </Fragment>
-                );
-              })}
+              {ayahs.map((a) => (
+                <VerseBlock
+                  key={a.verseKey}
+                  ayah={a}
+                  id={`v${a.ayah}`}
+                  index={index}
+                  onCommentary={setOpenAyah}
+                  flash={flashKey === a.verseKey}
+                />
+              ))}
             </>
-          )}
-          {/* With two or more passages the credit sits in the map; a surah
-              of one passage has no map, so its heading is credited here. */}
-          {passages.length === 1 && (
-            <p className="muted passage-credit">{PASSAGE_CREDIT}</p>
           )}
           {surahNumber < 114 && (
             <div style={{ padding: "28px 0 8px" }}>
