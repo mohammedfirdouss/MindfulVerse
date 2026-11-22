@@ -27,7 +27,9 @@ configureInsforge({
 });
 wireCircleReflections();
 configureData(readBundledJson);
-if (Platform.OS === "ios" || Platform.OS === "android") {
+// Development builds are us, not testers: only release builds count toward
+// the launch test.
+if (!__DEV__ && (Platform.OS === "ios" || Platform.OS === "android")) {
   const platform = Platform.OS;
   pingActiveDay(platform);
   // A backgrounded app resumes on a new day without relaunching; count that too.

@@ -68,6 +68,24 @@ export async function recordActiveDay(
   }
 }
 
+// The launch test counts real people, so only the live site sends the signal:
+// not a dev server, a Vercel preview, or a browser driven by a test tool
+// (Playwright, Lighthouse and the like set navigator.webdriver). Before this,
+// test runs showed up as dozens of "new installs" a day.
+export const LIVE_HOSTS: readonly string[] = [
+  "mindfulverse.vercel.app",
+  "mindfulverse.app",
+  "www.mindfulverse.app",
+];
+
+/** Whether a web page load should count toward the launch test. */
+export function isCountedWebVisit(
+  hostname: string,
+  webdriver: boolean
+): boolean {
+  return !webdriver && LIVE_HOSTS.includes(hostname.toLowerCase());
+}
+
 /** Fire and forget, for app startup. */
 export function pingActiveDay(platform: ActivePlatform): void {
   void recordActiveDay(platform);

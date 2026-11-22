@@ -881,6 +881,15 @@ select.field-input:disabled {
   text-align-last: start;
   margin: 0;
 }
+/* A printed mushaf fills a line by lengthening letters; browsers can only
+   widen the spaces, which on a phone's short lines leaves wide holes between
+   words. There the text keeps its natural spacing and lines end where they
+   end. */
+@media (max-width: 640px) {
+  .reading-text {
+    text-align: start;
+  }
+}
 .rv {
   cursor: pointer;
   border-radius: 4px;
