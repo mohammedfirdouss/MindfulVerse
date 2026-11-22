@@ -7,7 +7,12 @@ vi.stubGlobal("localStorage", {
   setItem: (k: string, v: string) => void store.set(k, v),
 });
 
-import { getInstallId, localDay, recordActiveDay } from "./activeDays";
+import {
+  getInstallId,
+  isCountedWebVisit,
+  localDay,
+  recordActiveDay,
+} from "./activeDays";
 import type { ActiveDayRow } from "./activeDays";
 import { joinCircle, setCircleMemberCall } from "./circles";
 
@@ -128,5 +133,22 @@ describe(recordActiveDay, () => {
     release(null);
     await first;
     expect(send).toHaveBeenCalledOnce();
+  });
+});
+
+describe(isCountedWebVisit, () => {
+  it("counts a person on the live site", () => {
+    expect(isCountedWebVisit("mindfulverse.vercel.app", false)).toBeTruthy();
+    expect(isCountedWebVisit("mindfulverse.app", false)).toBeTruthy();
+    expect(isCountedWebVisit("WWW.MindfulVerse.app", false)).toBeTruthy();
+  });
+
+  it("skips dev servers, previews and automated browsers", () => {
+    expect(isCountedWebVisit("localhost", false)).toBeFalsy();
+    expect(isCountedWebVisit("127.0.0.1", false)).toBeFalsy();
+    expect(
+      isCountedWebVisit("mindfulverse-git-fix-x-amf.vercel.app", false)
+    ).toBeFalsy();
+    expect(isCountedWebVisit("mindfulverse.vercel.app", true)).toBeFalsy();
   });
 });
