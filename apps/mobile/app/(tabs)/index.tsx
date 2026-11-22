@@ -11,6 +11,7 @@ import { loadAyahsByKeys, loadSurahs } from "@mindfulverse/core/data";
 import { checkedInToday, getEntries } from "@mindfulverse/core/journal";
 import {
   currentStreak,
+  daysAway,
   getLastRead,
   latestSurahTadabbur,
 } from "@mindfulverse/core/progress";
@@ -59,6 +60,8 @@ import { ReadIcon, TadabburIcon } from "../../src/ui/icons";
 const circleRefresh = createThrottle();
 
 interface Local {
+  /** Days since the visit before today, for the welcome back. */
+  away: number;
   hour: number;
   streak: number;
   lastRead: VersePos | null;
@@ -81,6 +84,7 @@ function readLocal(): Local {
     lastRead: getLastRead(),
     rhythm: rhythmView(getEntries(), new Date()),
     scale: scaleFor(getSizeKey()),
+    away: daysAway(),
     streak: currentStreak(),
   };
 }
@@ -179,6 +183,7 @@ export default function Home() {
   }, [verseKey]);
 
   const {
+    away,
     hour,
     streak,
     lastRead,
@@ -188,7 +193,7 @@ export default function Home() {
     rhythm,
     scale,
   } = local;
-  const returning = streakLine(streak);
+  const returning = streakLine(streak, away);
   const tadabburHref = deeper
     ? ({
         params: { surah: String(deeper.surah), v: String(deeper.ayah) },
@@ -350,7 +355,8 @@ function todayLabel(): string {
   }
 }
 
-/** The returning streak as a string of beads: one per day, up to a week. */
+/** The returning line, with a string of beads (one per day, up to a week)
+ *  while there is a run of days. A welcome back has no beads. */
 function StreakBeads({ streak, label }: { streak: number; label: string }) {
   const { colors } = useTheme();
   const filled = Math.min(streak, 7);
@@ -365,16 +371,18 @@ function StreakBeads({ streak, label }: { streak: number; label: string }) {
         marginTop: 4,
       }}
     >
-      <View style={{ flexDirection: "row", gap: 4 }}>
-        {Array.from({ length: 7 }, (_, i) => (
-          <Svg key={i} width={9} height={9}>
-            <Path
-              d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z"
-              fill={i < filled ? colors.kola : colors.lineStrong}
-            />
-          </Svg>
-        ))}
-      </View>
+      {streak >= 2 ? (
+        <View style={{ flexDirection: "row", gap: 4 }}>
+          {Array.from({ length: 7 }, (_, i) => (
+            <Svg key={i} width={9} height={9}>
+              <Path
+                d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z"
+                fill={i < filled ? colors.kola : colors.lineStrong}
+              />
+            </Svg>
+          ))}
+        </View>
+      ) : null}
       <Text variant="soft" style={{ fontSize: 14.5, lineHeight: 20 }}>
         {label}
       </Text>

@@ -241,12 +241,15 @@ const plural = (n: number, one: string, many: string): string =>
 
 /** The rows shown, in order. Everything else stays in the copied summary. */
 function rows(s: StatsSnapshot): [string, string][] {
-  const list: [string, string][] = [
-    ["Days in a row", plural(s.streak, "day", "days")],
+  // "0 days in a row" reads as a scolding after a break, so the run only
+  // shows while there is one.
+  const list: [string, string][] =
+    s.streak >= 2 ? [["Days in a row", plural(s.streak, "day", "days")]] : [];
+  list.push(
     ["Days opened", String(s.appOpenDays)],
     ["Journal entries", String(s.journalCount)],
-    ["Surahs begun", String(s.surahTadabburStarted)],
-  ];
+    ["Surahs begun", String(s.surahTadabburStarted)]
+  );
   // "0 of 0" says nothing, so these wait until there is something to count.
   if (s.sessionsStarted > 0) {
     list.push([

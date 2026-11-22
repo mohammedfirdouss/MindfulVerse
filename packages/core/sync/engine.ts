@@ -16,6 +16,7 @@ import type { LocalProgress } from "../types";
 // merged state locally → push the diff. Runs on sign-in, foreground, reconnect
 // (via the host's SyncTriggers), and debounced after local writes. Failures set status and retry on the next
 // trigger — they never surface as exceptions to callers.
+import { getCurrentUser, SYNC_OWNER_KEY } from "./currentUser";
 import { insforge } from "./insforge";
 import {
   adoptEntries,
@@ -68,7 +69,7 @@ export type SyncStatus =
 // as A and in as B would push A's journal into B's account (and pull B's onto
 // A's device). We stamp the owning user id on every successful pass and refuse
 // to sync when it disagrees, until the user picks a resolution.
-const OWNER_KEY = "mindfulverse.sync.owner.v1";
+const OWNER_KEY = SYNC_OWNER_KEY;
 
 export function getSyncOwner(): string | null {
   try {
@@ -204,8 +205,7 @@ export async function syncNow(): Promise<void> {
       setStatus("offline");
       return;
     }
-    const { data: userData, error: authErr } =
-      await insforge.auth.getCurrentUser();
+    const { data: userData, error: authErr } = await getCurrentUser();
     const userId = userData?.user?.id;
     // An auth error here is indistinguishable from signed-out (a cold load
     // while logged out can surface as a refresh 401) — both mean "cannot
@@ -379,7 +379,7 @@ export async function syncNow(): Promise<void> {
 export async function resolveOwnerMismatch(
   choice: "merge" | "fresh"
 ): Promise<void> {
-  const { data, error } = await insforge.auth.getCurrentUser();
+  const { data, error } = await getCurrentUser();
   const userId = data?.user?.id;
   if (error || !userId) {
     knownSignedOut = true;

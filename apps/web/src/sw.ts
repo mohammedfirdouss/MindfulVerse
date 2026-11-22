@@ -8,7 +8,7 @@ import {
   createHandlerBoundToURL,
 } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
-import { CacheFirst } from "workbox-strategies";
+import { StaleWhileRevalidate } from "workbox-strategies";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -23,17 +23,25 @@ self.addEventListener("activate", () => void self.clients.claim());
 registerRoute(
   new NavigationRoute(createHandlerBoundToURL("index.html"), {
     // Real files, not app routes — let the network/runtime caches serve them.
-    denylist: [/^\/data\//u, /^\/assets\//u, /^\/fonts\//u],
+    denylist: [
+      /^\/data\//u,
+      /^\/assets\//u,
+      /^\/fonts\//u,
+      /^\/(?:robots\.txt|sitemap\.xml)$/u,
+    ],
   })
 );
 
-// v2: the v1 cache held the pre-ClearQuran (Yusuf Ali) data files; CacheFirst
-// never revalidates, so returning devices kept serving the old translation.
-// Bump the name whenever the bundled data content changes.
+// /data is served from the cache at once (so it works offline) and refreshed
+// in the background, so a changed file reaches people on their next visit.
+// It used to be CacheFirst, which never checked again: renaming the cache was
+// the only way to ship new data, it was missed, and returning devices kept
+// the October check-in feelings and missed the word meanings. v3 drops what
+// those devices hold.
 registerRoute(
   ({ url }) => url.pathname.startsWith("/data/"),
-  new CacheFirst({
-    cacheName: "quran-data-v2",
+  new StaleWhileRevalidate({
+    cacheName: "quran-data-v3",
     plugins: [
       new ExpirationPlugin({
         maxAgeSeconds: 60 * 60 * 24 * 365,
@@ -44,7 +52,9 @@ registerRoute(
 );
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.delete("quran-data"));
+  event.waitUntil(
+    Promise.all([caches.delete("quran-data"), caches.delete("quran-data-v2")])
+  );
 });
 
 self.addEventListener("push", (event) => {

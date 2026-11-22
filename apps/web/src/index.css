@@ -16,7 +16,7 @@
   --kola: #b4472a; /* kola: errors and destructive actions only */
   --ink: #161a2e; /* warm ink */
   --ink-soft: #474d66;
-  --ink-faint: #666c85;
+  --ink-faint: #60667f;
   --line: #e0e3eb;
   --line-strong: #c9cedc;
   --scrim: rgb(27 37 89 / 0.55); /* dim behind sheets: dark in both themes */
@@ -662,6 +662,33 @@ p.eyebrow + h1 {
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
+}
+/* Dropdowns match the text fields beside them: the same height, padding and
+   border, our own chevron instead of the browser's, and a long choice ends
+   in an ellipsis instead of being cut mid-word. */
+select.field-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%),
+    linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 50%,
+    calc(100% - 15px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+select.field-input:hover:not(:disabled) {
+  border-color: var(--indigo);
+}
+select.field-input:disabled {
+  cursor: default;
+  color: var(--ink-faint);
 }
 .field-input:focus {
   outline: none;

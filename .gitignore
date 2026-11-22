@@ -43,3 +43,6 @@ docs/superpowers/
 
 # macOS screenshots dropped into the repo folder
 /Screenshot *.png
+
+/.verify-tmp/
+/scripts/.tmp-*

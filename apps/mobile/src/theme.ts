@@ -44,7 +44,7 @@ export const palettes = {
     indigoDeep: "#1b2559", // headings, Arabic
     indigoWash: "#e3e7f4", // pale wash, selected states
     ink: "#161a2e",
-    inkFaint: "#666c85",
+    inkFaint: "#60667f",
     inkSoft: "#474d66",
     kola: "#b4472a", // errors and destructive actions only
     line: "#e0e3eb",
