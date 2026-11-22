@@ -388,12 +388,21 @@
   display: grid;
   gap: 2px;
 }
+.passage-heading h2 {
+  margin: 0;
+  font: inherit;
+}
 .passage-heading .passage-title {
   margin: 0;
   font-size: 1.02rem;
   font-weight: 600;
   line-height: 1.4;
   color: var(--ink);
+}
+.passage-map .passage-untitled,
+.passage-heading .passage-untitled {
+  color: var(--ink-faint);
+  font-weight: 400;
 }
 .passage-credit {
   margin: 24px 0 0;

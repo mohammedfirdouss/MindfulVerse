@@ -11,6 +11,7 @@ import {
   currentPassage,
   nextPassage,
   portionLabel,
+  coveredPassages,
   surahPassages,
 } from "./circlePortion";
 import {
@@ -395,5 +396,34 @@ describe(qrPath, () => {
 
   it("is the same for the same text", () => {
     expect(qrPath("abc")).toStrictEqual(qrPath("abc"));
+  });
+});
+
+describe(coveredPassages, () => {
+  const p = (from: number, to: number, theme = "t") => ({ from, theme, to });
+
+  it("leaves a fully covered surah as it is", () => {
+    expect(coveredPassages([p(1, 6), p(7, 12)], 12)).toStrictEqual([
+      p(1, 6),
+      p(7, 12),
+    ]);
+  });
+
+  it("adds untitled passages for verses the source leaves out", () => {
+    expect(coveredPassages([p(1, 45), p(46, 55)], 78)).toStrictEqual([
+      p(1, 45),
+      p(46, 55),
+      p(56, 78, ""),
+    ]);
+    expect(coveredPassages([p(1, 133), p(135, 141)], 141)).toStrictEqual([
+      p(1, 133),
+      p(134, 134, ""),
+      p(135, 141),
+    ]);
+    expect(coveredPassages([p(3, 7)], 7)).toStrictEqual([p(1, 2, ""), p(3, 7)]);
+  });
+
+  it("adds nothing when the surah has no passages at all", () => {
+    expect(coveredPassages([], 7)).toStrictEqual([]);
   });
 });

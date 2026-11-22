@@ -33,6 +33,28 @@ export function surahPassages(themes: Theme[], surah: number): Passage[] {
   return out.sort((a, b) => a.from - b.from);
 }
 
+/** The surah's passages with every verse accounted for: a stretch the source
+ *  gives no passage (55:56 to 78, for one) becomes a passage with an empty
+ *  theme, so no title is ever shown over verses it does not cover. */
+export function coveredPassages(
+  passages: Passage[],
+  ayahCount: number
+): Passage[] {
+  const out: Passage[] = [];
+  let next = 1;
+  for (const p of passages) {
+    if (p.from > next) {
+      out.push({ from: next, theme: "", to: p.from - 1 });
+    }
+    out.push(p);
+    next = Math.max(next, p.to + 1);
+  }
+  if (passages.length > 0 && next <= ayahCount) {
+    out.push({ from: next, theme: "", to: ayahCount });
+  }
+  return out;
+}
+
 /** "verses 7 to 12", "verse 7", or null for the whole surah. */
 export function portionLabel(p: PortionLike): string | null {
   if (p.verse === null) {

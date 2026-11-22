@@ -1,4 +1,7 @@
-import { surahPassages } from "@mindfulverse/core/circlePortion";
+import {
+  coveredPassages,
+  surahPassages,
+} from "@mindfulverse/core/circlePortion";
 import type { Passage } from "@mindfulverse/core/circlePortion";
 import {
   loadSurahAyahs,
@@ -191,6 +194,14 @@ function SurahReader() {
     setFlashKey(`${surahNumber}:${n}`);
   }
 
+  // Every verse belongs to a passage on screen: stretches the source leaves
+  // out appear as untitled passages instead of running on under the title
+  // before them.
+  const shownPassages = coveredPassages(
+    passages,
+    meta?.ayahCount ?? ayahs.length
+  );
+
   // In the verse-by-verse view, land on the passage's heading so its title is
   // in sight; the reading view has no headings, so go to the verse.
   function goToPassage(from: number) {
@@ -230,7 +241,7 @@ function SurahReader() {
       )}
 
       {status === "ready" && ayahs.length > 0 && (
-        <PassageMap passages={passages} onJump={goToPassage} />
+        <PassageMap passages={shownPassages} onJump={goToPassage} />
       )}
 
       {status === "loading" && <p className="muted">Loading…</p>}
@@ -268,7 +279,7 @@ function SurahReader() {
                 </div>
               )}
               {ayahs.map((a) => {
-                const starts = passages.find((p) => p.from === a.ayah);
+                const starts = shownPassages.find((p) => p.from === a.ayah);
                 return (
                   <Fragment key={a.verseKey}>
                     {starts && <PassageHeading passage={starts} />}
