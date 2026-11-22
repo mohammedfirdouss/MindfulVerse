@@ -284,7 +284,9 @@ function SurahReader() {
               })}
             </>
           )}
-          {passages.length > 0 && (
+          {/* With two or more passages the credit sits in the map; a surah
+              of one passage has no map, so its heading is credited here. */}
+          {passages.length === 1 && (
             <p className="muted passage-credit">{PASSAGE_CREDIT}</p>
           )}
           {surahNumber < 114 && (

@@ -397,3 +397,7 @@
   margin: 24px 0 0;
   font-size: 0.85rem;
 }
+.passage-map .passage-credit {
+  margin: 0 0 12px;
+  padding: 0 10px;
+}

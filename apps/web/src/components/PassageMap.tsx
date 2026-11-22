@@ -31,6 +31,7 @@ export default function PassageMap({
           </li>
         ))}
       </ol>
+      <p className="muted passage-credit">{PASSAGE_CREDIT}</p>
     </details>
   );
 }
