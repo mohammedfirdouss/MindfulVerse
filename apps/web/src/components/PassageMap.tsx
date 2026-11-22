@@ -47,17 +47,5 @@ function PassageTitle({ theme }: { theme: string }) {
   );
 }
 
-/** The heading above a passage's first verse, in the verse-by-verse view. */
-export function PassageHeading({ passage }: { passage: Passage }) {
-  return (
-    <div className="passage-heading" id={`p${passage.from}`}>
-      <span className="passage-range">{passageRange(passage)}</span>
-      <h2>
-        <PassageTitle theme={passage.theme} />
-      </h2>
-    </div>
-  );
-}
-
 export const PASSAGE_CREDIT =
   "Passage titles: Ayah Theme, from the Quranic Universal Library (QUL) by Tarteel.";
