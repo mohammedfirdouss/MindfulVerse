@@ -327,3 +327,88 @@
   gap: 8px 18px;
   margin: 10px 0 0;
 }
+
+/* The surah as titled passages: a folded list under the toolbar, and a small
+   heading above each passage's first verse in the verse-by-verse view. */
+.passage-map {
+  margin: 2px 0 4px;
+}
+.passage-map summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--indigo);
+}
+.passage-map ol {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.passage-map button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+/* Only where there is a real pointer: on a touch screen :hover sticks to the
+   last row touched. */
+@media (hover: hover) {
+  .passage-map button:hover {
+    background: var(--indigo-wash);
+  }
+}
+.passage-map button:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 1px;
+}
+.passage-range {
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+.passage-map .passage-title {
+  line-height: 1.4;
+}
+.passage-heading {
+  scroll-margin-top: 24px;
+  margin: 30px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 2px;
+}
+.passage-heading h2 {
+  margin: 0;
+  font: inherit;
+}
+.passage-heading .passage-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.passage-map .passage-untitled,
+.passage-heading .passage-untitled {
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+.passage-credit {
+  margin: 24px 0 0;
+  font-size: 0.85rem;
+}
+.passage-map .passage-credit {
+  margin: 0 0 12px;
+  padding: 0 10px;
+}
