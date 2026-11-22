@@ -71,6 +71,28 @@ export function currentStreak(): number {
   return streak;
 }
 
+/** Whole days between `today` and the latest visit before it; 0 when there
+ *  is none. Both are YYYY-MM-DD local days. */
+export function daysAwayBefore(visits: string[], todayDay: string): number {
+  let latest = "";
+  for (const v of visits) {
+    if (v < todayDay && v > latest) {
+      latest = v;
+    }
+  }
+  if (!latest) {
+    return 0;
+  }
+  const ms = Date.parse(`${todayDay}T12:00:00Z`) - Date.parse(`${latest}T12:00:00Z`);
+  return Number.isFinite(ms) ? Math.round(ms / 86_400_000) : 0;
+}
+
+/** Days since the visit before today: 1 means yesterday, 0 means a first
+ *  visit. Home uses it to welcome someone back after a break. */
+export function daysAway(): number {
+  return daysAwayBefore(readVisits(), today());
+}
+
 export function totalVisitDays(): number {
   return readVisits().length;
 }
