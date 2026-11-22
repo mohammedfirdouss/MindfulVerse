@@ -331,9 +331,7 @@
 /* The surah as titled passages: a folded list under the toolbar, and a small
    heading above each passage's first verse in the verse-by-verse view. */
 .passage-map {
-  margin: 6px 0 4px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  margin: 2px 0 4px;
 }
 .passage-map summary {
   min-height: 44px;
