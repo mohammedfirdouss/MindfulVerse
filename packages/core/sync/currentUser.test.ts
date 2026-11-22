@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { mightHaveSession } from "./currentUser";
 
-const none = { cookie: "", search: "", syncOwner: null };
+const none = { cookie: "", inProgress: false, syncOwner: null };
 
 describe(mightHaveSession, () => {
   it("skips the server for a device that never signed in", () => {
@@ -11,7 +11,6 @@ describe(mightHaveSession, () => {
       mightHaveSession({
         ...none,
         cookie: "theme=dark; other=1",
-        search: "?x=1",
       })
     ).toBeFalsy();
   });
@@ -26,9 +25,7 @@ describe(mightHaveSession, () => {
     expect(mightHaveSession({ ...none, syncOwner: "user-1" })).toBeTruthy();
   });
 
-  it("asks the server on the way back from Google sign-in", () => {
-    expect(
-      mightHaveSession({ ...none, search: "?insforge_code=xyz" })
-    ).toBeTruthy();
+  it("asks the server on a Google return or after signing in in this tab", () => {
+    expect(mightHaveSession({ ...none, inProgress: true })).toBeTruthy();
   });
 });

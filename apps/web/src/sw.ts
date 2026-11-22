@@ -23,7 +23,12 @@ self.addEventListener("activate", () => void self.clients.claim());
 registerRoute(
   new NavigationRoute(createHandlerBoundToURL("index.html"), {
     // Real files, not app routes — let the network/runtime caches serve them.
-    denylist: [/^\/data\//u, /^\/assets\//u, /^\/fonts\//u],
+    denylist: [
+      /^\/data\//u,
+      /^\/assets\//u,
+      /^\/fonts\//u,
+      /^\/(?:robots\.txt|sitemap\.xml)$/u,
+    ],
   })
 );
 
