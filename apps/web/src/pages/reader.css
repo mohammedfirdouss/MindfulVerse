@@ -364,8 +364,12 @@
   text-align: left;
   cursor: pointer;
 }
-.passage-map button:hover {
-  background: var(--indigo-wash);
+/* Only where there is a real pointer: on a touch screen :hover sticks to the
+   last row touched. */
+@media (hover: hover) {
+  .passage-map button:hover {
+    background: var(--indigo-wash);
+  }
 }
 .passage-map button:focus-visible {
   outline: 2px solid var(--indigo);
