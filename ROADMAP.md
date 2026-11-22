@@ -31,7 +31,7 @@ Quran.com is where you read. **MindfulVerse is where you sit with one surah, wri
 | 2 | **Type your own feeling in Check-in** | People rarely feel exactly one of 12 words. What they type is matched on the phone to the approved feelings; nothing leaves the device | Emotions list plus a word list | Low |
 | 3 | **New sessions, two a week** | The strongest reason to come back | Themes and tafsir | Low (writing) |
 | 4 | **Khatm plan** | Finish the Qur'an in 30 days (a juz a day) or 7 days (a manzil a day), with a gentle daily marker | Juz (shipped) and manzil (in QUL) | Low |
-| 5 | **More topics** | The topic index shows 499 of 2,512 topics | Topics | Low |
+| 5 | **More topics** | The index shows 499 named topics. About 840 have 2 or more verses; the rest were left out for having more than 15, which a topic page needs a way to handle | Topics | Low |
 | 6 | **Related wording** | Verses with near-identical wording, labelled "similar wording", not "similar meaning" | Similar ayahs (1,162 entries) | Low |
 
 ## Later
@@ -55,7 +55,7 @@ Quran.com is where you read. **MindfulVerse is where you sit with one surah, wri
 | Surah info (English) | Used: surah introductions |
 | Word by word | Used: Deeper look, with Dr Shehnaz's permission |
 | Ayah themes | Used: Themes page and Circles portions. **Next: reader titles** |
-| Topics | Partly used: 499 of 2,512 |
+| Topics | Partly used: 499 shown. The file has 2,512 rows, but only about 840 are named topics with 2 or more verses |
 | Manzil | Not used. **Next: 7-day khatm** |
 | Similar ayahs | Not used. **Next: related wording** |
 | Ruku | Not used. Ayah themes split surahs more finely and have titles, so they come first |
