@@ -328,8 +328,7 @@
   margin: 10px 0 0;
 }
 
-/* The surah as titled passages: a folded list under the toolbar, and a small
-   heading above each passage's first verse in the verse-by-verse view. */
+/* The surah as titled passages: a folded list under the toolbar. */
 .passage-map {
   margin: 2px 0 4px;
 }
@@ -380,27 +379,7 @@
 .passage-map .passage-title {
   line-height: 1.4;
 }
-.passage-heading {
-  scroll-margin-top: 24px;
-  margin: 30px 0 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
-  display: grid;
-  gap: 2px;
-}
-.passage-heading h2 {
-  margin: 0;
-  font: inherit;
-}
-.passage-heading .passage-title {
-  margin: 0;
-  font-size: 1.02rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--ink);
-}
-.passage-map .passage-untitled,
-.passage-heading .passage-untitled {
+.passage-map .passage-untitled {
   color: var(--ink-faint);
   font-weight: 400;
 }
