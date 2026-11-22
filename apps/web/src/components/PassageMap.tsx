@@ -26,7 +26,7 @@ export default function PassageMap({
           <li key={`${p.from}-${p.to}`}>
             <button type="button" onClick={() => onJump(p.from)}>
               <span className="passage-range">{passageRange(p)}</span>
-              <span className="passage-title">{p.theme}</span>
+              <PassageTitle theme={p.theme} />
             </button>
           </li>
         ))}
@@ -36,12 +36,25 @@ export default function PassageMap({
   );
 }
 
+/** The source's title, or a plain note where it gives none for these verses. */
+function PassageTitle({ theme }: { theme: string }) {
+  return theme ? (
+    <span className="passage-title">{theme}</span>
+  ) : (
+    <span className="passage-title passage-untitled">
+      No title in the source
+    </span>
+  );
+}
+
 /** The heading above a passage's first verse, in the verse-by-verse view. */
 export function PassageHeading({ passage }: { passage: Passage }) {
   return (
     <div className="passage-heading" id={`p${passage.from}`}>
       <span className="passage-range">{passageRange(passage)}</span>
-      <h2 className="passage-title">{passage.theme}</h2>
+      <h2>
+        <PassageTitle theme={passage.theme} />
+      </h2>
     </div>
   );
 }
