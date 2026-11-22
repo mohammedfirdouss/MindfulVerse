@@ -83,7 +83,8 @@ export function daysAwayBefore(visits: string[], todayDay: string): number {
   if (!latest) {
     return 0;
   }
-  const ms = Date.parse(`${todayDay}T12:00:00Z`) - Date.parse(`${latest}T12:00:00Z`);
+  const ms =
+    Date.parse(`${todayDay}T12:00:00Z`) - Date.parse(`${latest}T12:00:00Z`);
   return Number.isFinite(ms) ? Math.round(ms / 86_400_000) : 0;
 }
 

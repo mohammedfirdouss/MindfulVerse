@@ -205,8 +205,7 @@ export async function syncNow(): Promise<void> {
       setStatus("offline");
       return;
     }
-    const { data: userData, error: authErr } =
-      await getCurrentUser();
+    const { data: userData, error: authErr } = await getCurrentUser();
     const userId = userData?.user?.id;
     // An auth error here is indistinguishable from signed-out (a cold load
     // while logged out can surface as a refresh 401) — both mean "cannot

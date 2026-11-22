@@ -16,7 +16,14 @@ import { insforge } from "./insforge";
 
 export const SYNC_OWNER_KEY = "mindfulverse.sync.owner.v1";
 const CSRF_COOKIE = "insforge_csrf_token";
-const OAUTH_CODE_PARAM = "insforge_code";
+const OAUTH_CODE_PATTERN = /[?&]insforge_code=/u;
+
+// Core is shared with React Native and has no DOM types: read the two
+// browser globals it needs through this narrow shape.
+interface BrowserGlobals {
+  document?: { cookie: string };
+  location?: { search: string };
+}
 
 export interface SessionTraces {
   cookie: string;
@@ -32,11 +39,12 @@ export function mightHaveSession(t: SessionTraces): boolean {
   if (hasCsrf || t.syncOwner) {
     return true;
   }
-  return new URLSearchParams(t.search).has(OAUTH_CODE_PARAM);
+  return OAUTH_CODE_PATTERN.test(t.search);
 }
 
 function readTraces(): SessionTraces | null {
-  if (typeof document === "undefined" || typeof window === "undefined") {
+  const { document: doc, location } = globalThis as BrowserGlobals;
+  if (!doc || !location) {
     return null;
   }
   let syncOwner: string | null = null;
@@ -47,8 +55,8 @@ function readTraces(): SessionTraces | null {
     syncOwner = "unknown";
   }
   return {
-    cookie: document.cookie,
-    search: window.location.search,
+    cookie: doc.cookie,
+    search: location.search,
     syncOwner,
   };
 }

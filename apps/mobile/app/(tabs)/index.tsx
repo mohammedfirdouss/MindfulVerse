@@ -60,6 +60,8 @@ import { ReadIcon, TadabburIcon } from "../../src/ui/icons";
 const circleRefresh = createThrottle();
 
 interface Local {
+  /** Days since the visit before today, for the welcome back. */
+  away: number;
   hour: number;
   streak: number;
   lastRead: VersePos | null;
@@ -353,7 +355,8 @@ function todayLabel(): string {
   }
 }
 
-/** The returning streak as a string of beads: one per day, up to a week. */
+/** The returning line, with a string of beads (one per day, up to a week)
+ *  while there is a run of days. A welcome back has no beads. */
 function StreakBeads({ streak, label }: { streak: number; label: string }) {
   const { colors } = useTheme();
   const filled = Math.min(streak, 7);
@@ -368,16 +371,18 @@ function StreakBeads({ streak, label }: { streak: number; label: string }) {
         marginTop: 4,
       }}
     >
-      <View style={{ flexDirection: "row", gap: 4 }}>
-        {Array.from({ length: 7 }, (_, i) => (
-          <Svg key={i} width={9} height={9}>
-            <Path
-              d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z"
-              fill={i < filled ? colors.kola : colors.lineStrong}
-            />
-          </Svg>
-        ))}
-      </View>
+      {streak >= 2 ? (
+        <View style={{ flexDirection: "row", gap: 4 }}>
+          {Array.from({ length: 7 }, (_, i) => (
+            <Svg key={i} width={9} height={9}>
+              <Path
+                d="M4.5 0 L9 4.5 L4.5 9 L0 4.5Z"
+                fill={i < filled ? colors.kola : colors.lineStrong}
+              />
+            </Svg>
+          ))}
+        </View>
+      ) : null}
       <Text variant="soft" style={{ fontSize: 14.5, lineHeight: 20 }}>
         {label}
       </Text>
