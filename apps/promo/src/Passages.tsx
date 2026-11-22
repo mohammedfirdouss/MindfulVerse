@@ -181,7 +181,13 @@ function S7Araf({ t }: SceneProps) {
       t={t}
       screen="passages-araf"
       list={layout.passagesArafList}
-      caption={<>Every surah. Al‑A’raf: 206 verses, 39 passages.</>}
+      caption={
+        <>
+          Al‑A’raf
+          <br />
+          206 verses, 39 passages.
+        </>
+      }
     />
   );
 }
@@ -192,7 +198,13 @@ function S8Maidah({ t }: SceneProps) {
       t={t}
       screen="passages-maidah"
       list={layout.passagesMaidahList}
-      caption={<>Al‑Ma’idah: 120 verses, 37 passages.</>}
+      caption={
+        <>
+          Al‑Ma’idah
+          <br />
+          120 verses, 37 passages.
+        </>
+      }
     />
   );
 }
