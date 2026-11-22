@@ -12,7 +12,7 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
-import { insforge } from "./insforge";
+import { getCurrentUser } from "./currentUser";
 
 export interface AccountUser {
   id: string;
@@ -37,7 +37,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const { data, error } = await insforge.auth.getCurrentUser();
+    const { data, error } = await getCurrentUser();
     // UserSchema (from @insforge/shared-schemas) has no top-level `name`;
     // display name lives under the nullable `profile` object instead.
     setUser(
