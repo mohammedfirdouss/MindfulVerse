@@ -5,7 +5,9 @@
 // address's URL fragment, and the new address unpacks it before the app
 // starts, then reloads clean.
 //
-// The fragment never reaches a server. Unpacking only fills in or merges:
+// The fragment never reaches a server. Only a payload that came from the
+// old address is used, and only the first one (see acceptPayload). It only
+// fills in or merges:
 // what is already on the new address wins, journal entries and deletions are
 // combined by id, and visit days are combined, so arriving twice (or after
 // using the new address first) never duplicates or brings back a deleted
@@ -16,7 +18,12 @@ export const NEW_ORIGIN = "https://mindfulverse.app";
 export const STORE_PREFIX = "mindfulverse.";
 const MOVE_PARAM = "move=";
 /** Above this the fragment risks being cut by a browser; stay put instead. */
-export const MAX_PAYLOAD_CHARS = 1_500_000;
+export const MAX_PAYLOAD_CHARS = 500_000;
+/** Set on the new address after the first move; later copies are ignored. */
+export const MOVED_KEY = "mindfulverse.moved.v1";
+/** Never carried: they bind local data to an account, and a forged link
+ *  must not be able to switch accounts or stop backup. Sync rebuilds them. */
+const NEVER_CARRIED_PREFIX = "mindfulverse.sync.";
 
 const JOURNAL_KEY = "mindfulverse.journal.v1";
 const TOMBSTONES_KEY = "mindfulverse.journal.deleted.v1";
@@ -71,7 +78,12 @@ export async function unpack(payload: string): Promise<Store> {
   }
   const store: Store = {};
   for (const [key, item] of Object.entries(value)) {
-    if (key.startsWith(STORE_PREFIX) && typeof item === "string") {
+    if (
+      key.startsWith(STORE_PREFIX) &&
+      !key.startsWith(NEVER_CARRIED_PREFIX) &&
+      key !== MOVED_KEY &&
+      typeof item === "string"
+    ) {
       store[key] = item;
     }
   }
@@ -194,6 +206,42 @@ function readStore(): Store {
  * arrived and reloads clean. Resolves to true when the page is leaving, so
  * the app should not start.
  */
+/**
+ * Whether a payload may be merged. It must have come from the old address
+ * (the browser reports it as the referrer), and only the first one counts:
+ * after that the old address's frozen copy would undo leaving a circle or
+ * clearing a draft. A link with no referrer is accepted only by a new address
+ * that has nothing saved yet, and does not count as the move, so the real
+ * one can still follow.
+ */
+export function acceptPayload(
+  fromHost: string | null,
+  current: Store
+): { merge: boolean; markMoved: boolean } {
+  if (current[MOVED_KEY] !== undefined) {
+    return { markMoved: false, merge: false };
+  }
+  if (fromHost === OLD_HOST) {
+    return { markMoved: true, merge: true };
+  }
+  const fresh = Object.keys(current).length === 0;
+  return { markMoved: false, merge: fromHost === null && fresh };
+}
+
+function referrerHost(): string | null {
+  try {
+    return document.referrer ? new URL(document.referrer).hostname : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Run before the app starts. On the old address it sends the visitor, and
+ * everything they saved, to the new one. On the new address it unpacks what
+ * arrived and reloads clean. Resolves to true when the page is leaving, so
+ * the app should not start.
+ */
 export async function moveToNewAddress(): Promise<boolean> {
   try {
     const { hash, hostname, pathname, search } = window.location;
@@ -218,9 +266,20 @@ export async function moveToNewAddress(): Promise<boolean> {
       return false;
     }
     try {
-      const writes = mergeStores(readStore(), await unpack(payload));
-      for (const [key, value] of Object.entries(writes)) {
-        localStorage.setItem(key, value);
+      // Unpack first, then read: an entry saved in another tab meanwhile is
+      // part of what gets merged instead of being overwritten.
+      const incoming = await unpack(payload);
+      const current = readStore();
+      const { merge, markMoved } = acceptPayload(referrerHost(), current);
+      if (merge) {
+        for (const [key, value] of Object.entries(
+          mergeStores(current, incoming)
+        )) {
+          localStorage.setItem(key, value);
+        }
+      }
+      if (markMoved) {
+        localStorage.setItem(MOVED_KEY, new Date().toISOString());
       }
     } catch {
       // A damaged link: start normally rather than lose the visit.

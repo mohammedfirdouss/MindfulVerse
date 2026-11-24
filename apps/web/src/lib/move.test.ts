@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { mergeStores, pack, payloadFromHash, unpack } from "./move";
+import {
+  acceptPayload,
+  mergeStores,
+  pack,
+  payloadFromHash,
+  unpack,
+} from "./move";
 import type { Store } from "./move";
 
 const J = "mindfulverse.journal.v1";
@@ -144,5 +150,57 @@ describe(mergeStores, () => {
   it("survives damaged lists on either side", () => {
     const writes = mergeStores({ [J]: "not json" }, { [J]: "{}" });
     expect(JSON.parse(writes[J])).toStrictEqual([]);
+  });
+});
+
+describe(acceptPayload, () => {
+  it("takes the first copy from the old address and marks the move", () => {
+    expect(
+      acceptPayload("mindfulverse.vercel.app", { [J]: "[]" })
+    ).toStrictEqual({ markMoved: true, merge: true });
+  });
+
+  it("ignores every later copy, so leaving a circle or a draft sticks", () => {
+    expect(
+      acceptPayload("mindfulverse.vercel.app", {
+        "mindfulverse.moved.v1": "2026-11-24",
+      })
+    ).toStrictEqual({ markMoved: false, merge: false });
+  });
+
+  it("refuses a link from any other site", () => {
+    expect(acceptPayload("evil.example", {})).toStrictEqual({
+      markMoved: false,
+      merge: false,
+    });
+    expect(acceptPayload("mindfulverse.app", { [J]: "[]" })).toStrictEqual({
+      markMoved: false,
+      merge: false,
+    });
+  });
+
+  it("without a referrer, fills only an empty new address and leaves the real move possible", () => {
+    expect(acceptPayload(null, {})).toStrictEqual({
+      markMoved: false,
+      merge: true,
+    });
+    expect(acceptPayload(null, { [J]: "[]" })).toStrictEqual({
+      markMoved: false,
+      merge: false,
+    });
+  });
+});
+
+describe("what is never carried", () => {
+  it("drops sync keys and the moved marker", async () => {
+    const payload = await pack({
+      "mindfulverse.moved.v1": "x",
+      "mindfulverse.sync.adopt.v1": "x",
+      "mindfulverse.sync.owner.v1": "someone",
+      "mindfulverse.theme.v1": "dark",
+    });
+    await expect(unpack(payload)).resolves.toStrictEqual({
+      "mindfulverse.theme.v1": "dark",
+    });
   });
 });

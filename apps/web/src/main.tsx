@@ -98,8 +98,13 @@ function boot() {
 // the new address unpacks what arrived before anything reads storage
 // (lib/move.ts). Either way the page reloads, so the app starts only when
 // there is nothing to move.
+// If a browser refuses the navigation without saying so, start anyway
+// rather than leave the splash screen up.
+const LEAVE_TIMEOUT_MS = 4000;
 void moveToNewAddress().then((leaving) => {
   if (!leaving) {
     boot();
+    return;
   }
+  setTimeout(boot, LEAVE_TIMEOUT_MS);
 });
