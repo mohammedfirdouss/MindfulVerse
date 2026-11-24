@@ -24,7 +24,7 @@ mkdirSync(OUT, { recursive: true });
 // A fixed Sunday morning, so the greeting and the week line up every run.
 const NOW = new Date(2026, 10, 8, 9, 30).getTime();
 const DAY = 86_400_000;
-const PUBLIC_ORIGIN = "https://mindfulverse.vercel.app";
+const PUBLIC_ORIGIN = "https://mindfulverse.app";
 
 const CIRCLE = {
   code: "k7m2qx",

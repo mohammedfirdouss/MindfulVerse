@@ -4,7 +4,7 @@
 import { TRANSLATION_CREDIT } from "./translation";
 import type { Ayah } from "./types";
 
-export const SITE_ORIGIN = "https://mindfulverse.vercel.app";
+export const SITE_ORIGIN = "https://mindfulverse.app";
 
 /** The web address of one verse in the reader. */
 export function verseUrl(a: Pick<Ayah, "surah" | "ayah">): string {

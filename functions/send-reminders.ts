@@ -609,7 +609,10 @@ export async function deliverReminders(
   return counts;
 }
 
-const SITE_URL = "https://mindfulverse.vercel.app";
+// Where the Quran data files are fetched from, server to server. Reminder links
+// are relative paths, so this is never shown to anyone. It stays on the Vercel
+// address, which answers whatever the custom domain's DNS is doing.
+const DATA_ORIGIN = "https://mindfulverse.vercel.app";
 
 // Browser-invoked (welcome path) as well as cron-invoked, so every response
 // carries CORS headers.
@@ -720,7 +723,7 @@ async function handle(req: Request): Promise<Response> {
     const [surah, ayah] = verseKey.split(":").map(Number);
     let table = surahCache.get(surah);
     if (!table) {
-      const res = await fetch(`${SITE_URL}/data/quran/${surah}.json`);
+      const res = await fetch(`${DATA_ORIGIN}/data/quran/${surah}.json`);
       if (!res.ok) {
         throw new Error(`quran fetch failed: surah ${surah} → ${res.status}`);
       }
@@ -754,12 +757,14 @@ async function handle(req: Request): Promise<Response> {
   }
   let surahMetaPromise: Promise<SurahMeta[]> | null = null;
   function loadSurahMeta(): Promise<SurahMeta[]> {
-    surahMetaPromise ??= fetch(`${SITE_URL}/data/surahs.json`).then((res) => {
-      if (!res.ok) {
-        throw new Error(`surahs fetch failed: ${res.status}`);
+    surahMetaPromise ??= fetch(`${DATA_ORIGIN}/data/surahs.json`).then(
+      (res) => {
+        if (!res.ok) {
+          throw new Error(`surahs fetch failed: ${res.status}`);
+        }
+        return res.json();
       }
-      return res.json();
-    });
+    );
     return surahMetaPromise;
   }
 

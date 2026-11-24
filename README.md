@@ -4,7 +4,7 @@ A quiet app for pondering the Qur'an. Sit with one surah verse by verse, look de
 
 It works in the browser, on phones and on desktop, and as an Android app. It needs no sign up and works offline. It is free, with no ads.
 
-Live at [mindfulverse.vercel.app](https://mindfulverse.vercel.app)
+Live at [mindfulverse.app](https://mindfulverse.app)
 
 ## Features
 
