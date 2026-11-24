@@ -26,6 +26,11 @@
           "data": [
             {
               "scheme": "https",
+              "host": "mindfulverse.app",
+              "pathPrefix": "/circle/"
+            },
+            {
+              "scheme": "https",
               "host": "mindfulverse.vercel.app",
               "pathPrefix": "/circle/"
             }

@@ -3,4 +3,4 @@ Allow: /
 Disallow: /account
 Disallow: /circle/
 
-Sitemap: https://mindfulverse.vercel.app/sitemap.xml
+Sitemap: https://mindfulverse.app/sitemap.xml

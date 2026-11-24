@@ -59,22 +59,20 @@ function deps(over: Partial<LinkDeps> = {}): LinkDeps {
 
 describe(inviteUrl, () => {
   it("points at the web circle path", () => {
-    expect(inviteUrl("abc234")).toBe(
-      "https://mindfulverse.vercel.app/circle/abc234"
-    );
+    expect(inviteUrl("abc234")).toBe("https://mindfulverse.app/circle/abc234");
   });
 });
 
 describe(inviteMessage, () => {
   it("names the circle, surah and focus verse, link last", () => {
     expect(inviteMessage(circle, surahs)).toBe(
-      "Read Al-Kahf, from verse 10, with “Friday friends” on MindfulVerse.\nhttps://mindfulverse.vercel.app/circle/abc234"
+      "Read Al-Kahf, from verse 10, with “Friday friends” on MindfulVerse.\nhttps://mindfulverse.app/circle/abc234"
     );
   });
 
   it("leaves out the verse when there is none", () => {
     expect(inviteMessage({ ...circle, verse: null }, surahs)).toBe(
-      "Read Al-Kahf with “Friday friends” on MindfulVerse.\nhttps://mindfulverse.vercel.app/circle/abc234"
+      "Read Al-Kahf with “Friday friends” on MindfulVerse.\nhttps://mindfulverse.app/circle/abc234"
     );
   });
 });
@@ -92,7 +90,7 @@ describe(circleSummary, () => {
 describe("range in the invite", () => {
   it("names the range", () => {
     expect(inviteMessage({ ...circle, verse: 7, verseEnd: 12 }, surahs)).toBe(
-      "Read Al-Kahf, verses 7 to 12, with “Friday friends” on MindfulVerse.\nhttps://mindfulverse.vercel.app/circle/abc234"
+      "Read Al-Kahf, verses 7 to 12, with “Friday friends” on MindfulVerse.\nhttps://mindfulverse.app/circle/abc234"
     );
   });
 });
@@ -280,6 +278,19 @@ describe(resolveCircleLink, () => {
     });
     expect(d.join).toHaveBeenCalledWith(circle);
     expect(d.leave).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "https://mindfulverse.app/circle/abc234",
+    "https://mindfulverse.vercel.app/circle/abc234",
+  ])("opens an invite shared as %s", async (link) => {
+    const d = deps();
+    await expect(resolveCircleLink(link, d)).resolves.toStrictEqual({
+      kind: "tadabbur",
+      surah: 18,
+      verse: 10,
+    });
+    expect(d.fetch).toHaveBeenCalledWith("abc234");
   });
 
   it("keeps old numeric links as surah links and leaves a named circle", async () => {

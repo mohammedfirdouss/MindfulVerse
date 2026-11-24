@@ -37,7 +37,7 @@ const MS_PER_SECOND = 1000;
 const MAX_DAY_MS = 26 * 60 * 60 * 1000;
 const UTC_DATE_LENGTH = 10;
 const BEARER_PATTERN = /^Bearer\s+(?<key>\S+)$/iu;
-const REFLECT_BASE = "https://mindfulverse.vercel.app/tadabbur";
+const REFLECT_BASE = "https://mindfulverse.app/tadabbur";
 const BYTE_HEX_WIDTH = 2;
 const HEX_RADIX = 16;
 
@@ -220,7 +220,10 @@ interface AyahRow {
   translation: string;
 }
 
-const SITE_URL = "https://mindfulverse.vercel.app";
+// Where the Quran data files are fetched from, server to server; never shown
+// to callers (reflectUrl uses REFLECT_BASE). It stays on the Vercel address,
+// which answers whatever the custom domain's DNS is doing.
+const DATA_ORIGIN = "https://mindfulverse.vercel.app";
 
 /** Pick one verse's text out of a surah file and the surah list. */
 export const pickVerse = (
@@ -266,7 +269,7 @@ export const rpcCount = (data: unknown): number => {
 const surahCache = new Map<number, Promise<AyahRow[]>>();
 let surahList: Promise<SurahMeta[]> | null = null;
 const getJson = async <T>(path: string): Promise<T> => {
-  const res = await fetch(`${SITE_URL}${path}`);
+  const res = await fetch(`${DATA_ORIGIN}${path}`);
   if (!res.ok) {
     throw new Error(`fetch ${path} failed: ${res.status}`);
   }

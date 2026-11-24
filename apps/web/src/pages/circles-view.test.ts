@@ -18,8 +18,8 @@ const verseCount = (s: number) => counts.get(s);
 
 describe("circle share link", () => {
   it("builds the link from the origin", () => {
-    expect(circleShareUrl("https://mindfulverse.vercel.app", "abc234")).toBe(
-      "https://mindfulverse.vercel.app/circle/abc234"
+    expect(circleShareUrl("https://mindfulverse.app", "abc234")).toBe(
+      "https://mindfulverse.app/circle/abc234"
     );
     expect(circleShareUrl("http://localhost:5173/", "abc234")).toBe(
       "http://localhost:5173/circle/abc234"

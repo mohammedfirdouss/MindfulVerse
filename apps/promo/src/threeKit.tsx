@@ -41,7 +41,7 @@ export const INTENTION = "I've been anxious about work.";
 export const REFLECTION = "Ease is already beside the hardship.";
 export const ACTION = "Pray two rak'ahs before I open my inbox.";
 export const CIRCLE_NAME = "Friday friends";
-export const SITE = "mindfulverse.vercel.app";
+export const SITE = "mindfulverse.app";
 
 // ---- Portrait canvas (1080x1920) ----
 

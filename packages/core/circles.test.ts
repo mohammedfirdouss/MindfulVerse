@@ -141,6 +141,19 @@ describe(parseCircleLink, () => {
     );
   });
 
+  it("still opens invites shared on the old address", () => {
+    const expected = { code: "abc234", kind: "code" };
+    expect(
+      parseCircleLink("https://mindfulverse.vercel.app/circle/abc234")
+    ).toStrictEqual(expected);
+    expect(
+      parseCircleLink("https://www.mindfulverse.app/circle/ABC234/")
+    ).toStrictEqual(expected);
+    expect(
+      parseCircleLink("https://mindfulverse.vercel.app/circle/18")
+    ).toStrictEqual({ kind: "surah", surah: 18 });
+  });
+
   it("keeps old numeric links as surah links", () => {
     expect(parseCircleLink("/circle/18")).toStrictEqual({
       kind: "surah",

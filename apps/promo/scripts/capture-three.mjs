@@ -20,7 +20,7 @@ mkdirSync(OUT, { recursive: true });
 // A fixed Friday morning, so the greeting and the week line up every run.
 const NOW = new Date(2026, 10, 13, 9, 30).getTime();
 const DAY = 86_400_000;
-const PUBLIC_ORIGIN = "https://mindfulverse.vercel.app";
+const PUBLIC_ORIGIN = "https://mindfulverse.app";
 
 // The words typed in the videos (the approved storyboards).
 const INTENTION = "I've been anxious about work.";

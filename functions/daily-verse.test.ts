@@ -215,9 +215,7 @@ describe("response shape", () => {
     expect(body.verseKey).toBe("94:5");
     expect(body.surah).toBe(94);
     expect(body.ayah).toBe(5);
-    expect(body.reflectUrl).toBe(
-      "https://mindfulverse.vercel.app/tadabbur/94?v=5"
-    );
+    expect(body.reflectUrl).toBe("https://mindfulverse.app/tadabbur/94?v=5");
   });
 });
 

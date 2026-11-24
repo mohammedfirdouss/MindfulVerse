@@ -663,7 +663,7 @@ function ShareCard({ t, at }: { t: number; at: number }) {
             fontWeight: 600,
           }}
         >
-          mindfulverse.vercel.app/circle/k7m2qx
+          mindfulverse.app/circle/k7m2qx
         </div>
       </div>
     </div>
@@ -1148,7 +1148,7 @@ function S18End({ t, credit }: { t: number; credit: boolean }) {
             fontWeight: 600,
           }}
         >
-          mindfulverse.vercel.app
+          mindfulverse.app
         </div>
         <div
           style={{

@@ -810,7 +810,7 @@ function Cta() {
             marginTop: 24,
           }}
         >
-          mindfulverse.vercel.app
+          mindfulverse.app
         </div>
       </div>
     </AbsoluteFill>

@@ -21,7 +21,7 @@ describe(verseShareText, () => {
         "English translation by Talal Itani (ClearQuran).",
         "",
         "Read it on MindfulVerse:",
-        "https://mindfulverse.vercel.app/read/94?v=5",
+        "https://mindfulverse.app/read/94?v=5",
       ].join("\n")
     );
   });
@@ -39,7 +39,7 @@ describe(verseShareText, () => {
 
   it("links straight to the verse", () => {
     expect(verseUrl({ ayah: 69, surah: 4 })).toBe(
-      "https://mindfulverse.vercel.app/read/4?v=69"
+      "https://mindfulverse.app/read/4?v=69"
     );
   });
 });

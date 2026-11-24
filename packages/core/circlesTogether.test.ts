@@ -385,9 +385,7 @@ describe("surahs read together", () => {
 
 describe(qrPath, () => {
   it("draws a square code with the three finder patterns", () => {
-    const { path, size } = qrPath(
-      "https://mindfulverse.vercel.app/circle/abc234"
-    );
+    const { path, size } = qrPath("https://mindfulverse.app/circle/abc234");
     expect(size).toBeGreaterThanOrEqual(25);
     expect(path.startsWith("M0 0h7v1h-7z")).toBeTruthy();
     expect(path).toContain(`M${size - 7} 0h7v1h-7z`);

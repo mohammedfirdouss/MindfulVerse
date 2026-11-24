@@ -16,7 +16,7 @@ import type {
 } from "@mindfulverse/core/circles";
 import type { SurahMeta } from "@mindfulverse/core/types";
 
-export const WEB_ORIGIN = "https://mindfulverse.vercel.app";
+export const WEB_ORIGIN = "https://mindfulverse.app";
 
 export const PRIVACY_LINE =
   "Your reflections stay private. Only the surah is shared.";
