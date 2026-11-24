@@ -11,6 +11,7 @@ import {
 } from "./OneSurahOneWeek";
 import { PASSAGES_DURATION, PASSAGES_FPS, Passages } from "./Passages";
 import { ReadTogether, TOGETHER_DURATION, TOGETHER_FPS } from "./ReadTogether";
+import { SIT_DURATION, SIT_FPS, SitWith } from "./SitWith";
 import { STAND_DURATION, STAND_FPS, StandLoop } from "./StandLoop";
 import {
   START_CIRCLE_DURATION,
@@ -165,6 +166,26 @@ export function Root() {
         component={ReadTogether}
         durationInFrames={TOGETHER_DURATION}
         fps={TOGETHER_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: false }}
+      />
+      {/* Sit with the Qur'an: the character story of the recent features. */}
+      <Composition
+        id="SitWith"
+        component={SitWith}
+        durationInFrames={SIT_DURATION}
+        fps={SIT_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withNasheed: true }}
+      />
+      {/* For adding a sound from TikTok, Reels or CapCut when posting. */}
+      <Composition
+        id="SitWithSilent"
+        component={SitWith}
+        durationInFrames={SIT_DURATION}
+        fps={SIT_FPS}
         width={1080}
         height={1920}
         defaultProps={{ withNasheed: false }}
