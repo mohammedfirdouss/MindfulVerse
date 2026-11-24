@@ -41,7 +41,6 @@ const LENGTHS = [120, 150, 150, 150, 150, 210] as const;
 const STARTS = startsOf(LENGTHS);
 export const STAND_DURATION = totalOf(LENGTHS);
 
-// ---- The QR code for https://mindfulverse.app ----
 
 /** Dark modules of the code, one unit each (25x25, version 2). */
 const QR_PATH =
