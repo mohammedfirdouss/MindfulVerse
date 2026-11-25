@@ -3,6 +3,7 @@ import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 // on first open. Long entries show their opening paragraphs verbatim with the
 // rest one tap away, so a session stays guided rather than like homework.
 import { loadSurahTafsir, parseVerseKey } from "@mindfulverse/core/data";
+import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -170,8 +171,7 @@ export function TafsirDisclosure({
             : null}
           {status.kind === "ready" && status.entries.length > 0 ? (
             <Text variant="muted" style={{ fontSize: 14, lineHeight: 21 }}>
-              Verses quoted in the commentary use a different English
-              translation.
+              {TAFSIR_CREDIT}
             </Text>
           ) : null}
         </View>

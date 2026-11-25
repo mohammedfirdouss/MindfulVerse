@@ -14,6 +14,7 @@ import {
 } from "@mindfulverse/core/progress";
 import { surahJournal } from "@mindfulverse/core/surahJournal";
 import { formatTadabburBody } from "@mindfulverse/core/tadabburBody";
+import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import type {
   Ayah,
   SurahInfo,
@@ -210,6 +211,12 @@ function VerseCommentary({
                   {p}
                 </p>
               ))}
+              <p
+                className="muted"
+                style={{ fontSize: "0.8rem", margin: "1em 0 0" }}
+              >
+                {TAFSIR_CREDIT}
+              </p>
             </div>
           )}
         </div>
