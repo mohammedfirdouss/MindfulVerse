@@ -19,6 +19,7 @@ import {
   writeSessionDraft,
 } from "@mindfulverse/core/sessionDraft";
 import { formatSessionBody } from "@mindfulverse/core/tadabburBody";
+import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import type {
   Ayah,
   SessionStep,
@@ -550,8 +551,7 @@ function TafsirDisclosure({ verseKeys }: { verseKeys: string[] }) {
             })}
           {status.kind === "ready" && status.entries.length > 0 && (
             <p className="muted" style={{ fontSize: "0.8rem" }}>
-              Verses quoted in the commentary use a different English
-              translation.
+              {TAFSIR_CREDIT}
             </p>
           )}
         </div>

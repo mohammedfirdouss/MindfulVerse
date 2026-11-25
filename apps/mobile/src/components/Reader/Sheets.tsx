@@ -1,4 +1,5 @@
 import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
+import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import type { Ayah } from "@mindfulverse/core/types";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -104,9 +105,7 @@ export function CommentaryBody({
               </Text>
             ))}
             <Text variant="muted" style={{ fontSize: 13.5, lineHeight: 20 }}>
-              Verse quotations inside the commentary follow its classical
-              English edition, which differs from the ClearQuran translation
-              shown in the reader.
+              {TAFSIR_CREDIT}
             </Text>
           </>
         )

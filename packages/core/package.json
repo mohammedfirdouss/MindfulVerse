@@ -22,6 +22,7 @@
     "./journalGroups": "./journalGroups.ts",
     "./progress": "./progress.ts",
     "./streakLine": "./streakLine.ts",
+    "./tafsirCredit": "./tafsirCredit.ts",
     "./sessionStatus": "./sessionStatus.ts",
     "./qr": "./qr.ts",
     "./sessionDraft": "./sessionDraft.ts",

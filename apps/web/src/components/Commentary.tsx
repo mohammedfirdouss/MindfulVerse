@@ -1,5 +1,6 @@
 import { commentaryParagraphs } from "@mindfulverse/core/commentaryText";
 import { loadSurahTafsir } from "@mindfulverse/core/data";
+import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import type { Ayah, SurahTafsir } from "@mindfulverse/core/types";
 import { useCallback, useId, useState } from "react";
 
@@ -112,9 +113,7 @@ export function CommentaryBody({
         <p key={i}>{p}</p>
       ))}
       <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
-        Verse quotations inside the commentary follow its classical English
-        edition, which differs from the ClearQuran translation shown in the
-        reader.
+        {TAFSIR_CREDIT}
       </p>
     </div>
   );

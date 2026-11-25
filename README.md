@@ -88,6 +88,8 @@ The Qur'anic datasets come from the [Quranic Universal Library](https://qul.tart
 
 The English translation is [ClearQuran](https://www.clearquran.com) by Talal Itani, used under the CC BY-NC-ND 4.0 licence. The Arabic typeface is the KFGQPC Uthmanic Hafs script from the King Fahd Glorious Qur'an Printing Complex in Madinah.
 
+The commentary is Tafsir Ibn Kathir (Abridged), the English edition published by Darussalam and abridged under the supervision of Shaykh Safiur-Rahman al-Mubarakpuri, as published in the Quranic Universal Library. Verses it quotes use that edition's own English rather than ClearQuran.
+
 The short explanation of each verse is from the English edition of Al-Mukhtasar fi Tafsir al-Qur'an al-Karim by the Tafsir Center for Quranic Studies, shown unchanged.
 
 The English word meanings are from [The Glorious Qur'an Word-for-Word Translation](https://amzn.to/3NVyXoB) by Dr. Shehnaz Shaikh and Ms. Kausar Khatri. They are shown exactly as the authors wrote them, with their kind permission for this free app. That permission is for MindfulVerse only, so please ask the authors before reusing them.
