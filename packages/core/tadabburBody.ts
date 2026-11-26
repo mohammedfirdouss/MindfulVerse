@@ -20,10 +20,10 @@ export const TADABBUR_LABELS = {
   takeaway: "Takeaway",
 } as const;
 
-type PartKey = keyof typeof TADABBUR_LABELS;
+export type PartKey = keyof typeof TADABBUR_LABELS;
 
-// Order the parts are written in a body.
-const PART_ORDER: readonly PartKey[] = [
+// Order the parts are written in a body, and shown wherever they are rendered.
+export const PART_ORDER: readonly PartKey[] = [
   "feeling",
   "reminder",
   "takeaway",

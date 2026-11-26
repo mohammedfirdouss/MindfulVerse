@@ -1,17 +1,15 @@
 import { loadSurahAyahs, loadSurahs } from "@mindfulverse/core/data";
 import { parseFollowUpBody } from "@mindfulverse/core/followUps";
 import { getEntries } from "@mindfulverse/core/journal";
-import { surahJournal } from "@mindfulverse/core/surahJournal";
+import { surahJournal, toLookInto } from "@mindfulverse/core/surahJournal";
 import type { SurahJournalItem } from "@mindfulverse/core/surahJournal";
 import { onSyncStatus } from "@mindfulverse/core/sync/engine";
-import { TADABBUR_LABELS } from "@mindfulverse/core/tadabburBody";
-import type { TadabburParts } from "@mindfulverse/core/tadabburBody";
 import type { Ayah } from "@mindfulverse/core/types";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import BackLink from "../components/BackLink";
-import EntryBody from "../components/EntryBody";
+import EntryBody, { PartList } from "../components/EntryBody";
 import { buildJournalText, formatDate, saveFile } from "../lib/journalExport";
 import { surahJournalSections } from "../lib/surahJournalExport";
 
@@ -19,7 +17,6 @@ import "./journal-empty.css";
 import "./surah-journal.css";
 
 const MAX_SURAH = 114;
-const PART_KEYS = ["lessons", "reflection", "action", "connections"] as const;
 const NON_ALNUM = /[^a-z0-9]+/gu;
 const EDGE_DASHES = /^-+|-+$/gu;
 
@@ -30,27 +27,12 @@ function slugOf(name: string): string {
     .replaceAll(EDGE_DASHES, "");
 }
 
-function Parts({ parts }: { parts: TadabburParts }) {
-  return (
-    <>
-      {PART_KEYS.map((key) =>
-        parts[key] ? (
-          <p key={key} className="sj-part">
-            <span className="sj-label">{TADABBUR_LABELS[key]}</span>
-            {parts[key]}
-          </p>
-        ) : null
-      )}
-    </>
-  );
-}
-
 function Item({ item }: { item: SurahJournalItem }) {
   return (
     <div className="sj-item">
       <p className="soft sj-date">{formatDate(item.entry.createdAt)}</p>
       {item.parts ? (
-        <Parts parts={item.parts} />
+        <PartList parts={item.parts} />
       ) : (
         <p className="sj-part">{item.entry.body}</p>
       )}
@@ -153,6 +135,7 @@ function SurahJournalPage() {
   }
 
   const byKey = new Map(ayahs.map((a) => [a.verseKey, a]));
+  const research = toLookInto(page);
 
   async function download(kind: "pdf" | "txt") {
     if (exporting || !page) {
@@ -230,6 +213,28 @@ function SurahJournalPage() {
               <blockquote className="sj-quote">
                 {page.intention.body}
               </blockquote>
+            </section>
+          )}
+
+          {research.length > 0 && (
+            <section className="card stack" aria-labelledby="sj-research">
+              <h2 id="sj-research" style={{ fontSize: "1.15rem" }}>
+                To look into
+              </h2>
+              <ul className="sj-research">
+                {research.map((r) => (
+                  <li key={r.entryId}>
+                    <Link
+                      to={`/tadabbur/${surahNumber}?v=${r.ayah}`}
+                      className="sj-link"
+                      aria-label={`Verse ${r.verseKey}`}
+                    >
+                      {r.verseKey}
+                    </Link>
+                    <p className="sj-part">{r.text}</p>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
 

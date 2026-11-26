@@ -12,8 +12,18 @@ import {
   getSurahTadabbur,
   recordSurahTadabbur,
 } from "@mindfulverse/core/progress";
+import {
+  EMPTY_REFLECTION,
+  FEELINGS,
+  hasReflection,
+  MAX_FEELINGS,
+  migrateDraft,
+  PROMPT_INTRO,
+  PROMPTS,
+  reflectionBody,
+} from "@mindfulverse/core/reflectionPrompts";
+import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
 import { surahJournal } from "@mindfulverse/core/surahJournal";
-import { formatTadabburBody } from "@mindfulverse/core/tadabburBody";
 import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import type {
   Ayah,
@@ -30,6 +40,7 @@ import BackLink from "../components/BackLink";
 import IntentionField from "../components/IntentionField";
 import { coveringAyah } from "../lib/tafsirCovering";
 
+import "./checkin.css";
 import "./tadabbur.css";
 import "./surah-journal.css";
 
@@ -225,35 +236,45 @@ function VerseCommentary({
   );
 }
 
-// The reflection area — the physical tadabbur journal's three questions,
-// asked one at a time like a conversation.
+// The reflection area: four questions, asked one at a time like a
+// conversation. Copy and the feelings list live in core so Android matches.
 
-export interface Draft {
-  lessons: string;
-  stirs: string;
-  action: string;
+const STEP_COUNT = 4;
+
+/** Whether the question at `step` has anything in it yet (Next vs Skip). */
+function stepAnswered(d: ReflectionDraft, step: number): boolean {
+  switch (step) {
+    case 0: {
+      return d.feelings.length > 0 || d.feelingNote.trim() !== "";
+    }
+    case 1: {
+      return d.reminder.trim() !== "";
+    }
+    case 2: {
+      return d.takeaway.trim() !== "" || d.action.trim() !== "";
+    }
+    default: {
+      return d.research.trim() !== "";
+    }
+  }
 }
 
-const EMPTY_DRAFT: Draft = { action: "", lessons: "", stirs: "" };
-
-const QUESTIONS: readonly { key: keyof Draft; label: string }[] = [
-  { key: "lessons", label: "What does it teach?" },
-  { key: "stirs", label: "What stays with you?" },
-  { key: "action", label: "What will you do?" },
-];
-
-export function hasText(d: Draft | undefined): boolean {
-  return (
-    !!d &&
-    (d.lessons.trim().length > 0 ||
-      d.stirs.trim().length > 0 ||
-      d.action.trim().length > 0)
-  );
+/** Toggle one feeling, never past MAX_FEELINGS, kept in display order. */
+export function toggleFeeling(feelings: string[], word: string): string[] {
+  if (feelings.includes(word)) {
+    return feelings.filter((f) => f !== word);
+  }
+  if (feelings.length >= MAX_FEELINGS) {
+    return feelings;
+  }
+  const next = new Set([...feelings, word]);
+  return FEELINGS.filter((f) => next.has(f));
 }
 
 // Drafts persist per surah on every change, so nothing typed is ever lost
 // (reload, closing the tab, leaving the page). Same key as mobile. Stored as
-// { [verseKey]: Draft }, empty drafts dropped.
+// { [verseKey]: ReflectionDraft }, empty drafts dropped. Old drafts
+// ({ lessons, stirs, action }) are read through migrateDraft.
 
 const DRAFTS_PREFIX = "mindfulverse.tadabburDrafts.v1:";
 
@@ -273,7 +294,7 @@ function defaultStore(): DraftStore | null {
 
 export function parseTadabburDrafts(
   raw: string | null | undefined
-): Record<string, Draft> {
+): Record<string, ReflectionDraft> {
   if (!raw) {
     return {};
   }
@@ -286,18 +307,10 @@ export function parseTadabburDrafts(
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     return {};
   }
-  const out: Record<string, Draft> = {};
+  const out: Record<string, ReflectionDraft> = {};
   for (const [verseKey, v] of Object.entries(data as Record<string, unknown>)) {
-    if (!v || typeof v !== "object") {
-      continue;
-    }
-    const o = v as Record<string, unknown>;
-    const d: Draft = {
-      action: typeof o.action === "string" ? o.action : "",
-      lessons: typeof o.lessons === "string" ? o.lessons : "",
-      stirs: typeof o.stirs === "string" ? o.stirs : "",
-    };
-    if (hasText(d)) {
+    const d = migrateDraft(v);
+    if (hasReflection(d)) {
       out[verseKey] = d;
     }
   }
@@ -308,7 +321,7 @@ export function parseTadabburDrafts(
 export function loadTadabburDrafts(
   surah: number,
   store: DraftStore | null = defaultStore()
-): Record<string, Draft> {
+): Record<string, ReflectionDraft> {
   if (!store) {
     return {};
   }
@@ -323,7 +336,7 @@ export function loadTadabburDrafts(
 export function saveTadabburDraft(
   surah: number,
   verseKey: string,
-  draft: Draft,
+  draft: ReflectionDraft,
   store: DraftStore | null = defaultStore()
 ): void {
   if (!store) {
@@ -331,8 +344,8 @@ export function saveTadabburDraft(
   }
   try {
     const all = loadTadabburDrafts(surah, store);
-    if (hasText(draft)) {
-      all[verseKey] = { ...draft };
+    if (hasReflection(draft)) {
+      all[verseKey] = { ...draft, feelings: [...draft.feelings] };
     } else {
       // oxlint-disable-next-line typescript/no-dynamic-delete -- removing one verse draft by key
       delete all[verseKey];
@@ -348,6 +361,121 @@ export function saveTadabburDraft(
   }
 }
 
+function QuestionFields({
+  step,
+  inputId,
+  draft,
+  edit,
+}: {
+  step: number;
+  inputId: string;
+  draft: ReflectionDraft;
+  edit: (patch: Partial<ReflectionDraft>) => void;
+}) {
+  if (step === 0) {
+    const promptId = `${inputId}-prompt`;
+    const hintId = `${inputId}-hint`;
+    const full = draft.feelings.length >= MAX_FEELINGS;
+    return (
+      <>
+        <p id={promptId} className="tad-prompt" style={{ margin: 0 }}>
+          {PROMPTS.feeling}
+        </p>
+        <p id={hintId} className="muted tad-hint">
+          Pick up to three.
+        </p>
+        <div
+          className="ci-chips tad-feelings"
+          role="group"
+          aria-labelledby={promptId}
+          aria-describedby={hintId}
+        >
+          {FEELINGS.map((word) => {
+            const on = draft.feelings.includes(word);
+            return (
+              <button
+                key={word}
+                type="button"
+                className="ci-chip"
+                aria-pressed={on}
+                disabled={full && !on}
+                onClick={() =>
+                  edit({ feelings: toggleFeeling(draft.feelings, word) })
+                }
+              >
+                {word}
+              </button>
+            );
+          })}
+        </div>
+        <textarea
+          id={inputId}
+          rows={2}
+          value={draft.feelingNote}
+          placeholder={PROMPTS.feelingPlaceholder}
+          aria-label="Say more about how it made you feel"
+          onChange={(e) => edit({ feelingNote: e.target.value })}
+          className="tad-input tad-input-short"
+        />
+      </>
+    );
+  }
+  if (step === 1) {
+    return (
+      <>
+        <label htmlFor={inputId} className="tad-prompt">
+          {PROMPTS.reminder}
+        </label>
+        <textarea
+          id={inputId}
+          rows={3}
+          value={draft.reminder}
+          onChange={(e) => edit({ reminder: e.target.value })}
+          className="tad-input"
+        />
+      </>
+    );
+  }
+  if (step === 2) {
+    return (
+      <>
+        <label htmlFor={inputId} className="tad-prompt">
+          {PROMPTS.takeaway}
+        </label>
+        <textarea
+          id={inputId}
+          rows={3}
+          value={draft.takeaway}
+          onChange={(e) => edit({ takeaway: e.target.value })}
+          className="tad-input"
+        />
+        <input
+          type="text"
+          value={draft.action}
+          placeholder={PROMPTS.actionPlaceholder}
+          aria-label={PROMPTS.actionPlaceholder}
+          onChange={(e) => edit({ action: e.target.value })}
+          className="tad-input tad-input-line"
+        />
+      </>
+    );
+  }
+  return (
+    <>
+      <label htmlFor={inputId} className="tad-prompt">
+        {PROMPTS.research}
+      </label>
+      <textarea
+        id={inputId}
+        rows={2}
+        value={draft.research}
+        onChange={(e) => edit({ research: e.target.value })}
+        className="tad-input tad-input-short"
+      />
+    </>
+  );
+}
+
 function ReflectionArea({
   ayah,
   name,
@@ -356,26 +484,28 @@ function ReflectionArea({
 }: {
   ayah: Ayah;
   name: string;
-  draft: Draft;
-  onDraft: (d: Draft) => void;
+  draft: ReflectionDraft;
+  onDraft: (d: ReflectionDraft) => void;
 }) {
   const [kept, setKept] = useState(false);
   const [step, setStep] = useState(0);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const questionRef = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
 
-  const q = QUESTIONS[step];
-  const last = step === QUESTIONS.length - 1;
-  const answered = draft[q.key].trim().length > 0;
-  const canKeep = hasText(draft);
+  const last = step === STEP_COUNT - 1;
+  const answered = stepAnswered(draft, step);
+  const canKeep = hasReflection(draft);
 
-  // After moving between questions, carry focus to the new prompt's input.
+  // After moving between questions, carry focus to the new question's first
+  // control (a feeling chip on the first, the text box on the rest).
   useEffect(() => {
     if (!moved.current) {
       return;
     }
     moved.current = false;
-    inputRef.current?.focus();
+    questionRef.current
+      ?.querySelector<HTMLElement>("button.ci-chip:not(:disabled), textarea")
+      ?.focus();
   }, [step]);
 
   function go(to: number) {
@@ -383,21 +513,22 @@ function ReflectionArea({
     setStep(to);
   }
 
+  function edit(patch: Partial<ReflectionDraft>) {
+    onDraft({ ...draft, ...patch });
+    setKept(false);
+  }
+
   function keep() {
     if (!canKeep) {
       return;
     }
     addEntry({
-      body: formatTadabburBody({
-        action: draft.action,
-        lessons: draft.lessons,
-        reflection: draft.stirs,
-      }),
+      body: reflectionBody(draft),
       context: { kind: "tadabbur", ref: ayah.verseKey },
       prompt: `Tadabbur on ${ayah.verseKey}`,
     });
     track({ context: "tadabbur", type: "journal_save" });
-    onDraft(EMPTY_DRAFT);
+    onDraft(EMPTY_REFLECTION);
     setStep(0);
     setKept(true);
   }
@@ -411,34 +542,26 @@ function ReflectionArea({
         Your tadabbur
       </p>
       <p className="muted" style={{ fontSize: ".9rem", margin: 0 }}>
-        Sit with {name} {ayah.verseKey}. Write as little or as much as you like.
+        Sit with {name} {ayah.verseKey}. {PROMPT_INTRO}
       </p>
-      <div className="tad-question">
+      <div className="tad-question" ref={questionRef}>
         <div
           className="tad-steps"
           role="img"
-          aria-label={`Question ${step + 1} of ${QUESTIONS.length}`}
+          aria-label={`Question ${step + 1} of ${STEP_COUNT}`}
         >
-          {QUESTIONS.map((x, i) => (
+          {Array.from({ length: STEP_COUNT }, (_, i) => (
             <span
-              key={x.key}
+              key={i}
               className={`tad-step${i === step ? " is-current" : ""}`}
             />
           ))}
         </div>
-        <label htmlFor={inputId} className="tad-prompt">
-          {q.label}
-        </label>
-        <textarea
-          id={inputId}
-          ref={inputRef}
-          rows={3}
-          value={draft[q.key]}
-          onChange={(e) => {
-            onDraft({ ...draft, [q.key]: e.target.value });
-            setKept(false);
-          }}
-          className="tad-input"
+        <QuestionFields
+          step={step}
+          inputId={inputId}
+          draft={draft}
+          edit={edit}
         />
         <div className="tad-question-nav">
           {step > 0 && (
@@ -523,7 +646,7 @@ function SurahTadabburPage() {
   const [started, setStarted] = useState(false);
   // Restored from storage; every change is written back (saveTadabburDraft),
   // so leaving never loses words and needs no warning.
-  const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
+  const [drafts, setDrafts] = useState<Record<string, ReflectionDraft>>(() =>
     validSurah ? loadTadabburDrafts(surahNumber) : {}
   );
   const reduce = useMemo(prefersReducedMotion, []);
@@ -855,7 +978,7 @@ function SurahTadabburPage() {
             key={a.verseKey}
             ayah={a}
             name={name}
-            draft={drafts[a.verseKey] ?? EMPTY_DRAFT}
+            draft={drafts[a.verseKey] ?? EMPTY_REFLECTION}
             onDraft={(d) => {
               saveTadabburDraft(surahNumber, a.verseKey, d);
               setDrafts((prev) => ({ ...prev, [a.verseKey]: d }));

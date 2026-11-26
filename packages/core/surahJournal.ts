@@ -89,3 +89,31 @@ export function surahJournal(
     verses,
   };
 }
+
+export interface ToLookInto {
+  entryId: string;
+  verseKey: string;
+  ayah: number;
+  text: string;
+  createdAt: number;
+}
+
+/** Every "To look into" note on the page, newest first. */
+export function toLookInto(page: SurahJournal): ToLookInto[] {
+  const notes: ToLookInto[] = [];
+  for (const verse of page.verses) {
+    for (const { entry, parts } of verse.items) {
+      const text = parts?.research?.trim();
+      if (text) {
+        notes.push({
+          ayah: verse.ayah,
+          createdAt: entry.createdAt,
+          entryId: entry.id,
+          text,
+          verseKey: verse.verseKey,
+        });
+      }
+    }
+  }
+  return notes.sort((a, b) => b.createdAt - a.createdAt);
+}

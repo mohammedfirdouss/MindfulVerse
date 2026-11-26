@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { surahJournal } from "./surahJournal";
+import { surahJournal, toLookInto } from "./surahJournal";
 import { formatTadabburBody } from "./tadabburBody";
 import type { JournalEntry } from "./types";
 
@@ -107,5 +107,54 @@ describe(surahJournal, () => {
   it("isEmpty is true with no intention, verse or also entry", () => {
     expect(surahJournal([], 94).isEmpty).toBeTruthy();
     expect(surahJournal([entry("x", 1, "free")], 94).isEmpty).toBeTruthy();
+  });
+});
+
+describe(toLookInto, () => {
+  it("lists every research note across verses, newest first", () => {
+    const page = surahJournal(
+      [
+        entry(
+          "a",
+          1,
+          "tadabbur",
+          "90:3",
+          formatTadabburBody({ research: "orphans" })
+        ),
+        entry(
+          "b",
+          5,
+          "tadabbur",
+          "90:12",
+          formatTadabburBody({ research: "the steep path", takeaway: "t" })
+        ),
+        entry(
+          "c",
+          3,
+          "tadabbur",
+          "90:12",
+          formatTadabburBody({ takeaway: "no research" })
+        ),
+        entry("d", 4, "tadabbur", "90:1", "Lessons: x\n\nReflection: y"),
+        entry("e", 9, "tadabbur", "90:2", "free text"),
+      ],
+      90
+    );
+    expect(toLookInto(page)).toStrictEqual([
+      {
+        ayah: 12,
+        createdAt: 5,
+        entryId: "b",
+        text: "the steep path",
+        verseKey: "90:12",
+      },
+      {
+        ayah: 3,
+        createdAt: 1,
+        entryId: "a",
+        text: "orphans",
+        verseKey: "90:3",
+      },
+    ]);
   });
 });
