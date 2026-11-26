@@ -7,6 +7,12 @@ import {
   loadSurahs,
   loadTafsirIndex,
 } from "@mindfulverse/core/data";
+import {
+  CLOUD_COPY,
+  getCloudOptIn,
+  setCloudOptIn,
+  shareFeelings,
+} from "@mindfulverse/core/feelingCloud";
 import { addEntry, getEntries } from "@mindfulverse/core/journal";
 import {
   getSurahTadabbur,
@@ -38,6 +44,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { Diamond, DyeRule, TitlePlate } from "../components/Adire";
 import BackLink from "../components/BackLink";
+import FeelingCloud from "../components/FeelingCloud";
 import IntentionField from "../components/IntentionField";
 import { coveringAyah } from "../lib/tafsirCovering";
 
@@ -371,11 +378,15 @@ function QuestionFields({
   inputId,
   draft,
   edit,
+  cloudOptIn,
+  onCloudOptIn,
 }: {
   step: number;
   inputId: string;
   draft: ReflectionDraft;
   edit: (patch: Partial<ReflectionDraft>) => void;
+  cloudOptIn: boolean;
+  onCloudOptIn: (on: boolean) => void;
 }) {
   if (step === 0) {
     const promptId = `${inputId}-prompt`;
@@ -413,6 +424,19 @@ function QuestionFields({
             );
           })}
         </div>
+        <label className="tad-cloud-opt" htmlFor={`${inputId}-cloud`}>
+          <input
+            id={`${inputId}-cloud`}
+            type="checkbox"
+            checked={cloudOptIn}
+            aria-describedby={`${inputId}-cloud-help`}
+            onChange={(e) => onCloudOptIn(e.target.checked)}
+          />
+          <span>{CLOUD_COPY.optIn}</span>
+        </label>
+        <p id={`${inputId}-cloud-help`} className="muted tad-cloud-help">
+          {CLOUD_COPY.optInHelp}
+        </p>
         <textarea
           id={inputId}
           rows={2}
@@ -483,16 +507,19 @@ function QuestionFields({
 
 function ReflectionArea({
   ayah,
+  surah,
   name,
   draft,
   onDraft,
 }: {
   ayah: Ayah;
+  surah: number;
   name: string;
   draft: ReflectionDraft;
   onDraft: (d: ReflectionDraft) => void;
 }) {
   const [kept, setKept] = useState(false);
+  const [cloudOptIn, setCloudOptInState] = useState(getCloudOptIn);
   const [step, setStep] = useState(0);
   const questionRef = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
@@ -533,9 +560,18 @@ function ReflectionArea({
       prompt: `Tadabbur on ${ayah.verseKey}`,
     });
     track({ context: "tadabbur", type: "journal_save" });
+    if (cloudOptIn && draft.feelings.length > 0) {
+      // Fire and forget: the entry is already saved, sharing never blocks it.
+      void shareFeelings(surah, draft.feelings);
+    }
     onDraft(EMPTY_REFLECTION);
     setStep(0);
     setKept(true);
+  }
+
+  function changeCloudOptIn(on: boolean) {
+    setCloudOptIn(on);
+    setCloudOptInState(on);
   }
 
   const inputId = `tad-q-${ayah.verseKey}`;
@@ -567,6 +603,8 @@ function ReflectionArea({
           inputId={inputId}
           draft={draft}
           edit={edit}
+          cloudOptIn={cloudOptIn}
+          onCloudOptIn={changeCloudOptIn}
         />
         <div className="tad-question-nav">
           {step > 0 && (
@@ -937,6 +975,9 @@ function SurahTadabburPage() {
             </Link>
           </div>
         </FadeRise>
+        <FadeRise show={mounted} reduce={reduce} delay={reduce ? 0 : 90}>
+          <FeelingCloud surah={surahNumber} />
+        </FadeRise>
       </div>
     );
   }
@@ -982,6 +1023,7 @@ function SurahTadabburPage() {
           <ReflectionArea
             key={a.verseKey}
             ayah={a}
+            surah={surahNumber}
             name={name}
             draft={drafts[a.verseKey] ?? EMPTY_REFLECTION}
             onDraft={(d) => {

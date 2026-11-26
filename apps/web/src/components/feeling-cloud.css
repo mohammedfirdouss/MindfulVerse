@@ -1,0 +1,40 @@
+/* The anonymous feelings cloud on the surah end screen: indigo and ink only. */
+.fc-reveal {
+  align-self: flex-start;
+}
+.fc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--cotton-raised);
+}
+.fc-note {
+  margin: 0;
+  font-size: 0.92rem;
+}
+.fc-offline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.fc-words {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  font-family: var(--font-read);
+  line-height: 1.25;
+}
+.fc-words li {
+  color: var(--indigo-deep);
+}
+.fc-words li:nth-child(even) {
+  color: var(--indigo);
+}

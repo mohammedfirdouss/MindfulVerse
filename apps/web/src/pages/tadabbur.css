@@ -162,3 +162,22 @@
 .tad-input-line {
   min-height: 44px;
 }
+/* Opt-in to the anonymous feelings cloud, under the feeling chips. */
+.tad-cloud-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.tad-cloud-opt input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--indigo);
+}
+.tad-cloud-help {
+  margin: -6px 0 0 30px;
+  font-size: 0.82rem;
+}

@@ -16,7 +16,7 @@ export default function Privacy() {
     <article className="stack privacy">
       <header>
         <h1>Privacy</h1>
-        <p className="soft">Last updated 21 November 2026</p>
+        <p className="soft">Last updated 26 November 2026</p>
       </header>
 
       <p>
@@ -31,7 +31,7 @@ export default function Privacy() {
         progress, settings and the circles you joined are saved only on your
         device. They do not leave it.
       </p>
-      <p>Two small things are sent, and neither says who you are:</p>
+      <p>A few small things are sent, and none of them says who you are:</p>
       <ul>
         <li>
           <strong>A daily “opened today” signal.</strong> A random number made
@@ -44,6 +44,12 @@ export default function Privacy() {
           number is used to count how many people are in it and how many
           reflected this week. Nobody, including the circle’s owner, can see who
           those people are or what they wrote.
+        </li>
+        <li>
+          <strong>The feelings cloud, only if you tick the box.</strong> If you
+          tick the box, the feeling words you tap (never what you write) are
+          counted anonymously per surah, with the same random number so each
+          reader counts once; totals show only once 10 readers have shared.
         </li>
       </ul>
       <p>
@@ -118,8 +124,8 @@ export default function Privacy() {
         </li>
       </ul>
       <p>
-        The anonymous “opened today” and circle counts can’t be linked back to
-        you, so they are not deleted with an account.
+        The anonymous “opened today”, circle and feelings cloud counts can’t be
+        linked back to you, so they are not deleted with an account.
       </p>
 
       <h2>Children</h2>

@@ -5,6 +5,7 @@ import {
 } from "@mindfulverse/core/activeDays";
 import { trackAppOpen } from "@mindfulverse/core/analytics";
 import { wireCircleReflections } from "@mindfulverse/core/circles";
+import { allowFeelingSharing } from "@mindfulverse/core/feelingCloud";
 import { recordVisit } from "@mindfulverse/core/progress";
 import { AccountProvider } from "@mindfulverse/core/sync/auth";
 import { initSync } from "@mindfulverse/core/sync/engine";
@@ -45,6 +46,8 @@ function boot() {
   if (countVisit) {
     pingActiveDay("web");
   }
+  // The same rule keeps test and preview browsers out of the feelings cloud.
+  allowFeelingSharing(countVisit);
   recordVisit();
   // An installed PWA can sit suspended for days and resume without reloading —
   // count each return to the foreground as a visit (recordVisit is idempotent).
