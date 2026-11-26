@@ -48,8 +48,11 @@ export default function Privacy() {
         <li>
           <strong>The feelings cloud, only if you tick the box.</strong> If you
           tick the box, the feeling words you tap (never what you write) are
-          counted anonymously per surah, with the same random number so each
-          reader counts once; totals show only once 10 readers have shared.
+          counted anonymously per surah. They are sent with a separate random
+          number kept only for the cloud, so each reader counts once and the
+          cloud can’t be linked to your other counts or your account. Totals
+          show only once 10 readers have shared. If you untick the box later,
+          nothing new is sent, but words already counted stay in the totals.
         </li>
       </ul>
       <p>

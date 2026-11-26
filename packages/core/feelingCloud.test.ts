@@ -1,24 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const store = new Map<string, string>();
-vi.stubGlobal("localStorage", {
+const localStorageStub = {
   getItem: (k: string) => store.get(k) ?? null,
   removeItem: (k: string) => void store.delete(k),
   setItem: (k: string, v: string) => void store.set(k, v),
-});
+};
+vi.stubGlobal("localStorage", localStorageStub);
 
 import {
   allowFeelingSharing,
+  CLOUD_ID_KEY,
   CLOUD_OPT_IN_KEY,
   cloudFontSize,
   cloudWordLabel,
   fetchFeelingCloud,
   getCloudOptIn,
+  getFeelingCloudId,
   setCloudOptIn,
   shareFeelings,
 } from "./feelingCloud";
 import type { SurahFeelingRow } from "./feelingCloud";
 import { getInstallId } from "./installId";
+import { configureInsforge, insforge } from "./sync/insforge";
 
 beforeEach(() => {
   store.clear();
@@ -37,7 +41,7 @@ describe("cloud opt-in", () => {
 });
 
 describe(shareFeelings, () => {
-  it("sends one row per approved word with only install id, surah and word", async () => {
+  it("sends one row per approved word with only the cloud id, surah and word", async () => {
     setCloudOptIn(true);
     const send = vi.fn(async (_row: SurahFeelingRow) => null);
     await shareFeelings(
@@ -47,8 +51,51 @@ describe(shareFeelings, () => {
     );
     const rows = send.mock.calls.map((c) => c[0]);
     expect(rows).toStrictEqual([
-      { feeling: "Peaceful", install_id: getInstallId(), surah: 112 },
-      { feeling: "Grateful", install_id: getInstallId(), surah: 112 },
+      { feeling: "Peaceful", install_id: getFeelingCloudId(), surah: 112 },
+      { feeling: "Grateful", install_id: getFeelingCloudId(), surah: 112 },
+    ]);
+  });
+
+  it("uses its own random id, never the shared install id", async () => {
+    const installId = getInstallId();
+    setCloudOptIn(true);
+    const send = vi.fn(async (_row: SurahFeelingRow) => null);
+    await shareFeelings(112, ["Peaceful"], send);
+    const sentId = send.mock.calls[0]?.[0].install_id;
+    expect(sentId).toBe(store.get(CLOUD_ID_KEY));
+    expect(sentId).toMatch(/^[0-9a-f-]{36}$/u);
+    expect(sentId).not.toBe(installId);
+    // The id is kept, so a reader's words count once.
+    expect(getFeelingCloudId()).toBe(sentId);
+  });
+
+  it("sends with the anon key only, even when a reader is signed in", async () => {
+    configureInsforge({
+      anonKey: "anon-key",
+      baseUrl: "https://backend.test/",
+    });
+    insforge.getHttpClient().setAuthToken("user-access-token");
+    const fetchMock = vi.fn(
+      async (_url: string, _init: RequestInit) => new Response(null)
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      setCloudOptIn(true);
+      await shareFeelings(112, ["Peaceful"]);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.stubGlobal("localStorage", localStorageStub);
+    }
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(
+      "https://backend.test/api/database/records/surah_feelings"
+    );
+    const headers = new Headers(init?.headers);
+    expect(headers.get("Authorization")).toBe("Bearer anon-key");
+    expect(JSON.stringify(init)).not.toContain("user-access-token");
+    expect(JSON.parse(String(init?.body))).toStrictEqual([
+      { feeling: "Peaceful", install_id: getFeelingCloudId(), surah: 112 },
     ]);
   });
 

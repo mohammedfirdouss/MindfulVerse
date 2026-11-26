@@ -1,13 +1,20 @@
 // The anonymous feelings cloud: an opt-in share of the feeling words a reader
 // taps for a surah, and the per-surah totals once 10 readers have shared.
-// Only approved feeling words, the surah number and the random install id
-// leave the device; never what the reader writes. Sharing never throws and
-// never blocks saving.
-import { getInstallId } from "./installId";
+// Only approved feeling words, the surah number and a random id kept just for
+// the cloud leave the device; never what the reader writes, never the install
+// id other signals use, and never a signed-in reader's token. Sharing never
+// throws and never blocks saving.
+import { randomId } from "./installId";
 import { FEELINGS, MAX_FEELINGS } from "./reflectionPrompts";
-import { insforge } from "./sync/insforge";
+import { insforge, insforgePublicConfig } from "./sync/insforge";
 
 export const CLOUD_OPT_IN_KEY = "mindfulverse.feelingCloud.v1";
+/** A random id used only by the cloud, so its rows can't be joined to the
+ *  install id other anonymous signals send. */
+export const CLOUD_ID_KEY = "mindfulverse.feelingCloudId.v1";
+const TRAILING_SLASHES = /\/+$/u;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 export const CLOUD_MIN_READERS = 10;
 export const CLOUD_TIMEOUT_MS = 8000;
 const SURAH_COUNT = 114;
@@ -42,6 +49,18 @@ export function setCloudOptIn(value: boolean): void {
   }
 }
 
+/** The cloud's own random id, made on first use. On Android localStorage is
+ *  the MMKV shim, like every other mindfulverse.* key. */
+export function getFeelingCloudId(): string {
+  const stored = localStorage.getItem(CLOUD_ID_KEY);
+  if (stored && UUID_PATTERN.test(stored)) {
+    return stored;
+  }
+  const id = randomId();
+  localStorage.setItem(CLOUD_ID_KEY, id);
+  return id;
+}
+
 // Off until the app says otherwise. Like the "opened today" ping, only the
 // live site (not a dev server, preview or test browser) and release builds
 // write to the shared table, so test runs never pollute real clouds.
@@ -72,11 +91,26 @@ export type FetchFeelingCloud = (
   surah: number
 ) => Promise<{ data: unknown; error: unknown }>;
 
+// A plain request with the public anon key, not the shared SDK client: the
+// client attaches a signed-in reader's access token, which would tie the
+// anonymous row to their account.
 const sendToInsforge: SendSurahFeeling = async (row) => {
-  const { error } = await insforge.database
-    .from("surah_feelings")
-    .insert([row]);
-  return error;
+  const { anonKey, baseUrl } = insforgePublicConfig();
+  if (!(anonKey && baseUrl)) {
+    return new Error("InsForge is not configured");
+  }
+  const res = await fetch(
+    `${baseUrl.replace(TRAILING_SLASHES, "")}/api/database/records/surah_feelings`,
+    {
+      body: JSON.stringify([row]),
+      headers: {
+        Authorization: `Bearer ${anonKey}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+  return res.ok ? null : { code: String(res.status), statusCode: res.status };
 };
 
 const fetchFromInsforge: FetchFeelingCloud = async (surah) =>
@@ -92,8 +126,8 @@ function approvedWords(feelings: readonly string[]): string[] {
 }
 
 /**
- * Shares the chosen feeling words for a surah, one insert per word. A word
- * already shared by this install is rejected by the primary key (409/23505),
+ * Shares the chosen feeling words for a surah, one insert per word, under the
+ * cloud's own random id. A word already shared by this id is rejected by the primary key (409/23505),
  * which is fine: it is already counted. Does nothing unless sharing is
  * allowed on this build and the reader ticked the box. Never rejects.
  */
@@ -110,11 +144,11 @@ export async function shareFeelings(
     if (words.length === 0) {
       return;
     }
-    const installId = getInstallId();
+    const cloudId = getFeelingCloudId();
     await Promise.all(
       words.map(async (feeling) => {
         try {
-          await send({ feeling, install_id: installId, surah });
+          await send({ feeling, install_id: cloudId, surah });
         } catch {
           /* offline: this word is simply not counted */
         }
