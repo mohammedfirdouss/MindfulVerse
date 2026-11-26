@@ -65,7 +65,13 @@ const LAYOUT = { viewport: { h: 844, w: 390 } };
 const browser = await chromium.launch();
 
 /** owns: whether the account already has the circle. */
-async function open({ joined, owns, signedIn = true, view = "translation", height = 844 }) {
+async function open({
+  joined,
+  owns,
+  signedIn = true,
+  view = "translation",
+  height = 844,
+}) {
   const ctx = await browser.newContext({
     deviceScaleFactor: 3,
     hasTouch: true,
@@ -132,9 +138,15 @@ async function open({ joined, owns, signedIn = true, view = "translation", heigh
       localStorage.setItem("mindfulverse.installDismissed.v1", "1");
       localStorage.setItem("mindfulverse.journal.v1", "[]");
       localStorage.setItem("mindfulverse.theme.v1", "light");
-      localStorage.setItem("mindfulverse.readView.v1", j?.view ?? "translation");
+      localStorage.setItem(
+        "mindfulverse.readView.v1",
+        j?.view ?? "translation"
+      );
       if (j?.circles) {
-        localStorage.setItem("mindfulverse.circles.v2", JSON.stringify(j.circles));
+        localStorage.setItem(
+          "mindfulverse.circles.v2",
+          JSON.stringify(j.circles)
+        );
       }
     },
     { circles: joined ? JOINED : null, view }
@@ -166,7 +178,13 @@ async function measure(page, name, locator) {
 
 // ---- Al-An'am: the wall of text, in the Reading view, several screens tall ----
 {
-  const { ctx, page } = await open({ joined: false, owns: false, signedIn: false, view: "reading", height: WALL_HEIGHT });
+  const { ctx, page } = await open({
+    joined: false,
+    owns: false,
+    signedIn: false,
+    view: "reading",
+    height: WALL_HEIGHT,
+  });
   await page.goto(`${WEB}/read/${LONG_SURAH}`);
   await settle(page, 2200);
   await page.evaluate(() => {
@@ -181,7 +199,11 @@ async function measure(page, name, locator) {
 
 // ---- Al-An'am: the passage map, folded, open, scrolled, tapped ----
 {
-  const { ctx, page } = await open({ joined: false, owns: false, signedIn: false });
+  const { ctx, page } = await open({
+    joined: false,
+    owns: false,
+    signedIn: false,
+  });
   await page.goto(`${WEB}/read/${LONG_SURAH}`);
   await settle(page, 1800);
   const summary = page.locator(".passage-map summary");
@@ -198,7 +220,9 @@ async function measure(page, name, locator) {
   await page.waitForTimeout(400);
   await measure(page, "sitList", page.locator(".passage-map ol"));
   await shot(page, "sit-open");
-  const target = page.locator(".passage-map button").filter({ hasText: `Verses ${TAP_FROM} to` });
+  const target = page
+    .locator(".passage-map button")
+    .filter({ hasText: `Verses ${TAP_FROM} to` });
   await target.evaluate((el) => el.scrollIntoView({ block: "center" }));
   await page.waitForTimeout(400);
   await measure(page, "sitTarget", target);
@@ -212,7 +236,11 @@ async function measure(page, name, locator) {
 
 // ---- Home, a member of the Al-Hadid circle ----
 {
-  const { ctx, page } = await open({ joined: true, owns: false, signedIn: false });
+  const { ctx, page } = await open({
+    joined: true,
+    owns: false,
+    signedIn: false,
+  });
   await page.goto(`${WEB}/`);
   await settle(page, 1800);
   await measure(page, "sitLead", page.locator(".home-lead"));
@@ -230,7 +258,9 @@ async function measure(page, name, locator) {
   const questions = card.locator(".circle-discuss summary");
   await questions.click();
   await page.waitForTimeout(400);
-  await card.locator(".circle-discuss").evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await card
+    .locator(".circle-discuss")
+    .evaluate((el) => el.scrollIntoView({ block: "center" }));
   await page.waitForTimeout(300);
   await measure(page, "sitQuestions", card.locator(".circle-discuss"));
   await shot(page, "sit-questions");
@@ -239,7 +269,11 @@ async function measure(page, name, locator) {
 
 // ---- Deeper look on Al-Balad 90:12: In short, then Ibn Kathir ----
 {
-  const { ctx, page } = await open({ joined: false, owns: false, signedIn: false });
+  const { ctx, page } = await open({
+    joined: false,
+    owns: false,
+    signedIn: false,
+  });
   await page.goto(`${WEB}/read/${DEEPER_SURAH}?v=${DEEPER_VERSE}`);
   await settle(page, 2600);
   await page.addStyleTag({ content: HIDE_WORDS });
@@ -251,10 +285,16 @@ async function measure(page, name, locator) {
   await page.locator(".brief").waitFor();
   await page.waitForTimeout(700);
   const scrollTo = (sel) =>
-    page.locator(sel).first().evaluate((el) => {
-      const body = el.closest(".sheet-body");
-      body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top - 24;
-    });
+    page
+      .locator(sel)
+      .first()
+      .evaluate((el) => {
+        const body = el.closest(".sheet-body");
+        body.scrollTop +=
+          el.getBoundingClientRect().top -
+          body.getBoundingClientRect().top -
+          24;
+      });
   await scrollTo(".brief");
   await page.waitForTimeout(400);
   await measure(page, "sitBrief", page.locator(".brief"));
@@ -270,7 +310,10 @@ async function measure(page, name, locator) {
     page.locator("h3.deeper-heading").filter({ hasText: "Ibn Kathir" })
   );
   await shot(page, "sit-commentary");
-  if ((await page.locator(".verse-words").count()) > 0 && (await page.locator(".verse-words").isVisible())) {
+  if (
+    (await page.locator(".verse-words").count()) > 0 &&
+    (await page.locator(".verse-words").isVisible())
+  ) {
     throw new Error("word by word is visible");
   }
   await ctx.close();
