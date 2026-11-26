@@ -8,6 +8,7 @@ vi.stubGlobal("localStorage", {
 });
 
 import {
+  DISCUSSION_QUESTIONS,
   currentPassage,
   nextPassage,
   portionLabel,
@@ -423,5 +424,15 @@ describe(coveredPassages, () => {
 
   it("adds nothing when the surah has no passages at all", () => {
     expect(coveredPassages([], 7)).toStrictEqual([]);
+  });
+});
+
+describe("circle discussion questions", () => {
+  it("asks the surah page's feeling, reminder and takeaway questions", () => {
+    expect(DISCUSSION_QUESTIONS).toStrictEqual([
+      "How did this verse make you feel?",
+      "What did it remind you of in your own life?",
+      "What's your takeaway?",
+    ]);
   });
 });
