@@ -1,6 +1,8 @@
-// The surah's background text (Ibn Kathir's introduction), shown first.
+// The surah's background text (Maududi's introduction), shown first, with why
+// it was revealed leading when the text has a background section.
 // It opens on its first section only (a few lines) so the way in stays near
 // the top; "Read more" unfolds the rest and "Show less" folds it back.
+import { INTRO_CREDIT } from "@mindfulverse/core/surahIntro";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -76,6 +78,9 @@ export function InfoText({ text }: { text: string }) {
           />
         </View>
       ) : null}
+      <Text variant="muted" style={{ fontSize: 14, lineHeight: 21 }}>
+        {INTRO_CREDIT}
+      </Text>
     </View>
   );
 }

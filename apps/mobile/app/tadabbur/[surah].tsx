@@ -22,6 +22,8 @@ import {
   recordSurahTadabbur,
 } from "@mindfulverse/core/progress";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
+import { EMPTY_REFLECTION } from "@mindfulverse/core/reflectionPrompts";
+import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
 import type {
   Ayah,
   SurahInfo,
@@ -53,6 +55,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ActionLink } from "../../src/components/Reader/ActionLink";
 import { TitlePlate } from "../../src/components/Reader/TitlePlate";
+import { FeelingCloud } from "../../src/components/Tadabbur/FeelingCloud";
 import { InfoText } from "../../src/components/Tadabbur/InfoText";
 import {
   currentIntention,
@@ -67,14 +70,12 @@ import {
 import {
   coveringFromIndex,
   deepLinkPhase,
-  EMPTY_DRAFT,
   loadTadabburDrafts,
   parseSurahParam,
   resumeAyahFor,
   saveTadabburDraft,
   verseCount,
 } from "../../src/components/Tadabbur/logic";
-import type { Draft } from "../../src/components/Tadabbur/logic";
 import { ReflectionArea } from "../../src/components/Tadabbur/ReflectionArea";
 import { VerseCommentary } from "../../src/components/Tadabbur/VerseCommentary";
 import { VersePicker } from "../../src/components/Tadabbur/VersePicker";
@@ -134,12 +135,12 @@ function TadabburPage() {
   // Drafts live in a ref (the inputs own their state; see ReflectionArea), so
   // typing never re-renders the verse. Every change is also persisted per
   // surah, so nothing typed is lost: no "leave without saving?" needed.
-  const drafts = useRef<Record<string, Draft> | null>(null);
+  const drafts = useRef<Record<string, ReflectionDraft> | null>(null);
   if (drafts.current === null) {
     drafts.current = validSurah ? loadTadabburDrafts(n) : {};
   }
   const onDraft = useCallback(
-    (verseKey: string, d: Draft) => {
+    (verseKey: string, d: ReflectionDraft) => {
       if (drafts.current) {
         drafts.current[verseKey] = d;
       }
@@ -495,6 +496,9 @@ function TadabburPage() {
           />
           <Button kind="secondary" title="Done" onPress={leave} />
         </FadeRise>
+        <FadeRise reduce={reduce} delay={90}>
+          <FeelingCloud surah={n} />
+        </FadeRise>
       </>
     );
   }
@@ -578,8 +582,9 @@ function TadabburPage() {
         <ReflectionArea
           key={`r-${a.verseKey}`}
           verseKey={a.verseKey}
+          surah={n}
           name={name}
-          initial={drafts.current?.[a.verseKey] ?? EMPTY_DRAFT}
+          initial={drafts.current?.[a.verseKey] ?? EMPTY_REFLECTION}
           onDraft={onDraft}
           onFocusInput={onFocusInput}
         />

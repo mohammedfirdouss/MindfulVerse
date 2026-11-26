@@ -50,3 +50,16 @@
   gap: 0 20px;
   font-size: 0.9rem;
 }
+/* "To look into": each note under the verse it came from. */
+.sj-research {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sj-research > li + li {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}

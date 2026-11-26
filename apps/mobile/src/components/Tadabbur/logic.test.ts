@@ -1,14 +1,16 @@
+import {
+  EMPTY_REFLECTION,
+  PROMPTS,
+} from "@mindfulverse/core/reflectionPrompts";
 import { describe, expect, it } from "vitest";
 
 import {
   ABOUT_COLLAPSED_PARAGRAPHS,
   aboutExcerpt,
-  EMPTY_DRAFT,
   commentaryToggleLabel,
   composeReflection,
   coveringFromIndex,
   deepLinkPhase,
-  hasText,
   infoBlocks,
   parseSurahParam,
   resumeAyahFor,
@@ -20,6 +22,8 @@ import {
   saveTadabburDraft,
   tadabburDraftKey,
 } from "./logic";
+
+const EMPTY = EMPTY_REFLECTION;
 
 describe(coveringFromIndex, () => {
   const idx = [1, 4, 8];
@@ -76,22 +80,31 @@ describe(resumeAyahFor, () => {
 });
 
 describe("reflection drafts", () => {
-  it("hasText ignores whitespace", () => {
-    expect(hasText(EMPTY_DRAFT)).toBeFalsy();
-    expect(hasText({ action: "", lessons: "  ", stirs: "\n" })).toBeFalsy();
-    expect(hasText({ action: "x", lessons: "", stirs: "" })).toBeTruthy();
-    expect(hasText(undefined)).toBeFalsy();
-  });
-
-  it("composes web's journal entry shape", () => {
+  it("composes web's journal entry shape with the new labels", () => {
     expect(
-      composeReflection("2:255", { action: "c", lessons: " a ", stirs: "" })
+      composeReflection("2:255", {
+        ...EMPTY,
+        action: "c",
+        feelingNote: "calm",
+        feelings: ["Hopeful", "Moved"],
+        research: "asbab",
+        takeaway: " a ",
+      })
     ).toStrictEqual({
-      body: "Lessons: a\n\nAction: c",
+      body: "Feeling: Hopeful, Moved. calm\n\nTakeaway: a\n\nAction: c\n\nTo look into: asbab",
       context: { kind: "tadabbur", ref: "2:255" },
       prompt: "Tadabbur on 2:255",
     });
-    expect(composeReflection("2:255", EMPTY_DRAFT)).toBeNull();
+  });
+
+  it("keeps a feelings-only reflection and nothing for an empty one", () => {
+    expect(
+      composeReflection("1:1", { ...EMPTY, feelings: ["Grateful"] })?.body
+    ).toBe("Feeling: Grateful.");
+    expect(composeReflection("2:255", EMPTY)).toBeNull();
+    expect(
+      composeReflection("2:255", { ...EMPTY, reminder: "  \n" })
+    ).toBeNull();
   });
 });
 
@@ -179,7 +192,12 @@ describe("tadabbur drafts", () => {
       setItem: (k: string, v: string) => void m.set(k, v),
     };
   }
-  const d = { action: "call mum", lessons: "patience", stirs: "" };
+  const d = {
+    ...EMPTY,
+    action: "call mum",
+    feelings: ["Hopeful", "Moved"],
+    takeaway: "patience",
+  };
 
   it("keys drafts per surah", () => {
     expect(tadabburDraftKey(1)).toBe("mindfulverse.tadabburDrafts.v1:1");
@@ -195,15 +213,34 @@ describe("tadabbur drafts", () => {
   it("keeps other verses when one changes", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:1", d, s);
-    saveTadabburDraft(1, "1:2", { ...EMPTY_DRAFT, stirs: "mercy" }, s);
+    saveTadabburDraft(1, "1:2", { ...EMPTY, reminder: "mercy" }, s);
     expect(Object.keys(loadTadabburDrafts(1, s))).toStrictEqual(["1:1", "1:2"]);
   });
 
   it("clears an emptied draft, and the key when none remain", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:1", d, s);
-    saveTadabburDraft(1, "1:1", EMPTY_DRAFT, s);
+    saveTadabburDraft(1, "1:1", EMPTY, s);
     expect(s.m.has(tadabburDraftKey(1))).toBeFalsy();
+  });
+
+  it("keeps a feelings-only draft", () => {
+    const s = memStore();
+    saveTadabburDraft(1, "1:1", { ...EMPTY, feelings: ["Grateful"] }, s);
+    expect(loadTadabburDrafts(1, s)["1:1"]?.feelings).toStrictEqual([
+      "Grateful",
+    ]);
+  });
+
+  it("resumes an old { lessons, stirs, action } draft in the new shape", () => {
+    const s = memStore();
+    s.setItem(
+      tadabburDraftKey(90),
+      JSON.stringify({ "90:3": { action: "c", lessons: "a", stirs: "b" } })
+    );
+    expect(loadTadabburDrafts(90, s)).toStrictEqual({
+      "90:3": { ...EMPTY, action: "c", reminder: "b", takeaway: "a" },
+    });
   });
 
   it("ignores corrupt or malformed storage", () => {
@@ -219,7 +256,7 @@ describe("tadabbur drafts", () => {
         })
       )
     ).toStrictEqual({
-      "1:1": { action: "", lessons: "", stirs: "x" },
+      "1:1": { ...EMPTY, reminder: "x" },
     });
   });
 
@@ -240,9 +277,14 @@ describe("tadabbur drafts", () => {
 });
 
 describe(questionStepLabel, () => {
-  it("names the step for screen readers", () => {
-    expect(QUESTIONS).toHaveLength(3);
-    expect(questionStepLabel(0)).toBe("Question 1 of 3");
-    expect(questionStepLabel(2)).toBe("Question 3 of 3");
+  it("asks the four questions in order and names each step", () => {
+    expect(QUESTIONS.map((q) => q.label)).toStrictEqual([
+      PROMPTS.feeling,
+      PROMPTS.reminder,
+      PROMPTS.takeaway,
+      PROMPTS.research,
+    ]);
+    expect(questionStepLabel(0)).toBe("Question 1 of 4");
+    expect(questionStepLabel(3)).toBe("Question 4 of 4");
   });
 });

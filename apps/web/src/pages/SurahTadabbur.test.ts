@@ -1,3 +1,4 @@
+import { EMPTY_REFLECTION } from "@mindfulverse/core/reflectionPrompts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -16,8 +17,13 @@ function memStore() {
     setItem: (k: string, v: string) => void m.set(k, v),
   };
 }
-const empty = { action: "", lessons: "", stirs: "" };
-const d = { action: "call mum", lessons: "patience", stirs: "" };
+const empty = EMPTY_REFLECTION;
+const d = {
+  ...empty,
+  action: "call mum",
+  feelings: ["Hopeful", "Moved"],
+  takeaway: "patience",
+};
 
 describe("tadabbur drafts (web)", () => {
   it("uses the same per-surah key as mobile", () => {
@@ -27,12 +33,20 @@ describe("tadabbur drafts (web)", () => {
   it("round-trips and keeps other verses", () => {
     const s = memStore();
     saveTadabburDraft(1, "1:1", d, s);
-    saveTadabburDraft(1, "1:2", { ...empty, stirs: "mercy" }, s);
+    saveTadabburDraft(1, "1:2", { ...empty, reminder: "mercy" }, s);
     expect(loadTadabburDrafts(1, s)).toStrictEqual({
       "1:1": d,
-      "1:2": { ...empty, stirs: "mercy" },
+      "1:2": { ...empty, reminder: "mercy" },
     });
     expect(loadTadabburDrafts(2, s)).toStrictEqual({});
+  });
+
+  it("keeps a feelings-only draft", () => {
+    const s = memStore();
+    saveTadabburDraft(1, "1:1", { ...empty, feelings: ["Grateful"] }, s);
+    expect(loadTadabburDrafts(1, s)["1:1"]?.feelings).toStrictEqual([
+      "Grateful",
+    ]);
   });
 
   it("clears an emptied draft and the key when none remain", () => {
@@ -42,12 +56,25 @@ describe("tadabbur drafts (web)", () => {
     expect(s.m.size).toBe(0);
   });
 
+  it("resumes an old { lessons, stirs, action } draft in the new shape", () => {
+    const s = memStore();
+    s.setItem(
+      tadabburDraftKey(90),
+      JSON.stringify({ "90:3": { action: "c", lessons: "a", stirs: "b" } })
+    );
+    expect(loadTadabburDrafts(90, s)).toStrictEqual({
+      "90:3": { ...empty, action: "c", reminder: "b", takeaway: "a" },
+    });
+  });
+
   it("survives corrupt data and throwing storage", () => {
     expect(parseTadabburDrafts("{bad")).toStrictEqual({});
     expect(
-      parseTadabburDrafts(JSON.stringify({ "1:1": { lessons: 1, stirs: "x" } }))
+      parseTadabburDrafts(
+        JSON.stringify({ "1:1": { lessons: 1, stirs: "x" }, "1:2": 5 })
+      )
     ).toStrictEqual({
-      "1:1": { ...empty, stirs: "x" },
+      "1:1": { ...empty, reminder: "x" },
     });
     const bad = {
       getItem: () => {

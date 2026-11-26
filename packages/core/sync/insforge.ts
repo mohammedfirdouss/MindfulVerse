@@ -24,7 +24,17 @@ export function sessionInProgress(): boolean {
   return oauthReturn || liveSession;
 }
 
+// The public base URL and anon key, kept for the few anonymous writes that
+// must never carry a signed-in reader's token (see feelingCloud.ts).
+let publicConfig: { baseUrl?: string; anonKey?: string } = {};
+
+/** The base URL and anon key the client was created with. */
+export function insforgePublicConfig(): { baseUrl?: string; anonKey?: string } {
+  return publicConfig;
+}
+
 export function configureInsforge(config: InsForgeConfig): InsForgeClient {
+  publicConfig = { anonKey: config.anonKey, baseUrl: config.baseUrl };
   const { location } = globalThis as { location?: { search?: string } };
   oauthReturn = OAUTH_CODE_PATTERN.test(location?.search ?? "");
   insforge = createClient(config);

@@ -135,3 +135,49 @@
 .intention-change {
   min-height: 44px;
 }
+
+/* First question: feeling chips (Check-in pills), up to three. */
+.tad-hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+.tad-feelings {
+  padding: 2px 0 4px;
+}
+.tad-feelings .ci-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (hover: hover) {
+  .tad-feelings .ci-chip:disabled:hover {
+    background: var(--cotton-raised);
+  }
+}
+.tad-feelings .ci-chip:disabled:active {
+  transform: none;
+}
+.tad-input-short {
+  min-height: 72px;
+}
+.tad-input-line {
+  min-height: 44px;
+}
+/* Opt-in to the anonymous feelings cloud, under the feeling chips. */
+.tad-cloud-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.tad-cloud-opt input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--indigo);
+}
+.tad-cloud-help {
+  margin: -6px 0 0 30px;
+  font-size: 0.82rem;
+}

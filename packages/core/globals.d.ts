@@ -22,3 +22,9 @@ declare let crypto: Crypto;
 
 declare function setTimeout(handler: () => void, timeout?: number): number;
 declare function clearTimeout(id: number | undefined): void;
+
+/** Just the slice of fetch core uses (the feelings cloud's anon-key insert). */
+declare function fetch(
+  url: string,
+  init?: { body?: string; headers?: Record<string, string>; method?: string }
+): Promise<{ ok: boolean; status: number }>;

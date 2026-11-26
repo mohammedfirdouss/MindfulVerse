@@ -90,6 +90,8 @@ The English translation is [ClearQuran](https://www.clearquran.com) by Talal Ita
 
 The commentary is Tafsir Ibn Kathir (Abridged), the English edition published by Darussalam and abridged under the supervision of Shaykh Safiur-Rahman al-Mubarakpuri, as published in the Quranic Universal Library. Verses it quotes use that edition's own English rather than ClearQuran.
 
+The introduction to each surah ("About this surah") is from Tafhim al-Qur'an (The Meaning of the Qur'an) by Sayyid Abul A'la Maududi. Its paragraphs are shown unchanged; the app only gives the background and period sections plainer headings ("Why it was revealed", "When it was revealed") and shows the background first.
+
 The short explanation of each verse is from the English edition of Al-Mukhtasar fi Tafsir al-Qur'an al-Karim by the Tafsir Center for Quranic Studies, shown unchanged.
 
 The English word meanings are from [The Glorious Qur'an Word-for-Word Translation](https://amzn.to/3NVyXoB) by Dr. Shehnaz Shaikh and Ms. Kausar Khatri. They are shown exactly as the authors wrote them, with their kind permission for this free app. That permission is for MindfulVerse only, so please ask the authors before reusing them.

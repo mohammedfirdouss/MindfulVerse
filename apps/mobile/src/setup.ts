@@ -7,6 +7,7 @@ import { pingActiveDay } from "@mindfulverse/core/activeDays";
 import { configureAnalytics } from "@mindfulverse/core/analytics";
 import { wireCircleReflections } from "@mindfulverse/core/circles";
 import { configureData } from "@mindfulverse/core/data";
+import { allowFeelingSharing } from "@mindfulverse/core/feelingCloud";
 import { configureSyncTriggers } from "@mindfulverse/core/sync/engine";
 import { configureInsforge } from "@mindfulverse/core/sync/insforge";
 import { AppState, Platform } from "react-native";
@@ -30,6 +31,8 @@ configureData(readBundledJson);
 // Development builds are us, not testers: only release builds count toward
 // the launch test.
 if (!__DEV__ && (Platform.OS === "ios" || Platform.OS === "android")) {
+  // The same rule keeps development builds out of the feelings cloud.
+  allowFeelingSharing(true);
   const platform = Platform.OS;
   pingActiveDay(platform);
   // A backgrounded app resumes on a new day without relaunching; count that too.

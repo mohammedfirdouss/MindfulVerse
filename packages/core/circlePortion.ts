@@ -1,6 +1,7 @@
 // A circle's weekly portion: which verses everyone reads this week, built from
 // the surah's passages (the theme ranges in data/themes.json), so "next week"
 // is always a natural place to stop.
+import { PROMPTS } from "./reflectionPrompts";
 import type { Theme } from "./types";
 
 export interface Passage {
@@ -103,10 +104,11 @@ export function nextPassage(
   return { from: start, theme: "", to: end };
 }
 
-/** The same three questions the surah page asks, for talking it through
- *  together. Written by people, never generated. */
+/** The surah page's first three reflection questions (feeling, reminder,
+ *  takeaway), for talking it through together. Written by people, never
+ *  generated. */
 export const DISCUSSION_QUESTIONS = [
-  "What does it teach?",
-  "What stays with you?",
-  "What will you do?",
+  PROMPTS.feeling,
+  PROMPTS.reminder,
+  PROMPTS.takeaway,
 ] as const;

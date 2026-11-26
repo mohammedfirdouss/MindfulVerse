@@ -1,8 +1,14 @@
 // Pure tadabbur logic, ported from web's pages/SurahTadabbur.tsx. No
 // react-native imports, so vitest runs it.
-import { formatTadabburBody } from "@mindfulverse/core/tadabburBody";
-
-import { splitParagraphs } from "../../text";
+import {
+  hasReflection,
+  migrateDraft,
+  PROMPTS,
+  reflectionBody,
+} from "@mindfulverse/core/reflectionPrompts";
+import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
+import { introBlocks } from "@mindfulverse/core/surahIntro";
+import type { IntroBlock } from "@mindfulverse/core/surahIntro";
 
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Find the entry covering this ayah.
@@ -25,27 +31,18 @@ export function coveringFromIndex(
 /** The surah's "About" text opens trimmed to this many paragraphs. */
 export const ABOUT_COLLAPSED_PARAGRAPHS = 5;
 
-export interface InfoBlock {
-  kind: "heading" | "paragraph";
-  text: string;
-}
+export type InfoBlock = IntroBlock;
 
-/** Web's InfoText: a short line without a full stop is a subheading. */
+/** The introduction's blocks (core's `introBlocks`: why it was revealed first
+ *  when there is a background section; a short line without a full stop is a
+ *  subheading, as on web). */
 export function infoBlocks(
   text: string,
   expanded: boolean
 ): { blocks: InfoBlock[]; truncated: boolean } {
-  const paragraphs = splitParagraphs(text);
-  const shown = expanded
-    ? paragraphs
-    : paragraphs.slice(0, ABOUT_COLLAPSED_PARAGRAPHS);
-  return {
-    blocks: shown.map((p) => ({
-      kind: p.length < 60 && !p.includes(".") ? "heading" : "paragraph",
-      text: p,
-    })),
-    truncated: paragraphs.length > shown.length,
-  };
+  const all = introBlocks(text);
+  const blocks = expanded ? all : all.slice(0, ABOUT_COLLAPSED_PARAGRAPHS);
+  return { blocks, truncated: all.length > blocks.length };
 }
 
 /** The collapsed "About this surah": its first section only (an opening
@@ -71,47 +68,21 @@ export function aboutExcerpt(blocks: readonly InfoBlock[]): {
   return { clamp, count, more: clamp || blocks.length > count };
 }
 
-/** The physical tadabbur journal's three questions. */
-export interface Draft {
-  lessons: string;
-  stirs: string;
-  action: string;
-}
-
-export const EMPTY_DRAFT: Draft = Object.freeze({
-  action: "",
-  lessons: "",
-  stirs: "",
-});
-
-export function hasText(d: Draft | undefined): boolean {
-  return (
-    !!d &&
-    (d.lessons.trim().length > 0 ||
-      d.stirs.trim().length > 0 ||
-      d.action.trim().length > 0)
-  );
-}
-
 /** The journal entry a draft becomes (same prompt/body/context as web), or
  *  null when there is nothing to save. */
 export function composeReflection(
   verseKey: string,
-  d: Draft
+  d: ReflectionDraft
 ): {
   prompt: string;
   body: string;
   context: { kind: "tadabbur"; ref: string };
 } | null {
-  if (!hasText(d)) {
+  if (!hasReflection(d)) {
     return null;
   }
   return {
-    body: formatTadabburBody({
-      action: d.action,
-      lessons: d.lessons,
-      reflection: d.stirs,
-    }),
+    body: reflectionBody(d),
     context: { kind: "tadabbur", ref: verseKey },
     prompt: `Tadabbur on ${verseKey}`,
   };
@@ -170,13 +141,16 @@ export function commentaryToggleLabel(
     : `Read the commentary (with verse ${covering})`;
 }
 
-/** The three questions, asked one at a time. */
-export const QUESTIONS: readonly { key: keyof Draft; label: string }[] =
-  Object.freeze([
-    { key: "lessons", label: "What does it teach?" },
-    { key: "stirs", label: "What stays with you?" },
-    { key: "action", label: "What will you do?" },
-  ]);
+/** The four questions (web's SurahTadabbur), asked one at a time. Copy and
+ *  the feelings list live in core so web and Android match. */
+export const QUESTIONS = Object.freeze([
+  { key: "feeling", label: PROMPTS.feeling },
+  { key: "reminder", label: PROMPTS.reminder },
+  { key: "takeaway", label: PROMPTS.takeaway },
+  { key: "research", label: PROMPTS.research },
+] as const);
+
+export type QuestionKey = (typeof QUESTIONS)[number]["key"];
 
 /** Accessible label for the step diamonds. */
 export function questionStepLabel(step: number): string {
@@ -185,7 +159,9 @@ export function questionStepLabel(step: number): string {
 
 // Drafts persist per surah, so nothing typed is ever lost (reload, app kill,
 // leaving the screen). Same key on web and mobile; on native localStorage is
-// the MMKV shim. Stored as { [verseKey]: Draft }, empty drafts dropped.
+// the MMKV shim. Stored as { [verseKey]: ReflectionDraft }, empty drafts
+// dropped. Old drafts ({ lessons, stirs, action }) are read through
+// migrateDraft, so a half-written reflection resumes in the new questions.
 
 export const TADABBUR_DRAFTS_PREFIX = "mindfulverse.tadabburDrafts.v1:";
 
@@ -207,10 +183,10 @@ function defaultStore(): DraftStore | null {
   }
 }
 
-/** Parse a stored drafts map, keeping only well-formed drafts with text. */
+/** Parse a stored drafts map, keeping only drafts with something in them. */
 export function parseTadabburDrafts(
   raw: string | null | undefined
-): Record<string, Draft> {
+): Record<string, ReflectionDraft> {
   if (!raw) {
     return {};
   }
@@ -223,18 +199,10 @@ export function parseTadabburDrafts(
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     return {};
   }
-  const out: Record<string, Draft> = {};
+  const out: Record<string, ReflectionDraft> = {};
   for (const [verseKey, v] of Object.entries(data as Record<string, unknown>)) {
-    if (!v || typeof v !== "object") {
-      continue;
-    }
-    const o = v as Record<string, unknown>;
-    const d: Draft = {
-      action: typeof o.action === "string" ? o.action : "",
-      lessons: typeof o.lessons === "string" ? o.lessons : "",
-      stirs: typeof o.stirs === "string" ? o.stirs : "",
-    };
-    if (hasText(d)) {
+    const d = migrateDraft(v);
+    if (hasReflection(d)) {
       out[verseKey] = d;
     }
   }
@@ -245,7 +213,7 @@ export function parseTadabburDrafts(
 export function loadTadabburDrafts(
   surah: number,
   store: DraftStore | null = defaultStore()
-): Record<string, Draft> {
+): Record<string, ReflectionDraft> {
   if (!store) {
     return {};
   }
@@ -261,7 +229,7 @@ export function loadTadabburDrafts(
 export function saveTadabburDraft(
   surah: number,
   verseKey: string,
-  draft: Draft,
+  draft: ReflectionDraft,
   store: DraftStore | null = defaultStore()
 ): void {
   if (!store) {
@@ -269,12 +237,8 @@ export function saveTadabburDraft(
   }
   try {
     const all = loadTadabburDrafts(surah, store);
-    if (hasText(draft)) {
-      all[verseKey] = {
-        action: draft.action,
-        lessons: draft.lessons,
-        stirs: draft.stirs,
-      };
+    if (hasReflection(draft)) {
+      all[verseKey] = { ...draft, feelings: [...draft.feelings] };
     } else {
       // oxlint-disable-next-line typescript/no-dynamic-delete -- removing one verse draft by key
       delete all[verseKey];
