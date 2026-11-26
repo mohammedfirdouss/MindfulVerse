@@ -1,11 +1,12 @@
 import { loadSurahAyahs, loadSurahs } from "@mindfulverse/core/data";
 import { getEntries } from "@mindfulverse/core/journal";
-import { surahJournal } from "@mindfulverse/core/surahJournal";
+import { surahJournal, toLookInto } from "@mindfulverse/core/surahJournal";
 import { onSyncStatus } from "@mindfulverse/core/sync/engine";
 import type { Ayah } from "@mindfulverse/core/types";
 // One surah's journal (web: pages/SurahJournal.tsx): the current intention,
-// each verse written on in verse order with its translation and entries, then
-// check-ins on the surah. Save as PDF prints it and opens the share sheet.
+// every "To look into" note (newest first, each opening its verse), each verse
+// written on in verse order with its translation and entries, then check-ins
+// on the surah. Save as PDF prints it and opens the share sheet.
 import {
   router,
   Stack,
@@ -18,6 +19,7 @@ import { Share, View } from "react-native";
 import {
   AlsoItem,
   IntentionQuote,
+  LookIntoItem,
   VerseItem,
 } from "../../../src/components/SurahJournal/PageParts";
 import { buildSurahJournalHtml } from "../../../src/components/SurahJournal/pdfHtml";
@@ -135,6 +137,7 @@ function SurahJournalPage({ surah }: { surah: number | null }) {
   }
 
   const name = surahName ?? `Surah ${surah}`;
+  const research = toLookInto(page);
   const title = `${name} — my tadabbur`;
 
   async function exportPage(kind: "pdf" | "txt") {
@@ -229,6 +232,21 @@ function SurahJournalPage({ surah }: { surah: number | null }) {
                   My intention
                 </Text>
                 <IntentionQuote body={page.intention.body} />
+              </Card>
+            ) : null}
+
+            {research.length > 0 ? (
+              <Card>
+                <Text
+                  variant="h2"
+                  accessibilityRole="header"
+                  style={{ fontSize: 19.5, lineHeight: 26 }}
+                >
+                  To look into
+                </Text>
+                {research.map((r) => (
+                  <LookIntoItem key={r.entryId} note={r} surah={surah} />
+                ))}
               </Card>
             ) : null}
 
