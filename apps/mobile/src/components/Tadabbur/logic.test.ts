@@ -1,6 +1,5 @@
 import {
   EMPTY_REFLECTION,
-  FEELINGS,
   PROMPTS,
 } from "@mindfulverse/core/reflectionPrompts";
 import { describe, expect, it } from "vitest";
@@ -21,9 +20,7 @@ import {
   QUESTIONS,
   questionStepLabel,
   saveTadabburDraft,
-  stepAnswered,
   tadabburDraftKey,
-  toggleFeeling,
 } from "./logic";
 
 const EMPTY = EMPTY_REFLECTION;
@@ -108,39 +105,6 @@ describe("reflection drafts", () => {
     expect(
       composeReflection("2:255", { ...EMPTY, reminder: "  \n" })
     ).toBeNull();
-  });
-});
-
-describe(stepAnswered, () => {
-  it("counts a feeling or note on the first, either field on the third", () => {
-    expect(stepAnswered(EMPTY, 0)).toBeFalsy();
-    expect(stepAnswered({ ...EMPTY, feelings: ["Moved"] }, 0)).toBeTruthy();
-    expect(stepAnswered({ ...EMPTY, feelingNote: "x" }, 0)).toBeTruthy();
-    expect(stepAnswered({ ...EMPTY, reminder: " " }, 1)).toBeFalsy();
-    expect(stepAnswered({ ...EMPTY, reminder: "mum" }, 1)).toBeTruthy();
-    expect(stepAnswered({ ...EMPTY, action: "call" }, 2)).toBeTruthy();
-    expect(stepAnswered({ ...EMPTY, takeaway: "x" }, 2)).toBeTruthy();
-    expect(stepAnswered({ ...EMPTY, research: "x" }, 3)).toBeTruthy();
-    expect(stepAnswered({ ...EMPTY, takeaway: "x" }, 3)).toBeFalsy();
-  });
-});
-
-describe(toggleFeeling, () => {
-  it("adds in display order, removes, and stops at three", () => {
-    expect(toggleFeeling(["Moved"], "Peaceful")).toStrictEqual([
-      "Peaceful",
-      "Moved",
-    ]);
-    expect(toggleFeeling(["Peaceful", "Moved"], "Peaceful")).toStrictEqual([
-      "Moved",
-    ]);
-    const three = ["Peaceful", "Hopeful", "Grateful"];
-    expect(toggleFeeling(three, "Afraid")).toStrictEqual(three);
-    expect(toggleFeeling(three, "Hopeful")).toStrictEqual([
-      "Peaceful",
-      "Grateful",
-    ]);
-    expect(FEELINGS).toHaveLength(12);
   });
 });
 

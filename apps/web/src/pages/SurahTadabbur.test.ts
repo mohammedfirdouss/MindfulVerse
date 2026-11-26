@@ -6,7 +6,6 @@ import {
   parseTadabburDrafts,
   saveTadabburDraft,
   tadabburDraftKey,
-  toggleFeeling,
 } from "./SurahTadabbur";
 
 function memStore() {
@@ -88,23 +87,5 @@ describe("tadabbur drafts (web)", () => {
     };
     expect(loadTadabburDrafts(1, bad)).toStrictEqual({});
     expect(() => saveTadabburDraft(1, "1:1", d, bad)).not.toThrow();
-  });
-});
-
-describe(toggleFeeling, () => {
-  it("adds in display order, removes, and stops at three", () => {
-    expect(toggleFeeling(["Moved"], "Peaceful")).toStrictEqual([
-      "Peaceful",
-      "Moved",
-    ]);
-    expect(toggleFeeling(["Peaceful", "Moved"], "Peaceful")).toStrictEqual([
-      "Moved",
-    ]);
-    const three = ["Peaceful", "Hopeful", "Grateful"];
-    expect(toggleFeeling(three, "Afraid")).toStrictEqual(three);
-    expect(toggleFeeling(three, "Hopeful")).toStrictEqual([
-      "Peaceful",
-      "Grateful",
-    ]);
   });
 });

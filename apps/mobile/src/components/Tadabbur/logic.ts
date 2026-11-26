@@ -1,9 +1,7 @@
 // Pure tadabbur logic, ported from web's pages/SurahTadabbur.tsx. No
 // react-native imports, so vitest runs it.
 import {
-  FEELINGS,
   hasReflection,
-  MAX_FEELINGS,
   migrateDraft,
   PROMPTS,
   reflectionBody,
@@ -157,36 +155,6 @@ export type QuestionKey = (typeof QUESTIONS)[number]["key"];
 /** Accessible label for the step diamonds. */
 export function questionStepLabel(step: number): string {
   return `Question ${step + 1} of ${QUESTIONS.length}`;
-}
-
-/** Whether the question at `step` has anything in it yet (Next vs Skip). */
-export function stepAnswered(d: ReflectionDraft, step: number): boolean {
-  switch (QUESTIONS[step]?.key) {
-    case "feeling": {
-      return d.feelings.length > 0 || d.feelingNote.trim() !== "";
-    }
-    case "reminder": {
-      return d.reminder.trim() !== "";
-    }
-    case "takeaway": {
-      return d.takeaway.trim() !== "" || d.action.trim() !== "";
-    }
-    default: {
-      return d.research.trim() !== "";
-    }
-  }
-}
-
-/** Toggle one feeling, never past MAX_FEELINGS, kept in display order. */
-export function toggleFeeling(feelings: string[], word: string): string[] {
-  if (feelings.includes(word)) {
-    return feelings.filter((f) => f !== word);
-  }
-  if (feelings.length >= MAX_FEELINGS) {
-    return feelings;
-  }
-  const next = new Set([...feelings, word]);
-  return FEELINGS.filter((f) => next.has(f));
 }
 
 // Drafts persist per surah, so nothing typed is ever lost (reload, app kill,

@@ -21,12 +21,15 @@ import {
 import {
   EMPTY_REFLECTION,
   FEELINGS,
+  firstAnsweredStep,
   hasReflection,
   MAX_FEELINGS,
   migrateDraft,
   PROMPT_INTRO,
   PROMPTS,
   reflectionBody,
+  stepAnswered,
+  toggleFeeling,
 } from "@mindfulverse/core/reflectionPrompts";
 import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
 import { INTRO_CREDIT, introBlocks } from "@mindfulverse/core/surahIntro";
@@ -252,36 +255,6 @@ function VerseCommentary({
 // conversation. Copy and the feelings list live in core so Android matches.
 
 const STEP_COUNT = 4;
-
-/** Whether the question at `step` has anything in it yet (Next vs Skip). */
-function stepAnswered(d: ReflectionDraft, step: number): boolean {
-  switch (step) {
-    case 0: {
-      return d.feelings.length > 0 || d.feelingNote.trim() !== "";
-    }
-    case 1: {
-      return d.reminder.trim() !== "";
-    }
-    case 2: {
-      return d.takeaway.trim() !== "" || d.action.trim() !== "";
-    }
-    default: {
-      return d.research.trim() !== "";
-    }
-  }
-}
-
-/** Toggle one feeling, never past MAX_FEELINGS, kept in display order. */
-export function toggleFeeling(feelings: string[], word: string): string[] {
-  if (feelings.includes(word)) {
-    return feelings.filter((f) => f !== word);
-  }
-  if (feelings.length >= MAX_FEELINGS) {
-    return feelings;
-  }
-  const next = new Set([...feelings, word]);
-  return FEELINGS.filter((f) => next.has(f));
-}
 
 // Drafts persist per surah on every change, so nothing typed is ever lost
 // (reload, closing the tab, leaving the page). Same key as mobile. Stored as
@@ -520,7 +493,7 @@ function ReflectionArea({
 }) {
   const [kept, setKept] = useState(false);
   const [cloudOptIn, setCloudOptInState] = useState(getCloudOptIn);
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => firstAnsweredStep(draft));
   const questionRef = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
 

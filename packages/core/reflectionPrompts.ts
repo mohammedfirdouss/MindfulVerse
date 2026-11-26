@@ -79,6 +79,53 @@ export function hasReflection(d: ReflectionDraft): boolean {
   );
 }
 
+// The reflection is asked as four steps, in this order: feeling, reminder,
+// takeaway (with the optional action), research.
+const STEP_COUNT = 4;
+
+/** Whether the question at `step` has anything in it yet (Next vs Skip). */
+export function stepAnswered(d: ReflectionDraft, step: number): boolean {
+  switch (step) {
+    case 0: {
+      return d.feelings.length > 0 || d.feelingNote.trim() !== "";
+    }
+    case 1: {
+      return d.reminder.trim() !== "";
+    }
+    case 2: {
+      return d.takeaway.trim() !== "" || d.action.trim() !== "";
+    }
+    default: {
+      return d.research.trim() !== "";
+    }
+  }
+}
+
+/**
+ * The step a draft reopens on: the first answered one, or 0 when nothing is
+ * answered. An old migrated draft has no feeling, so it opens on its reminder.
+ */
+export function firstAnsweredStep(d: ReflectionDraft): number {
+  for (let step = 0; step < STEP_COUNT; step += 1) {
+    if (stepAnswered(d, step)) {
+      return step;
+    }
+  }
+  return 0;
+}
+
+/** Toggle one feeling, never past MAX_FEELINGS, kept in display order. */
+export function toggleFeeling(feelings: string[], word: string): string[] {
+  if (feelings.includes(word)) {
+    return feelings.filter((f) => f !== word);
+  }
+  if (feelings.length >= MAX_FEELINGS) {
+    return feelings;
+  }
+  const next = new Set([...feelings, word]);
+  return FEELINGS.filter((f) => next.has(f));
+}
+
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
 
 /**

@@ -5,12 +5,15 @@ import type { FollowUpState } from "./followUps";
 import {
   EMPTY_REFLECTION,
   FEELINGS,
+  firstAnsweredStep,
   MAX_FEELINGS,
   PROMPT_INTRO,
   PROMPTS,
   hasReflection,
   migrateDraft,
   reflectionBody,
+  stepAnswered,
+  toggleFeeling,
 } from "./reflectionPrompts";
 import { parseTadabburBody } from "./tadabburBody";
 import type { JournalEntry } from "./types";
@@ -174,5 +177,56 @@ describe(reflectionBody, () => {
     } as JournalEntry;
     const state: FollowUpState = { lastActedDay: null, skipped: {} };
     expect(dueFollowUp([entry], now, state)?.action).toBe("call mum");
+  });
+});
+
+const EMPTY = EMPTY_REFLECTION;
+
+describe(stepAnswered, () => {
+  it("counts a feeling or note on the first, either field on the third", () => {
+    expect(stepAnswered(EMPTY, 0)).toBeFalsy();
+    expect(stepAnswered({ ...EMPTY, feelings: ["Moved"] }, 0)).toBeTruthy();
+    expect(stepAnswered({ ...EMPTY, feelingNote: "x" }, 0)).toBeTruthy();
+    expect(stepAnswered({ ...EMPTY, reminder: " " }, 1)).toBeFalsy();
+    expect(stepAnswered({ ...EMPTY, reminder: "mum" }, 1)).toBeTruthy();
+    expect(stepAnswered({ ...EMPTY, action: "call" }, 2)).toBeTruthy();
+    expect(stepAnswered({ ...EMPTY, takeaway: "x" }, 2)).toBeTruthy();
+    expect(stepAnswered({ ...EMPTY, research: "x" }, 3)).toBeTruthy();
+    expect(stepAnswered({ ...EMPTY, takeaway: "x" }, 3)).toBeFalsy();
+  });
+});
+
+describe(firstAnsweredStep, () => {
+  it("opens an empty draft on the first question", () => {
+    expect(firstAnsweredStep(EMPTY)).toBe(0);
+  });
+
+  it("opens an old migrated draft on its reminder", () => {
+    const old = migrateDraft({ action: "c", lessons: "a", stirs: "b" });
+    expect(firstAnsweredStep(old)).toBe(1);
+  });
+
+  it("opens on the earliest answered question", () => {
+    expect(firstAnsweredStep({ ...EMPTY, feelings: ["Moved"] })).toBe(0);
+    expect(firstAnsweredStep({ ...EMPTY, action: "call" })).toBe(2);
+    expect(firstAnsweredStep({ ...EMPTY, research: "x" })).toBe(3);
+  });
+});
+
+describe(toggleFeeling, () => {
+  it("adds in display order, removes, and stops at three", () => {
+    expect(toggleFeeling(["Moved"], "Peaceful")).toStrictEqual([
+      "Peaceful",
+      "Moved",
+    ]);
+    expect(toggleFeeling(["Peaceful", "Moved"], "Peaceful")).toStrictEqual([
+      "Moved",
+    ]);
+    const three = ["Peaceful", "Hopeful", "Grateful"];
+    expect(toggleFeeling(three, "Afraid")).toStrictEqual(three);
+    expect(toggleFeeling(three, "Hopeful")).toStrictEqual([
+      "Peaceful",
+      "Grateful",
+    ]);
   });
 });

@@ -18,10 +18,13 @@ import { addEntry } from "@mindfulverse/core/journal";
 import {
   EMPTY_REFLECTION,
   FEELINGS,
+  firstAnsweredStep,
   hasReflection,
   MAX_FEELINGS,
   PROMPT_INTRO,
   PROMPTS,
+  stepAnswered,
+  toggleFeeling,
 } from "@mindfulverse/core/reflectionPrompts";
 import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
 import { memo, useEffect, useRef, useState } from "react";
@@ -33,13 +36,7 @@ import { tapSuccess, tickSelection } from "../../platform/haptics";
 import { fonts, radius, space, useTheme } from "../../theme";
 import { Button, DyeRule, Text } from "../../ui";
 import { useReducedMotion } from "../../ui/FadeRise";
-import {
-  composeReflection,
-  QUESTIONS,
-  questionStepLabel,
-  stepAnswered,
-  toggleFeeling,
-} from "./logic";
+import { composeReflection, QUESTIONS, questionStepLabel } from "./logic";
 
 type Edit = (patch: Partial<ReflectionDraft>) => void;
 
@@ -400,7 +397,7 @@ export const ReflectionArea = memo(
   }) => {
     const [draft, setDraft] = useState<ReflectionDraft>(initial);
     const [status, setStatus] = useState<"idle" | "kept" | "failed">("idle");
-    const [step, setStep] = useState(0);
+    const [step, setStep] = useState(() => firstAnsweredStep(initial));
     const [cloudOptIn, setCloudOptInState] = useState(getCloudOptIn);
     const input = useRef<TextInputInstance | null>(null);
     const moved = useRef(false);
