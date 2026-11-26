@@ -23,6 +23,7 @@ import {
   reflectionBody,
 } from "@mindfulverse/core/reflectionPrompts";
 import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
+import { INTRO_CREDIT, introBlocks } from "@mindfulverse/core/surahIntro";
 import { surahJournal } from "@mindfulverse/core/surahJournal";
 import { TAFSIR_CREDIT } from "@mindfulverse/core/tafsirCredit";
 import type {
@@ -92,37 +93,38 @@ function useMounted(resetKey: unknown): boolean {
 
 // Shared bits
 
-// The surah's background text, shown first (per user feedback). Long infos are
-// trimmed to the opening paragraphs with a "Read more" expander.
+// The surah's background text (Maududi's introduction), shown first, with why
+// it was revealed leading when the text has a background section. Long infos
+// are trimmed to the opening section with a "Read more" expander.
 
 const ABOUT_COLLAPSED_PARAGRAPHS = 5;
 const ABOUT_EXCERPT_CHARS = 200;
 
 function InfoText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
-  const paragraphs = text
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
-  const isHeading = (p: string) => p.length < 60 && !p.includes(".");
-  // Collapsed: the first section only (leading subheadings + one paragraph).
+  const blocks = useMemo(() => introBlocks(text), [text]);
+  // Collapsed: the first section only (leading headings + one paragraph).
   let first = 0;
-  while (first < paragraphs.length && isHeading(paragraphs[first])) {
+  while (first < blocks.length && blocks[first].kind === "heading") {
     first += 1;
   }
-  const excerpt = Math.min(paragraphs.length, first + 1);
+  const excerpt = Math.min(blocks.length, first + 1);
   const shown = expanded
-    ? paragraphs
-    : paragraphs.slice(0, Math.min(excerpt, ABOUT_COLLAPSED_PARAGRAPHS));
+    ? blocks
+    : blocks.slice(0, Math.min(excerpt, ABOUT_COLLAPSED_PARAGRAPHS));
   const more =
-    paragraphs.length > excerpt ||
-    (paragraphs[excerpt - 1]?.length ?? 0) > ABOUT_EXCERPT_CHARS;
+    blocks.length > excerpt ||
+    (blocks[excerpt - 1]?.text.length ?? 0) > ABOUT_EXCERPT_CHARS;
 
   return (
     <div className="stack">
       <div className={`tafsir${expanded ? "" : " tad-about-clamp"}`}>
-        {shown.map((p, i) =>
-          isHeading(p) ? <h3 key={i}>{p}</h3> : <p key={i}>{p}</p>
+        {shown.map((b, i) =>
+          b.kind === "heading" ? (
+            <h3 key={i}>{b.text}</h3>
+          ) : (
+            <p key={i}>{b.text}</p>
+          )
         )}
       </div>
       {more && (
@@ -137,6 +139,9 @@ function InfoText({ text }: { text: string }) {
           </button>
         </div>
       )}
+      <p className="muted" style={{ fontSize: "0.8rem", margin: 0 }}>
+        {INTRO_CREDIT}
+      </p>
     </div>
   );
 }

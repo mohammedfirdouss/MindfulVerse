@@ -9,8 +9,8 @@ import {
   reflectionBody,
 } from "@mindfulverse/core/reflectionPrompts";
 import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
-
-import { splitParagraphs } from "../../text";
+import { introBlocks } from "@mindfulverse/core/surahIntro";
+import type { IntroBlock } from "@mindfulverse/core/surahIntro";
 
 /** Ibn Kathir comments on passages: a run of ayahs stores its commentary under
  *  the first ayah of the group. Find the entry covering this ayah.
@@ -33,27 +33,18 @@ export function coveringFromIndex(
 /** The surah's "About" text opens trimmed to this many paragraphs. */
 export const ABOUT_COLLAPSED_PARAGRAPHS = 5;
 
-export interface InfoBlock {
-  kind: "heading" | "paragraph";
-  text: string;
-}
+export type InfoBlock = IntroBlock;
 
-/** Web's InfoText: a short line without a full stop is a subheading. */
+/** The introduction's blocks (core's `introBlocks`: why it was revealed first
+ *  when there is a background section; a short line without a full stop is a
+ *  subheading, as on web). */
 export function infoBlocks(
   text: string,
   expanded: boolean
 ): { blocks: InfoBlock[]; truncated: boolean } {
-  const paragraphs = splitParagraphs(text);
-  const shown = expanded
-    ? paragraphs
-    : paragraphs.slice(0, ABOUT_COLLAPSED_PARAGRAPHS);
-  return {
-    blocks: shown.map((p) => ({
-      kind: p.length < 60 && !p.includes(".") ? "heading" : "paragraph",
-      text: p,
-    })),
-    truncated: paragraphs.length > shown.length,
-  };
+  const all = introBlocks(text);
+  const blocks = expanded ? all : all.slice(0, ABOUT_COLLAPSED_PARAGRAPHS);
+  return { blocks, truncated: all.length > blocks.length };
 }
 
 /** The collapsed "About this surah": its first section only (an opening
