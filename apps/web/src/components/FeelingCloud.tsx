@@ -5,7 +5,7 @@ import {
   fetchFeelingCloud,
 } from "@mindfulverse/core/feelingCloud";
 import type { FeelingCloud as Cloud } from "@mindfulverse/core/feelingCloud";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "./feeling-cloud.css";
 
@@ -18,6 +18,15 @@ type View = "closed" | "loading" | Cloud;
  *  feelings cloud. Too-few and offline are calm notes, never errors. */
 export default function FeelingCloud({ surah }: { surah: number }) {
   const [view, setView] = useState<View>("closed");
+  const titleRef = useRef<HTMLParagraphElement>(null);
+  const opened = view !== "closed";
+
+  // The reveal button unmounts on tap: carry focus to the card's heading.
+  useEffect(() => {
+    if (opened) {
+      titleRef.current?.focus();
+    }
+  }, [opened]);
 
   async function load() {
     setView("loading");
@@ -38,7 +47,13 @@ export default function FeelingCloud({ surah }: { surah: number }) {
 
   return (
     <section className="fc" aria-labelledby="fc-title" aria-live="polite">
-      <p id="fc-title" className="eyebrow" style={{ margin: 0 }}>
+      <p
+        id="fc-title"
+        ref={titleRef}
+        tabIndex={-1}
+        className="eyebrow fc-title"
+        style={{ margin: 0 }}
+      >
         {CLOUD_COPY.title}
       </p>
       {view === "loading" && <p className="muted fc-note">Loading…</p>}

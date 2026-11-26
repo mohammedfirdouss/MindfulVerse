@@ -38,3 +38,10 @@
 .fc-words li:nth-child(even) {
   color: var(--indigo);
 }
+.fc-title:focus {
+  outline: none;
+}
+.fc-title:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}

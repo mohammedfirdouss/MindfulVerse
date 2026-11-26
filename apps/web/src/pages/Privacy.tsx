@@ -130,10 +130,12 @@ export default function Privacy() {
 
       <h2>Children</h2>
       <p>
-        Children can use MindfulVerse without an account; nothing about them
-        leaves the device. Accounts are for people 13 and over, or with a
-        parent’s permission. If you think a child under 13 has made an account
-        without one, write to us and we will delete it.
+        Children can use MindfulVerse without an account. Nothing that says who
+        they are leaves the device: only the anonymous counts above are sent,
+        and their feeling words only if the cloud box is ticked. Accounts are
+        for people 13 and over, or with a parent’s permission. If you think a
+        child under 13 has made an account without one, write to us and we will
+        delete it.
       </p>
 
       <h2>Questions</h2>

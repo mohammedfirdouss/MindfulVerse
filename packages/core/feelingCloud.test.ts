@@ -132,6 +132,40 @@ describe(fetchFeelingCloud, () => {
   });
 });
 
+describe("fetchFeelingCloud timeout", () => {
+  it("is offline when the request hangs past the timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      const hung = vi.fn(
+        () => new Promise<{ data: unknown; error: unknown }>(() => {})
+      );
+      const result = fetchFeelingCloud(112, hung);
+      await vi.advanceTimersByTimeAsync(7999);
+      let settled = false;
+      void result.then(() => {
+        settled = true;
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(settled).toBeFalsy();
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(result).resolves.toBe("offline");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("uses a custom timeout and clears it on a quick answer", async () => {
+    vi.useFakeTimers();
+    try {
+      const quick = vi.fn(async () => ({ data: [], error: null }));
+      await expect(fetchFeelingCloud(1, quick, 50)).resolves.toBe("too-few");
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe(cloudFontSize, () => {
   const totals = [
     { feeling: "Peaceful", readers: 12 },

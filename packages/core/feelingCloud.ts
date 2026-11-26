@@ -9,6 +9,7 @@ import { insforge } from "./sync/insforge";
 
 export const CLOUD_OPT_IN_KEY = "mindfulverse.feelingCloud.v1";
 export const CLOUD_MIN_READERS = 10;
+export const CLOUD_TIMEOUT_MS = 8000;
 const SURAH_COUNT = 114;
 
 export const CLOUD_COPY = {
@@ -146,25 +147,40 @@ function toTotals(data: unknown): FeelingTotal[] {
 
 /**
  * The surah's feelings cloud: totals in FEELINGS order, "too-few" while fewer
- * than 10 readers have shared, or "offline" on a network or server error.
+ * than 10 readers have shared, or "offline" on a network or server error or
+ * when no answer comes within `timeoutMs`.
  * Never rejects.
  */
 export async function fetchFeelingCloud(
   surah: number,
-  fetchCloud: FetchFeelingCloud = fetchFromInsforge
+  fetchCloud: FetchFeelingCloud = fetchFromInsforge,
+  timeoutMs: number = CLOUD_TIMEOUT_MS
 ): Promise<FeelingCloud> {
   if (!isSurah(surah)) {
     return "too-few";
   }
-  try {
-    const { data, error } = await fetchCloud(surah);
-    if (error || !Array.isArray(data)) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  // A hung request reads as offline, so the screen offers Try again instead
+  // of loading forever.
+  const timedOut = new Promise<"offline">((resolve) => {
+    timer = setTimeout(() => resolve("offline"), timeoutMs);
+  });
+  const load = async (): Promise<FeelingCloud> => {
+    try {
+      const { data, error } = await fetchCloud(surah);
+      if (error || !Array.isArray(data)) {
+        return "offline";
+      }
+      const totals = toTotals(data);
+      return totals.length > 0 ? totals : "too-few";
+    } catch {
       return "offline";
     }
-    const totals = toTotals(data);
-    return totals.length > 0 ? totals : "too-few";
-  } catch {
-    return "offline";
+  };
+  try {
+    return await Promise.race([load(), timedOut]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
