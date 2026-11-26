@@ -1,4 +1,8 @@
 export interface TadabburParts {
+  feeling?: string;
+  reminder?: string;
+  takeaway?: string;
+  research?: string;
   lessons?: string;
   reflection?: string;
   action?: string;
@@ -8,17 +12,25 @@ export interface TadabburParts {
 export const TADABBUR_LABELS = {
   action: "Action",
   connections: "Connections",
+  feeling: "Feeling",
   lessons: "Lessons",
   reflection: "Reflection",
+  reminder: "Reminded me of",
+  research: "To look into",
+  takeaway: "Takeaway",
 } as const;
 
 type PartKey = keyof typeof TADABBUR_LABELS;
 
 // Order the parts are written in a body.
 const PART_ORDER: readonly PartKey[] = [
+  "feeling",
+  "reminder",
+  "takeaway",
   "lessons",
   "reflection",
   "action",
+  "research",
   "connections",
 ];
 

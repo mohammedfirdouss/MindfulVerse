@@ -4,6 +4,7 @@ import {
   formatSessionBody,
   formatTadabburBody,
   parseTadabburBody,
+  TADABBUR_LABELS,
 } from "./tadabburBody";
 
 describe("tadabbur body", () => {
@@ -53,6 +54,40 @@ describe("tadabbur body", () => {
     expect(formatTadabburBody({ action: "x", lessons: "  " })).toBe(
       "Action: x"
     );
+  });
+});
+
+describe("new labels", () => {
+  it("round-trips all new parts", () => {
+    const parts = {
+      action: "e",
+      feeling: "a",
+      reminder: "b",
+      research: "f",
+      takeaway: "c",
+    };
+    expect(parseTadabburBody(formatTadabburBody(parts))).toStrictEqual(parts);
+  });
+
+  it("still parses an old body", () => {
+    expect(
+      parseTadabburBody(
+        "Lessons: l\n\nReflection: r\n\nAction: a\n\nConnections: c"
+      )
+    ).toStrictEqual({
+      action: "a",
+      connections: "c",
+      lessons: "l",
+      reflection: "r",
+    });
+  });
+
+  it("has no label that is a prefix of another", () => {
+    const labels = Object.values(TADABBUR_LABELS).map((l) => `${l}: `);
+    const clashes = labels.flatMap((a) =>
+      labels.filter((b) => a !== b && b.startsWith(a))
+    );
+    expect(clashes).toStrictEqual([]);
   });
 });
 

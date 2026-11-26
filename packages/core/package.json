@@ -27,6 +27,7 @@
     "./qr": "./qr.ts",
     "./sessionDraft": "./sessionDraft.ts",
     "./readingPrefs": "./readingPrefs.ts",
+    "./reflectionPrompts": "./reflectionPrompts.ts",
     "./relatedVerses": "./relatedVerses.ts",
     "./rhythm": "./rhythm.ts",
     "./shareText": "./shareText.ts",
