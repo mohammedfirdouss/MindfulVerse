@@ -30,6 +30,8 @@ const WHY_SOURCES = new Set([
   "background",
   "occasion of revelation",
   "historical and geographical background",
+  "background of revelation",
+  "when and why revealed?",
 ]);
 const WHEN_SOURCES = new Set([
   "period of revelation",
@@ -85,14 +87,23 @@ function sourceSections(text: string): IntroSection[] {
     .filter(Boolean);
   const sections: IntroSection[] = [];
   let current: IntroSection | null = null;
+  let why: IntroSection | null = null;
   for (const p of paragraphs) {
     const heading = isIntroHeading(p);
     const keepInBackground =
       heading && current?.kind === "why" && !endsBackground(p);
-    if (heading && !keepInBackground) {
-      const kind = kindOf(p);
+    const kind = heading ? kindOf(p) : "other";
+    if (heading && !keepInBackground && kind === "why" && why) {
+      // A second background section (Yusuf has two) joins the first under
+      // its own heading as a subheading, so "Why it was revealed" shows once.
+      why.paragraphs.push(p);
+      current = why;
+    } else if (heading && !keepInBackground) {
       current = { heading: displayHeading(p, kind), kind, paragraphs: [] };
       sections.push(current);
+      if (kind === "why") {
+        why = current;
+      }
     } else if (current) {
       current.paragraphs.push(p);
     } else {
@@ -103,8 +114,9 @@ function sourceSections(text: string): IntroSection[] {
   return sections;
 }
 
-/** The introduction as sections: why it was revealed first (when the text has
- *  a background section), then every other section in source order. */
+/** The introduction as sections: why it was revealed first (one section, when
+ *  the text has a background section), then every other section in source
+ *  order. */
 export function introSections(text: string): IntroSection[] {
   const sections = sourceSections(text);
   return [

@@ -60,13 +60,44 @@ describe(introSections, () => {
 
   it("maps the other why and when spellings", () => {
     expect(introSections(info(3))[0].kind).toBe("why"); // Background
-    expect(introSections(info(12))[0].kind).toBe("why"); // Historical and Geographical
     expect(
       introSections(info(10)).find((s) => s.kind === "when")?.heading
     ).toBe(WHEN); // Time of Revelation
     expect(introSections(info(8)).find((s) => s.kind === "when")?.heading).toBe(
       WHEN
     ); // The Period of Revelation
+  });
+
+  it("leads Yusuf (12) with one why section holding both backgrounds", () => {
+    const sections = introSections(info(12));
+    expect(sections[0]).toMatchObject({ heading: WHY, kind: "why" });
+    expect(sections.filter((s) => s.heading === WHY)).toHaveLength(1);
+    expect(sections[0].paragraphs).toContain(
+      "Historical and Geographical Background"
+    );
+    expect(sections.map((s) => s.heading)).toStrictEqual([
+      WHY,
+      "Topics of Discussion",
+    ]);
+  });
+
+  it("leads Al-Ghafir (40) with why from Background of Revelation", () => {
+    const sections = introSections(info(40));
+    expect(sections[0]).toMatchObject({ heading: WHY, kind: "why" });
+    expect(sections.map((s) => s.heading)).toStrictEqual([
+      WHY,
+      "Name",
+      WHEN,
+      "Theme and Topics",
+    ]);
+  });
+
+  it("gives Al-Alaq (96) no why for a partial occasion heading", () => {
+    const sections = introSections(info(96));
+    expect(sections.some((s) => s.kind === "why")).toBeFalsy();
+    expect(sections.map((s) => s.heading)).toContain(
+      "Occasion of Revelation of verses 6-19"
+    );
   });
 
   it("keeps a why section's own sub-sections with it", () => {
