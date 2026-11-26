@@ -55,6 +55,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ActionLink } from "../../src/components/Reader/ActionLink";
 import { TitlePlate } from "../../src/components/Reader/TitlePlate";
+import { FeelingCloud } from "../../src/components/Tadabbur/FeelingCloud";
 import { InfoText } from "../../src/components/Tadabbur/InfoText";
 import {
   currentIntention,
@@ -495,6 +496,9 @@ function TadabburPage() {
           />
           <Button kind="secondary" title="Done" onPress={leave} />
         </FadeRise>
+        <FadeRise reduce={reduce} delay={90}>
+          <FeelingCloud surah={n} />
+        </FadeRise>
       </>
     );
   }
@@ -578,6 +582,7 @@ function TadabburPage() {
         <ReflectionArea
           key={`r-${a.verseKey}`}
           verseKey={a.verseKey}
+          surah={n}
           name={name}
           initial={drafts.current?.[a.verseKey] ?? EMPTY_REFLECTION}
           onDraft={onDraft}

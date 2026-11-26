@@ -8,6 +8,12 @@ import { track } from "@mindfulverse/core/analytics";
 // Keystrokes: the inputs are controlled by state that lives HERE, so a parent
 // re-render can never reset what is being typed. The parent passes `initial`
 // once, and the component is keyed by verse.
+import {
+  CLOUD_COPY,
+  getCloudOptIn,
+  setCloudOptIn,
+  shareFeelings,
+} from "@mindfulverse/core/feelingCloud";
 import { addEntry } from "@mindfulverse/core/journal";
 import {
   EMPTY_REFLECTION,
@@ -21,6 +27,7 @@ import type { ReflectionDraft } from "@mindfulverse/core/reflectionPrompts";
 import { memo, useEffect, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import type { TextInputInstance } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 import { tapSuccess, tickSelection } from "../../platform/haptics";
 import { fonts, radius, space, useTheme } from "../../theme";
@@ -211,6 +218,72 @@ function FeelingChips({ feelings, edit }: { feelings: string[]; edit: Edit }) {
   );
 }
 
+/** "Add my feelings to the anonymous cloud": a checkbox, off by default. */
+function CloudOptIn({
+  on,
+  onChange,
+}: {
+  on: boolean;
+  onChange: (on: boolean) => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ gap: 2 }}>
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: on }}
+        accessibilityHint={CLOUD_COPY.optInHelp}
+        onPress={() => {
+          tickSelection();
+          onChange(!on);
+        }}
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          gap: space.sm + 2,
+          minHeight: 44,
+        }}
+      >
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: on ? colors.indigo : colors.cottonRaised,
+            borderColor: on ? colors.indigo : colors.lineStrong,
+            borderRadius: radius.sm,
+            borderWidth: 1.5,
+            height: 22,
+            justifyContent: "center",
+            width: 22,
+          }}
+        >
+          {on ? (
+            <Svg width={14} height={14} viewBox="0 0 24 24">
+              <Path
+                d="M4 12.5 L9.5 18 L20 6.5"
+                fill="none"
+                stroke={colors.cotton}
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          ) : null}
+        </View>
+        <Text style={{ color: colors.inkSoft, flex: 1, fontSize: 15.5 }}>
+          {CLOUD_COPY.optIn}
+        </Text>
+      </Pressable>
+      <Text
+        variant="muted"
+        importantForAccessibility="no"
+        style={{ fontSize: 13.5, lineHeight: 19, paddingLeft: 32 }}
+      >
+        {CLOUD_COPY.optInHelp}
+      </Text>
+    </View>
+  );
+}
+
 /** The controls for one question. `inputRef` gets its main text box, so
  *  moving between questions can carry focus there. */
 function QuestionFields({
@@ -219,12 +292,16 @@ function QuestionFields({
   edit,
   inputRef,
   onFocusInput,
+  cloudOptIn,
+  onCloudOptIn,
 }: {
   step: number;
   draft: ReflectionDraft;
   edit: Edit;
   inputRef: { current: TextInputInstance | null };
   onFocusInput: (input: TextInputInstance) => void;
+  cloudOptIn: boolean;
+  onCloudOptIn: (on: boolean) => void;
 }) {
   const key = QUESTIONS[step].key;
   const id = `tadabbur-${key}`;
@@ -236,6 +313,7 @@ function QuestionFields({
           Pick up to three.
         </Text>
         <FeelingChips feelings={draft.feelings} edit={edit} />
+        <CloudOptIn on={cloudOptIn} onChange={onCloudOptIn} />
         <Field
           value={draft.feelingNote}
           onChange={(feelingNote) => edit({ feelingNote })}
@@ -306,12 +384,14 @@ function QuestionFields({
 export const ReflectionArea = memo(
   ({
     verseKey,
+    surah,
     name,
     initial,
     onDraft,
     onFocusInput,
   }: {
     verseKey: string;
+    surah: number;
     name: string;
     initial: ReflectionDraft;
     onDraft: (verseKey: string, d: ReflectionDraft) => void;
@@ -321,6 +401,7 @@ export const ReflectionArea = memo(
     const [draft, setDraft] = useState<ReflectionDraft>(initial);
     const [status, setStatus] = useState<"idle" | "kept" | "failed">("idle");
     const [step, setStep] = useState(0);
+    const [cloudOptIn, setCloudOptInState] = useState(getCloudOptIn);
     const input = useRef<TextInputInstance | null>(null);
     const moved = useRef(false);
 
@@ -346,6 +427,11 @@ export const ReflectionArea = memo(
       onDraft(verseKey, next);
     }
 
+    function changeCloudOptIn(on: boolean) {
+      setCloudOptIn(on);
+      setCloudOptInState(on);
+    }
+
     function go(to: number) {
       moved.current = true;
       tickSelection();
@@ -367,6 +453,10 @@ export const ReflectionArea = memo(
         return;
       }
       track({ context: "tadabbur", type: "journal_save" });
+      if (cloudOptIn && draft.feelings.length > 0) {
+        // Fire and forget: the entry is already saved, sharing never blocks it.
+        void shareFeelings(surah, draft.feelings);
+      }
       setDraft(EMPTY_REFLECTION);
       onDraft(verseKey, EMPTY_REFLECTION);
       setStep(0);
@@ -395,6 +485,8 @@ export const ReflectionArea = memo(
             edit={edit}
             inputRef={input}
             onFocusInput={onFocusInput}
+            cloudOptIn={cloudOptIn}
+            onCloudOptIn={changeCloudOptIn}
           />
           <View
             style={{
