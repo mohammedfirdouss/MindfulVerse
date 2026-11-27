@@ -16,7 +16,7 @@ export default function Privacy() {
     <article className="stack privacy">
       <header>
         <h1>Privacy</h1>
-        <p className="soft">Last updated 26 November 2026</p>
+        <p className="soft">Last updated 27 November 2026</p>
       </header>
 
       <p>
@@ -29,7 +29,8 @@ export default function Privacy() {
       <p>
         You can use all of MindfulVerse without signing in. Your journal,
         progress, settings and the circles you joined are saved only on your
-        device. They do not leave it.
+        device. They do not leave it. If you describe a feeling in your own
+        words in Check-in, those words stay on your device and are not saved.
       </p>
       <p>A few small things are sent, and none of them says who you are:</p>
       <ul>

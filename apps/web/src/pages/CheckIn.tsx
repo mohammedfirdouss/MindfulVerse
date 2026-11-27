@@ -5,6 +5,11 @@ import {
   loadEmotions,
   loadSurahs,
 } from "@mindfulverse/core/data";
+import {
+  FEELING_TEXT_MAX,
+  FEELING_TEXT_MIN,
+  matchFeelings,
+} from "@mindfulverse/core/feelingMatch";
 import { addEntry, checkedInToday } from "@mindfulverse/core/journal";
 import { useAccount } from "@mindfulverse/core/sync/auth";
 import type { Ayah, EmotionEntry } from "@mindfulverse/core/types";
@@ -112,6 +117,9 @@ function AyahView({
 /** Verses shown for a feeling before "Show more". */
 const FIRST_VERSES = 3;
 
+/** Pause in typing before the suggestions update. */
+const MATCH_DEBOUNCE_MS = 250;
+
 export default function CheckIn() {
   // Shared with the Home hero — one verse of the day across the app.
   const [dailyKey, setDailyKey] = useState<string | null>(null);
@@ -195,6 +203,24 @@ export default function CheckIn() {
   // Only the latest emotion tap may fill the list — a slow earlier fetch must
   // not land under a newer framing.
   const emotionReq = useRef(0);
+
+  // A feeling in the reader's own words. It is matched on the device against
+  // the chips and never sent, saved or tracked; only a tapped chip's id is.
+  const [ownWords, setOwnWords] = useState("");
+  const [settledWords, setSettledWords] = useState("");
+  useEffect(() => {
+    const id = setTimeout(() => setSettledWords(ownWords), MATCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [ownWords]);
+  const suggestions = useMemo(() => {
+    const byId = new Map(emotions.map((e) => [e.id, e]));
+    return matchFeelings(settledWords, [...byId.keys()]).flatMap((m) => {
+      const entry = byId.get(m.id);
+      return entry ? [entry] : [];
+    });
+  }, [emotions, settledWords]);
+  const noMatch =
+    suggestions.length === 0 && settledWords.trim().length >= FEELING_TEXT_MIN;
 
   useEffect(() => {
     track({ type: "checkin_view" });
@@ -333,7 +359,7 @@ export default function CheckIn() {
         )}
       </header>
 
-      {/* The heart: one tap, no typing, and optional. Once the verse is open
+      {/* The heart: one tap, optional, with room to say it in other words. Once the verse is open
           the chips stay here, compact, so a feeling can always be changed.
           Kept in the app's quiet indigo voice. */}
       <section className="ci-feel" aria-labelledby="ci-heart-title">
@@ -362,6 +388,45 @@ export default function CheckIn() {
                 </button>
               );
             })}
+          </div>
+        )}
+        {emotions.length > 0 && (
+          <div className="ci-own">
+            <label htmlFor="ci-own-words" className="ci-own-label">
+              Or describe it in your own words
+            </label>
+            <input
+              id="ci-own-words"
+              type="text"
+              className="ci-own-input"
+              value={ownWords}
+              onChange={(e) => setOwnWords(e.target.value)}
+              maxLength={FEELING_TEXT_MAX}
+              placeholder="I feel…"
+              autoComplete="off"
+              enterKeyHint="done"
+            />
+            <div className="ci-own-results" aria-live="polite">
+              {suggestions.length > 0 ? (
+                <div className="ci-chips">
+                  {suggestions.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className="ci-chip ci-suggest"
+                      onClick={() => selectEmotion(entry)}
+                    >
+                      Sounds like: {entry.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              {noMatch ? (
+                <p className="muted ci-own-none">
+                  No close match. Pick the feeling that&rsquo;s nearest above.
+                </p>
+              ) : null}
+            </div>
           </div>
         )}
         {!atVerse && (
