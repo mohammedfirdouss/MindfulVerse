@@ -277,6 +277,47 @@
   }
 }
 
+/* A feeling in the reader's own words, matched on the device to a chip. */
+.ci-own-label {
+  display: block;
+  margin: 0 0 6px;
+  font-family: var(--font-read);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.ci-own-input {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 14px;
+  font-family: var(--font-read);
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--cotton-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  transition: border-color 0.15s ease;
+}
+.ci-own-input::placeholder {
+  color: var(--ink-faint);
+}
+.ci-own-input:focus {
+  outline: none;
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 1px var(--indigo);
+}
+.ci-own-results:not(:empty) {
+  margin-top: 10px;
+}
+.ci-own-none {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .ci-framed {
   margin-top: 28px;
   animation: ci-in 220ms var(--ease-out) both;

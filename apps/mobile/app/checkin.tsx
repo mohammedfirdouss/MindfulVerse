@@ -5,6 +5,11 @@ import {
   loadEmotions,
   loadSurahs,
 } from "@mindfulverse/core/data";
+import {
+  FEELING_TEXT_MAX,
+  FEELING_TEXT_MIN,
+  matchFeelings,
+} from "@mindfulverse/core/feelingMatch";
 import { addEntry, checkedInToday } from "@mindfulverse/core/journal";
 import { getSizeKey, scaleFor } from "@mindfulverse/core/readingPrefs";
 import { useAccount } from "@mindfulverse/core/sync/auth";
@@ -52,6 +57,9 @@ const VERSE_PROMPT = "What stays with you from this verse?";
 
 /** Verses shown for a feeling before "Show more". */
 const FIRST_VERSES = 3;
+
+/** Pause in typing before the suggestions update. */
+const MATCH_DEBOUNCE_MS = 250;
 
 export default function CheckIn() {
   const { colors } = useTheme();
@@ -119,6 +127,7 @@ export default function CheckIn() {
   const [journalBody, setJournalBody] = useState(readDraft);
   const [saved, setSaved] = useState(() => doneToday && !readDraft().trim());
   const [focused, setFocused] = useState(false);
+  const [ownFocused, setOwnFocused] = useState(false);
 
   const share = useShareVerse("checkin");
 
@@ -134,6 +143,25 @@ export default function CheckIn() {
   // Only the latest emotion tap may fill the list — a slow earlier fetch must
   // not land under a newer framing.
   const emotionReq = useRef(0);
+
+  // A feeling in the reader's own words (web: CheckIn.tsx). It is matched on
+  // the device against the chips and never sent, saved or tracked; only a
+  // tapped chip's id is.
+  const [ownWords, setOwnWords] = useState("");
+  const [settledWords, setSettledWords] = useState("");
+  useEffect(() => {
+    const id = setTimeout(() => setSettledWords(ownWords), MATCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [ownWords]);
+  const suggestions = useMemo(() => {
+    const byId = new Map(emotions.map((e) => [e.id, e]));
+    return matchFeelings(settledWords, [...byId.keys()]).flatMap((m) => {
+      const entry = byId.get(m.id);
+      return entry ? [entry] : [];
+    });
+  }, [emotions, settledWords]);
+  const noMatch =
+    suggestions.length === 0 && settledWords.trim().length >= FEELING_TEXT_MIN;
 
   useEffect(() => {
     track({ type: "checkin_view" });
@@ -262,7 +290,7 @@ export default function CheckIn() {
           )}
         </View>
 
-        {/* The heart: one tap, no typing, and optional. Once the verse is open
+        {/* The heart: one tap, optional, with room to say it in other words. Once the verse is open
             the chips stay at the top, compact, so a feeling can always be
             changed. Chips follow the reader's Segmented control: outlined,
             the chosen one indigo. */}
@@ -337,6 +365,102 @@ export default function CheckIn() {
               })}
             </View>
           )}
+
+          {emotions.length > 0 ? (
+            <View style={{ gap: space.sm }}>
+              <Text
+                nativeID="checkin-own-label"
+                style={{
+                  color: colors.inkSoft,
+                  fontFamily: fonts.readSemiBold,
+                  fontSize: 15,
+                  lineHeight: 21,
+                }}
+              >
+                Or describe it in your own words
+              </Text>
+              <TextInput
+                accessibilityLabel="Or describe it in your own words"
+                accessibilityLabelledBy="checkin-own-label"
+                accessibilityHint="Suggests a feeling to tap. Your words stay on this device."
+                value={ownWords}
+                onChangeText={setOwnWords}
+                onFocus={() => setOwnFocused(true)}
+                onBlur={() => setOwnFocused(false)}
+                maxLength={FEELING_TEXT_MAX}
+                placeholder="I feel…"
+                placeholderTextColor={colors.inkFaint}
+                autoComplete="off"
+                autoCorrect
+                importantForAutofill="no"
+                returnKeyType="done"
+                style={{
+                  backgroundColor: colors.cottonRaised,
+                  borderColor: ownFocused ? colors.indigo : colors.lineStrong,
+                  borderRadius: radius.md,
+                  borderWidth: 1,
+                  color: colors.ink,
+                  fontFamily: fonts.read,
+                  fontSize: typeScale.body.fontSize,
+                  minHeight: 44,
+                  paddingHorizontal: space.md,
+                  paddingVertical: space.sm,
+                }}
+              />
+              <View accessibilityLiveRegion="polite" style={{ gap: space.sm }}>
+                {suggestions.length > 0 ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: space.sm,
+                    }}
+                  >
+                    {suggestions.map((entry) => (
+                      <Pressable
+                        key={entry.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Sounds like: ${entry.label}`}
+                        onPress={() => selectEmotion(entry)}
+                        style={({ pressed }) => ({
+                          alignItems: "center",
+                          backgroundColor: pressed
+                            ? colors.indigoWash
+                            : colors.cottonRaised,
+                          borderColor: colors.lineStrong,
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          justifyContent: "center",
+                          minHeight: 44,
+                          paddingHorizontal: space.md,
+                          transform: [{ scale: pressed && !reduce ? 0.97 : 1 }],
+                        })}
+                      >
+                        <Text
+                          style={{
+                            color: colors.inkSoft,
+                            fontFamily: fonts.read,
+                            fontSize: 16,
+                            lineHeight: 21,
+                          }}
+                        >
+                          Sounds like: {entry.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+                {noMatch ? (
+                  <Text
+                    variant="muted"
+                    style={{ fontSize: 15, lineHeight: 21 }}
+                  >
+                    No close match. Pick the feeling that’s nearest above.
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
 
           {atVerse ? null : (
             <Pressable
